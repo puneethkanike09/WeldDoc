@@ -1,0 +1,712 @@
+
+
+
+
+
+
+Weld.Doc
+MVP Product Specification
+
+
+
+Welder Qualification Document Management System
+First Version — Technical Specification for Development Team
+
+
+Version:
+1.0 — MVP
+Document Type:
+Product Specification
+Audience:
+Technical Development Team
+Standards Covered:
+ASME IX, ISO 9606, AWS D1.1
+
+
+1. Product Overview
+Weld.Doc is a web-based welder qualification document management system designed for manufacturing plants and fabrication units operating with 20 to 100 welders. It digitalises the complete WPQ (Welder Performance Qualification) lifecycle — from qualification planning through certificate generation — while maintaining compliance with ASME IX, ISO 9606, and AWS D1.1 standards.
+
+1.1 Problem Statement
+Welding Engineers managing multi-standard qualification programmes today handle a heavily manual documentation workflow: preparing qualification plans, recording NDT/DT results, generating compliant certificates, tracking expiry dates across multiple standards, and presenting audit-ready proof on demand. This creates administrative burden, compliance risk, and audit friction — all solved by Weld.Doc.
+
+1.2 Primary Users
+User
+Role
+Primary Need
+Welding Engineer
+Day-to-day operator of the system
+Create qualifications, track expiry, generate certificates
+Contract Auditor
+Third-party compliance verifier
+Scan QR code, verify active status and qualification scope on-site
+Authorised Signatory
+QC Manager / Inspection Authority
+Provide stamp and signature for certificate authorisation
+
+1.3 MVP Scope
+The following five modules constitute the MVP. All other roadmap features (Weld.Procedure, Weld Map, Weld Log) are explicitly out of scope for this version.
+
+#
+Module
+Description
+M1
+Welder Master Registry
+Central welder profiles with UID and QR code generation
+M2
+Qualification Workflow
+4-step process: Plan → Test → NDT/DT → Certificate
+M3
+Range of Approval Engine
+Auto-calculation of qualified ranges per standard
+M4
+Expiry &amp; Continuity Tracker
+Per-welder expiry tracking at 6m, 2yr, 4yr with alerts
+M5
+Auditor View
+Public QR-scannable read-only certificate verification page
+
+2. Core Data Model
+The following entities form the backbone of the system. All relationships are described here to guide database schema design.
+
+2.1 Entities and Key Fields
+2.1.1 Welder
+Field
+Type
+Notes
+welder_id (PK)
+UUID
+System-generated primary key
+uid
+String
+Human-readable unique identifier, e.g. WLD-2024-001. Plant-configurable prefix.
+full_name
+String
+Full legal name as on identity document
+date_of_birth
+Date
+Used for identity verification by auditors
+id_number
+String
+Government ID / passport / employee number
+joining_date
+Date
+Date of joining the plant
+photo
+File Ref
+Profile photograph, stored as file reference
+qr_code
+Generated
+Auto-generated on profile creation, links to Auditor View URL
+status
+Enum
+Active / Inactive / Suspended
+created_by
+FK → User
+Welding Engineer who created the record
+
+2.1.2 Qualification Record (WPQ)
+Field
+Type
+Notes
+wpq_id (PK)
+UUID
+System-generated
+welder_id (FK)
+UUID
+Links to Welder entity
+standard
+Enum
+ASME_IX | ISO_9606 | AWS_D1_1
+wps_reference
+String
+Optional — WPS number if qualification is WPS-linked
+process
+Enum
+SMAW | GTAW | GMAW | FCAW | SAW | PAW
+base_material_group
+String
+Per standard material grouping (see Section 4)
+filler_material
+String
+Filler classification as per standard
+test_thickness_mm
+Decimal
+Actual thickness of test piece in mm
+test_pipe_od_mm
+Decimal
+Pipe OD if applicable; null for plate tests
+test_position
+String
+1G, 2G, 3G, 5G, 6G etc. per standard
+joint_type
+Enum
+Butt | Fillet | Both
+wpq_status
+Enum
+Draft | Pending_NDT | Approved | Expired | Superseded
+cloned_from
+UUID / null
+If cloned, references parent wpq_id
+signatory_id (FK)
+UUID
+Links to Signatory entity
+certificate_issued_date
+Date
+Date of certificate generation
+continuity_last_verified
+Date
+Date of most recent continuity verification
+
+2.1.3 Range of Approval (Auto-generated)
+Field
+Type
+Notes
+range_id (PK)
+UUID
+Auto-generated on WPQ approval
+wpq_id (FK)
+UUID
+Parent qualification record
+thickness_min_mm
+Decimal
+Minimum approved thickness
+thickness_max_mm
+Decimal
+Maximum approved thickness
+pipe_od_min_mm
+Decimal
+Minimum pipe OD if applicable
+approved_positions
+Array
+List of positions covered by this qualification
+approved_material_groups
+Array
+Material groups covered per standard rules
+approved_joint_types
+Array
+Joint types approved based on test joint
+
+2.1.4 Signatory
+Field
+Type
+Notes
+signatory_id (PK)
+UUID
+System-generated
+name
+String
+Full name of authorised signatory
+designation
+String
+e.g. QC Manager, Third Party Inspector
+organisation
+String
+Company or inspection body name
+signature_image
+File Ref
+Uploaded signature image (PNG, transparent background)
+stamp_image
+File Ref
+Uploaded stamp/seal image (PNG, transparent background)
+is_active
+Boolean
+Only active signatories appear in selection dropdown
+
+2.1.5 NDT / DT Record
+Field
+Type
+Notes
+test_id (PK)
+UUID
+System-generated
+wpq_id (FK)
+UUID
+Parent qualification record
+test_type
+Enum
+NDT | DT
+test_method
+String
+e.g. RT, UT, VT, Bend Test, Tensile Test
+result
+Enum
+Pass | Fail
+report_pdf
+File Ref
+Uploaded PDF of lab / NDT agency report
+conducted_by
+String
+Name of testing agency or laboratory
+test_date
+Date
+Date test was conducted
+
+2.1.6 Qualification Plan
+Field
+Type
+Notes
+plan_id (PK)
+UUID
+System-generated
+wpq_id (FK)
+UUID
+Links to WPQ record initiated alongside plan
+planned_date
+Date
+Intended date of practical test
+standard
+Enum
+Standard under which test will be conducted
+third_party_body
+String
+Name of approving inspection body
+approval_document
+File Ref
+Uploaded signed approval PDF from 3rd party body
+approval_status
+Enum
+Pending | Approved | Rejected
+plan_pdf
+Generated
+System-generated printable Qualification Plan PDF
+
+3. Module Specifications
+M1 — Welder Master Registry
+3.1.1 Purpose
+The central registry of all welders in the plant. Every welder gets a permanent digital profile with a unique UID and a QR code that links to their live auditor-facing certificate view.
+
+3.1.2 Functional Requirements
+FR-M1-01: Engineer can create a new welder profile by entering personal details (name, DOB, ID number, joining date) and uploading a photograph.
+FR-M1-02: System auto-generates a UID on profile creation using a configurable format (e.g. WLD-YYYY-NNN).
+FR-M1-03: System auto-generates a QR code on profile creation. QR code encodes the Auditor View URL for that welder.
+FR-M1-04: Engineer can view all welders in a filterable, sortable master list showing UID, name, overall qualification status, and active standards.
+FR-M1-05: Master list is printable as a formatted PDF.
+FR-M1-06: Engineer can mark a welder as Inactive or Suspended; these welders are flagged visually and excluded from the active count on the dashboard.
+FR-M1-07: Welder profile displays a summary of all qualification records (across all standards) with current status and next expiry date.
+
+3.1.3 UI Screens
+Welder List Screen: Tabular view with columns UID, Name, Photo, Standards (tags), Overall Status, Nearest Expiry. Filters: Status, Standard, Process. Search by name or UID.
+Welder Profile Screen: Full detail view. Sections: Personal Details, Active Qualifications (per standard), Qualification History, Documents.
+Add / Edit Welder Form: Fields as per data model. Photo upload with crop. On save, UID and QR code auto-generated and displayed.
+
+M2 — Qualification Workflow
+3.2.1 Purpose
+A structured 4-step workflow that mirrors the real-world qualification sequence: Qualification Plan → Practical Test Record → NDT/DT Results → Certificate Generation. Each step gates the next.
+
+3.2.2 Workflow Steps
+Step
+Name
+Inputs
+Output / Gate
+1
+Qualification Plan
+Standard, Process, Material Group, Test Thickness, Test Position, Joint Type, Planned Date, 3rd Party Body, WPS Reference (optional)
+Printable / downloadable Qualification Plan PDF. Upload field for signed 3rd party approval. Status moves to Approved before Step 2 is unlocked.
+2
+Test Piece Record
+Actual test thickness, actual pipe OD (if pipe), actual position, filler material, any deviation from plan
+Test record saved. Step 3 unlocked. Range of Approval Engine pre-calculates ranges (shown as preview, not finalised).
+3
+NDT / DT Results
+Upload NDT report PDF (Pass/Fail), Upload DT report PDF (Pass/Fail), testing agency name, test date
+If all results Pass: Step 4 unlocked. If any Fail: WPQ status set to Failed. Engineer must start a new qualification.
+4
+Certificate Generation
+Select Signatory from registry, confirm certificate date, review auto-populated range of approval
+WPQ certificate generated as PDF matching standard-mandated format. Stamp and signature auto-applied. Certificate downloadable and printable.
+
+3.2.3 Clone WPQ
+An engineer can clone any existing Approved WPQ to create a new qualification record for a different welder under identical test conditions. The clone pre-fills all Step 1 and Step 2 fields from the source WPQ. The engineer must select the new welder, confirm or adjust any fields, and complete the workflow from Step 1.
+FR-M2-C1: Clone option is available on any WPQ with status Approved.
+FR-M2-C2: Cloned record stores a cloned_from reference to the source WPQ for traceability.
+FR-M2-C3: Clone does not carry over NDT/DT results or certificate data from source.
+
+3.2.4 Qualification Plan PDF — Required Content
+The Qualification Plan generated in Step 1 must contain the following fields to be acceptable to third-party inspection bodies:
+Plant / company name and logo
+Welder name and UID
+Standard under which qualification is being conducted
+Welding process (SMAW, GTAW, GMAW etc.)
+Base material group and specification
+Filler material classification
+Test piece details: form (plate/pipe), thickness, pipe OD if applicable
+Test position
+Joint type
+WPS reference number (if applicable)
+Intended date of test
+Name of third party inspection body
+Signature lines: Welding Engineer, Third Party Inspector
+QR code of the welder for identification
+
+M3 — Range of Approval Engine
+3.3.1 Purpose
+The core compliance logic of Weld.Doc. Given the test parameters entered in Step 2, the engine auto-calculates what the welder is approved to weld — covering thickness range, pipe OD range, positions, material groups, and joint types — according to the rules of the selected standard.
+
+3.3.2 ASME Section IX — Range of Approval Rules
+The following rules must be implemented for the ASME IX module. These are derived from QW-452 (thickness), QW-461 (positions), and QW-423 (base metals).
+
+ASME IX — Thickness Range (QW-452.1 for Groove Welds)
+Test thickness &lt; 1.5 mm           → Approved: test thickness only
+Test thickness 1.5 mm to 10 mm    → Approved: 1.5 mm to 2T
+Test thickness &gt; 10 mm             → Approved: 5 mm to 2T (max 200 mm for unlimited)
+Test thickness ≥ 19 mm (plate/pipe) → Approved: 5 mm to unlimited (200 mm ceiling in practice)
+T = actual test piece thickness in mm
+
+ASME IX — Pipe OD Range (QW-452.3)
+Test OD &lt; 25 mm (1 inch)    → Approved: test OD and above
+Test OD 25 mm to 73 mm      → Approved: ≥ 25 mm
+Test OD ≥ 73 mm             → Approved: all diameters ≥ 73 mm
+Plate test                   → Qualified for all pipe OD ≥ 73 mm
+
+ASME IX — Position Coverage (QW-461.9 Essential Variables)
+1G (flat) plate                → 1G only
+2G (horizontal) plate          → 1G, 2G
+3G (vertical) plate            → 1G, 3G, 4G (with face and root bends)
+4G (overhead) plate            → 1G, 4G
+3G + 4G plate                  → 1G, 2G, 3G, 4G (all plate positions)
+5G pipe                        → 1G, 2G, 5G (fixed pipe)
+6G pipe                        → All positions (most comprehensive)
+2G + 5G pipe                   → All positions
+
+ASME IX — P-Number Base Metal Coverage (QW-423)
+P1 (carbon steel)              → Qualifies P1
+P1 test                        → Also qualifies P2, P3 (with restrictions)
+P8 (austenitic stainless)      → Qualifies P8 only unless additional tests
+Full P-number cross-qualification matrix to be implemented as a lookup table
+System must store and display the full approved P-number list per WPQ
+
+3.3.3 ISO 9606-1 — Range of Approval Rules
+The following rules apply to ISO 9606-1 (Steel). Extension to ISO 9606-2 (Aluminium) is a post-MVP consideration.
+
+ISO 9606-1 — Thickness Range (Table 9)
+Test thickness t &lt; 3 mm        → Approved: 0.5t to 2t
+Test thickness 3 mm ≤ t ≤ 12 mm → Approved: 3 mm to 2t
+Test thickness t &gt; 12 mm       → Approved: ≥ 3 mm (unlimited upper)
+For fillet welds: a-throat thickness rules apply separately (Table 10)
+
+ISO 9606-1 — Pipe OD Range (Table 11)
+Test OD D ≤ 25 mm              → Approved: 0.5D to 2D
+Test OD 25 &lt; D ≤ 150 mm        → Approved: ≥ 0.5D
+Test OD D &gt; 150 mm             → Approved: ≥ 75 mm (all)
+Plate qualifies pipe OD &gt; 500 mm only
+
+ISO 9606-1 — Position Coverage (Table 12)
+PA (flat)                      → PA only
+PB (horizontal-vertical fillet)→ PA, PB
+PC (horizontal butt)           → PA, PC
+PF (vertical up)               → PA, PB, PC, PD, PE, PF
+PG (vertical down)             → PG only
+PH (pipe fixed)                → PA, PB, PC, PD, PE, PF, PH
+PJ (pipe fixed overhead)       → PA, PB, PC, PD, PE, PF, PH, PJ
+H-L045 (inclined pipe)         → All positions
+
+ISO 9606-1 — Material Group Coverage (Table 1, CR ISO 15608)
+Group 1 (unalloyed steel)       → Qualifies Group 1 and 2
+Group 2 (fine grain)            → Qualifies Group 1 and 2
+Group 3 (creep resisting)       → Qualifies Group 3 only
+Group 8 (austenitic stainless)  → Qualifies Group 8 only
+Full CR ISO 15608 grouping cross-qualification matrix required as lookup table
+
+3.3.4 AWS D1.1 — Range of Approval Rules
+AWS D1.1 Structural Welding Code (Steel). Rules per Clause 4.
+
+AWS D1.1 — Thickness Range (Clause 4.9)
+Test thickness t ≤ 10 mm       → Approved: t to 2t (max 2t)
+Test thickness t &gt; 10 mm       → Approved: ≥ 3 mm (unlimited)
+Applies to complete joint penetration (CJP) groove welds
+For partial joint penetration (PJP) and fillet welds: thickness unlimited
+
+AWS D1.1 — Position Coverage (Clause 4.9, Table 4.5)
+1G (flat groove) or 1F (flat fillet) → 1G/1F only
+2G (horizontal) plate butt           → 1G, 2G
+3G (vertical) plate                  → 1G, 3G, 4G
+4G (overhead) plate                  → 1G, 4G
+3G + 4G plate                        → All plate positions
+6G pipe                              → All positions
+6GR (restricted) pipe                → All positions including T, K, Y joints
+
+AWS D1.1 — Base Metal (M-Number) Coverage (Annex M)
+M-1 Group 1 (carbon steel)    → Qualifies M-1 Group 1
+Cross-M-number qualification  → Limited; consult Table M.1
+System to implement M-number lookup table for coverage determination
+
+3.3.5 Engine Implementation Notes
+All range-of-approval logic must be implemented as a rules engine, not hardcoded conditionals. Each standard&apos;s rules should be stored in a structured configuration (JSON or database table) to allow updates when standards are revised without code changes.
+The engine must display the computed range of approval as a human-readable summary on the WPQ record (e.g. &apos;Approved for: 5 mm to 50 mm thickness, all pipe OD ≥ 73 mm, positions 1G/2G/3G/4G, P-Numbers 1, 2, 3&apos;).
+The engineer must be able to review and confirm the computed range before certificate generation. Manual override must NOT be permitted in MVP — this is a compliance protection.
+When a welder holds qualifications under multiple standards, each standard&apos;s range is stored and displayed independently on the profile.
+
+M4 — Expiry &amp; Continuity Tracker
+3.4.1 Purpose
+Tracks qualification continuity and expiry for each welder per WPQ record, according to the rules of the applicable standard. Sends automated alerts before expiry and surfaces expiring qualifications on the dashboard.
+
+3.4.2 Continuity and Expiry Rules by Standard
+Standard
+6-Month Continuity
+2-Year Renewal
+4-Year Renewal
+ASME IX
+Must have welded using the process within last 6 months. Evidence: production weld records or continuity test.
+Full re-qualification required if 6-month continuity not maintained for 2+ years.
+Not applicable as a separate milestone under ASME IX. Continuity governs.
+ISO 9606-1
+Welding Engineer or examiner confirms continuity every 6 months by reviewing production records.
+Re-examination (test piece or radiographic evidence) required every 2 years to renew certificate.
+Certificate valid maximum 3 years from issue (not 4 years). After 3 years full re-test required.
+AWS D1.1
+Must have welded using the process within last 6 months or re-qualification is required.
+If 6-month continuity lapsed, welder must re-qualify. No automatic 2-year window.
+Not a formal milestone under AWS D1.1. Continuity and lapse-triggered re-qual governs.
+
+Note: The system tracks these milestones per WPQ record, not per welder globally. A welder with three active WPQs (one per standard) will have three independent expiry timelines.
+
+3.4.3 Functional Requirements
+FR-M4-01: Dashboard widget showing count of qualifications in each status: Active, Expiring within 30 days, Expiring within 60 days, Expired.
+FR-M4-02: Per-welder expiry status is visible on the Welder Profile screen alongside each WPQ record.
+FR-M4-03: System sends email alerts to the Welding Engineer at 60 days, 30 days, and 7 days before a qualification expiry date.
+FR-M4-04: When a welder completes a continuity verification, engineer uploads supporting evidence (production record or signed form) and updates the continuity_last_verified date. This resets the 6-month clock.
+FR-M4-05: Expired qualifications are visually flagged in red on all views. The Auditor View reflects expired status in real time.
+FR-M4-06: Dashboard includes a filterable table of all upcoming expiries sortable by date, standard, and welder name. This is the printable Master Expiry List.
+
+M5 — Auditor View
+3.5.1 Purpose
+A public, read-only web page accessible by scanning the QR code on a welder&apos;s profile or certificate. No login required. Designed to be the single source of truth for on-site auditor verification.
+
+3.5.2 Functional Requirements
+FR-M5-01: Each welder has a permanent, unique Auditor View URL (e.g. welddoc.app/verify/WLD-2024-001). This URL is encoded in the QR code.
+FR-M5-02: Auditor View displays: Welder name, UID, photograph, current overall qualification status (Active / Expired), and a list of all active WPQs.
+FR-M5-03: Each active WPQ entry shows: Standard, Process, Range of Approval (human-readable summary), Certificate Issue Date, Expiry Date, Current Status.
+FR-M5-04: Auditor can tap/click any WPQ entry to view the full certificate PDF in-browser.
+FR-M5-05: If a welder is Inactive or Suspended, or all WPQs are expired, the page displays a prominent red &apos;NOT QUALIFIED&apos; banner.
+FR-M5-06: The page must be mobile-optimised for smartphone viewing on the shop floor.
+FR-M5-07: No personal sensitive data beyond what is needed for qualification verification is shown on this public page.
+
+4. Certificate Format Requirements
+Each standard mandates specific content and layout for the WPQ certificate. The system must generate PDFs that match these requirements exactly. The Welding Engineer must be able to download and print each certificate.
+
+4.1 ASME IX — WPQ Certificate Required Fields
+Per ASME Section IX, Form QW-484A (Welder Performance Qualification Record):
+Welder name, Welder stamp / UID
+Process (e.g. SMAW, GTAW)
+Welding position tested
+Base metal P-Number and Group Number
+Filler metal F-Number and A-Number
+Test piece thickness and type (plate or pipe)
+Pipe OD (if applicable)
+Visual examination result
+Bend test / RT results (reference to NDT report)
+Range qualified: thickness, diameter, process, position, base metal, filler metal
+Date of test
+Certificate date
+Signature and stamp of authorised examiner (auto-applied from signatory registry)
+QR code of welder (for on-site verification)
+
+4.2 ISO 9606-1 — WPQ Certificate Required Fields
+Per ISO 9606-1, Annex B (Welder&apos;s Qualification Certificate):
+Welder full name, date of birth, identification number
+Welding process (ISO 4063 process number and name)
+Test piece details: joint type, material group, filler material, shielding gas, heat treatment
+Test piece dimensions: thickness, pipe OD
+Welding position (ISO 6947)
+Type of weld (butt / fillet)
+Examination and testing results (with reference to test report)
+Date of welding test
+Range of qualification (per Table 9, 10, 11, 12)
+Certificate validity period (issue date to expiry date — max 3 years)
+Name and stamp of examiner / examining body
+Signature of examiner
+QR code for digital verification
+
+4.3 AWS D1.1 — WPQ Certificate Required Fields
+Per AWS D1.1, Form E-2 (Welder Qualification Test Record):
+Welder name and identification number
+Welding process
+Test position
+Base metal specification and M-Number
+Filler metal classification
+Test plate or pipe: size, thickness
+Visual inspection result
+Bend test or RT results (reference to report)
+Range qualified: process, position, base metal, filler metal, thickness, diameter
+Date qualified
+Signature of Certifying Engineer or Inspector with stamp
+QR code for digital verification
+
+5. Recommended Technology Stack
+The following stack is recommended for the MVP based on development velocity, hosting simplicity, and suitability for a web-only application with PDF generation requirements.
+
+Layer
+Recommended
+Notes
+Frontend
+Next.js (React)
+Server-side rendering aids PDF generation; familiar ecosystem
+Backend / API
+Next.js API Routes or Node.js (Express)
+Keep stack unified; REST API for all module operations
+Database
+Supabase (PostgreSQL)
+Managed Postgres with row-level security; built-in auth; file storage
+File Storage
+Supabase Storage
+For NDT/DT PDFs, signatory images, qualification plan PDFs
+PDF Generation
+React-PDF (pdfmake) or Puppeteer
+For certificate generation matching standard-mandated formats
+QR Code
+qrcode.js or qr-code-styling
+Embed in certificates and welder profile cards
+Email Alerts
+Resend or SendGrid
+For expiry notifications to Welding Engineer
+Hosting
+Vercel
+Seamless Next.js deployment; free tier adequate for MVP
+Authentication
+Supabase Auth
+Email/password for Welding Engineer login; no auth for Auditor View
+
+5.1 Architecture Notes
+The Range of Approval Engine should be implemented as a standalone service/module (separate file or microservice) so its rules can be updated independently of application logic.
+All uploaded PDFs (NDT, DT, signed qualification plans) must be stored with access control — only authenticated Welding Engineers can retrieve them. The Auditor View only surfaces the generated certificate PDF, not raw uploads.
+QR codes must encode a stable URL. Welder UIDs must never change after generation.
+The system must support multi-tenancy from the start (each plant is a separate tenant) even if the MVP serves a single plant. This avoids expensive refactoring later.
+
+6. Key User Flows
+6.1 New Welder Onboarding
+Step
+Actor
+Action
+1
+Welding Engineer
+Navigates to Welder Master → Add New Welder
+2
+System
+Displays Add Welder form
+3
+Welding Engineer
+Enters personal details, uploads photograph, saves
+4
+System
+Generates UID (e.g. WLD-2024-047) and QR code. Displays welder profile.
+5
+Welding Engineer
+Initiates New Qualification from welder profile
+
+6.2 Full Qualification Workflow
+Step
+Actor
+Action
+1
+Welding Engineer
+Selects standard, process, material group, test parameters. Saves Qualification Plan.
+2
+System
+Generates Qualification Plan PDF. Engineer downloads, prints, sends to 3rd party body.
+3
+3rd Party Body
+Signs and returns Qualification Plan (offline). Engineer uploads signed PDF.
+4
+Welding Engineer
+Marks approval status as Approved. Step 2 (Test Piece Record) unlocks.
+5
+Welding Engineer
+Enters actual test piece details. Range of Approval Engine computes preview ranges.
+6
+Welding Engineer
+Uploads NDT report PDF and DT report PDF. Marks each as Pass.
+7
+System
+All tests passed. Step 4 (Certificate) unlocks.
+8
+Welding Engineer
+Selects signatory, confirms date, reviews range of approval, generates certificate.
+9
+System
+Generates standard-compliant certificate PDF with stamp and signature applied. WPQ status → Approved.
+10
+Welding Engineer
+Downloads certificate, prints, and files. QR code on certificate is now live.
+
+6.3 Auditor On-Site Verification
+Step
+Actor
+Action
+1
+Auditor
+Approaches welder on shop floor. Requests to see ID / certificate.
+2
+Auditor
+Scans QR code on welder&apos;s certificate or ID card using phone camera.
+3
+System
+Opens Auditor View page in mobile browser. Displays welder photo, name, UID, overall status.
+4
+Auditor
+Reviews active qualifications list. Verifies standard, process, range, expiry.
+5
+Auditor
+Taps on a specific WPQ to view full certificate PDF in-browser.
+6
+Auditor
+Completes verification. No login, no account, no manual check required.
+
+7. Out of Scope for MVP
+The following features are explicitly deferred to post-MVP versions. They should not be built or designed in Version 1 to protect timeline and focus.
+
+Feature
+Rationale for Deferral
+Weld.Procedure (WPS/PQR creation)
+Separate module. Significant additional logic. Phase 2.
+Weld Map (joint mapping on PDF drawings)
+Requires drawing annotation capability. Phase 2.
+Weld Log (in-process data capture)
+Production execution layer. Phase 3.
+ISO 9606-2 (Aluminium)
+Extend after ISO 9606-1 is validated in the field.
+Mobile app (iOS/Android)
+Web-only for MVP. Mobile app post-validation.
+Multi-plant / enterprise hierarchy
+Multi-tenancy architecture in place; UI for managing multiple plants deferred.
+Automated continuity verification from production records
+Manual upload of continuity evidence sufficient for MVP.
+Third-party body login / in-system approval
+3rd party approval captured via PDF upload. In-system portal is Phase 2.
+Analytics and reporting dashboards beyond expiry tracking
+Post-MVP when sufficient usage data exists.
+
+8. Open Items Before Development Kickoff
+The following items require confirmation or input from the product owner before the development team begins implementation:
+
+#
+Open Item
+Owner
+Status
+1
+Provide values documentation for range-of-approval edge cases and material group cross-qualification matrices for all three standards
+Product Owner
+Pending
+2
+Confirm exact certificate template layouts for ASME IX (QW-484A), ISO 9606-1 (Annex B), and AWS D1.1 (Form E-2) — obtain official form samples
+Product Owner
+Pending
+3
+Confirm UID format preference (e.g. WLD-YYYY-NNN vs plant-specific prefix)
+Product Owner
+Pending
+4
+Confirm email alert recipient logic — single Welding Engineer email per plant or configurable list
+Product Owner
+Pending
+5
+Confirm whether Auditor View URL should be obscured (UUID-based) or human-readable (UID-based) for security
+Tech Lead
+Pending
+6
+Confirm company logo and branding requirements for generated certificate PDFs
+Product Owner
+Pending
+
+
+Weld.Doc MVP Product Specification — v1.0
+This document is the authoritative reference for first-version development.
