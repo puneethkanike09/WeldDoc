@@ -124,25 +124,25 @@ export function Landing() {
             </div>
           </div>
 
-          {/* Split hero media */}
+          {/* Dashboard preview — desktop + mobile, same split proportions as before */}
           <div className="mt-20 grid gap-5 lg:grid-cols-[1.4fr_0.6fr] lg:gap-6">
-            <div className="relative aspect-16/10 overflow-hidden rounded-lg bg-soft-stone lg:aspect-auto lg:min-h-[420px]">
+            <div className="relative aspect-16/10 overflow-hidden rounded-lg border border-hairline bg-white shadow-(--shadow-lift) lg:aspect-auto lg:min-h-[420px]">
               <Image
-                src="/images/hero-banner.jpg"
-                alt="Welder at work in a fabrication workshop"
+                src="/images/desktop.png"
+                alt="WeldDoc dashboard on desktop — welder registry, KPIs and charts"
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 720px"
-                className="object-cover"
+                className="object-cover object-top-left"
               />
             </div>
-            <div className="relative aspect-3/4 overflow-hidden rounded-lg bg-soft-stone lg:aspect-auto lg:min-h-[420px]">
+            <div className="relative aspect-3/4 overflow-hidden rounded-lg border border-hairline bg-white shadow-(--shadow-lift) lg:aspect-auto lg:min-h-[420px]">
               <Image
-                src="/images/card-welder.jpg"
-                alt="Welder in a fabrication workshop"
+                src="/images/mobile.png"
+                alt="WeldDoc dashboard on mobile — KPIs and qualification charts"
                 fill
                 sizes="(max-width: 1024px) 100vw, 360px"
-                className="object-cover"
+                className="object-cover object-top"
               />
             </div>
           </div>
