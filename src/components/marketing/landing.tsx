@@ -1,7 +1,6 @@
 import Image from "next/image";
 import {
   Check,
-  Minus,
   QrCode,
   FileCheck2,
   IdCard,
@@ -10,9 +9,11 @@ import {
   PieChart,
   ScanLine,
   ShieldCheck,
+  X,
 } from "lucide-react";
 import { DsButtonLink } from "@/components/marketing/ds-button";
 import { QrGlyph } from "@/components/brand/qr-glyph";
+import { NumberTicker } from "@/components/marketing/number-ticker";
 import SoftAurora from "@/components/marketing/soft-aurora";
 import { TrustMarquee } from "@/components/marketing/trust-marquee";
 
@@ -208,10 +209,14 @@ export function Landing() {
             happens. Each step unlocks the next.
           </p>
           <div className="mt-16 grid gap-px overflow-hidden rounded-md border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
-            {workflow.map((s) => (
+            {workflow.map((s, i) => (
               <article key={s.n} className="bg-deep-green p-8">
-                <span className="text-mono-label text-coral">{s.n}</span>
-                <h3 className="text-feature-heading mt-4 text-white">
+                <NumberTicker
+                  value={Number(s.n)}
+                  delayMs={i * 150}
+                  className="block font-ds-display text-[56px] font-bold leading-none text-coral sm:text-[64px]"
+                />
+                <h3 className="text-feature-heading mt-5 text-white">
                   {s.title}
                 </h3>
                 <p className="text-body mt-3 text-white/60">{s.body}</p>
@@ -293,44 +298,76 @@ export function Landing() {
         </div>
       </section>
 
-      {/* Research-table compare — pale green wash */}
+      {/* Compare — highlighted WeldDoc column lifted over pale green */}
       <section id="compare" className="section-y bg-pale-green">
-        <div className="mx-auto max-w-[900px] px-6">
-          <h2 className="text-section-heading">Focused beats bloated</h2>
-          <p className="text-body-large mt-4 text-slate">
-            WeldEye, WeldTrace and WeldNote are broad enterprise platforms. For
-            a shop on ISO 9606-1, WeldDoc is faster and easier to adopt.
-          </p>
-          <div className="mt-12 border-t border-hairline">
-            <div className="grid grid-cols-[1fr_auto_auto] items-center gap-6 border-b border-hairline py-3 sm:grid-cols-[1fr_80px_120px]">
-              <span className="text-caption text-muted-slate">Capability</span>
-              <span className="text-center text-caption text-muted-slate">
-                WeldDoc
-              </span>
-              <span className="text-center text-caption text-muted-slate">
-                Others
-              </span>
-            </div>
-            {comparison.map((row) => (
-              <div
-                key={row.label}
-                className="grid grid-cols-[1fr_auto_auto] items-center gap-6 border-b border-hairline py-5 sm:grid-cols-[1fr_80px_120px]"
-              >
-                <span className="text-body text-ink">{row.label}</span>
-                <span className="flex justify-center">
-                  <Check className="h-4 w-4 text-ink" strokeWidth={2.5} />
+        <div className="mx-auto max-w-[940px] px-6">
+          <div className="max-w-[640px]">
+            <p className="text-mono-label text-deep-green">Why WeldDoc</p>
+            <h2 className="text-section-heading mt-4">Focused beats bloated</h2>
+            <p className="text-body-large mt-5 text-slate">
+              WeldEye, WeldTrace and WeldNote are broad enterprise platforms.
+              For a shop on ISO 9606-1, WeldDoc is faster and easier to adopt.
+            </p>
+          </div>
+
+          <div className="relative mt-14">
+            {/* Lifted white card behind the WeldDoc column */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -top-5 bottom-0 right-[100px] w-[100px] rounded-2xl bg-canvas shadow-(--shadow-lift) sm:right-[150px] sm:w-[150px]"
+            />
+
+            <div className="relative z-10">
+              {/* Header */}
+              <div className="flex items-end">
+                <span className="flex-1 border-b border-deep-green/15 pb-4 text-mono-label text-slate">
+                  Capability
                 </span>
-                <span className="text-center text-caption text-slate">
-                  {row.others === true ? (
-                    <Check className="mx-auto h-4 w-4 text-muted-slate" />
-                  ) : row.others === false ? (
-                    <Minus className="mx-auto h-4 w-4 text-muted-slate" />
-                  ) : (
-                    row.others
-                  )}
+                <span className="w-[100px] pb-4 text-center font-ds-display text-[15px] font-semibold text-deep-green sm:w-[150px]">
+                  WeldDoc
+                </span>
+                <span className="w-[100px] border-b border-deep-green/15 pb-4 text-center text-caption text-muted-slate sm:w-[150px]">
+                  Others
                 </span>
               </div>
-            ))}
+
+              {/* Rows */}
+              {comparison.map((row, i) => (
+                <div key={row.label} className="flex items-center">
+                  <span
+                    className={`flex-1 py-5 text-body text-ink ${
+                      i < comparison.length - 1
+                        ? "border-b border-deep-green/10"
+                        : ""
+                    }`}
+                  >
+                    {row.label}
+                  </span>
+                  <span className="flex w-[100px] justify-center py-5 sm:w-[150px]">
+                    <span className="grid h-7 w-7 place-items-center rounded-full bg-deep-green">
+                      <Check className="h-4 w-4 text-white" strokeWidth={2.5} />
+                    </span>
+                  </span>
+                  <span
+                    className={`flex w-[100px] items-center justify-center px-2 py-5 text-center sm:w-[150px] ${
+                      i < comparison.length - 1
+                        ? "border-b border-deep-green/10"
+                        : ""
+                    }`}
+                  >
+                    {row.others === true ? (
+                      <Check className="h-4 w-4 text-muted-slate" strokeWidth={2} />
+                    ) : row.others === false ? (
+                      <X className="h-4 w-4 text-muted-slate/50" strokeWidth={2} />
+                    ) : (
+                      <span className="text-micro leading-snug text-slate">
+                        {row.others}
+                      </span>
+                    )}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
