@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
-import { PageIntro } from "@/components/app/page-intro";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { ReportBuilder } from "../report-builder";
@@ -30,12 +29,11 @@ export default async function NewReportPage() {
 
   return (
     <>
-      <PageHeader title="New qualification test report" />
+      <PageHeader
+        title="New qualification test report"
+        description="Group multiple welders into one batch test session. A sequential report number is assigned automatically."
+      />
       <div className="px-8 py-8">
-        <PageIntro className="mb-6">
-          Group multiple welders into one batch test session. A sequential report
-          number is assigned automatically.
-        </PageIntro>
         <Link
           href="/reports"
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-graphite hover:text-onyx"

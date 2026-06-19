@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
-import { PageIntro } from "@/components/app/page-intro";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import {
@@ -92,7 +91,10 @@ export default async function QualifyPage({
 
   return (
     <>
-      <PageHeader title="Qualification workflow">
+      <PageHeader
+        title="Qualification workflow"
+        description={`${welder.full_name} · ${welder.uid}`}
+      >
         {legacyMode ? (
           <Link
             href={`/welders/${id}/qualify?mode=new`}
@@ -113,9 +115,6 @@ export default async function QualifyPage({
       </PageHeader>
 
       <div className="px-8 py-8">
-        <PageIntro className="mb-6">
-          {welder.full_name} · {welder.uid}
-        </PageIntro>
         <Link
           href={`/welders/${id}`}
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-graphite hover:text-onyx"

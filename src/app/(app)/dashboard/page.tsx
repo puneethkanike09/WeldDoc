@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/app/page-header";
-import { PageIntro } from "@/components/app/page-intro";
 import { AddWelderButton } from "@/components/app/add-welder-button";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/server";
@@ -104,12 +103,11 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <PageHeader title="Dashboard">
+      <PageHeader title="Dashboard" description={`Welcome back, ${name}.`}>
         <AddWelderButton />
       </PageHeader>
 
       <div className="space-y-6 px-8 py-8">
-        <PageIntro>Welcome back, {name}.</PageIntro>
         {/* KPIs */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <DashboardStat

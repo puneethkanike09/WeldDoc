@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
-import { PageIntro } from "@/components/app/page-intro";
 import { AddWelderButton } from "@/components/app/add-welder-button";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
@@ -44,13 +43,13 @@ export default async function WeldersPage() {
 
   return (
     <>
-      <PageHeader title="Welders">
+      <PageHeader
+        title="Welders"
+        description="Your central welder registry. Search, filter and open a profile."
+      >
         <AddWelderButton />
       </PageHeader>
       <div className="px-8 py-8">
-        <PageIntro className="mb-6">
-          Your central welder registry. Search, filter and open a profile.
-        </PageIntro>
         {rows.length === 0 ? (
           <EmptyState />
         ) : (

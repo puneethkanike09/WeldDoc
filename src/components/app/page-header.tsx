@@ -2,10 +2,12 @@ import { cn } from "@/lib/utils";
 
 export function PageHeader({
   title,
+  description,
   children,
   className,
 }: {
   title: string;
+  description?: React.ReactNode;
   children?: React.ReactNode;
   className?: string;
 }) {
@@ -16,10 +18,20 @@ export function PageHeader({
         className,
       )}
     >
-      <h1 className="font-display text-[26px] font-bold tracking-tight text-onyx">
-        {title}
-      </h1>
-      {children && <div className="flex items-center gap-2.5">{children}</div>}
+      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+        <h1 className="font-display text-[26px] font-bold tracking-tight text-onyx">
+          {title}
+        </h1>
+        {description && (
+          <p className="text-[15px] text-graphite">
+            <span className="mr-2.5 text-brand-red">—</span>
+            {description}
+          </p>
+        )}
+      </div>
+      {children && (
+        <div className="flex shrink-0 items-center gap-2.5">{children}</div>
+      )}
     </div>
   );
 }
