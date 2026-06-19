@@ -18,13 +18,17 @@ import {
   FILLER_TYPES,
   REVALIDATION_METHODS,
 } from "@/lib/iso9606/constants";
-import { Loader2, UploadCloud } from "lucide-react";
+import { FileArchive, Loader2, UploadCloud } from "lucide-react";
 
 function Submit() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+      {pending ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <FileArchive className="h-4 w-4" />
+      )}
       Save legacy qualification
     </Button>
   );

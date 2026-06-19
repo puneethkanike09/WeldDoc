@@ -15,7 +15,7 @@ import {
   MATERIAL_GROUPS,
 } from "@/lib/iso9606/constants";
 import type { JointCategory, ProductType, Signatory } from "@/types/db";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { FilePlus2, Loader2, Plus, Trash2 } from "lucide-react";
 
 interface WelderOption {
   id: string;
@@ -60,7 +60,11 @@ function Submit() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+      {pending ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <FilePlus2 className="h-4 w-4" />
+      )}
       Create report &amp; qualify welders
     </Button>
   );

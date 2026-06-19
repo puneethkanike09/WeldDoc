@@ -26,11 +26,13 @@ import type {
 } from "@/types/db";
 import {
   ArrowLeft,
-  Pencil,
+  Copy,
+  FileDown,
   IdCard,
+  Pencil,
   Plus,
   ShieldCheck,
-  Copy,
+  Workflow,
 } from "lucide-react";
 
 export const metadata: Metadata = { title: "Welder profile" };
@@ -253,7 +255,7 @@ export default async function WelderProfilePage({
                             variant="ghost"
                             size="sm"
                           >
-                            Open workflow
+                            <Workflow className="h-4 w-4" /> Open workflow
                           </ButtonLink>
                           {q.wpq_status === "Approved" && (
                             <ButtonLink
@@ -261,7 +263,7 @@ export default async function WelderProfilePage({
                               variant="subtle"
                               size="sm"
                             >
-                              Certificate PDF
+                              <FileDown className="h-4 w-4" /> Certificate PDF
                             </ButtonLink>
                           )}
                           {q.wpq_status === "Approved" && (

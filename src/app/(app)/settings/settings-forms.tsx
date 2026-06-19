@@ -4,14 +4,19 @@ import { useFormStatus } from "react-dom";
 import { Input, Textarea, Field } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, UploadCloud } from "lucide-react";
+import { Loader2, Save as SaveIcon, UploadCloud, UserPlus } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { Organization } from "@/types/db";
 
-function Save({ label }: { label: string }) {
+function Save({ label, icon: Icon }: { label: string; icon: LucideIcon }) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+      {pending ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Icon className="h-4 w-4" />
+      )}
       {label}
     </Button>
   );
@@ -61,7 +66,7 @@ export function OrgSettingsForm({
         />
       </Field>
       <div className="flex justify-end">
-        <Save label="Save settings" />
+        <Save label="Save settings" icon={SaveIcon} />
       </div>
     </form>
   );
@@ -94,7 +99,7 @@ export function SignatoryForm({ action }: { action: (fd: FormData) => void }) {
         </Field>
       </div>
       <div className="flex justify-end">
-        <Save label="Add signatory" />
+        <Save label="Add signatory" icon={UserPlus} />
       </div>
     </form>
   );

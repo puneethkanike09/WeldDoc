@@ -11,7 +11,11 @@ function Submit() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" size="sm" disabled={pending}>
-      {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+      {pending ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <ShieldPlus className="h-4 w-4" />
+      )}
       Log entry
     </Button>
   );

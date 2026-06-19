@@ -10,13 +10,24 @@ import { Card, CardBody } from "@/components/ui/card";
 import { LocationSelect } from "@/components/app/location-select";
 import { ID_METHODS } from "@/lib/iso9606/constants";
 import type { Welder } from "@/types/db";
-import { Loader2, UploadCloud } from "lucide-react";
+import { Loader2, Save as SaveIcon, UploadCloud, UserPlus } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-function SubmitButton({ label }: { label: string }) {
+function SubmitButton({
+  label,
+  icon: Icon,
+}: {
+  label: string;
+  icon: LucideIcon;
+}) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+      {pending ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Icon className="h-4 w-4" />
+      )}
       {label}
     </Button>
   );
@@ -165,7 +176,10 @@ export function WelderForm({
         <Label className="mr-auto mb-0 text-steel">
           UID &amp; QR code are generated automatically on save.
         </Label>
-        <SubmitButton label={mode === "create" ? "Create welder" : "Save changes"} />
+        <SubmitButton
+          label={mode === "create" ? "Create welder" : "Save changes"}
+          icon={mode === "create" ? UserPlus : SaveIcon}
+        />
       </div>
     </form>
   );

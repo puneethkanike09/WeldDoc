@@ -33,15 +33,20 @@ import type {
   Signatory,
 } from "@/types/db";
 import { cn } from "@/lib/utils";
-import { Check, Loader2, UploadCloud } from "lucide-react";
+import { Check, Loader2, Save, ShieldCheck, UploadCloud } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 const STEPS = ["Plan", "Test piece", "NDT / DT", "Certificate"] as const;
 
-function Submit({ label }: { label: string }) {
+function Submit({ label, icon: Icon }: { label: string; icon: LucideIcon }) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+      {pending ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Icon className="h-4 w-4" />
+      )}
       {label}
     </Button>
   );
@@ -219,7 +224,7 @@ export function PlanStep({
             </Field>
           </div>
           <div className="flex justify-end">
-            <Submit label="Save & continue" />
+            <Submit label="Save & continue" icon={Save} />
           </div>
         </CardBody>
       </Card>
@@ -398,7 +403,7 @@ export function TestStep({
           )}
 
           <div className="flex justify-end">
-            <Submit label="Save & continue" />
+            <Submit label="Save & continue" icon={Save} />
           </div>
         </CardBody>
       </Card>
@@ -468,7 +473,7 @@ export function NdtStep({
           </details>
 
           <div className="flex justify-end">
-            <Submit label="Save results" />
+            <Submit label="Save results" icon={Check} />
           </div>
         </CardBody>
       </Card>
@@ -626,7 +631,7 @@ export function CertificateStep({
             <Badge tone="active">
               <Check className="h-3.5 w-3.5" /> All required tests passed
             </Badge>
-            <Submit label="Issue certificate" />
+            <Submit label="Issue certificate" icon={ShieldCheck} />
           </div>
         </CardBody>
       </Card>

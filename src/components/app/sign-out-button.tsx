@@ -58,7 +58,10 @@ export function SignOutButton() {
                 Signing out…
               </>
             ) : (
-              "Sign out"
+              <>
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </>
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

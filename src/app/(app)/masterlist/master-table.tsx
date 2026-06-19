@@ -77,10 +77,10 @@ export function MasterTable({ rows }: { rows: MasterRow[] }) {
           <option value="FW">Fillet weld</option>
         </Select>
         <div className="flex gap-2">
-          <ButtonLink href="/api/masterlist/export?format=csv" variant="ghost" size="md">
+          <ButtonLink href="/api/masterlist/export?format=csv">
             <FileSpreadsheet className="h-4 w-4" /> Excel
           </ButtonLink>
-          <ButtonLink href="/api/masterlist/export?format=pdf" variant="ghost" size="md">
+          <ButtonLink href="/api/masterlist/export?format=pdf">
             <FileDown className="h-4 w-4" /> PDF
           </ButtonLink>
         </div>

@@ -183,9 +183,8 @@ export function Landing() {
               return (
                 <article
                   key={p.title}
-                  className={`relative flex flex-col overflow-hidden rounded-lg p-7 ${span} ${
-                    featured ? "bg-deep-green text-white" : "bg-soft-stone"
-                  }`}
+                  className={`relative flex flex-col overflow-hidden rounded-lg p-7 ${span} ${featured ? "bg-deep-green text-white" : "bg-soft-stone"
+                    }`}
                 >
                   <p.icon
                     className={`h-5 w-5 ${featured ? "text-coral" : "text-ink"}`}
@@ -201,21 +200,18 @@ export function Landing() {
                     {p.title}
                   </h3>
                   <ul
-                    className={`mt-5 flex-1 space-y-2.5 border-t pt-5 ${
-                      featured ? "border-white/15" : "border-hairline"
-                    }`}
+                    className={`mt-5 flex-1 space-y-2.5 border-t pt-5 ${featured ? "border-white/15" : "border-hairline"
+                      }`}
                   >
                     {p.points.map((pt) => (
                       <li
                         key={pt}
-                        className={`flex items-start gap-2 text-body ${
-                          featured ? "text-white/70" : "text-slate"
-                        }`}
+                        className={`flex items-start gap-2 text-body ${featured ? "text-white/70" : "text-slate"
+                          }`}
                       >
                         <Check
-                          className={`mt-0.5 h-4 w-4 shrink-0 ${
-                            featured ? "text-coral" : "text-ink"
-                          }`}
+                          className={`mt-0.5 h-4 w-4 shrink-0 ${featured ? "text-coral" : "text-ink"
+                            }`}
                           strokeWidth={2}
                         />
                         {pt}
@@ -382,11 +378,10 @@ export function Landing() {
               {comparison.map((row, i) => (
                 <div key={row.label} className="flex items-center">
                   <span
-                    className={`flex-1 py-5 text-body text-ink ${
-                      i < comparison.length - 1
+                    className={`flex-1 py-5 text-body text-ink ${i < comparison.length - 1
                         ? "border-b border-deep-green/10"
                         : ""
-                    }`}
+                      }`}
                   >
                     {row.label}
                   </span>
@@ -396,11 +391,10 @@ export function Landing() {
                     </span>
                   </span>
                   <span
-                    className={`flex w-[100px] items-center justify-center px-2 py-5 text-center sm:w-[150px] ${
-                      i < comparison.length - 1
+                    className={`flex w-[100px] items-center justify-center px-2 py-5 text-center sm:w-[150px] ${i < comparison.length - 1
                         ? "border-b border-deep-green/10"
                         : ""
-                    }`}
+                      }`}
                   >
                     {row.others === true ? (
                       <Check className="h-4 w-4 text-muted-slate" strokeWidth={2} />
