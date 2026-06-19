@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
+import { PageIntro } from "@/components/app/page-intro";
 import { Card, CardBody, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,11 +31,11 @@ export default async function SettingsPage() {
 
   return (
     <>
-      <PageHeader
-        title="Settings"
-        description="Organisation details, alert recipients and certificate signatories."
-      />
+      <PageHeader title="Settings" />
       <div className="space-y-8 px-8 py-8">
+        <PageIntro>
+          Organisation details, alert recipients and certificate signatories.
+        </PageIntro>
         <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
           <Card>
             <CardBody className="space-y-5">

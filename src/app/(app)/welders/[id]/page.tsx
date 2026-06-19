@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
+import { PageIntro } from "@/components/app/page-intro";
 import { ButtonLink, Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody } from "@/components/ui/card";
@@ -85,7 +86,7 @@ export default async function WelderProfilePage({
 
   return (
     <>
-      <PageHeader title={w.full_name} description={`UID ${w.uid}`}>
+      <PageHeader title={w.full_name}>
         <ButtonLink href={`/welders/${id}/edit`} variant="ghost" size="sm">
           <Pencil className="h-4 w-4" /> Edit
         </ButtonLink>
@@ -95,6 +96,7 @@ export default async function WelderProfilePage({
       </PageHeader>
 
       <div className="px-8 py-8">
+        <PageIntro className="mb-6">UID {w.uid}</PageIntro>
         <Link
           href="/welders"
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-graphite hover:text-onyx"

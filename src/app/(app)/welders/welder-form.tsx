@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
-import { Input, Select, Field, Label } from "@/components/ui/input";
+import { Input, Field, Label } from "@/components/ui/input";
+import { Select } from "@/components/sui/select";
+import { DatePicker } from "@/components/sui/date-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { LocationSelect } from "@/components/app/location-select";
@@ -57,10 +59,11 @@ export function WelderForm({
               />
             </Field>
             <Field label="Date of birth">
-              <Input
-                type="date"
+              <DatePicker
                 name="date_of_birth"
                 defaultValue={welder?.date_of_birth ?? ""}
+                captionLayout="dropdown"
+                placeholder="Select date of birth"
               />
             </Field>
             <div className="sm:col-span-2">

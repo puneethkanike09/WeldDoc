@@ -2,7 +2,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const base =
-  "inline-flex items-center justify-center transition-opacity duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-blue";
+  "inline-flex cursor-pointer items-center justify-center transition-opacity duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-blue";
 
 type Variant = "primary" | "primary-on-dark" | "secondary" | "secondary-on-dark";
 
@@ -26,7 +26,7 @@ export function DsButtonLink({
 
 const variants: Record<Variant, string> = {
   primary:
-    "rounded-pill bg-primary px-6 py-3 text-button text-white hover:opacity-90 min-h-[44px]",
+    "rounded-pill bg-onyx px-6 py-3 text-button text-white hover:opacity-90 min-h-[44px]",
   "primary-on-dark":
     "rounded-pill bg-canvas px-6 py-3 text-button text-ink hover:opacity-90 min-h-[44px]",
   secondary:

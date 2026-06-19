@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/app/page-header";
+import { PageIntro } from "@/components/app/page-intro";
+import { AddWelderButton } from "@/components/app/add-welder-button";
 import { Badge } from "@/components/ui/badge";
-import { ButtonLink } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import {
@@ -13,8 +14,8 @@ import {
 import { processLabel } from "@/lib/iso9606/constants";
 import { formatDate } from "@/lib/utils";
 import { DonutCard, type Slice } from "@/components/app/dashboard-charts";
+import { DashboardStat } from "@/components/app/dashboard-stat";
 import type { QualificationRecord, Welder } from "@/types/db";
-import { Users, ShieldCheck, AlertTriangle, CalendarClock } from "lucide-react";
 
 export default async function DashboardPage() {
   const { org, profile, email } = await requireSession();
@@ -103,38 +104,38 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <PageHeader title="Dashboard" description={`Welcome back, ${name}.`}>
-        <ButtonLink href="/welders/new" size="sm">
-          Add welder
-        </ButtonLink>
+      <PageHeader title="Dashboard">
+        <AddWelderButton />
       </PageHeader>
 
       <div className="space-y-6 px-8 py-8">
-        {/* Stat cards */}
+        <PageIntro>Welcome back, {name}.</PageIntro>
+        {/* KPIs */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Stat
-            icon={Users}
-            label="Welders"
+          <DashboardStat
+            tone="brand"
+            label="Total welders"
             value={welders.length}
-            tint="var(--color-sapphire)"
+            hint="Registered in your organisation"
+            href="/welders"
           />
-          <Stat
-            icon={ShieldCheck}
+          <DashboardStat
+            tone="active"
             label="Active qualifications"
             value={activeQuals}
-            tint="var(--color-active-ink)"
+            hint={`${approved.length} approved on record`}
           />
-          <Stat
-            icon={CalendarClock}
-            label="Expiring ≤ 60 days"
+          <DashboardStat
+            tone="warning"
+            label="Expiring soon"
             value={expiringSoon}
-            tint="var(--color-marigold)"
+            hint="Within the next 60 days"
           />
-          <Stat
-            icon={AlertTriangle}
-            label="Expired / overdue"
+          <DashboardStat
+            tone="danger"
+            label="Overdue"
             value={overdue}
-            tint="var(--color-expired)"
+            hint={overdue > 0 ? "Needs revalidation or continuity" : "All clear"}
           />
         </div>
 
@@ -229,33 +230,6 @@ export default async function DashboardPage() {
         </div>
       </div>
     </>
-  );
-}
-
-function Stat({
-  icon: Icon,
-  label,
-  value,
-  tint,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: number;
-  tint: string;
-}) {
-  return (
-    <div className="rounded-[var(--radius-card)] border border-silver bg-white p-5">
-      <span
-        className="inline-grid h-10 w-10 place-items-center rounded-[10px]"
-        style={{ backgroundColor: `${tint}1a`, color: tint }}
-      >
-        <Icon className="h-5 w-5" />
-      </span>
-      <p className="mt-4 font-display text-[32px] font-bold leading-none tracking-tight text-onyx">
-        {value}
-      </p>
-      <p className="mt-1.5 text-[14px] text-graphite">{label}</p>
-    </div>
   );
 }
 

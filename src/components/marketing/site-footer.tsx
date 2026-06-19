@@ -2,7 +2,7 @@ import { DsButtonLink } from "@/components/marketing/ds-button";
 
 export function SiteFooter() {
   return (
-    <footer className="relative overflow-hidden bg-primary text-white">
+    <footer className="relative overflow-hidden bg-onyx text-white">
       {/* footer-newsletter block */}
       <div className="relative z-10 border-b border-white/10">
         <div className="mx-auto max-w-[1280px] px-6 py-16">

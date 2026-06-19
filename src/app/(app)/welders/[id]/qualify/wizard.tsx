@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useFormStatus } from "react-dom";
-import { Input, Select, Textarea, Field } from "@/components/ui/input";
+import { Input, Textarea, Field } from "@/components/ui/input";
+import { Select } from "@/components/sui/select";
+import { DatePicker } from "@/components/sui/date-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -184,8 +186,7 @@ export function PlanStep({
               />
             </Field>
             <Field label="Date of welding test">
-              <Input
-                type="date"
+              <DatePicker
                 name="date_of_welding"
                 defaultValue={wpq?.date_of_welding ?? ""}
               />
@@ -512,8 +513,7 @@ function TestRow({
         </Select>
       </Field>
       <Field label="Test date">
-        <Input
-          type="date"
+        <DatePicker
           name={`test_date__${method}`}
           defaultValue={existing?.test_date ?? ""}
         />
@@ -571,8 +571,7 @@ export function CertificateStep({
 
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Certificate date">
-              <Input
-                type="date"
+              <DatePicker
                 name="certificate_date"
                 defaultValue={
                   wpq.certificate_issued_date ??

@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Input, Select } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/sui/select";
 import { formatDate } from "@/lib/utils";
 import { STATUS_TONE, type WelderSummary } from "@/lib/welder-status";
 import { Search } from "lucide-react";

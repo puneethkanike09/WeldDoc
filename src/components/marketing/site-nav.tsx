@@ -21,14 +21,18 @@ export function SiteNav() {
         </span>
       </div>
 
-      {/* global nav — logo left, menu center, actions right */}
+      {/* global nav — logo left, menu center (desktop), actions right */}
       <div className="border-b border-hairline">
         <div className="mx-auto grid h-16 max-w-[1280px] grid-cols-[1fr_auto_1fr] items-center px-6">
-          <Link href="/" aria-label="WeldDoc home" className="justify-self-start">
+          <Link
+            href="/"
+            aria-label="WeldDoc home"
+            className="col-start-1 justify-self-start"
+          >
             <Logo />
           </Link>
 
-          <nav className="hidden items-center gap-8 md:flex">
+          <nav className="col-start-2 hidden items-center gap-8 md:flex">
             {links.map((l) => (
               <Link
                 key={l.href}
@@ -40,7 +44,7 @@ export function SiteNav() {
             ))}
           </nav>
 
-          <div className="flex items-center justify-self-end gap-5">
+          <div className="col-start-3 flex items-center justify-self-end gap-5">
             <Link
               href="/login"
               className="hidden text-body text-ink sm:inline-flex"

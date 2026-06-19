@@ -317,7 +317,7 @@ export function Landing() {
               </div>
 
               {/* Live status result */}
-              <div className="rounded-md bg-primary p-5 text-white">
+              <div className="rounded-md bg-onyx p-5 text-white">
                 <p className="text-mono-label text-white/50">Live status</p>
                 <div className="mt-3 flex items-center gap-2">
                   <span className="inline-flex items-center gap-1.5 rounded-sm bg-active/30 px-2 py-1 text-micro text-[#b8e6bc]">

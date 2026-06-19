@@ -1,7 +1,9 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { Input, Select, Field } from "@/components/ui/input";
+import { Input, Field } from "@/components/ui/input";
+import { Select } from "@/components/sui/select";
+import { DatePicker } from "@/components/sui/date-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import {
@@ -120,7 +122,7 @@ export function LegacyForm({ action }: { action: (fd: FormData) => void }) {
               <Input type="number" step="0.1" name="pipe_od_mm" />
             </Field>
             <Field label="Date of initial qualification">
-              <Input type="date" name="date_of_welding" required />
+              <DatePicker name="date_of_welding" required />
             </Field>
             <Field label="Revalidation method (cl. 9.3)">
               <Select name="revalidation_method" defaultValue="9.3b">

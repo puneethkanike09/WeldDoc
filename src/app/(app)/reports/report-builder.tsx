@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { Input, Select, Textarea, Field } from "@/components/ui/input";
+import { Input, Textarea, Field } from "@/components/ui/input";
+import { Select } from "@/components/sui/select";
+import { DatePicker } from "@/components/sui/date-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import {
@@ -129,8 +131,7 @@ export function ReportBuilder({
               </Select>
             </Field>
             <Field label="Test date">
-              <Input
-                type="date"
+              <DatePicker
                 name="test_date"
                 defaultValue={new Date().toISOString().slice(0, 10)}
               />

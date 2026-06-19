@@ -2,12 +2,10 @@ import { cn } from "@/lib/utils";
 
 export function PageHeader({
   title,
-  description,
   children,
   className,
 }: {
   title: string;
-  description?: string;
   children?: React.ReactNode;
   className?: string;
 }) {
@@ -18,14 +16,9 @@ export function PageHeader({
         className,
       )}
     >
-      <div>
-        <h1 className="font-display text-[26px] font-bold tracking-tight text-onyx">
-          {title}
-        </h1>
-        {description && (
-          <p className="mt-1 text-[15px] text-graphite">{description}</p>
-        )}
-      </div>
+      <h1 className="font-display text-[26px] font-bold tracking-tight text-onyx">
+        {title}
+      </h1>
       {children && <div className="flex items-center gap-2.5">{children}</div>}
     </div>
   );

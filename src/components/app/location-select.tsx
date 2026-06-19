@@ -1,8 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Select, Input, Field } from "@/components/ui/input";
+import { toast } from "sonner";
+import { Input, Field } from "@/components/ui/input";
+import { Select } from "@/components/sui/select";
+import { Combobox, type ComboboxOption } from "@/components/sui/combobox";
 import { Loader2 } from "lucide-react";
+
+const toOptions = (names: string[]): ComboboxOption[] =>
+  names.map((n) => ({ value: n, label: n }));
 
 const API = "https://countriesnow.space/api/v0.1";
 
@@ -55,7 +61,13 @@ export function LocationSelect({
           .sort();
         setCountries(names);
       })
-      .catch(() => active && setError("Could not load countries."));
+      .catch(() => {
+        if (!active) return;
+        setError("Could not load countries.");
+        toast.error("Couldn't load the country list", {
+          description: "Check your connection and reopen the form.",
+        });
+      });
     return () => {
       active = false;
     };
@@ -83,7 +95,11 @@ export function LocationSelect({
           .sort();
         setStates(names);
       })
-      .catch(() => active && setError("Could not load states."))
+      .catch(() => {
+        if (!active) return;
+        setError("Could not load states.");
+        toast.error("Couldn't load states for this country");
+      })
       .finally(() => active && setLoadingStates(false));
     return () => {
       active = false;
@@ -123,46 +139,33 @@ export function LocationSelect({
       <input type="hidden" name={name} value={combined} />
 
       <Field label="Country">
-        <Select
+        <Combobox
+          options={toOptions(countries)}
           value={country}
-          onChange={(e) => {
-            setCountry(e.target.value);
+          placeholder="Select country"
+          searchPlaceholder="Search countries…"
+          emptyText="No country found."
+          onChange={(v) => {
+            setCountry(v);
             setState("");
             setDistrict("");
           }}
-        >
-          <option value="">Select country</option>
-          {countries.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </Select>
+        />
       </Field>
 
       <Field label="State / region">
-        <div className="relative">
-          <Select
-            value={state}
-            disabled={!country || loadingStates}
-            onChange={(e) => {
-              setState(e.target.value);
-              setDistrict("");
-            }}
-          >
-            <option value="">
-              {loadingStates ? "Loading…" : "Select state"}
-            </option>
-            {states.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </Select>
-          {loadingStates && (
-            <Loader2 className="pointer-events-none absolute right-9 top-3.5 h-4 w-4 animate-spin text-steel" />
-          )}
-        </div>
+        <Combobox
+          options={toOptions(states)}
+          value={state}
+          disabled={!country || loadingStates}
+          placeholder={loadingStates ? "Loading…" : "Select state"}
+          searchPlaceholder="Search states…"
+          emptyText="No state found."
+          onChange={(v) => {
+            setState(v);
+            setDistrict("");
+          }}
+        />
       </Field>
 
       <Field label="District / city">

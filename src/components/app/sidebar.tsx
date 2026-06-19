@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/brand/logo";
-import { signOut } from "@/app/(app)/actions";
+import { SignOutButton } from "@/components/app/sign-out-button";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -11,7 +11,6 @@ import {
   FileStack,
   Table2,
   Settings,
-  LogOut,
 } from "lucide-react";
 
 const nav = [
@@ -80,15 +79,7 @@ export function Sidebar({
             <p className="truncate text-xs text-steel">Welding Engineer</p>
           </div>
         </div>
-        <form action={signOut}>
-          <button
-            type="submit"
-            className="mt-1 flex w-full items-center gap-3 rounded-[10px] px-3 py-2.5 text-[14px] font-medium text-graphite transition-colors hover:bg-onyx/5 hover:text-onyx"
-          >
-            <LogOut className="h-[18px] w-[18px]" />
-            Sign out
-          </button>
-        </form>
+        <SignOutButton />
       </div>
     </aside>
   );

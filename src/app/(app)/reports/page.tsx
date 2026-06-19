@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
+import { PageIntro } from "@/components/app/page-intro";
 import { ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody } from "@/components/ui/card";
@@ -38,16 +39,17 @@ export default async function ReportsPage() {
 
   return (
     <>
-      <PageHeader
-        title="Test reports"
-        description="Batch 'Welder Qualification Details' reports as per EN ISO 9606-1."
-      >
+      <PageHeader title="Test reports">
         <ButtonLink href="/reports/new">
           <FilePlus2 className="h-4 w-4" /> New report
         </ButtonLink>
       </PageHeader>
 
       <div className="px-8 py-8">
+        <PageIntro className="mb-6">
+          Batch &apos;Welder Qualification Details&apos; reports as per EN ISO
+          9606-1.
+        </PageIntro>
         {rows.length === 0 ? (
           <div className="rounded-[var(--radius-card)] border border-dashed border-silver bg-white px-6 py-16 text-center">
             <FileStack className="mx-auto h-8 w-8 text-steel" />

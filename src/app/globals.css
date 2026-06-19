@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "react-day-picker/style.css";
 
 @theme {
   /* WeldDoc brand palette (Weld. red + Doc black) */
@@ -59,7 +60,6 @@
 
   /* Marketing surfaces — rebranded to red/black */
   --color-cohere-black: #161616;
-  --color-primary: #161616;
   --color-deep-green: #161616;
   --color-dark-navy: #161616;
   --color-action-blue: #1863dc;
@@ -97,6 +97,73 @@
   --color-brand-pink: #ffbbb4;
 }
 
+/* shadcn/ui token layer — mapped to the WeldDoc red/black brand */
+:root {
+  --background: #ffffff;
+  --foreground: #161616;
+  --card: #ffffff;
+  --card-foreground: #161616;
+  --popover: #ffffff;
+  --popover-foreground: #161616;
+  --primary: #f90a08;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f1f2;
+  --secondary-foreground: #161616;
+  --muted: #f1f1f2;
+  --muted-foreground: #686868;
+  --accent: #f1f1f2;
+  --accent-foreground: #161616;
+  --destructive: #de181a;
+  --destructive-foreground: #ffffff;
+  --border: #e2e2e4;
+  --input: #e2e2e4;
+  --ring: #f90a08;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+/* react-day-picker (DatePicker) — brand red accents */
+.rdp-weld {
+  --rdp-accent-color: #f90a08;
+  --rdp-accent-background-color: #fff4f3;
+  --rdp-today-color: #f90a08;
+  --rdp-font-family: var(--font-sans);
+  --rdp-day-width: 2.25rem;
+  --rdp-day-height: 2.25rem;
+  margin: 0;
+}
+
+.rdp-weld .rdp-day_button {
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.rdp-weld .rdp-button_previous,
+.rdp-weld .rdp-button_next,
+.rdp-weld .rdp-dropdown_root button {
+  cursor: pointer;
+}
+
 @layer base {
   html {
     -webkit-font-smoothing: antialiased;
@@ -123,6 +190,21 @@
   h6 {
     font-family: var(--font-display);
     letter-spacing: -0.01em;
+  }
+
+  a[href],
+  button:not(:disabled),
+  select:not(:disabled),
+  summary,
+  label:has(input[type="checkbox"]),
+  label:has(input[type="radio"]),
+  label:has(input[type="file"]) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  select:disabled {
+    cursor: not-allowed;
   }
 }
 

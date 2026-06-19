@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
+import { PageIntro } from "@/components/app/page-intro";
 import { ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody } from "@/components/ui/card";
@@ -88,18 +89,17 @@ export default async function ReportDetailPage({
 
   return (
     <>
-      <PageHeader
-        title={report.report_number}
-        description={`Welder Qualification Details · ${
-          isBW ? "Butt weld" : "Fillet weld"
-        } · ${formatDate(report.test_date)}`}
-      >
+      <PageHeader title={report.report_number}>
         <ButtonLink href={`/api/reports/${id}/sheet`}>
           <Download className="h-4 w-4" /> Download sheet
         </ButtonLink>
       </PageHeader>
 
       <div className="px-8 py-8">
+        <PageIntro className="mb-6">
+          Welder Qualification Details · {isBW ? "Butt weld" : "Fillet weld"} ·{" "}
+          {formatDate(report.test_date)}
+        </PageIntro>
         <Link
           href="/reports"
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-graphite hover:text-onyx"

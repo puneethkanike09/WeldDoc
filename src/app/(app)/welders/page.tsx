@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
-import { ButtonLink } from "@/components/ui/button";
+import { PageIntro } from "@/components/app/page-intro";
+import { AddWelderButton } from "@/components/app/add-welder-button";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { summarizeWelder } from "@/lib/welder-status";
 import { WeldersTable, type WelderRow } from "./welders-table";
 import type { QualificationRecord, Welder } from "@/types/db";
-import { UserPlus } from "lucide-react";
 
 export const metadata: Metadata = { title: "Welders" };
 
@@ -44,15 +44,13 @@ export default async function WeldersPage() {
 
   return (
     <>
-      <PageHeader
-        title="Welders"
-        description="Your central welder registry. Search, filter and open a profile."
-      >
-        <ButtonLink href="/welders/new">
-          <UserPlus className="h-4 w-4" /> Add welder
-        </ButtonLink>
+      <PageHeader title="Welders">
+        <AddWelderButton />
       </PageHeader>
       <div className="px-8 py-8">
+        <PageIntro className="mb-6">
+          Your central welder registry. Search, filter and open a profile.
+        </PageIntro>
         {rows.length === 0 ? (
           <EmptyState />
         ) : (
@@ -74,9 +72,7 @@ function EmptyState() {
         QR-verifiable ID cards.
       </p>
       <div className="mt-6 flex justify-center">
-        <ButtonLink href="/welders/new">
-          <UserPlus className="h-4 w-4" /> Add welder
-        </ButtonLink>
+        <AddWelderButton />
       </div>
     </div>
   );

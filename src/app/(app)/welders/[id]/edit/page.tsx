@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
+import { PageIntro } from "@/components/app/page-intro";
 import { WelderForm } from "../../welder-form";
 import { updateWelder } from "../../actions";
 import { createClient } from "@/lib/supabase/server";
@@ -33,8 +34,9 @@ export default async function EditWelderPage({
 
   return (
     <>
-      <PageHeader title="Edit welder" description={(welder as Welder).uid} />
+      <PageHeader title="Edit welder" />
       <div className="px-8 py-8">
+        <PageIntro className="mb-6">{(welder as Welder).uid}</PageIntro>
         <Link
           href={`/welders/${id}`}
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-graphite hover:text-onyx"

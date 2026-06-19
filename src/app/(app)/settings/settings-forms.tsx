@@ -1,7 +1,8 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { Input, Select, Textarea, Field } from "@/components/ui/input";
+import { Input, Textarea, Field } from "@/components/ui/input";
+import { Select } from "@/components/sui/select";
 import { Button } from "@/components/ui/button";
 import { Loader2, UploadCloud } from "lucide-react";
 import type { Organization } from "@/types/db";

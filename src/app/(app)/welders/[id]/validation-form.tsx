@@ -1,7 +1,9 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { Input, Select, Field } from "@/components/ui/input";
+import { Input, Field } from "@/components/ui/input";
+import { Select } from "@/components/sui/select";
+import { DatePicker } from "@/components/sui/date-picker";
 import { Button } from "@/components/ui/button";
 import { Loader2, UploadCloud, ShieldPlus } from "lucide-react";
 
@@ -35,8 +37,7 @@ export function ValidationForm({
             </Select>
           </Field>
           <Field label="Date">
-            <Input
-              type="date"
+            <DatePicker
               name="validated_on"
               defaultValue={new Date().toISOString().slice(0, 10)}
             />

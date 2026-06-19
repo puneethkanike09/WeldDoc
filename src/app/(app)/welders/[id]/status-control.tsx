@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { Select } from "@/components/ui/input";
+import { Select } from "@/components/sui/select";
 import { setWelderStatus } from "../actions";
 import type { WelderStatus } from "@/types/db";
 import { Loader2 } from "lucide-react";

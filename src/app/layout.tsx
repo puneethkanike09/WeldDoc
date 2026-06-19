@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { inter, spaceGrotesk } from "@/lib/fonts";
+import { Toaster } from "@/components/sui/sonner";
 import "./globals.css";
 export const metadata: Metadata = {
   title: {
@@ -16,7 +17,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Toaster />
+      </body>
     </html>
   );
 }
