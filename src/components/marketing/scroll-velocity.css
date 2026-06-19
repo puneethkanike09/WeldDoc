@@ -34,5 +34,6 @@
 
 .trust-marquee__scroller {
   display: flex;
+  align-items: center;
   white-space: nowrap;
 }

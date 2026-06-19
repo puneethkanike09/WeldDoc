@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import ScrollVelocity from "@/components/marketing/scroll-velocity";
 
 const industries = [
@@ -28,14 +28,13 @@ function getReducedMotionServer() {
 
 function MarqueeItems() {
   return (
-    <span className="inline-flex items-center gap-8">
+    <span className="whitespace-nowrap">
       {industries.map((name) => (
-        <span key={name} className="inline-flex items-center gap-8">
-          <span>{name}</span>
-          <span
-            className="h-1 w-1 shrink-0 rounded-full bg-ink/15"
-            aria-hidden
-          />
+        <span key={name}>
+          {name}
+          <span className="mx-8 text-ink/15" aria-hidden>
+            ·
+          </span>
         </span>
       ))}
     </span>
@@ -56,15 +55,12 @@ export function TrustMarquee() {
         aria-label="Industries served"
       >
         {industries.map((name) => (
-          <Fragment key={name}>
-            <span className="whitespace-nowrap text-[16px] text-ink/40">
-              {name}
+          <span key={name} className="whitespace-nowrap text-[16px] text-ink/40">
+            {name}
+            <span className="mx-8 text-ink/15" aria-hidden>
+              ·
             </span>
-            <span
-              className="hidden h-1 w-1 shrink-0 rounded-full bg-ink/15 last:hidden sm:inline"
-              aria-hidden
-            />
-          </Fragment>
+          </span>
         ))}
       </div>
     );
