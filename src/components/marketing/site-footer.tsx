@@ -22,12 +22,12 @@ export function SiteFooter() {
         </div>
       </div>
 
-      <div className="relative z-10 mx-auto max-w-[1280px] px-6 py-14">
+      <div className="relative z-10 mx-auto max-w-[1280px] overflow-hidden px-6 py-14">
         <div
-          className="pointer-events-none select-none"
+          className="pointer-events-none w-full select-none overflow-hidden"
           aria-hidden
         >
-          <span className="block font-ds-display text-[clamp(5rem,22vw,15rem)] font-bold uppercase leading-[0.85] tracking-tighter text-white/4">
+          <span className="block w-full max-w-full font-ds-display text-[clamp(2.75rem,13.5vw,15rem)] font-bold uppercase leading-[0.85] tracking-tighter text-white/4 md:text-[clamp(4rem,18vw,15rem)] lg:text-[clamp(5rem,22vw,15rem)]">
             Weld.Doc
           </span>
         </div>

@@ -11,8 +11,8 @@ const links = [
 export function SiteNav() {
   return (
     <header className="sticky top-0 z-50 bg-canvas">
-      {/* announcement-bar */}
-      <div className="flex h-9 items-center justify-center bg-cohere-black px-4 text-micro text-white">
+      {/* announcement-bar — desktop/tablet only */}
+      <div className="hidden h-9 items-center justify-center bg-cohere-black px-4 text-micro text-white md:flex">
         <span>
           WeldDoc MVP now live for EN ISO 9606-1:2017 —{" "}
           <Link href="#features" className="underline underline-offset-2">
@@ -51,7 +51,9 @@ export function SiteNav() {
             >
               Sign in
             </Link>
-            <DsButtonLink href="/login">Get started</DsButtonLink>
+            <DsButtonLink href="/login" className="hidden md:inline-flex">
+              Get started
+            </DsButtonLink>
           </div>
         </div>
       </div>

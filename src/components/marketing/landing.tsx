@@ -124,24 +124,24 @@ export function Landing() {
             </div>
           </div>
 
-          {/* Dashboard preview — desktop + mobile, same split proportions as before */}
-          <div className="mt-20 grid gap-5 lg:grid-cols-[1.4fr_0.6fr] lg:gap-6">
-            <div className="relative aspect-16/10 overflow-hidden rounded-lg border border-hairline bg-white shadow-(--shadow-lift) lg:aspect-auto lg:min-h-[420px]">
+          {/* Dashboard preview — desktop only on mobile/tablet; split on xl+ */}
+          <div className="mt-20 grid gap-5 xl:grid-cols-[1.4fr_0.6fr] xl:gap-6">
+            <div className="relative aspect-16/10 overflow-hidden rounded-lg border border-hairline bg-white shadow-(--shadow-lift) xl:aspect-auto xl:min-h-[420px]">
               <Image
                 src="/images/desktopnew.png"
                 alt="WeldDoc dashboard on desktop — welder registry, KPIs and charts in dark mode"
                 fill
                 priority
-                sizes="(max-width: 1024px) 100vw, 720px"
+                sizes="(max-width: 1280px) 100vw, 720px"
                 className="object-cover object-top-left"
               />
             </div>
-            <div className="relative aspect-3/4 overflow-hidden rounded-lg border border-hairline bg-white shadow-(--shadow-lift) lg:aspect-auto lg:min-h-[420px]">
+            <div className="relative hidden aspect-3/4 overflow-hidden rounded-lg border border-hairline bg-white shadow-(--shadow-lift) xl:block xl:aspect-auto xl:min-h-[420px]">
               <Image
-                src="/images/mobile.png"
+                src="/images/mobilenew.png"
                 alt="WeldDoc dashboard on mobile — KPIs and qualification charts in dark mode"
                 fill
-                sizes="(max-width: 1024px) 100vw, 360px"
+                sizes="360px"
                 className="object-cover object-top"
               />
             </div>
