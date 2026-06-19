@@ -1,0 +1,424 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { requireSession } from "@/lib/auth";
+import { uploadFile } from "@/lib/storage";
+import { computeRange } from "@/lib/range-engine/iso9606";
+import { computeExpiry, extendExpiry } from "@/lib/expiry";
+import { requiredTestsFor } from "@/lib/iso9606/constants";
+import type {
+  JointCategory,
+  ProductType,
+  QualificationRecord,
+  RevalidationMethod,
+} from "@/types/db";
+
+function str(v: FormDataEntryValue | null): string | null {
+  const s = typeof v === "string" ? v.trim() : "";
+  return s.length ? s : null;
+}
+function num(v: FormDataEntryValue | null): number | null {
+  const s = typeof v === "string" ? v.trim() : "";
+  if (!s) return null;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
+}
+
+async function recomputeRange(wpqId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("qualification_records")
+    .select("*")
+    .eq("id", wpqId)
+    .single();
+  if (!data) return;
+  const q = data as QualificationRecord;
+
+  const range = computeRange({
+    jointType: q.joint_type,
+    product: q.product,
+    testThicknessMm: q.test_thickness_mm,
+    depositedThicknessMm: q.deposited_thickness_mm,
+    pipeOdMm: q.pipe_od_mm,
+    position: q.position,
+    materialGroup: q.base_material_group,
+  });
+
+  await supabase.from("ranges_of_approval").upsert(
+    {
+      wpq_id: wpqId,
+      thickness_min_mm: range.thicknessMin,
+      thickness_max_mm: range.thicknessMax,
+      thickness_unlimited: range.thicknessUnlimited,
+      pipe_od_min_mm: range.pipeOdMin,
+      pipe_od_unlimited: range.pipeOdUnlimited,
+      approved_positions: range.approvedPositions,
+      approved_material_groups: range.approvedMaterialGroups,
+      approved_joint_types: range.approvedJointTypes,
+      summary: range.summary,
+    },
+    { onConflict: "wpq_id" },
+  );
+}
+
+export async function savePlan(
+  welderId: string,
+  wpqId: string | null,
+  formData: FormData,
+) {
+  const { org, userId } = await requireSession();
+  const supabase = await createClient();
+
+  const payload = {
+    org_id: org.id,
+    welder_id: welderId,
+    standard: "ISO_9606_1" as const,
+    process: str(formData.get("process")) ?? "135",
+    joint_type: (str(formData.get("joint_type")) ?? "BW") as JointCategory,
+    product: (str(formData.get("product")) ?? "Plate") as ProductType,
+    position: str(formData.get("position")),
+    base_material_group: str(formData.get("base_material_group")),
+    wps_reference: str(formData.get("wps_reference")),
+    examiner_ref: str(formData.get("examiner_ref")),
+    examiner_name: str(formData.get("examiner_name")),
+    date_of_welding: str(formData.get("date_of_welding")),
+    revalidation_method: (str(formData.get("revalidation_method")) ??
+      "9.3b") as RevalidationMethod,
+  };
+
+  let id = wpqId;
+  if (id) {
+    const { error } = await supabase
+      .from("qualification_records")
+      .update(payload)
+      .eq("id", id)
+      .eq("org_id", org.id);
+    if (error) throw new Error(error.message);
+  } else {
+    const { data, error } = await supabase
+      .from("qualification_records")
+      .insert({ ...payload, wpq_status: "Draft", created_by: userId })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    id = data.id;
+  }
+
+  await recomputeRange(id!);
+  revalidatePath(`/welders/${welderId}`);
+  redirect(`/welders/${welderId}/qualify?wpq=${id}&step=2`);
+}
+
+export async function saveTest(
+  welderId: string,
+  wpqId: string,
+  formData: FormData,
+) {
+  const { org } = await requireSession();
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("qualification_records")
+    .update({
+      material_grade: str(formData.get("material_grade")),
+      dimensions: str(formData.get("dimensions")),
+      filler_group: str(formData.get("filler_group")),
+      filler_designation: str(formData.get("filler_designation")),
+      filler_type: str(formData.get("filler_type")),
+      shielding_gas: str(formData.get("shielding_gas")),
+      current_polarity: str(formData.get("current_polarity")),
+      transfer_mode: str(formData.get("transfer_mode")),
+      weld_details: str(formData.get("weld_details")),
+      test_thickness_mm: num(formData.get("test_thickness_mm")),
+      deposited_thickness_mm: num(formData.get("deposited_thickness_mm")),
+      pipe_od_mm: num(formData.get("pipe_od_mm")),
+      layer_type: str(formData.get("layer_type")),
+      position: str(formData.get("position")),
+    })
+    .eq("id", wpqId)
+    .eq("org_id", org.id);
+  if (error) throw new Error(error.message);
+
+  await recomputeRange(wpqId);
+  revalidatePath(`/welders/${welderId}`);
+  redirect(`/welders/${welderId}/qualify?wpq=${wpqId}&step=3`);
+}
+
+export async function saveNdt(
+  welderId: string,
+  wpqId: string,
+  jointType: JointCategory,
+  formData: FormData,
+) {
+  const { org } = await requireSession();
+  const supabase = await createClient();
+
+  const methods = [
+    ...requiredTestsFor(jointType),
+    ...formData.getAll("optional_method").map(String).filter(Boolean),
+  ];
+
+  // Clear existing rows for idempotent re-save.
+  await supabase.from("ndt_dt_records").delete().eq("wpq_id", wpqId);
+
+  let anyFail = false;
+  let allRequiredPass = true;
+
+  for (const method of methods) {
+    const result = (str(formData.get(`result__${method}`)) ??
+      "NA") as "Pass" | "Fail" | "NA";
+    const conductedBy = str(formData.get(`conducted_by__${method}`));
+    const testDate = str(formData.get(`test_date__${method}`));
+    const file = formData.get(`report__${method}`);
+    const reportPath = await uploadFile(
+      "ndt-reports",
+      file instanceof File ? file : null,
+      `${org.id}/${wpqId}`,
+    );
+
+    if (result === "Fail") anyFail = true;
+    if (
+      requiredTestsFor(jointType).includes(method) &&
+      result !== "Pass"
+    ) {
+      allRequiredPass = false;
+    }
+
+    await supabase.from("ndt_dt_records").insert({
+      org_id: org.id,
+      wpq_id: wpqId,
+      test_method: method,
+      result,
+      conducted_by: conductedBy,
+      test_date: testDate,
+      report_pdf_path: reportPath,
+    });
+  }
+
+  const newStatus = anyFail
+    ? "Failed"
+    : allRequiredPass
+      ? "Pending_NDT"
+      : "Draft";
+
+  await supabase
+    .from("qualification_records")
+    .update({ wpq_status: newStatus })
+    .eq("id", wpqId)
+    .eq("org_id", org.id);
+
+  revalidatePath(`/welders/${welderId}`);
+  const nextStep = allRequiredPass && !anyFail ? 4 : 3;
+  redirect(`/welders/${welderId}/qualify?wpq=${wpqId}&step=${nextStep}`);
+}
+
+export async function issueCertificate(
+  welderId: string,
+  wpqId: string,
+  formData: FormData,
+) {
+  const { org } = await requireSession();
+  const supabase = await createClient();
+
+  const { data: wpq } = await supabase
+    .from("qualification_records")
+    .select("*")
+    .eq("id", wpqId)
+    .eq("org_id", org.id)
+    .single();
+  if (!wpq) throw new Error("Qualification not found.");
+  const q = wpq as QualificationRecord;
+
+  const issueDate = str(formData.get("certificate_date")) ?? new Date()
+    .toISOString()
+    .slice(0, 10);
+  const expiry = computeExpiry(q.revalidation_method, issueDate);
+
+  const { error } = await supabase
+    .from("qualification_records")
+    .update({
+      wpq_status: "Approved",
+      certificate_issued_date: issueDate,
+      continuity_last_verified: issueDate,
+      expiry_date: expiry,
+      job_knowledge: str(formData.get("job_knowledge")) ?? q.job_knowledge,
+      supplementary_fillet: formData.get("supplementary_fillet") === "on",
+      examiner_name:
+        str(formData.get("examiner_name")) ?? q.examiner_name,
+    })
+    .eq("id", wpqId)
+    .eq("org_id", org.id);
+  if (error) throw new Error(error.message);
+
+  await recomputeRange(wpqId);
+  revalidatePath(`/welders/${welderId}`);
+  redirect(`/welders/${welderId}?issued=${wpqId}`);
+}
+
+export async function cloneWpq(welderId: string, sourceWpqId: string) {
+  const { org, userId } = await requireSession();
+  const supabase = await createClient();
+
+  const { data: src } = await supabase
+    .from("qualification_records")
+    .select("*")
+    .eq("id", sourceWpqId)
+    .eq("org_id", org.id)
+    .single();
+  if (!src) throw new Error("Source qualification not found.");
+  const s = src as QualificationRecord;
+
+  const { data: created, error } = await supabase
+    .from("qualification_records")
+    .insert({
+      org_id: org.id,
+      welder_id: welderId,
+      standard: s.standard,
+      process: s.process,
+      joint_type: s.joint_type,
+      product: s.product,
+      position: s.position,
+      base_material_group: s.base_material_group,
+      material_grade: s.material_grade,
+      dimensions: s.dimensions,
+      filler_group: s.filler_group,
+      filler_designation: s.filler_designation,
+      filler_type: s.filler_type,
+      shielding_gas: s.shielding_gas,
+      current_polarity: s.current_polarity,
+      test_thickness_mm: s.test_thickness_mm,
+      deposited_thickness_mm: s.deposited_thickness_mm,
+      pipe_od_mm: s.pipe_od_mm,
+      layer_type: s.layer_type,
+      wps_reference: s.wps_reference,
+      revalidation_method: s.revalidation_method,
+      wpq_status: "Draft",
+      cloned_from: sourceWpqId,
+      created_by: userId,
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+
+  await recomputeRange(created.id);
+  redirect(`/welders/${welderId}/qualify?wpq=${created.id}&step=2`);
+}
+
+export async function saveValidation(
+  welderId: string,
+  wpqId: string,
+  formData: FormData,
+) {
+  const { org } = await requireSession();
+  const supabase = await createClient();
+
+  const { data: wpq } = await supabase
+    .from("qualification_records")
+    .select("*")
+    .eq("id", wpqId)
+    .eq("org_id", org.id)
+    .single();
+  if (!wpq) throw new Error("Qualification not found.");
+  const q = wpq as QualificationRecord;
+
+  const validatedOn =
+    str(formData.get("validated_on")) ?? new Date().toISOString().slice(0, 10);
+  const kind = str(formData.get("kind")) ?? "continuity";
+  const validatorName = str(formData.get("validator_name"));
+  const note = str(formData.get("note"));
+
+  const doc = formData.get("supporting_doc");
+  const docPath = await uploadFile(
+    "ndt-reports",
+    doc instanceof File ? doc : null,
+    `${org.id}/${wpqId}/validations`,
+  );
+
+  // Continuity (9.2) resets the 6-month clock; revalidation extends expiry.
+  let newExpiry = q.expiry_date;
+  if (kind === "revalidation") {
+    const base =
+      q.expiry_date && new Date(q.expiry_date) > new Date()
+        ? q.expiry_date
+        : validatedOn;
+    newExpiry = extendExpiry(q.revalidation_method, base);
+  }
+
+  await supabase.from("validation_records").insert({
+    org_id: org.id,
+    wpq_id: wpqId,
+    validated_on: validatedOn,
+    supporting_doc_path: docPath,
+    new_expiry_date: newExpiry,
+    validator_name: validatorName,
+    note,
+  });
+
+  await supabase
+    .from("qualification_records")
+    .update({
+      continuity_last_verified: validatedOn,
+      expiry_date: newExpiry,
+      wpq_status:
+        newExpiry && new Date(newExpiry) > new Date() ? "Approved" : q.wpq_status,
+    })
+    .eq("id", wpqId)
+    .eq("org_id", org.id);
+
+  revalidatePath(`/welders/${welderId}`);
+  redirect(`/welders/${welderId}`);
+}
+
+export async function saveLegacy(welderId: string, formData: FormData) {
+  const { org, userId } = await requireSession();
+  const supabase = await createClient();
+
+  const initialDate =
+    str(formData.get("date_of_welding")) ??
+    new Date().toISOString().slice(0, 10);
+  const method = (str(formData.get("revalidation_method")) ??
+    "9.3b") as RevalidationMethod;
+
+  const scan = formData.get("legacy_doc");
+  const scanPath = await uploadFile(
+    "legacy-docs",
+    scan instanceof File ? scan : null,
+    `${org.id}/${welderId}`,
+  );
+
+  const { data: created, error } = await supabase
+    .from("qualification_records")
+    .insert({
+      org_id: org.id,
+      welder_id: welderId,
+      standard: "ISO_9606_1",
+      process: str(formData.get("process")) ?? "135",
+      joint_type: (str(formData.get("joint_type")) ?? "BW") as JointCategory,
+      product: (str(formData.get("product")) ?? "Plate") as ProductType,
+      position: str(formData.get("position")),
+      base_material_group: str(formData.get("base_material_group")),
+      filler_group: str(formData.get("filler_group")),
+      filler_type: str(formData.get("filler_type")),
+      test_thickness_mm: num(formData.get("test_thickness_mm")),
+      deposited_thickness_mm: num(formData.get("deposited_thickness_mm")),
+      pipe_od_mm: num(formData.get("pipe_od_mm")),
+      date_of_welding: initialDate,
+      revalidation_method: method,
+      is_legacy: true,
+      wpq_status: "Approved",
+      certificate_issued_date: initialDate,
+      continuity_last_verified: initialDate,
+      expiry_date: computeExpiry(method, initialDate),
+      certificate_pdf_path: scanPath,
+      created_by: userId,
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+
+  await recomputeRange(created.id);
+  revalidatePath(`/welders/${welderId}`);
+  redirect(`/welders/${welderId}`);
+}

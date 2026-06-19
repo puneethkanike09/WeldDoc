@@ -1,0 +1,58 @@
+{
+  "standard": "ISO_9606_1",
+  "title": "EN ISO 9606-1:2017",
+  "thickness": {
+    "note": "Material/test thickness ranges per Table 9 (single value t in mm).",
+    "bands": [
+      { "max": 3, "minFactor": 0.5, "maxFactor": 2, "unlimited": false },
+      { "min": 3, "max": 12, "minAbsolute": 3, "maxFactor": 2, "unlimited": false },
+      { "min": 12, "minAbsolute": 3, "unlimited": true }
+    ]
+  },
+  "filletThroat": {
+    "note": "Fillet weld throat thickness 'a' per Table 10 — qualifies a and above.",
+    "bands": [{ "min": 0, "minAbsolute": 0, "unlimited": true }]
+  },
+  "pipeOd": {
+    "note": "Outside diameter ranges per Table 11 (D in mm). Plate qualifies pipe OD > 500 mm.",
+    "bands": [
+      { "max": 25, "minFactor": 0.5, "maxFactor": 2, "unlimited": false },
+      { "min": 25, "max": 150, "minFactor": 0.5, "unlimited": true },
+      { "min": 150, "minAbsolute": 75, "unlimited": true }
+    ],
+    "plateQualifiesPipeOdMin": 500
+  },
+  "positionMap": {
+    "note": "Position coverage per Table 12 / ISO 6947.",
+    "PA": ["PA"],
+    "PB": ["PA", "PB"],
+    "PC": ["PA", "PC"],
+    "PD": ["PA", "PB", "PD"],
+    "PE": ["PA", "PC", "PE"],
+    "PF": ["PA", "PB", "PC", "PD", "PE", "PF"],
+    "PG": ["PG"],
+    "PH": ["PA", "PB", "PC", "PD", "PE", "PF", "PH"],
+    "PJ": ["PA", "PB", "PC", "PD", "PE", "PF", "PH", "PJ"],
+    "H-L045": ["PA", "PB", "PC", "PD", "PE", "PF", "PH", "H-L045"],
+    "J-L045": ["PA", "PB", "PC", "PD", "PE", "PF", "PG", "PH", "PJ", "H-L045", "J-L045"]
+  },
+  "materialGroupMap": {
+    "note": "Parent material group coverage per Table 7 (CR ISO 15608 groupings).",
+    "1": ["1", "2"],
+    "2": ["1", "2"],
+    "3": ["1", "2", "3"],
+    "4": ["4", "5"],
+    "5": ["4", "5"],
+    "6": ["6"],
+    "7": ["7"],
+    "8": ["8"],
+    "9": ["9"],
+    "10": ["8", "10"],
+    "11": ["11"]
+  },
+  "jointTypeMap": {
+    "note": "A butt weld test also qualifies fillet welds; a fillet test qualifies fillet welds only.",
+    "BW": ["BW", "FW"],
+    "FW": ["FW"]
+  }
+}

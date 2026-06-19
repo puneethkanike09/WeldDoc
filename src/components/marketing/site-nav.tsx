@@ -1,0 +1,56 @@
+import Link from "next/link";
+import { Logo } from "@/components/brand/logo";
+import { DsButtonLink } from "@/components/marketing/ds-button";
+
+const links = [
+  { href: "#features", label: "Features" },
+  { href: "#workflow", label: "How it works" },
+  { href: "#compare", label: "Compare" },
+];
+
+export function SiteNav() {
+  return (
+    <header className="sticky top-0 z-50 bg-canvas">
+      {/* announcement-bar */}
+      <div className="flex h-9 items-center justify-center bg-cohere-black px-4 text-micro text-white">
+        <span>
+          WeldDoc MVP now live for EN ISO 9606-1:2017 —{" "}
+          <Link href="#features" className="underline underline-offset-2">
+            Learn more
+          </Link>
+        </span>
+      </div>
+
+      {/* global nav — logo left, menu center, actions right */}
+      <div className="border-b border-hairline">
+        <div className="mx-auto grid h-16 max-w-[1280px] grid-cols-[1fr_auto_1fr] items-center px-6">
+          <Link href="/" aria-label="WeldDoc home" className="justify-self-start">
+            <Logo />
+          </Link>
+
+          <nav className="hidden items-center gap-8 md:flex">
+            {links.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="text-body text-ink hover:opacity-70"
+              >
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex items-center justify-self-end gap-5">
+            <Link
+              href="/login"
+              className="hidden text-body text-ink sm:inline-flex"
+            >
+              Sign in
+            </Link>
+            <DsButtonLink href="/login">Get started</DsButtonLink>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}

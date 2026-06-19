@@ -1,0 +1,221 @@
+import { Document, Page, View, Text, Image } from "@react-pdf/renderer";
+import { COLORS } from "./styles";
+import { processLabel } from "@/lib/iso9606/constants";
+import type {
+  Organization,
+  QualificationTestReport,
+} from "@/types/db";
+
+export interface SheetRow {
+  name: string;
+  welderId: string | null;
+  isNew: boolean;
+  process: string;
+  joint: string;
+  product: string;
+  position: string | null;
+  material: string | null;
+  dimensions: string | null;
+  wps: string | null;
+  visual: string | null;
+  main: string | null;
+}
+
+export interface SheetSignatory {
+  name: string;
+  designation: string | null;
+  organisation: string | null;
+  signatureUrl: string | null;
+  stampUrl: string | null;
+}
+
+export interface SheetData {
+  org: Organization;
+  report: QualificationTestReport;
+  rows: SheetRow[];
+  manufacturer: SheetSignatory | null;
+  examiner: SheetSignatory | null;
+}
+
+function fmt(d: string | null): string {
+  if (!d) return "—";
+  const date = new Date(d);
+  return Number.isNaN(date.getTime())
+    ? "—"
+    : date.toLocaleDateString("en-GB");
+}
+
+function res(v: string | null): string {
+  if (!v) return "—";
+  return v === "Pass" ? "OK" : v;
+}
+
+const border = { borderColor: COLORS.silver, borderWidth: 0.5 };
+
+export function ReportSheetDocument({ data }: { data: SheetData }) {
+  const { org, report, rows, manufacturer, examiner } = data;
+  const isBW = report.joint_category === "BW";
+  const mainLabel = isBW ? "RT / UT" : "FRACTURE";
+
+  const cols = isBW
+    ? [22, 90, 48, 56, 78, 130, 86, 56, 56, 90]
+    : [22, 100, 52, 60, 84, 150, 96, 60, 64, 100];
+
+  const headers = [
+    "SL",
+    "NAME",
+    "WELDER ID",
+    "PROCESS",
+    "JOINT / POSITION",
+    "MATERIAL GRADE / DIMENSIONS",
+    "WPS NO",
+    "VISUAL",
+    mainLabel,
+    "REMARKS",
+  ];
+
+  return (
+    <Document title={report.report_number} author={org.name}>
+      <Page
+        size="A4"
+        orientation="landscape"
+        style={{ padding: 24, fontSize: 7.5, fontFamily: "Helvetica" }}
+      >
+        {/* Header */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderBottomWidth: 1.5,
+            borderBottomColor: COLORS.onyx,
+            paddingBottom: 6,
+          }}
+        >
+          <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 13, color: COLORS.onyx }}>
+            {org.name}
+          </Text>
+          <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 10, color: COLORS.onyx }}>
+            WELDER QUALIFICATION DETAILS AS PER EN ISO 9606-1: 2017
+          </Text>
+          <View style={{ alignItems: "flex-end" }}>
+            <Text style={{ fontSize: 8, color: COLORS.ember, fontFamily: "Helvetica-Bold" }}>
+              {report.report_number}
+            </Text>
+            <Text style={{ fontSize: 7.5 }}>Date: {fmt(report.test_date)}</Text>
+          </View>
+        </View>
+
+        {/* Table */}
+        <View style={{ marginTop: 8 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              backgroundColor: COLORS.frost,
+            }}
+          >
+            {headers.map((h, i) => (
+              <View
+                key={h}
+                style={[border, { width: cols[i], padding: 3 }]}
+              >
+                <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 6.5, color: COLORS.graphite }}>
+                  {h}
+                </Text>
+              </View>
+            ))}
+          </View>
+
+          {rows.map((r, idx) => (
+            <View key={idx} style={{ flexDirection: "row" }}>
+              <Cell w={cols[0]}>{String(idx + 1)}</Cell>
+              <Cell w={cols[1]}>
+                {r.name}
+                {r.isNew ? " *" : ""}
+              </Cell>
+              <Cell w={cols[2]}>{r.welderId ?? "—"}</Cell>
+              <Cell w={cols[3]}>{processLabel(r.process)}</Cell>
+              <Cell w={cols[4]}>
+                {r.joint} / {r.product} - {r.position ?? "—"}
+              </Cell>
+              <Cell w={cols[5]}>
+                {(r.material ?? "—") +
+                  (r.dimensions ? ` / ${r.dimensions}` : "")}
+              </Cell>
+              <Cell w={cols[6]}>{r.wps ?? "—"}</Cell>
+              <Cell w={cols[7]}>{res(r.visual)}</Cell>
+              <Cell w={cols[8]}>{res(r.main)}</Cell>
+              <Cell w={cols[9]}>{idx === 0 ? report.remarks ?? "" : ""}</Cell>
+            </View>
+          ))}
+        </View>
+
+        {/* Signatories */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            marginTop: 24,
+          }}
+        >
+          <SignBlock label="Manufacturer" sig={manufacturer} />
+          <SignBlock label="Examining Body" sig={examiner} />
+        </View>
+
+        <Text style={{ marginTop: 12, fontSize: 7, color: COLORS.steel }}>
+          NOTE: (*) New welder · Generated by WeldDoc
+        </Text>
+      </Page>
+    </Document>
+  );
+}
+
+function Cell({ w, children }: { w: number; children: React.ReactNode }) {
+  return (
+    <View style={[border, { width: w, padding: 3 }]}>
+      <Text style={{ fontSize: 6.8, color: COLORS.onyx }}>{children}</Text>
+    </View>
+  );
+}
+
+function SignBlock({
+  label,
+  sig,
+}: {
+  label: string;
+  sig: SheetSignatory | null;
+}) {
+  return (
+    <View style={{ width: "45%" }}>
+      <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 9, color: COLORS.onyx }}>
+        {label}
+      </Text>
+      <View
+        style={{
+          height: 40,
+          flexDirection: "row",
+          alignItems: "flex-end",
+          gap: 8,
+          marginTop: 2,
+        }}
+      >
+        {sig?.signatureUrl ? (
+          // eslint-disable-next-line jsx-a11y/alt-text
+          <Image src={sig.signatureUrl} style={{ height: 34, width: 80, objectFit: "contain" }} />
+        ) : null}
+        {sig?.stampUrl ? (
+          // eslint-disable-next-line jsx-a11y/alt-text
+          <Image src={sig.stampUrl} style={{ height: 38, width: 38, objectFit: "contain" }} />
+        ) : null}
+      </View>
+      <Text style={{ fontSize: 8, marginTop: 4 }}>
+        Name: {sig?.name ?? "—"}
+      </Text>
+      <Text style={{ fontSize: 7.5, color: COLORS.graphite }}>
+        {sig
+          ? `${sig.designation ?? ""}${sig.organisation ? ` · ${sig.organisation}` : ""}`
+          : ""}
+      </Text>
+    </View>
+  );
+}
