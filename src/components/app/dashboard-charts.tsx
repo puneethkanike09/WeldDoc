@@ -15,24 +15,24 @@ export interface Slice {
 }
 
 const CHART_COLORS = [
-  "#aa2d00",
-  "#254fad",
-  "#0a2e0e",
-  "#fcab79",
-  "#fcb42a",
-  "#fa91e0",
-  "#1b61c9",
-  "#214224",
+  "#f90a08",
+  "#161616",
+  "#d43c3b",
+  "#f48789",
+  "#686868",
+  "#ffbbb4",
+  "#de181a",
+  "#9a9a9a",
 ];
 
 const STATUS_COLORS: Record<string, string> = {
   Active: "#214224",
   Expiring: "#fcb42a",
   Expired: "#912e1f",
-  Pending: "#254fad",
-  None: "#9297a0",
-  Inactive: "#c9ccd1",
-  Suspended: "#aa2d00",
+  Pending: "#161616",
+  None: "#909090",
+  Inactive: "#cccccc",
+  Suspended: "#f90a08",
 };
 
 export function DonutCard({

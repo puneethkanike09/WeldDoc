@@ -97,8 +97,8 @@ export function Landing() {
             speed={0.48}
             scale={1.45}
             brightness={0.82}
-            color1="#ff8a6e"
-            color2="#fcab79"
+            color1="#f48789"
+            color2="#ffbbb4"
             bandHeight={0.58}
             bandSpread={1.05}
             noiseFrequency={2.8}
@@ -349,7 +349,7 @@ export function Landing() {
       <section id="compare" className="section-y bg-pale-green">
         <div className="mx-auto max-w-[940px] px-6">
           <div className="max-w-[640px]">
-            <p className="text-mono-label text-deep-green">Why WeldDoc</p>
+            <p className="text-mono-label text-brand-red">Why WeldDoc</p>
             <h2 className="text-section-heading mt-4">Focused beats bloated</h2>
             <p className="text-body-large mt-5 text-slate">
               WeldEye, WeldTrace and WeldNote are broad enterprise platforms.
@@ -370,7 +370,7 @@ export function Landing() {
                 <span className="flex-1 border-b border-deep-green/15 pb-4 text-mono-label text-slate">
                   Capability
                 </span>
-                <span className="w-[100px] pb-4 text-center font-ds-display text-[15px] font-semibold text-deep-green sm:w-[150px]">
+                <span className="w-[100px] pb-4 text-center font-ds-display text-[15px] font-semibold text-brand-red sm:w-[150px]">
                   WeldDoc
                 </span>
                 <span className="w-[100px] border-b border-deep-green/15 pb-4 text-center text-caption text-muted-slate sm:w-[150px]">
@@ -391,7 +391,7 @@ export function Landing() {
                     {row.label}
                   </span>
                   <span className="flex w-[100px] justify-center py-5 sm:w-[150px]">
-                    <span className="grid h-7 w-7 place-items-center rounded-full bg-deep-green">
+                    <span className="grid h-7 w-7 place-items-center rounded-full bg-brand-red">
                       <Check className="h-4 w-4 text-white" strokeWidth={2.5} />
                     </span>
                   </span>

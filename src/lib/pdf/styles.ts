@@ -1,13 +1,13 @@
 import { StyleSheet } from "@react-pdf/renderer";
 
 export const COLORS = {
-  onyx: "#181d26",
-  charcoal: "#333840",
-  graphite: "#525965",
-  steel: "#9297a0",
-  silver: "#e0e2e6",
-  ember: "#aa2d00",
-  frost: "#f5f6f8",
+  onyx: "#161616",
+  charcoal: "#2a2a2a",
+  graphite: "#4a4a4a",
+  steel: "#909090",
+  silver: "#e2e2e4",
+  ember: "#f90a08",
+  frost: "#f4f5f6",
   active: "#214224",
   white: "#ffffff",
 };

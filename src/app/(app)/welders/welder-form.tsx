@@ -146,7 +146,7 @@ export function WelderForm({
                 type="checkbox"
                 name="is_new_welder"
                 defaultChecked
-                className="mt-0.5 h-4 w-4 accent-[#aa2d00]"
+                className="mt-0.5 h-4 w-4 accent-[#f90a08]"
               />
               <span className="text-[14px] text-charcoal">
                 <span className="font-medium text-onyx">New welder</span> —

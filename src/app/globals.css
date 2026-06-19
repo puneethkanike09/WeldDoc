@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  /* WeldDoc brand palette (grounded in UI.md, welding-inspired) */
-  --color-parchment: #faf5e8;
+  /* WeldDoc brand palette (Weld. red + Doc black) */
+  --color-parchment: #f8faf9;
   --color-white: #ffffff;
-  --color-frost: #f8fafc;
+  --color-frost: #f4f5f6;
 
-  --color-onyx: #181d26;
-  --color-charcoal: #333840;
-  --color-graphite: #525965;
-  --color-steel: #9297a0;
-  --color-silver: #e0e2e6;
-  --color-midnight: #040e20;
+  --color-onyx: #161616;
+  --color-charcoal: #2a2a2a;
+  --color-graphite: #4a4a4a;
+  --color-steel: #909090;
+  --color-silver: #e2e2e4;
+  --color-midnight: #161616;
 
-  /* Signature + secondary accents */
-  --color-ember: #aa2d00;
-  --color-ember-soft: #fcab79;
+  /* Signature + secondary accents (brand red family) */
+  --color-ember: #f90a08;
+  --color-ember-soft: #f48789;
   --color-sapphire: #254fad;
   --color-cobalt: #1b61c9;
 
@@ -25,15 +25,15 @@
   --color-expiring: #fcb42a;
   --color-expired: #912e1f;
 
-  /* Chart categorical hues */
-  --color-chart-1: #aa2d00;
-  --color-chart-2: #254fad;
-  --color-chart-3: #0a2e0e;
-  --color-chart-4: #fcab79;
-  --color-chart-5: #fcb42a;
-  --color-chart-6: #fa91e0;
-  --color-chart-7: #1b61c9;
-  --color-chart-8: #214224;
+  /* Chart categorical hues (brand red/black family) */
+  --color-chart-1: #f90a08;
+  --color-chart-2: #161616;
+  --color-chart-3: #d43c3b;
+  --color-chart-4: #f48789;
+  --color-chart-5: #686868;
+  --color-chart-6: #ffbbb4;
+  --color-chart-7: #de181a;
+  --color-chart-8: #9a9a9a;
 
   /* Surfaces */
   --color-pale-sky: #c7e5f2;
@@ -57,25 +57,25 @@
   --shadow-card: rgba(15, 48, 106, 0.05) 0px 0px 20px 0px;
   --shadow-lift: rgba(24, 29, 38, 0.08) 0px 8px 24px -8px;
 
-  /* app.e.md — Cohere design system (marketing) */
-  --color-cohere-black: #000000;
-  --color-primary: #17171c;
-  --color-deep-green: #003c33;
-  --color-dark-navy: #071829;
+  /* Marketing surfaces — rebranded to red/black */
+  --color-cohere-black: #161616;
+  --color-primary: #161616;
+  --color-deep-green: #161616;
+  --color-dark-navy: #161616;
   --color-action-blue: #1863dc;
-  --color-coral: #ff7759;
-  --color-soft-coral: #ffad9b;
+  --color-coral: #f90a08;
+  --color-soft-coral: #ffbbb4;
   --color-canvas: #ffffff;
-  --color-soft-stone: #eeece7;
-  --color-pale-green: #edfce9;
+  --color-soft-stone: #f1f1f2;
+  --color-pale-green: #fff4f3;
   --color-pale-blue: #f1f5ff;
-  --color-card-border: #f2f2f2;
-  --color-ink: #212121;
-  --color-muted-slate: #93939f;
-  --color-slate: #75758a;
-  --color-hairline: #d9d9dd;
-  --color-border-light: #e5e7eb;
-  --color-focus-blue: #4c6ee6;
+  --color-card-border: #ececec;
+  --color-ink: #161616;
+  --color-muted-slate: #9a9a9a;
+  --color-slate: #686868;
+  --color-hairline: #dcdcde;
+  --color-border-light: #e7e7e9;
+  --color-focus-blue: #f90a08;
 
   --radius-xs: 4px;
   --radius-sm: 8px;
@@ -85,6 +85,16 @@
   --radius-pill: 32px;
 
   --font-ds-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+
+  /* WeldDoc brand palette (Weld. red + Doc black) — order as supplied */
+  --color-brand-red: #f90a08;
+  --color-brand-red-deep: #de181a;
+  --color-brand-offwhite: #f8faf9;
+  --color-brand-coral: #f48789;
+  --color-brand-black: #161616;
+  --color-brand-gray: #686868;
+  --color-brand-red-muted: #d43c3b;
+  --color-brand-pink: #ffbbb4;
 }
 
 @layer base {

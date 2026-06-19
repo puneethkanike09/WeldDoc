@@ -42,7 +42,7 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
           </Text>
           <Text
             style={{
-              color: "#fcab79",
+              color: "#f48789",
               fontSize: 7,
               fontFamily: "Helvetica-Bold",
               letterSpacing: 1,

@@ -452,7 +452,7 @@ export function NdtStep({
                       name="optional_method"
                       value={method}
                       defaultChecked={byMethod.has(method)}
-                      className="h-4 w-4 accent-[#aa2d00]"
+                      className="h-4 w-4 accent-[#f90a08]"
                     />
                     {method}
                   </span>
@@ -603,7 +603,7 @@ export function CertificateStep({
               type="checkbox"
               name="supplementary_fillet"
               defaultChecked={wpq.supplementary_fillet}
-              className="mt-0.5 h-4 w-4 accent-[#aa2d00]"
+              className="mt-0.5 h-4 w-4 accent-[#f90a08]"
             />
             <span className="text-[14px] text-charcoal">
               Supplementary fillet weld test completed in conjunction with this

@@ -6,7 +6,7 @@ const QR_COLORS: Record<
   QrStyle,
   { dark: string; light: string }
 > = {
-  default: { dark: "#181d26", light: "#ffffff" },
+  default: { dark: "#161616", light: "#ffffff" },
   light: { dark: "#ffffff", light: "#00000000" },
 };
 
