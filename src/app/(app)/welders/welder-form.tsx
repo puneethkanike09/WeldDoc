@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { Input, Select, Field, Label } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
+import { LocationSelect } from "@/components/app/location-select";
 import { ID_METHODS } from "@/lib/iso9606/constants";
 import type { Welder } from "@/types/db";
 import { Loader2, UploadCloud } from "lucide-react";
@@ -62,13 +63,13 @@ export function WelderForm({
                 defaultValue={welder?.date_of_birth ?? ""}
               />
             </Field>
-            <Field label="Place of birth">
-              <Input
+            <div className="sm:col-span-2">
+              <Label>Place of birth</Label>
+              <LocationSelect
                 name="place_of_birth"
-                defaultValue={welder?.place_of_birth ?? ""}
-                placeholder="District, State, Country"
+                initialValue={welder?.place_of_birth}
               />
-            </Field>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <Field label="ID method">
                 <Select

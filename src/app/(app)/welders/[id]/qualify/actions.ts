@@ -68,7 +68,7 @@ export async function savePlan(
   wpqId: string | null,
   formData: FormData,
 ) {
-  const { org, userId } = await requireSession();
+  const { org } = await requireSession();
   const supabase = await createClient();
 
   const payload = {
@@ -99,7 +99,7 @@ export async function savePlan(
   } else {
     const { data, error } = await supabase
       .from("qualification_records")
-      .insert({ ...payload, wpq_status: "Draft", created_by: userId })
+      .insert({ ...payload, wpq_status: "Draft" })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
@@ -258,7 +258,7 @@ export async function issueCertificate(
 }
 
 export async function cloneWpq(welderId: string, sourceWpqId: string) {
-  const { org, userId } = await requireSession();
+  const { org } = await requireSession();
   const supabase = await createClient();
 
   const { data: src } = await supabase
@@ -296,7 +296,6 @@ export async function cloneWpq(welderId: string, sourceWpqId: string) {
       revalidation_method: s.revalidation_method,
       wpq_status: "Draft",
       cloned_from: sourceWpqId,
-      created_by: userId,
     })
     .select("id")
     .single();
@@ -372,7 +371,7 @@ export async function saveValidation(
 }
 
 export async function saveLegacy(welderId: string, formData: FormData) {
-  const { org, userId } = await requireSession();
+  const { org } = await requireSession();
   const supabase = await createClient();
 
   const initialDate =
@@ -412,7 +411,6 @@ export async function saveLegacy(welderId: string, formData: FormData) {
       continuity_last_verified: initialDate,
       expiry_date: computeExpiry(method, initialDate),
       certificate_pdf_path: scanPath,
-      created_by: userId,
     })
     .select("id")
     .single();

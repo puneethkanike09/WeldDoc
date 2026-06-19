@@ -149,7 +149,7 @@ export function Landing() {
       </section>
 
       {/* Trust strip — scroll-velocity marquee on light canvas */}
-      <section className="pb-24 pt-8">
+      <section className="py-8">
         <div className="mx-auto max-w-[1280px] px-6">
           <p className="text-caption text-center text-muted-slate">
             Trusted across fabrication industries
