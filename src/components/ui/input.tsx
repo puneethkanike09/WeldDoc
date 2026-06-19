@@ -9,7 +9,7 @@ export const Input = React.forwardRef<
     <input
       ref={ref}
       className={cn(
-        "h-11 w-full rounded-[10px] border border-silver bg-white px-3.5 text-[15px] text-onyx placeholder:text-steel transition-colors focus:border-onyx focus:outline-none focus:ring-2 focus:ring-onyx/15 disabled:opacity-50",
+        "h-11 w-full rounded-[10px] border border-silver bg-panel px-3.5 text-[15px] text-onyx placeholder:text-steel transition-colors focus:border-onyx focus:outline-none focus:ring-2 focus:ring-onyx/15 disabled:opacity-50",
         className,
       )}
       {...props}
@@ -25,7 +25,7 @@ export const Textarea = React.forwardRef<
     <textarea
       ref={ref}
       className={cn(
-        "w-full rounded-[10px] border border-silver bg-white px-3.5 py-2.5 text-[15px] text-onyx placeholder:text-steel transition-colors focus:border-onyx focus:outline-none focus:ring-2 focus:ring-onyx/15 disabled:opacity-50",
+        "w-full rounded-[10px] border border-silver bg-panel px-3.5 py-2.5 text-[15px] text-onyx placeholder:text-steel transition-colors focus:border-onyx focus:outline-none focus:ring-2 focus:ring-onyx/15 disabled:opacity-50",
         className,
       )}
       {...props}
@@ -41,7 +41,7 @@ export const Select = React.forwardRef<
     <select
       ref={ref}
       className={cn(
-        "h-11 w-full rounded-[10px] border border-silver bg-white px-3 text-[15px] text-onyx transition-colors focus:border-onyx focus:outline-none focus:ring-2 focus:ring-onyx/15 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer",
+        "h-11 w-full rounded-[10px] border border-silver bg-panel px-3 text-[15px] text-onyx transition-colors focus:border-onyx focus:outline-none focus:ring-2 focus:ring-onyx/15 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer",
         className,
       )}
       {...props}

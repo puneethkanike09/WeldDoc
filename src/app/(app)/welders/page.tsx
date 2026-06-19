@@ -62,7 +62,7 @@ export default async function WeldersPage() {
 
 function EmptyState() {
   return (
-    <div className="rounded-[var(--radius-card)] border border-dashed border-silver bg-white px-6 py-16 text-center">
+    <div className="rounded-[var(--radius-card)] border border-dashed border-silver bg-panel px-6 py-16 text-center">
       <h3 className="font-display text-lg font-semibold text-onyx">
         No welders yet
       </h3>

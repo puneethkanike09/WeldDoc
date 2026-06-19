@@ -524,7 +524,7 @@ function TestRow({
         />
       </Field>
       <Field label="Report PDF">
-        <label className="flex h-11 cursor-pointer items-center gap-2 rounded-[10px] border border-dashed border-silver bg-white px-3 text-[13px] text-graphite hover:border-onyx/40">
+        <label className="flex h-11 cursor-pointer items-center gap-2 rounded-[10px] border border-dashed border-silver bg-panel px-3 text-[13px] text-graphite hover:border-onyx/40">
           <UploadCloud className="h-4 w-4 text-steel" />
           <span className="truncate">
             {existing?.report_pdf_path ? "Replace report" : "Upload"}

@@ -146,7 +146,7 @@ export default async function DashboardPage() {
 
         <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
           {/* Category gap */}
-          <div className="rounded-[var(--radius-card)] border border-silver bg-white p-6">
+          <div className="rounded-[var(--radius-card)] border border-silver bg-panel p-6">
             <h3 className="font-display text-base font-semibold text-onyx">
               Category coverage
             </h3>
@@ -184,7 +184,7 @@ export default async function DashboardPage() {
           </div>
 
           {/* Expiring soon list */}
-          <div className="rounded-[var(--radius-card)] border border-silver bg-white p-6">
+          <div className="rounded-[var(--radius-card)] border border-silver bg-panel p-6">
             <h3 className="font-display text-base font-semibold text-onyx">
               Needs attention
             </h3>

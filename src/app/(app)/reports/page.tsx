@@ -49,7 +49,7 @@ export default async function ReportsPage() {
 
       <div className="px-8 py-8">
         {rows.length === 0 ? (
-          <div className="rounded-[var(--radius-card)] border border-dashed border-silver bg-white px-6 py-16 text-center">
+          <div className="rounded-[var(--radius-card)] border border-dashed border-silver bg-panel px-6 py-16 text-center">
             <FileStack className="mx-auto h-8 w-8 text-steel" />
             <h3 className="mt-3 font-display text-lg font-semibold text-onyx">
               No test reports yet

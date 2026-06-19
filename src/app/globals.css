@@ -1,17 +1,80 @@
 @import "tailwindcss";
 @import "react-day-picker/style.css";
 
+/* Admin dashboard theme tokens — scoped via html[data-app-theme] so portaled UI (dialogs, selects) stays in sync */
+:root {
+  --theme-canvas: #f8faf9;
+  --theme-panel: #ffffff;
+  --theme-muted: #f4f5f6;
+  --theme-border: #e2e2e4;
+  --theme-text: #161616;
+  --theme-text-strong: #2a2a2a;
+  --theme-text-secondary: #4a4a4a;
+  --theme-text-muted: #909090;
+  --theme-inverse-bg: #161616;
+  --theme-inverse-fg: #ffffff;
+  --status-active: #214224;
+  --status-active-ink: #0a2e0e;
+  --status-active-soft: rgb(33 66 36 / 0.12);
+  --status-expired: #912e1f;
+  --status-expired-ink: #912e1f;
+  --status-warning-ink: #161616;
+  --status-expiring-ink: #8a6a00;
+}
+
+html[data-app-theme="dark"] {
+  --theme-canvas: #090909;
+  --theme-panel: #121212;
+  --theme-muted: #1a1a1a;
+  --theme-border: #2e2e2e;
+  --theme-text: #ededed;
+  --theme-text-strong: #f5f5f5;
+  --theme-text-secondary: #a3a3a3;
+  --theme-text-muted: #737373;
+  --theme-inverse-bg: #161616;
+  --theme-inverse-fg: #ffffff;
+  --status-active: #3a8f55;
+  --status-active-ink: #86efac;
+  --status-active-soft: rgb(134 239 172 / 0.14);
+  --status-expired: #b85c4a;
+  --status-expired-ink: #fca5a5;
+  --status-warning-ink: #161616;
+  --status-expiring-ink: #fcd34d;
+
+  --background: #121212;
+  --foreground: #ededed;
+  --card: #121212;
+  --card-foreground: #ededed;
+  --popover: #1a1a1a;
+  --popover-foreground: #ededed;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #ededed;
+  --muted: #1a1a1a;
+  --muted-foreground: #a3a3a3;
+  --accent: #262626;
+  --accent-foreground: #ededed;
+  --border: #2e2e2e;
+  --input: #2e2e2e;
+  --ring: #f90a08;
+
+  color-scheme: dark;
+}
+
 @theme {
   /* WeldDoc brand palette (Weld. red + Doc black) */
-  --color-parchment: #f8faf9;
+  /* Surfaces — remapped for admin dark mode */
+  --color-parchment: var(--theme-canvas);
   --color-white: #ffffff;
-  --color-frost: #f4f5f6;
+  --color-panel: var(--theme-panel);
+  --color-frost: var(--theme-muted);
 
-  --color-onyx: #161616;
-  --color-charcoal: #2a2a2a;
-  --color-graphite: #4a4a4a;
-  --color-steel: #909090;
-  --color-silver: #e2e2e4;
+  --color-onyx: var(--theme-text);
+  --color-charcoal: var(--theme-text-strong);
+  --color-graphite: var(--theme-text-secondary);
+  --color-steel: var(--theme-text-muted);
+  --color-silver: var(--theme-border);
+  --color-inverse-bg: var(--theme-inverse-bg);
+  --color-inverse-fg: var(--theme-inverse-fg);
   --color-midnight: #161616;
 
   /* Signature + secondary accents (brand red family) */
@@ -21,10 +84,13 @@
   --color-cobalt: #1b61c9;
 
   /* Status semantics */
-  --color-active: #214224;
-  --color-active-ink: #0a2e0e;
+  --color-active: var(--status-active);
+  --color-active-ink: var(--status-active-ink);
   --color-expiring: #fcb42a;
-  --color-expired: #912e1f;
+  --color-expired: var(--status-expired);
+  --color-warning-ink: var(--status-warning-ink);
+  --color-expired-ink: var(--status-expired-ink);
+  --color-expiring-ink: var(--status-expiring-ink);
 
   /* Chart categorical hues (brand red/black family) */
   --color-chart-1: #f90a08;
@@ -162,6 +228,11 @@
 .rdp-weld .rdp-button_next,
 .rdp-weld .rdp-dropdown_root button {
   cursor: pointer;
+}
+
+html[data-app-theme="dark"] .rdp-weld {
+  --rdp-accent-background-color: #2a1515;
+  color-scheme: dark;
 }
 
 @layer base {

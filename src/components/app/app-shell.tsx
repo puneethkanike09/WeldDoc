@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Menu } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Sidebar } from "@/components/app/sidebar";
+import { useAppTheme } from "@/components/app/app-theme-provider";
+import { cn } from "@/lib/utils";
 
 export function AppShell({
   orgName,
@@ -18,6 +20,7 @@ export function AppShell({
 }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { resolvedTheme } = useAppTheme();
 
   // Close the drawer whenever the route changes.
   useEffect(() => {
@@ -35,7 +38,13 @@ export function AppShell({
   }, [open]);
 
   return (
-    <div className="flex min-h-screen bg-parchment">
+    <div
+      className={cn(
+        "app-shell flex min-h-screen bg-parchment",
+        resolvedTheme === "dark" && "dark",
+      )}
+      suppressHydrationWarning
+    >
       {/* Backdrop (mobile only) */}
       {open && (
         <div
@@ -60,7 +69,7 @@ export function AppShell({
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile top bar */}
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-silver bg-white px-4 lg:hidden">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-silver bg-panel px-4 lg:hidden">
           <button
             type="button"
             aria-label="Open menu"
@@ -70,7 +79,7 @@ export function AppShell({
             <Menu className="h-5 w-5" />
           </button>
           <Link href="/dashboard" aria-label="WeldDoc home">
-            <Logo />
+            <Logo onDark={resolvedTheme === "dark"} />
           </Link>
         </header>
 

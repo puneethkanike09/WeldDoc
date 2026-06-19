@@ -10,9 +10,9 @@ const base =
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-onyx text-white shadow-[var(--shadow-subtle)] hover:bg-charcoal active:translate-y-px",
+    "bg-inverse-bg text-inverse-fg shadow-[var(--shadow-subtle)] hover:opacity-90 active:translate-y-px",
   ghost:
-    "bg-white text-onyx border border-onyx hover:bg-frost active:translate-y-px",
+    "bg-panel text-onyx border border-onyx hover:bg-frost active:translate-y-px",
   ember:
     "bg-ember text-white hover:bg-[#8f2600] shadow-[var(--shadow-subtle)] active:translate-y-px",
   subtle: "bg-transparent text-charcoal hover:bg-onyx/5",

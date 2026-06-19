@@ -8,7 +8,7 @@ const tones: Record<
   { shell: string; label: string; value: string; hint: string }
 > = {
   brand: {
-    shell: "bg-onyx border-onyx",
+    shell: "bg-inverse-bg border-inverse-bg",
     label: "text-white/50",
     value: "text-white",
     hint: "text-white/40",
@@ -21,9 +21,9 @@ const tones: Record<
   },
   warning: {
     shell: "bg-expiring border-expiring",
-    label: "text-onyx/55",
-    value: "text-onyx",
-    hint: "text-onyx/45",
+    label: "text-warning-ink/55",
+    value: "text-warning-ink",
+    hint: "text-warning-ink/45",
   },
   danger: {
     shell: "bg-expired border-expired",

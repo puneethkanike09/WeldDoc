@@ -40,7 +40,7 @@ function extractOptions(children: React.ReactNode): Opt[] {
 }
 
 const triggerClasses =
-  "flex h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-[10px] border border-input bg-white px-3.5 text-[15px] text-onyx transition-colors data-[placeholder]:text-steel focus:border-onyx focus:outline-none focus:ring-2 focus:ring-onyx/15 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 [&>span]:text-left";
+  "flex h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-[10px] border border-input bg-panel px-3.5 text-[15px] text-onyx transition-colors data-[placeholder]:text-steel focus:border-onyx focus:outline-none focus:ring-2 focus:ring-onyx/15 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 [&>span]:text-left";
 
 export interface SelectProps {
   name?: string;

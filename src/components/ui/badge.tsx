@@ -12,12 +12,12 @@ type Tone =
 
 const tones: Record<Tone, string> = {
   neutral: "bg-onyx/5 text-charcoal",
-  active: "bg-active/10 text-active-ink",
-  expiring: "bg-expiring/20 text-[#8a6a00]",
-  expired: "bg-expired/10 text-expired",
+  active: "bg-active/15 text-active-ink",
+  expiring: "bg-expiring/20 text-expiring-ink",
+  expired: "bg-expired/15 text-expired-ink",
   ember: "bg-ember/10 text-ember",
   sapphire: "bg-sapphire/10 text-sapphire",
-  outline: "border border-silver text-graphite bg-white",
+  outline: "border border-silver text-graphite bg-panel",
 };
 
 interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/brand/logo";
 import { SignOutButton } from "@/components/app/sign-out-button";
+import { ThemeToggle } from "@/components/app/theme-toggle";
+import { useAppTheme } from "@/components/app/app-theme-provider";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -32,12 +34,13 @@ export function Sidebar({
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
+  const { resolvedTheme } = useAppTheme();
 
   return (
-    <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-silver bg-white">
+    <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-silver bg-panel">
       <div className="flex items-center justify-between px-5 py-5">
         <Link href="/dashboard" aria-label="WeldDoc" onClick={onNavigate}>
-          <Logo />
+          <Logo onDark={resolvedTheme === "dark"} />
         </Link>
         <button
           type="button"
@@ -68,7 +71,7 @@ export function Sidebar({
               className={cn(
                 "flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[14.5px] font-medium transition-colors",
                 active
-                  ? "bg-onyx text-white"
+                  ? "bg-inverse-bg text-inverse-fg"
                   : "text-charcoal hover:bg-onyx/5",
               )}
             >
@@ -80,6 +83,12 @@ export function Sidebar({
       </nav>
 
       <div className="border-t border-silver p-3">
+        <div className="mb-3 px-1">
+          <p className="mb-2 px-2 text-[11px] font-medium uppercase tracking-wide text-steel">
+            Appearance
+          </p>
+          <ThemeToggle compact />
+        </div>
         <div className="flex items-center gap-3 px-3 py-2">
           <div className="grid h-9 w-9 place-items-center rounded-full bg-ember/10 font-display text-sm font-semibold text-ember">
             {userName.slice(0, 1).toUpperCase()}

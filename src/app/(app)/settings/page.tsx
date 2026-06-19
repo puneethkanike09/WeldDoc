@@ -11,6 +11,7 @@ import {
   deleteSignatory,
 } from "./actions";
 import { OrgSettingsForm, SignatoryForm } from "./settings-forms";
+import { SettingsAppearance } from "./settings-appearance";
 import type { Signatory } from "@/types/db";
 import { Trash2 } from "lucide-react";
 
@@ -35,6 +36,13 @@ export default async function SettingsPage() {
         description="Organisation details, alert recipients and certificate signatories."
       />
       <div className="space-y-8 px-8 py-8">
+        <Card className="h-fit">
+          <CardBody className="space-y-4">
+            <CardTitle>Appearance</CardTitle>
+            <SettingsAppearance />
+          </CardBody>
+        </Card>
+
         <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
           <Card>
             <CardBody className="space-y-5">

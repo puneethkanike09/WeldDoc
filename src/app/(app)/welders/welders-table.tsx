@@ -86,7 +86,7 @@ export function WeldersTable({ rows }: { rows: WelderRow[] }) {
         </Select>
       </div>
 
-      <div className="mt-5 overflow-hidden rounded-[var(--radius-card)] border border-silver bg-white">
+      <div className="mt-5 overflow-hidden rounded-[var(--radius-card)] border border-silver bg-panel">
         <table className="w-full text-left text-[14px]">
           <thead>
             <tr className="border-b border-silver bg-frost text-[12px] uppercase tracking-wide text-steel">

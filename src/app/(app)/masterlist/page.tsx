@@ -20,7 +20,7 @@ export default async function MasterListPage() {
       />
       <div className="px-8 py-8">
         {rows.length === 0 ? (
-          <div className="rounded-[var(--radius-card)] border border-dashed border-silver bg-white px-6 py-16 text-center text-graphite">
+          <div className="rounded-[var(--radius-card)] border border-dashed border-silver bg-panel px-6 py-16 text-center text-graphite">
             No qualification records yet. Qualify a welder to populate the
             master list.
           </div>

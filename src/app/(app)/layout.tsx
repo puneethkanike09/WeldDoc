@@ -1,6 +1,8 @@
 import { requireSession } from "@/lib/auth";
 import { Providers } from "@/components/providers";
 import { AppShell } from "@/components/app/app-shell";
+import { AppThemeProvider } from "@/components/app/app-theme-provider";
+import { AppThemeScript } from "@/components/app/app-theme-script";
 
 export default async function AppLayout({
   children,
@@ -11,10 +13,15 @@ export default async function AppLayout({
   const userName = profile.full_name || email || "Engineer";
 
   return (
-    <Providers>
-      <AppShell orgName={org.name} userName={userName}>
-        {children}
-      </AppShell>
-    </Providers>
+    <>
+      <AppThemeScript />
+      <Providers>
+        <AppThemeProvider>
+          <AppShell orgName={org.name} userName={userName}>
+            {children}
+          </AppShell>
+        </AppThemeProvider>
+      </Providers>
+    </>
   );
 }

@@ -8,6 +8,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import { useAppTheme } from "@/components/app/app-theme-provider";
 
 export interface Slice {
   name: string;
@@ -25,7 +26,7 @@ const CHART_COLORS = [
   "#9a9a9a",
 ];
 
-const STATUS_COLORS: Record<string, string> = {
+const STATUS_COLORS_LIGHT: Record<string, string> = {
   Active: "#214224",
   Expiring: "#fcb42a",
   Expired: "#912e1f",
@@ -33,6 +34,16 @@ const STATUS_COLORS: Record<string, string> = {
   None: "#909090",
   Inactive: "#cccccc",
   Suspended: "#f90a08",
+};
+
+const STATUS_COLORS_DARK: Record<string, string> = {
+  Active: "#5cb87a",
+  Expiring: "#fcb42a",
+  Expired: "#e07a6a",
+  Pending: "#d4d4d4",
+  None: "#737373",
+  Inactive: "#525252",
+  Suspended: "#f87171",
 };
 
 export function DonutCard({
@@ -45,9 +56,12 @@ export function DonutCard({
   useStatusColors?: boolean;
 }) {
   const total = data.reduce((s, d) => s + d.value, 0);
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === "dark";
+  const statusColors = isDark ? STATUS_COLORS_DARK : STATUS_COLORS_LIGHT;
 
   return (
-    <div className="rounded-[var(--radius-card)] border border-silver bg-white p-6">
+    <div className="rounded-[var(--radius-card)] border border-silver bg-panel p-6">
       <h3 className="font-display text-base font-semibold tracking-tight text-onyx">
         {title}
       </h3>
@@ -73,7 +87,7 @@ export function DonutCard({
                     key={entry.name}
                     fill={
                       useStatusColors
-                        ? STATUS_COLORS[entry.name] ?? CHART_COLORS[i % CHART_COLORS.length]
+                        ? statusColors[entry.name] ?? CHART_COLORS[i % CHART_COLORS.length]
                         : CHART_COLORS[i % CHART_COLORS.length]
                     }
                   />
@@ -82,14 +96,20 @@ export function DonutCard({
               <Tooltip
                 contentStyle={{
                   borderRadius: 10,
-                  border: "1px solid #e0e2e6",
+                  border: isDark ? "1px solid #2e2e2e" : "1px solid #e0e2e6",
+                  backgroundColor: isDark ? "#1a1a1a" : "#ffffff",
+                  color: isDark ? "#ededed" : "#161616",
                   fontSize: 13,
                   fontFamily: "var(--font-inter)",
                 }}
               />
               <Legend
                 iconType="circle"
-                wrapperStyle={{ fontSize: 12, fontFamily: "var(--font-inter)" }}
+                wrapperStyle={{
+                  fontSize: 12,
+                  fontFamily: "var(--font-inter)",
+                  color: isDark ? "#a3a3a3" : "#4a4a4a",
+                }}
               />
             </PieChart>
           </ResponsiveContainer>
