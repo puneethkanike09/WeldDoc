@@ -128,8 +128,8 @@ export function Landing() {
           <div className="mt-20 grid gap-5 lg:grid-cols-[1.4fr_0.6fr] lg:gap-6">
             <div className="relative aspect-16/10 overflow-hidden rounded-lg border border-hairline bg-white shadow-(--shadow-lift) lg:aspect-auto lg:min-h-[420px]">
               <Image
-                src="/images/desktop.png"
-                alt="WeldDoc dashboard on desktop — welder registry, KPIs and charts"
+                src="/images/desktopnew.png"
+                alt="WeldDoc dashboard on desktop — welder registry, KPIs and charts in dark mode"
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 720px"
@@ -139,7 +139,7 @@ export function Landing() {
             <div className="relative aspect-3/4 overflow-hidden rounded-lg border border-hairline bg-white shadow-(--shadow-lift) lg:aspect-auto lg:min-h-[420px]">
               <Image
                 src="/images/mobile.png"
-                alt="WeldDoc dashboard on mobile — KPIs and qualification charts"
+                alt="WeldDoc dashboard on mobile — KPIs and qualification charts in dark mode"
                 fill
                 sizes="(max-width: 1024px) 100vw, 360px"
                 className="object-cover object-top"
@@ -379,8 +379,8 @@ export function Landing() {
                 <div key={row.label} className="flex items-center">
                   <span
                     className={`flex-1 py-5 text-body text-ink ${i < comparison.length - 1
-                        ? "border-b border-deep-green/10"
-                        : ""
+                      ? "border-b border-deep-green/10"
+                      : ""
                       }`}
                   >
                     {row.label}
@@ -392,8 +392,8 @@ export function Landing() {
                   </span>
                   <span
                     className={`flex w-[100px] items-center justify-center px-2 py-5 text-center sm:w-[150px] ${i < comparison.length - 1
-                        ? "border-b border-deep-green/10"
-                        : ""
+                      ? "border-b border-deep-green/10"
+                      : ""
                       }`}
                   >
                     {row.others === true ? (
