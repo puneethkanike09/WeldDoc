@@ -16,6 +16,7 @@ import type {
   Welder,
 } from "@/types/db";
 import { ShieldCheck, ShieldX, ShieldAlert } from "lucide-react";
+import { DemoVerifyPage } from "@/components/marketing/demo-verify";
 
 export const metadata: Metadata = {
   title: "Welder verification",
@@ -30,6 +31,11 @@ export default async function VerifyPage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
+
+  if (token === "demo") {
+    return <DemoVerifyPage />;
+  }
+
   const supabase = createAdminClient();
 
   const { data: welder } = await supabase

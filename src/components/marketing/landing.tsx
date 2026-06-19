@@ -159,7 +159,7 @@ export function Landing() {
         <TrustMarquee />
       </section>
 
-      {/* Product cards — soft stone, 3-column */}
+      {/* Product cards — bento grid on canvas */}
       <section id="features" className="section-y bg-canvas">
         <div className="mx-auto max-w-[1280px] px-6">
           <h2 className="text-section-heading max-w-[640px]">
@@ -169,30 +169,77 @@ export function Landing() {
             A focused toolkit — not a sprawling ERP — from registration to
             on-site verification.
           </p>
-          <div className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((p) => (
-              <article
-                key={p.title}
-                className="flex flex-col rounded-sm bg-soft-stone p-8"
-              >
-                <p.icon className="h-5 w-5 text-ink" strokeWidth={1.5} />
-                <h3 className="text-feature-heading mt-6">{p.title}</h3>
-                <ul className="mt-5 flex-1 space-y-2.5 border-t border-hairline pt-5">
-                  {p.points.map((pt) => (
-                    <li
-                      key={pt}
-                      className="flex items-start gap-2 text-body text-slate"
-                    >
-                      <Check
-                        className="mt-0.5 h-4 w-4 shrink-0 text-ink"
-                        strokeWidth={2}
+          <div className="mt-16 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:auto-rows-[minmax(186px,auto)]">
+            {products.map((p, i) => {
+              const featured = i === 0;
+              const span = [
+                "sm:col-span-2 lg:col-span-2 lg:row-span-2",
+                "sm:col-span-2 lg:col-span-2",
+                "lg:col-span-1",
+                "lg:col-span-1",
+                "sm:col-span-2 lg:col-span-2",
+                "sm:col-span-2 lg:col-span-2",
+              ][i];
+              return (
+                <article
+                  key={p.title}
+                  className={`relative flex flex-col overflow-hidden rounded-lg p-7 ${span} ${
+                    featured ? "bg-deep-green text-white" : "bg-soft-stone"
+                  }`}
+                >
+                  <p.icon
+                    className={`h-5 w-5 ${featured ? "text-coral" : "text-ink"}`}
+                    strokeWidth={1.5}
+                  />
+                  <h3
+                    className={
+                      featured
+                        ? "mt-5 font-ds-display text-[26px] font-semibold leading-tight"
+                        : "text-feature-heading mt-6"
+                    }
+                  >
+                    {p.title}
+                  </h3>
+                  <ul
+                    className={`mt-5 flex-1 space-y-2.5 border-t pt-5 ${
+                      featured ? "border-white/15" : "border-hairline"
+                    }`}
+                  >
+                    {p.points.map((pt) => (
+                      <li
+                        key={pt}
+                        className={`flex items-start gap-2 text-body ${
+                          featured ? "text-white/70" : "text-slate"
+                        }`}
+                      >
+                        <Check
+                          className={`mt-0.5 h-4 w-4 shrink-0 ${
+                            featured ? "text-coral" : "text-ink"
+                          }`}
+                          strokeWidth={2}
+                        />
+                        {pt}
+                      </li>
+                    ))}
+                  </ul>
+                  {featured && (
+                    <div className="mt-6 flex items-center gap-3">
+                      <Image
+                        src="/api/qr/demo?style=light"
+                        alt="Scan to open sample welder verification"
+                        width={56}
+                        height={56}
+                        unoptimized
+                        className="h-14 w-14 shrink-0"
                       />
-                      {pt}
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            ))}
+                      <span className="text-micro text-white/50">
+                        Scan → live qualification status
+                      </span>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>
