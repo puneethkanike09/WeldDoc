@@ -1,6 +1,6 @@
 import { requireSession } from "@/lib/auth";
 import { Providers } from "@/components/providers";
-import { Sidebar } from "@/components/app/sidebar";
+import { AppShell } from "@/components/app/app-shell";
 
 export default async function AppLayout({
   children,
@@ -12,10 +12,9 @@ export default async function AppLayout({
 
   return (
     <Providers>
-      <div className="flex min-h-screen bg-parchment">
-        <Sidebar orgName={org.name} userName={userName} />
-        <main className="min-w-0 flex-1">{children}</main>
-      </div>
+      <AppShell orgName={org.name} userName={userName}>
+        {children}
+      </AppShell>
     </Providers>
   );
 }

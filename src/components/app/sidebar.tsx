@@ -11,6 +11,7 @@ import {
   FileStack,
   Table2,
   Settings,
+  X,
 } from "lucide-react";
 
 const nav = [
@@ -24,18 +25,28 @@ const nav = [
 export function Sidebar({
   orgName,
   userName,
+  onNavigate,
 }: {
   orgName: string;
   userName: string;
+  onNavigate?: () => void;
 }) {
   const pathname = usePathname();
 
   return (
-    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-silver bg-white">
-      <div className="px-5 py-5">
-        <Link href="/dashboard" aria-label="WeldDoc">
+    <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-silver bg-white">
+      <div className="flex items-center justify-between px-5 py-5">
+        <Link href="/dashboard" aria-label="WeldDoc" onClick={onNavigate}>
           <Logo />
         </Link>
+        <button
+          type="button"
+          aria-label="Close menu"
+          onClick={onNavigate}
+          className="grid h-8 w-8 place-items-center rounded-sm text-charcoal hover:bg-onyx/5 lg:hidden"
+        >
+          <X className="h-5 w-5" />
+        </button>
       </div>
 
       <div className="mx-4 mb-2 rounded-[10px] bg-frost px-3 py-2.5">
@@ -53,6 +64,7 @@ export function Sidebar({
             <Link
               key={item.href}
               href={item.href}
+              onClick={onNavigate}
               className={cn(
                 "flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[14.5px] font-medium transition-colors",
                 active
