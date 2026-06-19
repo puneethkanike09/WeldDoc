@@ -28,7 +28,7 @@ export function SiteFooter() {
           aria-hidden
         >
           <span className="block font-ds-display text-[clamp(5rem,22vw,15rem)] font-bold uppercase leading-[0.85] tracking-tighter text-white/4">
-            WeldDoc
+            Weld.Doc
           </span>
         </div>
 
