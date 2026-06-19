@@ -1,4 +1,4 @@
-import { SiteNav } from "@/components/marketing/site-nav";
+import { SiteNav, NAV_SCROLL_SENTINEL_ID } from "@/components/marketing/site-nav";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { SmoothScroll } from "@/components/marketing/smooth-scroll";
 import { spaceGrotesk } from "@/lib/fonts";
@@ -14,9 +14,14 @@ export default function MarketingLayout({
       <div
         className={cn(
           spaceGrotesk.className,
-          "min-h-screen bg-canvas font-ds-display text-ink",
+          "relative min-h-screen bg-canvas font-ds-display text-ink",
         )}
       >
+        <div
+          id={NAV_SCROLL_SENTINEL_ID}
+          className="pointer-events-none absolute top-0 left-0 h-px w-full"
+          aria-hidden
+        />
         <SiteNav />
         {children}
         <SiteFooter />

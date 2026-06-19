@@ -85,11 +85,11 @@ const comparison = [
 export function Landing() {
   return (
     <main className="font-ds-display text-ink">
-      {/* Hero — monumental type + split media cards over soft aurora */}
-      <section className="section-y relative isolate overflow-hidden bg-canvas pt-28 sm:pt-36">
+      {/* Hero — pt clears fixed nav (64px mobile / 100px desktop) + breathing room */}
+      <section className="relative isolate overflow-hidden pb-[clamp(64px,10vw,120px)] pt-28 md:pt-[11.5rem]">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[80%] opacity-60 mask-[linear-gradient(to_bottom,black_45%,transparent)]"
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[min(100%,920px)] min-h-[520px] opacity-80 mask-[linear-gradient(to_bottom,black_65%,transparent)]"
         >
           <SoftAurora
             variant="light"

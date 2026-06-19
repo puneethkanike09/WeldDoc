@@ -1,6 +1,10 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
 import { DsButtonLink } from "@/components/marketing/ds-button";
+import { cn } from "@/lib/utils";
 
 const links = [
   { href: "#features", label: "Features" },
@@ -8,9 +12,26 @@ const links = [
   { href: "#compare", label: "Compare" },
 ];
 
+export const NAV_SCROLL_SENTINEL_ID = "nav-scroll-sentinel";
+
 export function SiteNav() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const sentinel = document.getElementById(NAV_SCROLL_SENTINEL_ID);
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setScrolled(!entry.isIntersecting),
+      { threshold: 0, rootMargin: "0px" },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <header className="sticky top-0 z-50 bg-canvas">
+    <header className="fixed inset-x-0 top-0 z-50">
       {/* announcement-bar — desktop/tablet only */}
       <div className="hidden h-9 items-center justify-center bg-cohere-black px-4 text-micro text-white md:flex">
         <span>
@@ -21,8 +42,15 @@ export function SiteNav() {
         </span>
       </div>
 
-      {/* global nav — logo left, menu center (desktop), actions right */}
-      <div className="border-b border-hairline">
+      {/* global nav — transparent at top, frosted once scrolled */}
+      <div
+        className={cn(
+          "border-b transition-[background-color,backdrop-filter,border-color,box-shadow] duration-300 ease-out",
+          scrolled
+            ? "border-black/6 bg-white/55 shadow-[0_1px_0_rgba(0,0,0,0.04)] backdrop-blur-2xl backdrop-saturate-150"
+            : "border-transparent bg-transparent backdrop-blur-none",
+        )}
+      >
         <div className="mx-auto grid h-16 max-w-[1280px] grid-cols-[1fr_auto_1fr] items-center px-6">
           <Link
             href="/"
