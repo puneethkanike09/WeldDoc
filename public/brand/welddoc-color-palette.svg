@@ -1,0 +1,178 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1680" viewBox="0 0 1200 1680" fill="none">
+  <rect width="1200" height="1680" fill="#FFFFFF"/>
+
+  <!-- Header -->
+  <text x="80" y="88" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="36" font-weight="700" fill="#161616">
+    <tspan fill="#F90A08">Weld.</tspan><tspan>Doc</tspan>
+  </text>
+  <text x="80" y="128" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="16" font-weight="500" letter-spacing="0.12em" fill="#686868">BRAND COLOR PALETTE</text>
+  <text x="80" y="158" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="14" fill="#909090">EN ISO 9606-1 welder qualification platform · Light mode tokens</text>
+  <line x1="80" y1="184" x2="1120" y2="184" stroke="#E2E2E4" stroke-width="1"/>
+
+  <!-- Primary brand -->
+  <text x="80" y="236" font-family="system-ui, sans-serif" font-size="13" font-weight="600" letter-spacing="0.08em" fill="#161616">PRIMARY BRAND</text>
+
+  <rect x="80" y="260" width="320" height="140" rx="16" fill="#F90A08"/>
+  <text x="100" y="360" font-family="ui-monospace, monospace" font-size="13" fill="#FFFFFF">Brand Red</text>
+  <text x="100" y="382" font-family="ui-monospace, monospace" font-size="12" fill="#FFFFFF" opacity="0.85">#F90A08 · Primary / CTA / Accent</text>
+
+  <rect x="420" y="260" width="320" height="140" rx="16" fill="#161616"/>
+  <text x="440" y="360" font-family="ui-monospace, monospace" font-size="13" fill="#FFFFFF">Brand Black</text>
+  <text x="440" y="382" font-family="ui-monospace, monospace" font-size="12" fill="#FFFFFF" opacity="0.85">#161616 · Text / Buttons / Nav active</text>
+
+  <rect x="760" y="260" width="360" height="140" rx="16" fill="#F8FAF9" stroke="#E2E2E4"/>
+  <text x="780" y="360" font-family="ui-monospace, monospace" font-size="13" fill="#161616">Brand Off-white</text>
+  <text x="780" y="382" font-family="ui-monospace, monospace" font-size="12" fill="#686868">#F8FAF9 · App canvas / Background</text>
+
+  <!-- Red family -->
+  <text x="80" y="460" font-family="system-ui, sans-serif" font-size="13" font-weight="600" letter-spacing="0.08em" fill="#161616">RED FAMILY</text>
+
+  <g transform="translate(80,484)">
+    <rect width="196" height="100" rx="12" fill="#DE181A"/>
+    <text x="16" y="72" font-family="ui-monospace, monospace" font-size="12" fill="#FFF">Red Deep</text>
+    <text x="16" y="90" font-family="ui-monospace, monospace" font-size="11" fill="#FFF" opacity="0.9">#DE181A</text>
+  </g>
+  <g transform="translate(292,484)">
+    <rect width="196" height="100" rx="12" fill="#D43C3B"/>
+    <text x="16" y="72" font-family="ui-monospace, monospace" font-size="12" fill="#FFF">Red Muted</text>
+    <text x="16" y="90" font-family="ui-monospace, monospace" font-size="11" fill="#FFF" opacity="0.9">#D43C3B</text>
+  </g>
+  <g transform="translate(504,484)">
+    <rect width="196" height="100" rx="12" fill="#F48789"/>
+    <text x="16" y="72" font-family="ui-monospace, monospace" font-size="12" fill="#161616">Coral</text>
+    <text x="16" y="90" font-family="ui-monospace, monospace" font-size="11" fill="#161616" opacity="0.75">#F48789</text>
+  </g>
+  <g transform="translate(716,484)">
+    <rect width="196" height="100" rx="12" fill="#FFBBB4"/>
+    <text x="16" y="72" font-family="ui-monospace, monospace" font-size="12" fill="#161616">Pink</text>
+    <text x="16" y="90" font-family="ui-monospace, monospace" font-size="11" fill="#161616" opacity="0.75">#FFBBB4</text>
+  </g>
+  <g transform="translate(928,484)">
+    <rect width="192" height="100" rx="12" fill="#FFF4F3" stroke="#FFBBB4"/>
+    <text x="16" y="72" font-family="ui-monospace, monospace" font-size="12" fill="#161616">Pale Red Tint</text>
+    <text x="16" y="90" font-family="ui-monospace, monospace" font-size="11" fill="#686868">#FFF4F3</text>
+  </g>
+
+  <!-- Neutrals -->
+  <text x="80" y="640" font-family="system-ui, sans-serif" font-size="13" font-weight="600" letter-spacing="0.08em" fill="#161616">NEUTRALS &amp; SURFACES</text>
+
+  <g transform="translate(80,664)">
+    <rect width="150" height="88" rx="10" fill="#FFFFFF" stroke="#E2E2E4"/>
+    <text x="12" y="62" font-family="ui-monospace, monospace" font-size="11" fill="#161616">White</text>
+    <text x="12" y="78" font-family="ui-monospace, monospace" font-size="10" fill="#686868">#FFFFFF</text>
+  </g>
+  <g transform="translate(242,664)">
+    <rect width="150" height="88" rx="10" fill="#F4F5F6"/>
+    <text x="12" y="62" font-family="ui-monospace, monospace" font-size="11" fill="#161616">Frost</text>
+    <text x="12" y="78" font-family="ui-monospace, monospace" font-size="10" fill="#686868">#F4F5F6</text>
+  </g>
+  <g transform="translate(404,664)">
+    <rect width="150" height="88" rx="10" fill="#F1F1F2"/>
+    <text x="12" y="62" font-family="ui-monospace, monospace" font-size="11" fill="#161616">Soft Stone</text>
+    <text x="12" y="78" font-family="ui-monospace, monospace" font-size="10" fill="#686868">#F1F1F2</text>
+  </g>
+  <g transform="translate(566,664)">
+    <rect width="150" height="88" rx="10" fill="#E2E2E4"/>
+    <text x="12" y="62" font-family="ui-monospace, monospace" font-size="11" fill="#161616">Silver</text>
+    <text x="12" y="78" font-family="ui-monospace, monospace" font-size="10" fill="#686868">#E2E2E4</text>
+  </g>
+  <g transform="translate(728,664)">
+    <rect width="150" height="88" rx="10" fill="#DCDCDE"/>
+    <text x="12" y="62" font-family="ui-monospace, monospace" font-size="11" fill="#161616">Hairline</text>
+    <text x="12" y="78" font-family="ui-monospace, monospace" font-size="10" fill="#686868">#DCDCDE</text>
+  </g>
+  <g transform="translate(890,664)">
+    <rect width="150" height="88" rx="10" fill="#909090"/>
+    <text x="12" y="62" font-family="ui-monospace, monospace" font-size="11" fill="#FFF">Steel</text>
+    <text x="12" y="78" font-family="ui-monospace, monospace" font-size="10" fill="#FFF" opacity="0.9">#909090</text>
+  </g>
+
+  <g transform="translate(80,772)">
+    <rect width="196" height="88" rx="10" fill="#686868"/>
+    <text x="12" y="62" font-family="ui-monospace, monospace" font-size="11" fill="#FFF">Brand Gray</text>
+    <text x="12" y="78" font-family="ui-monospace, monospace" font-size="10" fill="#FFF" opacity="0.9">#686868</text>
+  </g>
+  <g transform="translate(292,772)">
+    <rect width="196" height="88" rx="10" fill="#4A4A4A"/>
+    <text x="12" y="62" font-family="ui-monospace, monospace" font-size="11" fill="#FFF">Graphite</text>
+    <text x="12" y="78" font-family="ui-monospace, monospace" font-size="10" fill="#FFF" opacity="0.9">#4A4A4A</text>
+  </g>
+  <g transform="translate(504,772)">
+    <rect width="196" height="88" rx="10" fill="#2A2A2A"/>
+    <text x="12" y="62" font-family="ui-monospace, monospace" font-size="11" fill="#FFF">Charcoal</text>
+    <text x="12" y="78" font-family="ui-monospace, monospace" font-size="10" fill="#FFF" opacity="0.9">#2A2A2A</text>
+  </g>
+  <g transform="translate(716,772)">
+    <rect width="196" height="88" rx="10" fill="#161616"/>
+    <text x="12" y="62" font-family="ui-monospace, monospace" font-size="11" fill="#FFF">Onyx / Ink</text>
+    <text x="12" y="78" font-family="ui-monospace, monospace" font-size="10" fill="#FFF" opacity="0.9">#161616</text>
+  </g>
+  <g transform="translate(928,772)">
+    <rect width="192" height="88" rx="10" fill="#9A9A9A"/>
+    <text x="12" y="62" font-family="ui-monospace, monospace" font-size="11" fill="#FFF">Muted Slate</text>
+    <text x="12" y="78" font-family="ui-monospace, monospace" font-size="10" fill="#FFF" opacity="0.9">#9A9A9A</text>
+  </g>
+
+  <!-- Status -->
+  <text x="80" y="920" font-family="system-ui, sans-serif" font-size="13" font-weight="600" letter-spacing="0.08em" fill="#161616">STATUS SEMANTICS</text>
+
+  <rect x="80" y="944" width="250" height="120" rx="14" fill="#214224"/>
+  <text x="100" y="1028" font-family="ui-monospace, monospace" font-size="12" fill="#FFFFFF">Active</text>
+  <text x="100" y="1048" font-family="ui-monospace, monospace" font-size="11" fill="#FFFFFF" opacity="0.85">#214224 · Approved / Valid</text>
+
+  <rect x="350" y="944" width="250" height="120" rx="14" fill="#FCB42A"/>
+  <text x="370" y="1028" font-family="ui-monospace, monospace" font-size="12" fill="#161616">Expiring</text>
+  <text x="370" y="1048" font-family="ui-monospace, monospace" font-size="11" fill="#161616" opacity="0.75">#FCB42A · Within 60 days</text>
+
+  <rect x="620" y="944" width="250" height="120" rx="14" fill="#912E1F"/>
+  <text x="640" y="1028" font-family="ui-monospace, monospace" font-size="12" fill="#FFFFFF">Expired / Overdue</text>
+  <text x="640" y="1048" font-family="ui-monospace, monospace" font-size="11" fill="#FFFFFF" opacity="0.85">#912E1F · Action required</text>
+
+  <rect x="890" y="944" width="230" height="120" rx="14" fill="#254FAD"/>
+  <text x="910" y="1028" font-family="ui-monospace, monospace" font-size="12" fill="#FFFFFF">Sapphire</text>
+  <text x="910" y="1048" font-family="ui-monospace, monospace" font-size="11" fill="#FFFFFF" opacity="0.85">#254FAD · Examining body badge</text>
+
+  <!-- Charts -->
+  <text x="80" y="1120" font-family="system-ui, sans-serif" font-size="13" font-weight="600" letter-spacing="0.08em" fill="#161616">CHART CATEGORICAL</text>
+
+  <g transform="translate(80,1144)">
+    <rect width="120" height="72" rx="8" fill="#F90A08"/>
+    <text x="12" y="52" font-family="ui-monospace, monospace" font-size="10" fill="#FFF">#F90A08</text>
+  </g>
+  <g transform="translate(212,1144)"><rect width="120" height="72" rx="8" fill="#161616"/><text x="12" y="52" font-family="ui-monospace, monospace" font-size="10" fill="#FFF">#161616</text></g>
+  <g transform="translate(344,1144)"><rect width="120" height="72" rx="8" fill="#D43C3B"/><text x="12" y="52" font-family="ui-monospace, monospace" font-size="10" fill="#FFF">#D43C3B</text></g>
+  <g transform="translate(476,1144)"><rect width="120" height="72" rx="8" fill="#F48789"/><text x="12" y="52" font-family="ui-monospace, monospace" font-size="10" fill="#161616">#F48789</text></g>
+  <g transform="translate(608,1144)"><rect width="120" height="72" rx="8" fill="#686868"/><text x="12" y="52" font-family="ui-monospace, monospace" font-size="10" fill="#FFF">#686868</text></g>
+  <g transform="translate(740,1144)"><rect width="120" height="72" rx="8" fill="#FFBBB4"/><text x="12" y="52" font-family="ui-monospace, monospace" font-size="10" fill="#161616">#FFBBB4</text></g>
+  <g transform="translate(872,1144)"><rect width="120" height="72" rx="8" fill="#DE181A"/><text x="12" y="52" font-family="ui-monospace, monospace" font-size="10" fill="#FFF">#DE181A</text></g>
+  <g transform="translate(1004,1144)"><rect width="116" height="72" rx="8" fill="#9A9A9A"/><text x="12" y="52" font-family="ui-monospace, monospace" font-size="10" fill="#FFF">#9A9A9A</text></g>
+
+  <!-- Dark mode note -->
+  <text x="80" y="1288" font-family="system-ui, sans-serif" font-size="13" font-weight="600" letter-spacing="0.08em" fill="#161616">DARK MODE (ADMIN DASHBOARD)</text>
+  <rect x="80" y="1312" width="1040" height="200" rx="16" fill="#121212"/>
+  <rect x="100" y="1332" width="140" height="72" rx="10" fill="#090909" stroke="#2E2E2E"/>
+  <text x="116" y="1384" font-family="ui-monospace, monospace" font-size="10" fill="#EDEDED">Canvas #090909</text>
+  <rect x="260" y="1332" width="140" height="72" rx="10" fill="#121212" stroke="#2E2E2E"/>
+  <text x="276" y="1384" font-family="ui-monospace, monospace" font-size="10" fill="#EDEDED">Panel #121212</text>
+  <rect x="420" y="1332" width="140" height="72" rx="10" fill="#1A1A1A" stroke="#2E2E2E"/>
+  <text x="436" y="1384" font-family="ui-monospace, monospace" font-size="10" fill="#EDEDED">Muted #1A1A1A</text>
+  <rect x="580" y="1332" width="140" height="72" rx="10" fill="#EDEDED"/>
+  <text x="596" y="1384" font-family="ui-monospace, monospace" font-size="10" fill="#161616">Text #EDEDED</text>
+  <rect x="740" y="1332" width="140" height="72" rx="10" fill="#3A8F55"/>
+  <text x="756" y="1384" font-family="ui-monospace, monospace" font-size="10" fill="#FFF">Active #3A8F55</text>
+  <rect x="900" y="1332" width="200" height="72" rx="10" fill="#86EFAC"/>
+  <text x="916" y="1384" font-family="ui-monospace, monospace" font-size="10" fill="#161616">Active ink #86EFAC</text>
+  <text x="100" y="1470" font-family="system-ui, sans-serif" font-size="13" fill="#A3A3A3">Primary brand red (#F90A08) and black (#161616) stay fixed in dark mode. Surfaces and status greens lighten for contrast.</text>
+
+  <!-- Typography & usage -->
+  <text x="80" y="1560" font-family="system-ui, sans-serif" font-size="13" font-weight="600" letter-spacing="0.08em" fill="#161616">TYPOGRAPHY &amp; USAGE</text>
+  <text x="80" y="1596" font-family="system-ui, sans-serif" font-size="14" fill="#4A4A4A">
+    <tspan font-weight="600" fill="#161616">Display:</tspan> Space Grotesk · Headings, logo, buttons
+  </text>
+  <text x="80" y="1624" font-family="system-ui, sans-serif" font-size="14" fill="#4A4A4A">
+    <tspan font-weight="600" fill="#161616">Body:</tspan> Inter · Forms, tables, UI copy
+  </text>
+  <text x="80" y="1652" font-family="system-ui, sans-serif" font-size="14" fill="#4A4A4A">
+    <tspan font-weight="600" fill="#161616">Logo lockup:</tspan> Weld. in Brand Red (#F90A08) + Doc in Brand Black (#161616)
+  </text>
+</svg>
