@@ -41,17 +41,15 @@ export default async function EditWelderPage({
         >
           <ArrowLeft className="h-4 w-4" /> Back to profile
         </Link>
-        <div className="max-w-3xl">
-          <WelderForm
-            action={action}
-            welder={welder as Welder}
-            mode="edit"
-            orgDefaults={{
-              employer: org.name,
-              branchLocation: org.location_code,
-            }}
-          />
-        </div>
+        <WelderForm
+          action={action}
+          welder={welder as Welder}
+          mode="edit"
+          orgDefaults={{
+            employer: org.name,
+            branchLocation: org.location_code,
+          }}
+        />
       </div>
     </>
   );

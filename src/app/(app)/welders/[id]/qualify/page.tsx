@@ -122,58 +122,53 @@ export default async function QualifyPage({
           <ArrowLeft className="h-4 w-4" /> Back to profile
         </Link>
 
-        <div className="max-w-3xl">
-          {legacyMode ? (
-            <LegacyForm
-              action={saveLegacy.bind(null, id)}
-              welder={welder}
-            />
-          ) : (
-            <>
-              <Stepper step={step} wpqId={wpq?.id ?? null} welderId={id} />
+        {legacyMode ? (
+          <LegacyForm action={saveLegacy.bind(null, id)} welder={welder} />
+        ) : (
+          <>
+            <Stepper step={step} wpqId={wpq?.id ?? null} welderId={id} />
 
-              {step === 1 && (
-                <PlanStep
-                  action={savePlan.bind(null, id, wpq?.id ?? null)}
-                  wpq={wpq}
-                  orgName={org.name}
-                  orgLocation={org.location_code}
-                />
-              )}
+            {step === 1 && (
+              <PlanStep
+                action={savePlan.bind(null, id, wpq?.id ?? null)}
+                wpq={wpq}
+                orgName={org.name}
+                orgLocation={org.location_code}
+              />
+            )}
 
-              {step === 2 && wpq && (
-                <TestStep
-                  action={saveTest.bind(null, id, wpq.id)}
-                  wpq={wpq}
-                  rangePreview={range?.summary ?? null}
-                />
-              )}
+            {step === 2 && wpq && (
+              <TestStep
+                action={saveTest.bind(null, id, wpq.id)}
+                wpq={wpq}
+                rangePreview={range?.summary ?? null}
+              />
+            )}
 
-              {step === 3 && wpq && (
-                <NdtStep
-                  action={saveNdt.bind(null, id, wpq.id, wpq.joint_type)}
-                  jointType={wpq.joint_type}
-                  existing={ndt}
-                />
-              )}
+            {step === 3 && wpq && (
+              <NdtStep
+                action={saveNdt.bind(null, id, wpq.id, wpq.joint_type)}
+                jointType={wpq.joint_type}
+                existing={ndt}
+              />
+            )}
 
-              {step === 4 && wpq && (
-                <CertificateStep
-                  action={issueCertificate.bind(null, id, wpq.id)}
-                  wpq={wpq}
-                  rangeSummary={range?.summary ?? null}
-                  signatories={signatories}
-                />
-              )}
+            {step === 4 && wpq && (
+              <CertificateStep
+                action={issueCertificate.bind(null, id, wpq.id)}
+                wpq={wpq}
+                rangeSummary={range?.summary ?? null}
+                signatories={signatories}
+              />
+            )}
 
-              {step > 1 && !wpq && (
-                <p className="rounded-[10px] bg-expiring/15 px-4 py-3 text-sm text-[#8a6a00]">
-                  Start at step 1 to create the qualification record first.
-                </p>
-              )}
-            </>
-          )}
-        </div>
+            {step > 1 && !wpq && (
+              <p className="rounded-[10px] bg-expiring/15 px-4 py-3 text-sm text-[#8a6a00]">
+                Start at step 1 to create the qualification record first.
+              </p>
+            )}
+          </>
+        )}
       </div>
     </>
   );

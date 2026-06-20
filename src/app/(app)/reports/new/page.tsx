@@ -40,22 +40,20 @@ export default async function NewReportPage() {
         >
           <ArrowLeft className="h-4 w-4" /> Back to reports
         </Link>
-        <div className="max-w-5xl">
-          {(welders ?? []).length === 0 ? (
-            <p className="rounded-[10px] bg-expiring/15 px-4 py-3 text-sm text-[#8a6a00]">
-              Add welders first, then create a batch test report.
-            </p>
-          ) : (
-            <ReportBuilder
-              action={createReport}
-              welders={(welders ?? []) as Pick<
-                Welder,
-                "id" | "full_name" | "welder_id" | "is_new_welder"
-              >[]}
-              signatories={(sigs ?? []) as Signatory[]}
-            />
-          )}
-        </div>
+        {(welders ?? []).length === 0 ? (
+          <p className="rounded-[10px] bg-expiring/15 px-4 py-3 text-sm text-[#8a6a00]">
+            Add welders first, then create a batch test report.
+          </p>
+        ) : (
+          <ReportBuilder
+            action={createReport}
+            welders={(welders ?? []) as Pick<
+              Welder,
+              "id" | "full_name" | "welder_id" | "is_new_welder"
+            >[]}
+            signatories={(sigs ?? []) as Signatory[]}
+          />
+        )}
       </div>
     </>
   );

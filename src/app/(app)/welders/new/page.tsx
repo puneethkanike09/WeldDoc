@@ -25,17 +25,15 @@ export default async function NewWelderPage() {
         >
           <ArrowLeft className="h-4 w-4" /> Back to welders
         </Link>
-        <div className="max-w-3xl">
-          <WelderForm
-            action={createWelder}
-            mode="create"
-            orgDefaults={{
-              employer: org.name,
-              branchLocation: org.location_code,
-              suggestedPlantWelderId: suggestPlantWelderId(org.welder_seq),
-            }}
-          />
-        </div>
+        <WelderForm
+          action={createWelder}
+          mode="create"
+          orgDefaults={{
+            employer: org.name,
+            branchLocation: org.location_code,
+            suggestedPlantWelderId: suggestPlantWelderId(org.welder_seq),
+          }}
+        />
       </div>
     </>
   );
