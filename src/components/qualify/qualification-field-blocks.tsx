@@ -126,7 +126,7 @@ export function ProductDimensions({
     <div className="sm:col-span-2 space-y-3">
       <p className="text-sm font-medium text-onyx">Product dimensions</p>
       <div className="grid gap-4 sm:grid-cols-3">
-        <Field label="Thickness (mm)" hint="Type — e.g. 12">
+        <Field label="Thickness (mm)" hint="Type — e.g. 12" required>
           <Input
             type="number"
             step="0.1"
@@ -136,7 +136,7 @@ export function ProductDimensions({
             required
           />
         </Field>
-        <Field label="Width (mm)">
+        <Field label="Width (mm)" required>
           <Input
             type="number"
             step="0.1"
@@ -146,7 +146,7 @@ export function ProductDimensions({
             required
           />
         </Field>
-        <Field label="Length (mm)">
+        <Field label="Length (mm)" required>
           <Input
             type="number"
             step="0.1"

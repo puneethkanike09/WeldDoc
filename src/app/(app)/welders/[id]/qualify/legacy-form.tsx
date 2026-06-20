@@ -172,7 +172,7 @@ export function LegacyForm({
                 ))}
               </Select>
             </Field>
-            <Field label="G — Date of initial qualification">
+            <Field label="G — Date of initial qualification" required>
               <DatePicker name="date_of_welding" required />
             </Field>
             <Field label="H — Valid up to" hint="Leave blank to compute from 9.3 method">

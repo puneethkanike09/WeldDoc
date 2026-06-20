@@ -51,7 +51,7 @@ export function MaterialGradeLookup({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Material standard">
+        <Field label="Material standard" required>
           <Select
             value={standard}
             onChange={(e) => {
@@ -68,7 +68,7 @@ export function MaterialGradeLookup({
           </Select>
         </Field>
 
-        <Field label="Material grade / designation">
+        <Field label="Material grade / designation" required>
           {standard && grades.length > 0 ? (
             <Select
               value={grade}
@@ -109,7 +109,7 @@ export function MaterialGradeLookup({
       )}
 
       <div className="flex flex-wrap items-end gap-4">
-        <Field label="Parent material group" className="min-w-[220px] flex-1">
+        <Field label="Parent material group" className="min-w-[220px] flex-1" required>
           <Select
             name="base_material_group"
             value={resolvedGroup}

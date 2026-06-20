@@ -56,7 +56,7 @@ export function WelderForm({
             Personal details
           </h3>
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Full name" className="sm:col-span-2">
+            <Field label="Full name" className="sm:col-span-2" required>
               <Input
                 name="full_name"
                 defaultValue={welder?.full_name ?? ""}
@@ -64,7 +64,7 @@ export function WelderForm({
                 required
               />
             </Field>
-            <Field label="Plant welder ID" hint="e.g. W#247">
+            <Field label="Plant welder ID" hint="e.g. W#247" required>
               <Input
                 name="welder_id"
                 defaultValue={welder?.welder_id ?? ""}
@@ -72,7 +72,7 @@ export function WelderForm({
                 required
               />
             </Field>
-            <Field label="Date of birth">
+            <Field label="Date of birth" required>
               <DatePicker
                 name="date_of_birth"
                 defaultValue={welder?.date_of_birth ?? ""}
@@ -81,7 +81,7 @@ export function WelderForm({
               />
             </Field>
             <div className="sm:col-span-2">
-              <Label>Place of birth</Label>
+              <Label required>Place of birth</Label>
               <LocationSelect
                 name="place_of_birth"
                 initialValue={welder?.place_of_birth}
@@ -89,7 +89,7 @@ export function WelderForm({
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="ID method">
+              <Field label="ID method" required>
                 <Select
                   name="id_method"
                   value={idMethod}
@@ -103,7 +103,7 @@ export function WelderForm({
                   ))}
                 </Select>
               </Field>
-              <Field label="ID number">
+              <Field label="ID number" required>
                 <Input
                   name="id_number"
                   defaultValue={welder?.id_number ?? ""}
@@ -113,7 +113,7 @@ export function WelderForm({
               </Field>
             </div>
             {showOther && (
-              <Field label="Specify ID method" className="sm:col-span-2">
+              <Field label="Specify ID method" className="sm:col-span-2" required>
                 <Input name="id_method_other" placeholder="Other ID type" required />
               </Field>
             )}
@@ -127,7 +127,7 @@ export function WelderForm({
             Employer &amp; photo
           </h3>
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Employer" hint="Auto-filled from your organisation">
+            <Field label="Employer" hint="Auto-filled from your organisation" required>
               <Input
                 name="employer"
                 defaultValue={welder?.employer ?? orgDefaults?.employer ?? ""}
@@ -135,7 +135,7 @@ export function WelderForm({
                 required
               />
             </Field>
-            <Field label="Branch / site">
+            <Field label="Branch / site" required>
               <Input
                 name="branch_location"
                 defaultValue={
@@ -147,7 +147,7 @@ export function WelderForm({
                 required
               />
             </Field>
-            <Field label="Photograph" className="sm:col-span-2">
+            <Field label="Photograph" className="sm:col-span-2" required={mode === "create"}>
               <label className="flex cursor-pointer items-center gap-3 rounded-[10px] border border-dashed border-silver bg-frost px-4 py-3.5 text-sm text-graphite transition-colors hover:border-onyx/40">
                 <UploadCloud className="h-5 w-5 text-steel" />
                 <span>

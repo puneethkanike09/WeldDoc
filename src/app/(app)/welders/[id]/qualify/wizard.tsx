@@ -137,7 +137,7 @@ export function PlanStep({
             sub="Page 1 of the client registry: standard, process, WPS, examiner and revalidation method."
           />
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Code / testing standard">
+            <Field label="Code / testing standard" required>
               <Select
                 name="testing_standard"
                 defaultValue={wpq?.testing_standard ?? "EN ISO 9606-1:2017"}
@@ -150,7 +150,7 @@ export function PlanStep({
                 ))}
               </Select>
             </Field>
-            <Field label="Welding process (ISO 4063)">
+            <Field label="Welding process (ISO 4063)" required>
               <Select name="process" defaultValue={wpq?.process ?? "135"} required>
                 {WELDING_PROCESSES.map((p) => (
                   <option key={p.code} value={p.code}>
@@ -159,7 +159,7 @@ export function PlanStep({
                 ))}
               </Select>
             </Field>
-            <Field label="Joint type">
+            <Field label="Joint type" required>
               <Select
                 name="joint_type"
                 defaultValue={wpq?.joint_type ?? "BW"}
@@ -172,7 +172,7 @@ export function PlanStep({
                 ))}
               </Select>
             </Field>
-            <Field label="Product type">
+            <Field label="Product type" required>
               <Select name="product" defaultValue={wpq?.product ?? "Plate"} required>
                 {PRODUCT_TYPES.map((p) => (
                   <option key={p} value={p}>
@@ -181,7 +181,7 @@ export function PlanStep({
                 ))}
               </Select>
             </Field>
-            <Field label="Welding position">
+            <Field label="Welding position" required>
               <Select name="position" defaultValue={wpq?.position ?? "PF"} required>
                 {Array.from(new Set([...BW_POSITIONS, ...FW_POSITIONS])).map(
                   (p) => (
@@ -192,7 +192,7 @@ export function PlanStep({
                 )}
               </Select>
             </Field>
-            <Field label="Parent material group">
+            <Field label="Parent material group" required>
               <Select
                 name="base_material_group"
                 defaultValue={wpq?.base_material_group ?? "1"}
@@ -205,7 +205,7 @@ export function PlanStep({
                 ))}
               </Select>
             </Field>
-            <Field label="WPS reference">
+            <Field label="WPS reference" required>
               <Input
                 name="wps_reference"
                 defaultValue={wpq?.wps_reference ?? ""}
@@ -223,14 +223,14 @@ export function PlanStep({
                 disabled
               />
             </Field>
-            <Field label="Date of welding test">
+            <Field label="Date of welding test" required>
               <DatePicker
                 name="date_of_welding"
                 defaultValue={wpq?.date_of_welding ?? ""}
                 required
               />
             </Field>
-            <Field label="Examiner / body reference">
+            <Field label="Examiner / body reference" required>
               <Input
                 name="examiner_ref"
                 defaultValue={wpq?.examiner_ref ?? ""}
@@ -238,7 +238,7 @@ export function PlanStep({
                 required
               />
             </Field>
-            <Field label="Examiner / examining body name">
+            <Field label="Examiner / examining body name" required>
               <Input
                 name="examiner_name"
                 defaultValue={wpq?.examiner_name ?? ""}
@@ -246,7 +246,7 @@ export function PlanStep({
                 required
               />
             </Field>
-            <Field label="Revalidation method (cl. 9.3)">
+            <Field label="Revalidation method (cl. 9.3)" required>
               <Select
                 name="revalidation_method"
                 defaultValue={wpq?.revalidation_method ?? "9.3b"}
@@ -298,7 +298,7 @@ export function TestStep({
           />
           <div className="grid gap-5 sm:grid-cols-2">
             <ProductDimensions wpq={wpq} />
-            <Field label="Confirm position">
+            <Field label="Confirm position" required>
               <Select name="position" defaultValue={wpq.position ?? "PF"} required>
                 {positions.map((p) => (
                   <option key={p} value={p}>
@@ -307,7 +307,7 @@ export function TestStep({
                 ))}
               </Select>
             </Field>
-            <Field label="Filler material group">
+            <Field label="Filler material group" required>
               <Select
                 name="filler_group"
                 defaultValue={wpq.filler_group ?? "FM1"}
@@ -320,7 +320,7 @@ export function TestStep({
                 ))}
               </Select>
             </Field>
-            <Field label="Filler designation">
+            <Field label="Filler designation" required>
               <Input
                 name="filler_designation"
                 defaultValue={wpq.filler_designation ?? ""}
@@ -328,7 +328,7 @@ export function TestStep({
                 required
               />
             </Field>
-            <Field label="Filler type">
+            <Field label="Filler type" required>
               <Select
                 name="filler_type"
                 defaultValue={wpq.filler_type ?? FILLER_TYPES[1]}
@@ -341,7 +341,7 @@ export function TestStep({
                 ))}
               </Select>
             </Field>
-            <Field label="Shielding gas">
+            <Field label="Shielding gas" required>
               <Input
                 name="shielding_gas"
                 defaultValue={wpq.shielding_gas ?? ""}
@@ -349,7 +349,7 @@ export function TestStep({
                 required
               />
             </Field>
-            <Field label="Current & polarity">
+            <Field label="Current & polarity" required>
               <Select
                 name="current_polarity"
                 defaultValue={wpq.current_polarity ?? "DCEP"}
@@ -362,7 +362,7 @@ export function TestStep({
                 ))}
               </Select>
             </Field>
-            <Field label="Transfer mode">
+            <Field label="Transfer mode" required>
               <Select
                 name="transfer_mode"
                 defaultValue={wpq.transfer_mode ?? "Spray"}
@@ -375,7 +375,7 @@ export function TestStep({
                 ))}
               </Select>
             </Field>
-            <Field label="Weld details">
+            <Field label="Weld details" required>
               <Select
                 name="weld_details"
                 defaultValue={wpq.weld_details ?? "ss nb"}
@@ -388,7 +388,7 @@ export function TestStep({
                 ))}
               </Select>
             </Field>
-            <Field label="Test thickness (mm)">
+            <Field label="Test thickness (mm)" required>
               <Input
                 type="number"
                 step="0.1"
@@ -398,7 +398,7 @@ export function TestStep({
                 required
               />
             </Field>
-            <Field label="Deposited / throat thickness (mm)">
+            <Field label="Deposited / throat thickness (mm)" required>
               <Input
                 type="number"
                 step="0.1"
@@ -407,7 +407,10 @@ export function TestStep({
                 required
               />
             </Field>
-            <Field label="Pipe outside diameter (mm)">
+            <Field
+              label="Pipe outside diameter (mm)"
+              required={wpq.product === "Pipe" || wpq.product === "Branch"}
+            >
               <Input
                 type="number"
                 step="0.1"
@@ -417,7 +420,7 @@ export function TestStep({
                 required={wpq.product === "Pipe" || wpq.product === "Branch"}
               />
             </Field>
-            <Field label="Layer">
+            <Field label="Layer" required>
               <Select
                 name="layer_type"
                 defaultValue={wpq.layer_type ?? LAYER_TYPES[1]}
@@ -548,7 +551,7 @@ function TestRow({
           </p>
         )}
       </div>
-      <Field label="Result">
+      <Field label="Result" required={required}>
         <Select
           name={`result__${method}`}
           defaultValue={existing?.result ?? (required ? "Pass" : "NA")}
@@ -559,14 +562,14 @@ function TestRow({
           <option value="NA">N/A</option>
         </Select>
       </Field>
-      <Field label="Test date">
+      <Field label="Test date" required={required}>
         <DatePicker
           name={`test_date__${method}`}
           defaultValue={existing?.test_date ?? ""}
           required={required}
         />
       </Field>
-      <Field label="Report / ref no.">
+      <Field label="Report / ref no." required={required}>
         <Input
           name={`conducted_by__${method}`}
           defaultValue={existing?.conducted_by ?? ""}
@@ -626,7 +629,7 @@ export function CertificateStep({
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Certificate date">
+            <Field label="Certificate date" required>
               <DatePicker
                 name="certificate_date"
                 defaultValue={
@@ -636,7 +639,7 @@ export function CertificateStep({
                 required
               />
             </Field>
-            <Field label="Authorised examiner name">
+            <Field label="Authorised examiner name" required>
               <Input
                 name="examiner_name"
                 defaultValue={wpq.examiner_name ?? ""}
@@ -644,7 +647,7 @@ export function CertificateStep({
                 required
               />
             </Field>
-            <Field label="Job knowledge">
+            <Field label="Job knowledge" required>
               <Select
                 name="job_knowledge"
                 defaultValue={wpq.job_knowledge ?? "Not tested"}

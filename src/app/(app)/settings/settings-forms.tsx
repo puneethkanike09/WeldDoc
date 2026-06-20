@@ -93,7 +93,7 @@ export function SignatoryForm({ action }: { action: (fd: FormData) => void }) {
   return (
     <form action={action} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Name">
+        <Field label="Name" required>
           <Input name="name" placeholder="Jordan Lee" required />
         </Field>
         <Field label="Role">

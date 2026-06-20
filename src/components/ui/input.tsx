@@ -53,8 +53,10 @@ export const Select = React.forwardRef<
 
 export function Label({
   className,
+  required,
+  children,
   ...props
-}: React.LabelHTMLAttributes<HTMLLabelElement>) {
+}: React.LabelHTMLAttributes<HTMLLabelElement> & { required?: boolean }) {
   return (
     <label
       className={cn(
@@ -62,24 +64,34 @@ export function Label({
         className,
       )}
       {...props}
-    />
+    >
+      {children}
+      {required ? (
+        <span className="text-ember" aria-hidden="true">
+          {" "}
+          *
+        </span>
+      ) : null}
+    </label>
   );
 }
 
 export function Field({
   label,
   hint,
+  required,
   children,
   className,
 }: {
   label?: string;
   hint?: string;
+  required?: boolean;
   children: React.ReactNode;
   className?: string;
 }) {
   return (
     <div className={className}>
-      {label && <Label>{label}</Label>}
+      {label && <Label required={required}>{label}</Label>}
       {children}
       {hint && <p className="mt-1 text-xs text-steel">{hint}</p>}
     </div>

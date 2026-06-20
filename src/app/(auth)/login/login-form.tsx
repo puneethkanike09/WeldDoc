@@ -77,7 +77,7 @@ export function LoginForm() {
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         {mode === "signup" && (
-          <Field label="Full name">
+          <Field label="Full name" required>
             <Input
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
@@ -87,7 +87,7 @@ export function LoginForm() {
             />
           </Field>
         )}
-        <Field label="Email">
+        <Field label="Email" required>
           <Input
             type="email"
             value={email}
@@ -97,7 +97,7 @@ export function LoginForm() {
             required
           />
         </Field>
-        <Field label="Password">
+        <Field label="Password" required>
           <div className="relative">
             <Input
               type={showPassword ? "text" : "password"}
