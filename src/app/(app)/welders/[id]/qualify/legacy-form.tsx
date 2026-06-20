@@ -6,6 +6,7 @@ import { Select } from "@/components/sui/select";
 import { DatePicker } from "@/components/sui/date-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
+import { FileDropzone } from "@/components/ui/file-dropzone";
 import {
   WELDING_PROCESSES,
   PRODUCT_TYPES,
@@ -19,7 +20,7 @@ import {
   TESTING_STANDARDS,
 } from "@/lib/iso9606/constants";
 import type { Welder } from "@/types/db";
-import { FileArchive, Loader2, UploadCloud } from "lucide-react";
+import { FileArchive, Loader2 } from "lucide-react";
 
 function Submit() {
   const { pending } = useFormStatus();
@@ -217,19 +218,12 @@ export function LegacyForm({
           </div>
 
           <Field label="Upload qualification file bundle (PDF / images)">
-            <label className="flex cursor-pointer flex-col gap-2 rounded-[10px] border border-dashed border-silver bg-frost px-4 py-4 text-sm text-graphite hover:border-onyx/40">
-              <span className="flex items-center gap-2">
-                <UploadCloud className="h-5 w-5 text-steel" />
-                Select one or more files — certificate, VT, RT, continuity reports
-              </span>
-              <input
-                type="file"
-                name="legacy_docs"
-                accept="application/pdf,image/*"
-                multiple
-                className="text-[13px]"
-              />
-            </label>
+            <FileDropzone
+              name="legacy_docs"
+              accept="application/pdf,image/*"
+              multiple
+              placeholder="Drop certificate, VT, RT, continuity reports — or click to browse"
+            />
           </Field>
 
           <div className="flex justify-end">

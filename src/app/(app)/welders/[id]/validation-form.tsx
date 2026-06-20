@@ -5,7 +5,8 @@ import { Input, Field } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
 import { DatePicker } from "@/components/sui/date-picker";
 import { Button } from "@/components/ui/button";
-import { Loader2, UploadCloud, ShieldPlus } from "lucide-react";
+import { FileDropzone } from "@/components/ui/file-dropzone";
+import { Loader2, ShieldPlus } from "lucide-react";
 
 function Submit() {
   const { pending } = useFormStatus();
@@ -58,16 +59,11 @@ export function ValidationForm({
           prolongation table will include the new date.
         </p>
         <Field label="Supporting document">
-          <label className="flex cursor-pointer items-center gap-2 rounded-[10px] border border-dashed border-silver bg-frost px-3 py-2.5 text-[13px] text-graphite hover:border-onyx/40">
-            <UploadCloud className="h-4 w-4 text-steel" />
-            <span>Upload evidence (PDF / image)</span>
-            <input
-              type="file"
-              name="supporting_doc"
-              accept="application/pdf,image/*"
-              className="hidden"
-            />
-          </label>
+          <FileDropzone
+            name="supporting_doc"
+            accept="application/pdf,image/*"
+            placeholder="Drop evidence (PDF / image) or click to browse"
+          />
         </Field>
         <div className="flex justify-end">
           <Submit />

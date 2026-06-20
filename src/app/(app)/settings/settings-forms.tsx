@@ -4,7 +4,8 @@ import { useFormStatus } from "react-dom";
 import { Input, Textarea, Field } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2, Save as SaveIcon, UploadCloud, UserPlus } from "lucide-react";
+import { FileDropzone } from "@/components/ui/file-dropzone";
+import { Loader2, Save as SaveIcon, UserPlus } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Organization } from "@/types/db";
 
@@ -69,18 +70,12 @@ export function OrgSettingsForm({
         label="Company logo"
         hint="Shown on certificates and master list exports (PNG/JPG)"
       >
-        <label className="flex h-11 cursor-pointer items-center gap-2 rounded-[10px] border border-dashed border-silver bg-frost px-3 text-[13px] text-graphite hover:border-onyx/40">
-          <UploadCloud className="h-4 w-4 text-steel" />
-          <span>
-            {org.logo_path ? "Replace logo" : "Upload company logo"}
-          </span>
-          <input
-            type="file"
-            name="logo"
-            accept="image/png,image/jpeg,image/webp,image/svg+xml"
-            className="hidden"
-          />
-        </label>
+        <FileDropzone
+          name="logo"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+          defaultLabel={org.logo_path ? "Replace logo" : undefined}
+          placeholder="Drop company logo here or click to browse"
+        />
       </Field>
       <div className="flex justify-end">
         <Save label="Save settings" icon={SaveIcon} />
@@ -109,25 +104,25 @@ export function SignatoryForm({ action }: { action: (fd: FormData) => void }) {
           <Input name="organisation" placeholder="Acme Fabrication / TPI Agency" />
         </Field>
         <Field label="Signature image">
-          <FileInput name="signature" label="Upload signature (PNG)" />
+          <FileDropzone
+            name="signature"
+            accept="image/*"
+            compact
+            placeholder="Drop signature (PNG) or click to browse"
+          />
         </Field>
         <Field label="Stamp image">
-          <FileInput name="stamp" label="Upload stamp (PNG)" />
+          <FileDropzone
+            name="stamp"
+            accept="image/*"
+            compact
+            placeholder="Drop stamp (PNG) or click to browse"
+          />
         </Field>
       </div>
       <div className="flex justify-end">
         <Save label="Add signatory" icon={UserPlus} />
       </div>
     </form>
-  );
-}
-
-function FileInput({ name, label }: { name: string; label: string }) {
-  return (
-    <label className="flex h-11 cursor-pointer items-center gap-2 rounded-[10px] border border-dashed border-silver bg-frost px-3 text-[13px] text-graphite hover:border-onyx/40">
-      <UploadCloud className="h-4 w-4 text-steel" />
-      <span>{label}</span>
-      <input type="file" name={name} accept="image/*" className="hidden" />
-    </label>
   );
 }

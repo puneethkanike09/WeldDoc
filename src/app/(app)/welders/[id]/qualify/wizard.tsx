@@ -8,6 +8,7 @@ import { DatePicker } from "@/components/sui/date-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { FileDropzone } from "@/components/ui/file-dropzone";
 import {
   TESTING_STANDARDS,
   WELDING_PROCESSES,
@@ -39,7 +40,7 @@ import type {
   Signatory,
 } from "@/types/db";
 import { cn } from "@/lib/utils";
-import { Check, Loader2, Save, ShieldCheck, UploadCloud } from "lucide-react";
+import { Check, Loader2, Save, ShieldCheck } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 const STEPS = ["Plan", "Test piece", "NDT / DT", "Certificate"] as const;
@@ -578,18 +579,15 @@ function TestRow({
         />
       </Field>
       <Field label="Report PDF">
-        <label className="flex h-11 cursor-pointer items-center gap-2 rounded-[10px] border border-dashed border-silver bg-panel px-3 text-[13px] text-graphite hover:border-onyx/40">
-          <UploadCloud className="h-4 w-4 text-steel" />
-          <span className="truncate">
-            {existing?.report_pdf_path ? "Replace report" : "Upload"}
-          </span>
-          <input
-            type="file"
-            name={`report__${method}`}
-            accept="application/pdf,image/*"
-            className="hidden"
-          />
-        </label>
+        <FileDropzone
+          name={`report__${method}`}
+          accept="application/pdf,image/*"
+          compact
+          defaultLabel={
+            existing?.report_pdf_path ? "Replace report" : undefined
+          }
+          placeholder="Drop PDF or click to browse"
+        />
       </Field>
     </div>
   );

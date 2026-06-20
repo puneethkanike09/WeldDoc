@@ -7,10 +7,11 @@ import { Select } from "@/components/sui/select";
 import { DatePicker } from "@/components/sui/date-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
+import { FileDropzone } from "@/components/ui/file-dropzone";
 import { LocationSelect } from "@/components/app/location-select";
 import { ID_METHODS } from "@/lib/iso9606/constants";
 import type { Welder } from "@/types/db";
-import { Loader2, Save as SaveIcon, UploadCloud, UserPlus } from "lucide-react";
+import { Loader2, Save as SaveIcon, UserPlus } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 function SubmitButton({
@@ -49,7 +50,6 @@ export function WelderForm({
   };
 }) {
   const [idMethod, setIdMethod] = useState(welder?.id_method ?? "Aadhar");
-  const [photoName, setPhotoName] = useState<string | null>(null);
   const showOther = !ID_METHODS.includes(idMethod as (typeof ID_METHODS)[number]) || idMethod === "Other";
 
   return (
@@ -164,22 +164,12 @@ export function WelderForm({
               />
             </Field>
             <Field label="Photograph" className="sm:col-span-2" required={mode === "create"}>
-              <label className="flex cursor-pointer items-center gap-3 rounded-[10px] border border-dashed border-silver bg-frost px-4 py-3.5 text-sm text-graphite transition-colors hover:border-onyx/40">
-                <UploadCloud className="h-5 w-5 text-steel" />
-                <span>
-                  {photoName ?? "Upload photo (JPEG/PNG for certificate; PDF stored as document)"}
-                </span>
-                <input
-                  type="file"
-                  name="photo"
-                  accept="image/jpeg,image/png,image/webp,application/pdf"
-                  className="hidden"
-                  required={mode === "create"}
-                  onChange={(e) =>
-                    setPhotoName(e.target.files?.[0]?.name ?? null)
-                  }
-                />
-              </label>
+              <FileDropzone
+                name="photo"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                required={mode === "create"}
+                placeholder="Drop photo here or click to browse (JPEG/PNG for certificate; PDF stored as document)"
+              />
             </Field>
           </div>
 
