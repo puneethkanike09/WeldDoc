@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { uploadFile } from "@/lib/storage";
 import type { WelderStatus } from "@/types/db";
+import { validateWelderRegistration } from "@/lib/iso9606/qualification-fields";
 
 function str(v: FormDataEntryValue | null): string | null {
   const s = typeof v === "string" ? v.trim() : "";
@@ -13,6 +14,7 @@ function str(v: FormDataEntryValue | null): string | null {
 }
 
 export async function createWelder(formData: FormData) {
+  validateWelderRegistration(formData, "create");
   const { org, userId } = await requireSession();
   const supabase = await createClient();
 
@@ -47,8 +49,8 @@ export async function createWelder(formData: FormData) {
       place_of_birth: str(formData.get("place_of_birth")),
       id_method: idMethod,
       id_number: str(formData.get("id_number")),
-      employer: str(formData.get("employer")),
-      branch_location: str(formData.get("branch_location")),
+      employer: str(formData.get("employer")) ?? org.name,
+      branch_location: str(formData.get("branch_location")) ?? org.location_code,
       photo_path: photoPath,
       status: "Active",
       is_new_welder: formData.get("is_new_welder") === "on",
@@ -64,6 +66,7 @@ export async function createWelder(formData: FormData) {
 }
 
 export async function updateWelder(welderId: string, formData: FormData) {
+  validateWelderRegistration(formData, "edit");
   const { org } = await requireSession();
   const supabase = await createClient();
 

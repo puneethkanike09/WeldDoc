@@ -16,7 +16,7 @@ export default async function MasterListPage() {
     <>
       <PageHeader
         title="Master list"
-        description="Every welder qualification with its computed range of approval. Export to Excel or PDF."
+        description="Every welder qualification with its computed range of approval. Export to Excel or PDF, including the PED master list format."
       />
       <div className="px-8 py-8">
         {rows.length === 0 ? (

@@ -53,6 +53,10 @@ export function ValidationForm({
             <Input name="note" placeholder="Optional note" />
           </Field>
         </div>
+        <p className="text-xs text-steel">
+          After logging continuity, re-download the certificate — the 9.2
+          prolongation table will include the new date.
+        </p>
         <Field label="Supporting document">
           <label className="flex cursor-pointer items-center gap-2 rounded-[10px] border border-dashed border-silver bg-frost px-3 py-2.5 text-[13px] text-graphite hover:border-onyx/40">
             <UploadCloud className="h-4 w-4 text-steel" />

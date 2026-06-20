@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:migrate": "node scripts/migrate.mjs",
+    "db:migrate:latest": "node scripts/apply-migration.mjs 0005_qualification_excel_fields.sql"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.17",
@@ -31,7 +33,7 @@
     "ogl": "^1.0.11",
     "qrcode": "^1.5.4",
     "react": "19.2.0",
-    "react-day-picker": "^10.0.1",
+    "react-datepicker": "^9.1.0",
     "react-dom": "19.2.0",
     "recharts": "^3.8.1",
     "resend": "^6.14.0",
@@ -45,6 +47,7 @@
     "@types/node": "^22.10.7",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.0.7",
+    "@types/react-datepicker": "^6.2.0",
     "@types/react-dom": "^19.0.3",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.9",

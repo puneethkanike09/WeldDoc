@@ -100,7 +100,7 @@ export default async function QualifyPage({
             href={`/welders/${id}/qualify?mode=new`}
             className="text-sm font-medium text-ember hover:underline"
           >
-            Switch to new qualification
+            Switch to initial qualification
           </Link>
         ) : (
           !sp.wpq && (
@@ -108,7 +108,7 @@ export default async function QualifyPage({
               href={`/welders/${id}/qualify?mode=legacy`}
               className="text-sm font-medium text-ember hover:underline"
             >
-              Upload legacy qualification
+              Old data entry (upload PDFs)
             </Link>
           )
         )}
@@ -124,7 +124,10 @@ export default async function QualifyPage({
 
         <div className="max-w-3xl">
           {legacyMode ? (
-            <LegacyForm action={saveLegacy.bind(null, id)} />
+            <LegacyForm
+              action={saveLegacy.bind(null, id)}
+              welder={welder}
+            />
           ) : (
             <>
               <Stepper step={step} wpqId={wpq?.id ?? null} welderId={id} />
@@ -133,6 +136,8 @@ export default async function QualifyPage({
                 <PlanStep
                   action={savePlan.bind(null, id, wpq?.id ?? null)}
                   wpq={wpq}
+                  orgName={org.name}
+                  orgLocation={org.location_code}
                 />
               )}
 

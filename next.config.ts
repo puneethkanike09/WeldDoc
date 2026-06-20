@@ -8,6 +8,12 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: projectRoot,
   },
+  experimental: {
+    serverActions: {
+      // NDT step can upload multiple report PDFs in one form submit.
+      bodySizeLimit: "25mb",
+    },
+  },
   images: {
     remotePatterns: [
       {

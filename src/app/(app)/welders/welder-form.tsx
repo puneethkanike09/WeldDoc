@@ -37,10 +37,12 @@ export function WelderForm({
   action,
   welder,
   mode,
+  orgDefaults,
 }: {
   action: (formData: FormData) => void;
   welder?: Welder;
   mode: "create" | "edit";
+  orgDefaults?: { employer: string; branchLocation: string | null };
 }) {
   const [idMethod, setIdMethod] = useState(welder?.id_method ?? "Aadhar");
   const [photoName, setPhotoName] = useState<string | null>(null);
@@ -67,14 +69,15 @@ export function WelderForm({
                 name="welder_id"
                 defaultValue={welder?.welder_id ?? ""}
                 placeholder="W#199"
+                required
               />
             </Field>
             <Field label="Date of birth">
               <DatePicker
                 name="date_of_birth"
                 defaultValue={welder?.date_of_birth ?? ""}
-                captionLayout="dropdown"
                 placeholder="Select date of birth"
+                required
               />
             </Field>
             <div className="sm:col-span-2">
@@ -82,6 +85,7 @@ export function WelderForm({
               <LocationSelect
                 name="place_of_birth"
                 initialValue={welder?.place_of_birth}
+                required
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -90,6 +94,7 @@ export function WelderForm({
                   name="id_method"
                   value={idMethod}
                   onChange={(e) => setIdMethod(e.target.value)}
+                  required
                 >
                   {ID_METHODS.map((m) => (
                     <option key={m} value={m}>
@@ -103,12 +108,13 @@ export function WelderForm({
                   name="id_number"
                   defaultValue={welder?.id_number ?? ""}
                   placeholder="ID / passport no."
+                  required
                 />
               </Field>
             </div>
             {showOther && (
               <Field label="Specify ID method" className="sm:col-span-2">
-                <Input name="id_method_other" placeholder="Other ID type" />
+                <Input name="id_method_other" placeholder="Other ID type" required />
               </Field>
             )}
           </div>
@@ -121,31 +127,38 @@ export function WelderForm({
             Employer &amp; photo
           </h3>
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Employer">
+            <Field label="Employer" hint="Auto-filled from your organisation">
               <Input
                 name="employer"
-                defaultValue={welder?.employer ?? ""}
+                defaultValue={welder?.employer ?? orgDefaults?.employer ?? ""}
                 placeholder="SMS India Pvt Ltd"
+                required
               />
             </Field>
-            <Field label="Branch / location">
+            <Field label="Branch / site">
               <Input
                 name="branch_location"
-                defaultValue={welder?.branch_location ?? ""}
-                placeholder="Bhubaneswar"
+                defaultValue={
+                  welder?.branch_location ??
+                  orgDefaults?.branchLocation ??
+                  ""
+                }
+                placeholder="M / K / Bhubaneswar"
+                required
               />
             </Field>
             <Field label="Photograph" className="sm:col-span-2">
               <label className="flex cursor-pointer items-center gap-3 rounded-[10px] border border-dashed border-silver bg-frost px-4 py-3.5 text-sm text-graphite transition-colors hover:border-onyx/40">
                 <UploadCloud className="h-5 w-5 text-steel" />
                 <span>
-                  {photoName ?? "Upload photo (JPEG, PNG, etc.)"}
+                  {photoName ?? "Upload photo (JPEG/PNG for certificate; PDF stored as document)"}
                 </span>
                 <input
                   type="file"
                   name="photo"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp,application/pdf"
                   className="hidden"
+                  required={mode === "create"}
                   onChange={(e) =>
                     setPhotoName(e.target.files?.[0]?.name ?? null)
                   }

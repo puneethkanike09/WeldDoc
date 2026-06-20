@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "react-day-picker/style.css";
+@import "react-datepicker/dist/react-datepicker.css";
 
 /* Admin dashboard theme tokens — scoped via html[data-app-theme] so portaled UI (dialogs, selects) stays in sync */
 :root {
@@ -208,30 +208,104 @@ html[data-app-theme="dark"] {
   --color-ring: var(--ring);
 }
 
-/* react-day-picker (DatePicker) — brand red accents */
-.rdp-weld {
-  --rdp-accent-color: #f90a08;
-  --rdp-accent-background-color: #fff4f3;
-  --rdp-today-color: #f90a08;
-  --rdp-font-family: var(--font-sans);
-  --rdp-day-width: 2.25rem;
-  --rdp-day-height: 2.25rem;
-  margin: 0;
+/* react-datepicker (DatePicker) — WeldDoc brand styling */
+.welddoc-datepicker-wrapper {
+  display: block !important;
+  width: 100%;
 }
 
-.rdp-weld .rdp-day_button {
+.welddoc-datepicker-popper {
+  z-index: 50 !important;
+}
+
+.welddoc-datepicker {
+  font-family: var(--font-sans);
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  background: var(--popover) !important;
+  color: var(--popover-foreground) !important;
+  box-shadow: var(--shadow-lift);
+}
+
+.welddoc-datepicker .react-datepicker__header {
+  background: var(--popover) !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  padding-top: 0.75rem;
+}
+
+.welddoc-datepicker .react-datepicker__current-month {
+  color: var(--popover-foreground);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.welddoc-datepicker .react-datepicker__day-name {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  width: 2.25rem;
+  line-height: 2.25rem;
+}
+
+.welddoc-datepicker .react-datepicker__day {
+  width: 2.25rem;
+  line-height: 2.25rem;
   border-radius: 8px;
-  cursor: pointer;
+  color: var(--popover-foreground);
 }
 
-.rdp-weld .rdp-button_previous,
-.rdp-weld .rdp-button_next,
-.rdp-weld .rdp-dropdown_root button {
-  cursor: pointer;
+.welddoc-datepicker .react-datepicker__day:hover {
+  background: var(--accent) !important;
+  color: var(--accent-foreground) !important;
+  border-radius: 8px;
 }
 
-html[data-app-theme="dark"] .rdp-weld {
-  --rdp-accent-background-color: #2a1515;
+.welddoc-datepicker .react-datepicker__day--selected,
+.welddoc-datepicker .react-datepicker__day--keyboard-selected {
+  background: #f90a08 !important;
+  color: #fff !important;
+  border-radius: 8px;
+}
+
+.welddoc-datepicker .react-datepicker__day--today {
+  color: #f90a08;
+  font-weight: 600;
+}
+
+.welddoc-datepicker .react-datepicker__day--outside-month {
+  color: var(--muted-foreground);
+  opacity: 0.5;
+}
+
+.welddoc-datepicker .react-datepicker__navigation-icon::before {
+  border-color: #f90a08;
+}
+
+.welddoc-datepicker .react-datepicker__month-dropdown-container select,
+.welddoc-datepicker .react-datepicker__year-dropdown-container select {
+  appearance: auto;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  padding: 0.125rem 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.welddoc-datepicker .react-datepicker__month-read-view,
+.welddoc-datepicker .react-datepicker__year-read-view {
+  color: #f90a08;
+  font-weight: 600;
+}
+
+html[data-app-theme="dark"] .welddoc-datepicker {
+  color-scheme: dark;
+}
+
+html[data-app-theme="dark"] .welddoc-datepicker select {
   color-scheme: dark;
 }
 

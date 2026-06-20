@@ -13,10 +13,28 @@ export interface CertRow {
 
 function materialCode(group: string | null): string {
   if (!group) return "CS";
-  if (["1", "2", "3"].includes(group)) return "CS"; // carbon / low-alloy steel
-  if (["8", "10"].includes(group)) return "SS"; // stainless
+  if (["1", "2", "3"].includes(group)) return "CS";
+  if (["8", "10"].includes(group)) return "SS";
   if (["4", "5", "6"].includes(group)) return "CrMo";
   return `M${group}`;
+}
+
+function subgroupTest(group: string | null): string {
+  if (!group) return "—";
+  return `${group}.1`;
+}
+
+function subgroupRange(
+  group: string | null,
+  range: RangeOfApproval | null,
+): string {
+  if (range?.approved_material_groups?.length) {
+    return range.approved_material_groups
+      .map((g) => `${g} & ${g}1`)
+      .join(", ");
+  }
+  if (!group) return "—";
+  return `${group} & ${group}1`;
 }
 
 function productCode(product: string): string {
@@ -63,6 +81,19 @@ function productRangeText(
   return pipeRangeText(r);
 }
 
+function fillerGroupRange(group: string | null): string {
+  if (!group) return "—";
+  if (group === "FM1") return "FM1, FM2";
+  return group;
+}
+
+function shieldingGasRange(test: string | null): string {
+  if (!test) return "—";
+  const iso = test.match(/ISO\s*14175/i);
+  if (iso) return "ISO 14175";
+  return test;
+}
+
 export function buildDesignation(
   wpq: QualificationRecord,
   range: RangeOfApproval | null,
@@ -83,7 +114,7 @@ export function buildDesignation(
     weldTypeCode(jointTypes),
     wpq.filler_group ?? "FM1",
     thickness != null ? `s${thickness}` : "",
-    positions,
+    positions.replace(/\//g, "&"),
     wpq.weld_details ?? "ss nb",
     layerCode(wpq.layer_type),
   ]
@@ -105,6 +136,7 @@ export function buildCertNo(
   return `${base}/${wpq.process}/${pos}(${mat})-${ref}`;
 }
 
+/** Annex A test-piece table — 16 rows matching the SMS sample layout. */
 export function buildCertRows(
   wpq: QualificationRecord,
   range: RangeOfApproval | null,
@@ -112,9 +144,6 @@ export function buildCertRows(
   const jointTypes = range?.approved_joint_types?.length
     ? range.approved_joint_types
     : [wpq.joint_type];
-  const matGroups = range?.approved_material_groups?.length
-    ? range.approved_material_groups.join(", ")
-    : wpq.base_material_group ?? "—";
   const positions = range?.approved_positions?.length
     ? range.approved_positions.join(", ")
     : wpq.position ?? "—";
@@ -142,13 +171,13 @@ export function buildCertRows(
     },
     {
       label: "Parent material group(s) / subgroups",
-      test: wpq.base_material_group ?? "—",
-      range: matGroups,
+      test: subgroupTest(wpq.base_material_group),
+      range: subgroupRange(wpq.base_material_group, range),
     },
     {
       label: "Filler material group(s)",
       test: wpq.filler_group ?? "—",
-      range: wpq.filler_group ?? "—",
+      range: fillerGroupRange(wpq.filler_group),
     },
     {
       label: "Filler material (designation)",
@@ -158,7 +187,7 @@ export function buildCertRows(
     {
       label: "Shielding gas",
       test: wpq.shielding_gas ?? "—",
-      range: wpq.shielding_gas ?? "—",
+      range: shieldingGasRange(wpq.shielding_gas),
     },
     { label: "Auxiliaries", test: "NA", range: "NA" },
     {

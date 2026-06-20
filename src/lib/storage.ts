@@ -32,6 +32,21 @@ export async function uploadFile(
   return path;
 }
 
+/** Upload multiple files from a FormData field. */
+export async function uploadFiles(
+  bucket: string,
+  files: File[],
+  folder: string,
+): Promise<string[]> {
+  const paths: string[] = [];
+  for (const file of files) {
+    if (!file || file.size === 0) continue;
+    const path = await uploadFile(bucket, file, folder);
+    if (path) paths.push(path);
+  }
+  return paths;
+}
+
 export async function publicUrl(
   bucket: string,
   path: string | null,

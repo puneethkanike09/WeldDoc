@@ -1,0 +1,320 @@
+[
+  {
+    "designation": "S235JR",
+    "number": "1.0038",
+    "group": "1.1",
+    "standards": ["EN 10025-2"]
+  },
+  {
+    "designation": "S235J0",
+    "number": "1.0114",
+    "group": "1.1",
+    "standards": ["EN 10025-2"]
+  },
+  {
+    "designation": "S235J2",
+    "number": "1.0117",
+    "group": "1.1",
+    "standards": ["EN 10025-2"]
+  },
+  {
+    "designation": "S275JR",
+    "number": "1.0044",
+    "group": "1.1",
+    "standards": ["EN 10025-2"]
+  },
+  {
+    "designation": "S275J0",
+    "number": "1.0143",
+    "group": "1.1",
+    "standards": ["EN 10025-2"]
+  },
+  {
+    "designation": "S275J2",
+    "number": "1.0145",
+    "group": "1.1",
+    "standards": ["EN 10025-2"]
+  },
+  {
+    "designation": "S355JR",
+    "number": "1.0045",
+    "group": "1.2",
+    "standards": ["EN 10025-2"]
+  },
+  {
+    "designation": "S355J0",
+    "number": "1.0553",
+    "group": "1.2",
+    "standards": ["EN 10025-2"]
+  },
+  {
+    "designation": "S355J2",
+    "number": "1.0577",
+    "group": "1.2",
+    "standards": ["EN 10025-2"]
+  },
+  {
+    "designation": "S355K2",
+    "number": "1.0596",
+    "group": "1.2",
+    "standards": ["EN 10025-2"]
+  },
+  {
+    "designation": "S450J0",
+    "number": "1.0590",
+    "group": "1.3",
+    "standards": ["EN 10025-2"]
+  },
+  {
+    "designation": "P235GH",
+    "number": "1.0345",
+    "group": "1.1",
+    "standards": ["EN 10028-2"]
+  },
+  {
+    "designation": "P265GH",
+    "number": "1.0425",
+    "group": "1.1",
+    "standards": ["EN 10028-2"]
+  },
+  {
+    "designation": "P295GH",
+    "number": "1.0481",
+    "group": "1.2",
+    "standards": ["EN 10028-2"]
+  },
+  {
+    "designation": "P355GH",
+    "number": "1.0473",
+    "group": "1.2",
+    "standards": ["EN 10028-2"]
+  },
+  {
+    "designation": "P235TR1",
+    "number": "1.0254",
+    "group": "1.1",
+    "standards": ["EN 10216-1"]
+  },
+  {
+    "designation": "P235TR2",
+    "number": "1.0255",
+    "group": "1.1",
+    "standards": ["EN 10216-1"]
+  },
+  {
+    "designation": "P265TR1",
+    "number": "1.0258",
+    "group": "1.1",
+    "standards": ["EN 10216-1"]
+  },
+  {
+    "designation": "P265TR2",
+    "number": "1.0259",
+    "group": "1.1",
+    "standards": ["EN 10216-1"]
+  },
+  {
+    "designation": "P235GH",
+    "number": "1.0345",
+    "group": "1.1",
+    "standards": ["EN 10216-2"]
+  },
+  {
+    "designation": "P265GH",
+    "number": "1.0425",
+    "group": "1.1",
+    "standards": ["EN 10216-2"]
+  },
+  {
+    "designation": "16Mo3",
+    "number": "1.5415",
+    "group": "4.1",
+    "standards": ["EN 10216-2"]
+  },
+  {
+    "designation": "13CrMo4-5",
+    "number": "1.7335",
+    "group": "5.1",
+    "standards": ["EN 10216-2"]
+  },
+  {
+    "designation": "10CrMo9-10",
+    "number": "1.7380",
+    "group": "5.2",
+    "standards": ["EN 10216-2"]
+  },
+  {
+    "designation": "P235GH",
+    "number": "1.0345",
+    "group": "1.1",
+    "standards": ["EN 10217-1"]
+  },
+  {
+    "designation": "P265GH",
+    "number": "1.0425",
+    "group": "1.1",
+    "standards": ["EN 10217-1"]
+  },
+  {
+    "designation": "E235",
+    "number": "1.0308",
+    "group": "1.1",
+    "standards": ["EN 10217-2"]
+  },
+  {
+    "designation": "E275",
+    "number": "1.0225",
+    "group": "1.2",
+    "standards": ["EN 10217-2"]
+  },
+  {
+    "designation": "E355",
+    "number": "1.0580",
+    "group": "1.2",
+    "standards": ["EN 10217-2", "EN 10297-1", "EN 10305-1"]
+  },
+  {
+    "designation": "E315",
+    "number": "1.0236",
+    "group": "1.2",
+    "standards": ["EN 10297-1"]
+  },
+  {
+    "designation": "E320",
+    "number": "1.0237",
+    "group": "1.2",
+    "standards": ["EN 10296-1", "EN 10305-3", "EN 10305-5"]
+  },
+  {
+    "designation": "E335GC",
+    "number": "1.0543",
+    "group": "1.2",
+    "standards": ["EN 10277"]
+  },
+  {
+    "designation": "E355K2",
+    "number": "1.0599",
+    "group": "1.2",
+    "standards": ["EN 10297-1"]
+  },
+  {
+    "designation": "E370",
+    "number": "1.0261",
+    "group": "1.3",
+    "standards": ["EN 10296-1", "EN 10305-3", "EN 10305-5"]
+  },
+  {
+    "designation": "E420",
+    "number": "1.0575",
+    "group": "1.3",
+    "standards": ["EN 10305-3", "EN 10305-5"]
+  },
+  {
+    "designation": "E420M",
+    "number": "1.8897",
+    "group": "2.1",
+    "standards": ["EN 10296-1"]
+  },
+  {
+    "designation": "E460M",
+    "number": "1.8898",
+    "group": "2.1",
+    "standards": ["EN 10296-1"]
+  },
+  {
+    "designation": "S355M",
+    "number": "1.8823",
+    "group": "2.1",
+    "standards": ["EN 10025-4"]
+  },
+  {
+    "designation": "S355ML",
+    "number": "1.8834",
+    "group": "2.1",
+    "standards": ["EN 10025-4"]
+  },
+  {
+    "designation": "S420M",
+    "number": "1.8825",
+    "group": "2.1",
+    "standards": ["EN 10025-4"]
+  },
+  {
+    "designation": "S460M",
+    "number": "1.8827",
+    "group": "2.1",
+    "standards": ["EN 10025-4"]
+  },
+  {
+    "designation": "304L",
+    "number": "1.4307",
+    "group": "8.1",
+    "standards": ["EN 10088-2", "EN 10217-7"]
+  },
+  {
+    "designation": "316L",
+    "number": "1.4404",
+    "group": "8.1",
+    "standards": ["EN 10088-2", "EN 10217-7"]
+  },
+  {
+    "designation": "321",
+    "number": "1.4541",
+    "group": "8.1",
+    "standards": ["EN 10088-2"]
+  },
+  {
+    "designation": "347",
+    "number": "1.4550",
+    "group": "8.1",
+    "standards": ["EN 10088-2"]
+  },
+  {
+    "designation": "2205",
+    "number": "1.4462",
+    "group": "10.1",
+    "standards": ["EN 10088-2"]
+  },
+  {
+    "designation": "2507",
+    "number": "1.4410",
+    "group": "10.2",
+    "standards": ["EN 10088-2"]
+  },
+  {
+    "designation": "G17Mn5",
+    "number": "1.1131",
+    "group": "1.1",
+    "standards": ["EN 10213"]
+  },
+  {
+    "designation": "G20Mn5",
+    "number": "1.6220",
+    "group": "1.2",
+    "standards": ["EN 10213"]
+  },
+  {
+    "designation": "G17CrMo5-5",
+    "number": "1.7357",
+    "group": "5.1",
+    "standards": ["EN 10213"]
+  },
+  {
+    "designation": "GX2CrNi19-11",
+    "number": "1.4309",
+    "group": "8.1",
+    "standards": ["EN 10213"]
+  },
+  {
+    "designation": "GX2CrNiMo19-11-2",
+    "number": "1.4409",
+    "group": "8.1",
+    "standards": ["EN 10213"]
+  },
+  {
+    "designation": "GX2CrNiMoN22-5-3",
+    "number": "1.4470",
+    "group": "10.1",
+    "standards": ["EN 10213"]
+  }
+]

@@ -25,16 +25,26 @@ export async function updateOrgSettings(formData: FormData) {
     .map((n) => parseInt(n, 10))
     .filter((n) => Number.isFinite(n) && n > 0);
 
+  const logo = formData.get("logo");
+  const logoPath = await uploadFile(
+    "org-assets",
+    logo instanceof File ? logo : null,
+    `${org.id}`,
+  );
+
+  const update: Record<string, unknown> = {
+    name: str(formData.get("name")) ?? org.name,
+    location_code: str(formData.get("location_code")),
+    report_prefix: str(formData.get("report_prefix")) ?? org.report_prefix,
+    uid_prefix: str(formData.get("uid_prefix")) ?? org.uid_prefix,
+    alert_emails: emails,
+    alert_lead_days: leadDays.length ? leadDays : [30, 7],
+  };
+  if (logoPath) update.logo_path = logoPath;
+
   const { error } = await supabase
     .from("organizations")
-    .update({
-      name: str(formData.get("name")) ?? org.name,
-      location_code: str(formData.get("location_code")),
-      report_prefix: str(formData.get("report_prefix")) ?? org.report_prefix,
-      uid_prefix: str(formData.get("uid_prefix")) ?? org.uid_prefix,
-      alert_emails: emails,
-      alert_lead_days: leadDays.length ? leadDays : [30, 7],
-    })
+    .update(update)
     .eq("id", org.id);
   if (error) throw new Error(error.message);
 

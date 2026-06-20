@@ -65,6 +65,23 @@ export function OrgSettingsForm({
           placeholder="engineer@plant.com"
         />
       </Field>
+      <Field
+        label="Company logo"
+        hint="Shown on certificates and master list exports (PNG/JPG)"
+      >
+        <label className="flex h-11 cursor-pointer items-center gap-2 rounded-[10px] border border-dashed border-silver bg-frost px-3 text-[13px] text-graphite hover:border-onyx/40">
+          <UploadCloud className="h-4 w-4 text-steel" />
+          <span>
+            {org.logo_path ? "Replace logo" : "Upload company logo"}
+          </span>
+          <input
+            type="file"
+            name="logo"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            className="hidden"
+          />
+        </label>
+      </Field>
       <div className="flex justify-end">
         <Save label="Save settings" icon={SaveIcon} />
       </div>

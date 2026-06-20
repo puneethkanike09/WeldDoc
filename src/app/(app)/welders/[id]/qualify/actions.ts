@@ -4,15 +4,22 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
-import { uploadFile } from "@/lib/storage";
+import { uploadFile, uploadFiles } from "@/lib/storage";
 import { computeRange } from "@/lib/range-engine/iso9606";
 import { computeExpiry, extendExpiry } from "@/lib/expiry";
 import { requiredTestsFor } from "@/lib/iso9606/constants";
+import {
+  validateCertificateIssue,
+  validateNdtResults,
+  validateQualificationPlan,
+  validateTestPiece,
+} from "@/lib/iso9606/qualification-fields";
 import type {
   JointCategory,
   ProductType,
   QualificationRecord,
   RevalidationMethod,
+  ValidationKind,
 } from "@/types/db";
 
 function str(v: FormDataEntryValue | null): string | null {
@@ -68,6 +75,7 @@ export async function savePlan(
   wpqId: string | null,
   formData: FormData,
 ) {
+  validateQualificationPlan(formData);
   const { org } = await requireSession();
   const supabase = await createClient();
 
@@ -75,6 +83,8 @@ export async function savePlan(
     org_id: org.id,
     welder_id: welderId,
     standard: "ISO_9606_1" as const,
+    testing_standard:
+      str(formData.get("testing_standard")) ?? "EN ISO 9606-1:2017",
     process: str(formData.get("process")) ?? "135",
     joint_type: (str(formData.get("joint_type")) ?? "BW") as JointCategory,
     product: (str(formData.get("product")) ?? "Plate") as ProductType,
@@ -119,11 +129,33 @@ export async function saveTest(
   const { org } = await requireSession();
   const supabase = await createClient();
 
+  const { data: existing } = await supabase
+    .from("qualification_records")
+    .select("joint_type, product")
+    .eq("id", wpqId)
+    .eq("org_id", org.id)
+    .single();
+  if (!existing) throw new Error("Qualification not found.");
+
+  validateTestPiece(
+    formData,
+    existing.joint_type as JointCategory,
+    existing.product as ProductType,
+  );
+
   const { error } = await supabase
     .from("qualification_records")
     .update({
+      material_specification: str(formData.get("material_standard")),
       material_grade: str(formData.get("material_grade")),
+      base_material_group: str(formData.get("base_material_group")),
+      material2_specification: str(formData.get("material2_specification")),
+      material2_grade: str(formData.get("material2_grade")),
+      material2_group: str(formData.get("material2_group")),
       dimensions: str(formData.get("dimensions")),
+      dimension_thickness_mm: num(formData.get("dimension_thickness_mm")),
+      dimension_width_mm: num(formData.get("dimension_width_mm")),
+      dimension_length_mm: num(formData.get("dimension_length_mm")),
       filler_group: str(formData.get("filler_group")),
       filler_designation: str(formData.get("filler_designation")),
       filler_type: str(formData.get("filler_type")),
@@ -136,6 +168,7 @@ export async function saveTest(
       pipe_od_mm: num(formData.get("pipe_od_mm")),
       layer_type: str(formData.get("layer_type")),
       position: str(formData.get("position")),
+      certificate_pdf_path: null,
     })
     .eq("id", wpqId)
     .eq("org_id", org.id);
@@ -152,6 +185,7 @@ export async function saveNdt(
   jointType: JointCategory,
   formData: FormData,
 ) {
+  validateNdtResults(formData, jointType);
   const { org } = await requireSession();
   const supabase = await createClient();
 
@@ -219,6 +253,7 @@ export async function issueCertificate(
   wpqId: string,
   formData: FormData,
 ) {
+  validateCertificateIssue(formData);
   const { org } = await requireSession();
   const supabase = await createClient();
 
@@ -324,7 +359,7 @@ export async function saveValidation(
 
   const validatedOn =
     str(formData.get("validated_on")) ?? new Date().toISOString().slice(0, 10);
-  const kind = str(formData.get("kind")) ?? "continuity";
+  const kind = (str(formData.get("kind")) ?? "continuity") as ValidationKind;
   const validatorName = str(formData.get("validator_name"));
   const note = str(formData.get("note"));
 
@@ -353,13 +388,16 @@ export async function saveValidation(
     new_expiry_date: newExpiry,
     validator_name: validatorName,
     note,
+    kind,
   });
 
   await supabase
     .from("qualification_records")
     .update({
-      continuity_last_verified: validatedOn,
+      continuity_last_verified:
+        kind === "continuity" ? validatedOn : q.continuity_last_verified,
       expiry_date: newExpiry,
+      certificate_pdf_path: null,
       wpq_status:
         newExpiry && new Date(newExpiry) > new Date() ? "Approved" : q.wpq_status,
     })
@@ -379,13 +417,26 @@ export async function saveLegacy(welderId: string, formData: FormData) {
     new Date().toISOString().slice(0, 10);
   const method = (str(formData.get("revalidation_method")) ??
     "9.3b") as RevalidationMethod;
+  const expiryOverride = str(formData.get("expiry_date"));
+  const continuityDate = str(formData.get("continuity_last_verified"));
 
-  const scan = formData.get("legacy_doc");
-  const scanPath = await uploadFile(
+  const legacyFiles = formData
+    .getAll("legacy_docs")
+    .filter((f): f is File => f instanceof File && f.size > 0);
+  const scanPaths = await uploadFiles(
     "legacy-docs",
-    scan instanceof File ? scan : null,
+    legacyFiles,
     `${org.id}/${welderId}`,
   );
+  const singleScan = formData.get("legacy_doc");
+  if (singleScan instanceof File && singleScan.size > 0) {
+    const one = await uploadFile(
+      "legacy-docs",
+      singleScan,
+      `${org.id}/${welderId}`,
+    );
+    if (one) scanPaths.push(one);
+  }
 
   const { data: created, error } = await supabase
     .from("qualification_records")
@@ -393,6 +444,8 @@ export async function saveLegacy(welderId: string, formData: FormData) {
       org_id: org.id,
       welder_id: welderId,
       standard: "ISO_9606_1",
+      testing_standard:
+        str(formData.get("testing_standard")) ?? "EN ISO 9606-1:2017",
       process: str(formData.get("process")) ?? "135",
       joint_type: (str(formData.get("joint_type")) ?? "BW") as JointCategory,
       product: (str(formData.get("product")) ?? "Plate") as ProductType,
@@ -408,15 +461,36 @@ export async function saveLegacy(welderId: string, formData: FormData) {
       is_legacy: true,
       wpq_status: "Approved",
       certificate_issued_date: initialDate,
-      continuity_last_verified: initialDate,
-      expiry_date: computeExpiry(method, initialDate),
-      certificate_pdf_path: scanPath,
+      continuity_last_verified: continuityDate ?? initialDate,
+      expiry_date: expiryOverride ?? computeExpiry(method, initialDate),
+      certificate_pdf_path: scanPaths[0] ?? null,
+      legacy_document_paths: scanPaths,
     })
     .select("id")
     .single();
   if (error) throw new Error(error.message);
 
-  await recomputeRange(created.id);
+  const wpqId = created.id;
+  await recomputeRange(wpqId);
+
+  const legacyTests = [
+    { method: "Visual (Root)", field: "result_vt" },
+    { method: "RT/UT", field: "result_rt_ut" },
+    { method: "Fracture Test", field: "result_fracture" },
+  ] as const;
+
+  for (const t of legacyTests) {
+    const result = str(formData.get(t.field)) ?? "NA";
+    if (result === "NA") continue;
+    await supabase.from("ndt_dt_records").insert({
+      org_id: org.id,
+      wpq_id: wpqId,
+      test_method: t.method,
+      result: result as "Pass" | "Fail" | "NA",
+      test_date: initialDate,
+    });
+  }
+
   revalidatePath(`/welders/${welderId}`);
   redirect(`/welders/${welderId}`);
 }

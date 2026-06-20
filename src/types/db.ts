@@ -10,6 +10,7 @@ export type WpqStatus =
   | "Expired"
   | "Superseded";
 export type RevalidationMethod = "9.3a" | "9.3b" | "9.3c";
+export type ValidationKind = "continuity" | "revalidation";
 export type SignatoryRole = "manufacturer" | "examining_body";
 export type TestResult = "Pass" | "Fail" | "NA";
 
@@ -94,8 +95,16 @@ export interface QualificationRecord {
   position: string | null;
   product: ProductType;
   base_material_group: string | null;
+  material_specification: string | null;
   material_grade: string | null;
+  material2_specification: string | null;
+  material2_grade: string | null;
+  material2_group: string | null;
   dimensions: string | null;
+  dimension_thickness_mm: number | null;
+  dimension_width_mm: number | null;
+  dimension_length_mm: number | null;
+  testing_standard: string | null;
   filler_group: string | null;
   filler_designation: string | null;
   filler_type: string | null;
@@ -119,6 +128,7 @@ export interface QualificationRecord {
   is_legacy: boolean;
   certificate_issued_date: string | null;
   certificate_pdf_path: string | null;
+  legacy_document_paths: string[];
   continuity_last_verified: string | null;
   expiry_date: string | null;
   created_at: string;
@@ -160,6 +170,7 @@ export interface ValidationRecord {
   new_expiry_date: string | null;
   validator_name: string | null;
   note: string | null;
+  kind: ValidationKind;
   created_at: string;
 }
 

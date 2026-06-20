@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
+  TESTING_STANDARDS,
   WELDING_PROCESSES,
   PRODUCT_TYPES,
   JOINT_TYPES,
@@ -26,6 +27,11 @@ import {
   TRANSFER_MODE_OPTIONS,
   requiredTestsFor,
 } from "@/lib/iso9606/constants";
+import { MaterialGradeLookup } from "@/components/qualify/material-grade-lookup";
+import {
+  DissimilarMaterials,
+  ProductDimensions,
+} from "@/components/qualify/qualification-field-blocks";
 import type {
   JointCategory,
   NdtDtRecord,
@@ -73,7 +79,7 @@ export function Stepper({
             <span
               className={cn(
                 "grid h-8 w-8 place-items-center rounded-full font-display text-[13px] font-semibold",
-                active && "bg-onyx text-white",
+                active && "bg-inverse-bg text-inverse-fg",
                 done && "bg-active-ink text-white",
                 !active && !done && "bg-onyx/5 text-steel",
               )}
@@ -114,9 +120,13 @@ export function Stepper({
 export function PlanStep({
   action,
   wpq,
+  orgName,
+  orgLocation,
 }: {
   action: (fd: FormData) => void;
   wpq: QualificationRecord | null;
+  orgName: string;
+  orgLocation: string | null;
 }) {
   return (
     <form action={action}>
@@ -124,14 +134,24 @@ export function PlanStep({
         <CardBody className="space-y-5">
           <Header
             title="Step 1 — Qualification plan"
-            sub="Capture the standard, process and intended test conditions."
+            sub="Page 1 of the client registry: standard, process, WPS, examiner and revalidation method."
           />
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Standard">
-              <Input value="EN ISO 9606-1:2017" disabled />
+            <Field label="Code / testing standard">
+              <Select
+                name="testing_standard"
+                defaultValue={wpq?.testing_standard ?? "EN ISO 9606-1:2017"}
+                required
+              >
+                {TESTING_STANDARDS.map((s) => (
+                  <option key={s.code} value={s.code}>
+                    {s.label}
+                  </option>
+                ))}
+              </Select>
             </Field>
             <Field label="Welding process (ISO 4063)">
-              <Select name="process" defaultValue={wpq?.process ?? "135"}>
+              <Select name="process" defaultValue={wpq?.process ?? "135"} required>
                 {WELDING_PROCESSES.map((p) => (
                   <option key={p.code} value={p.code}>
                     {p.name} — {p.code}
@@ -143,6 +163,7 @@ export function PlanStep({
               <Select
                 name="joint_type"
                 defaultValue={wpq?.joint_type ?? "BW"}
+                required
               >
                 {JOINT_TYPES.map((j) => (
                   <option key={j.code} value={j.code}>
@@ -152,7 +173,7 @@ export function PlanStep({
               </Select>
             </Field>
             <Field label="Product type">
-              <Select name="product" defaultValue={wpq?.product ?? "Plate"}>
+              <Select name="product" defaultValue={wpq?.product ?? "Plate"} required>
                 {PRODUCT_TYPES.map((p) => (
                   <option key={p} value={p}>
                     {p}
@@ -161,7 +182,7 @@ export function PlanStep({
               </Select>
             </Field>
             <Field label="Welding position">
-              <Select name="position" defaultValue={wpq?.position ?? "PF"}>
+              <Select name="position" defaultValue={wpq?.position ?? "PF"} required>
                 {Array.from(new Set([...BW_POSITIONS, ...FW_POSITIONS])).map(
                   (p) => (
                     <option key={p} value={p}>
@@ -175,6 +196,7 @@ export function PlanStep({
               <Select
                 name="base_material_group"
                 defaultValue={wpq?.base_material_group ?? "1"}
+                required
               >
                 {MATERIAL_GROUPS.map((m) => (
                   <option key={m.code} value={m.code}>
@@ -188,12 +210,24 @@ export function PlanStep({
                 name="wps_reference"
                 defaultValue={wpq?.wps_reference ?? ""}
                 placeholder="SMS/BBSR/QA/WPS-075 REV-02"
+                required
+              />
+            </Field>
+            <Field label="Employer">
+              <Input name="employer_display" value={orgName} disabled />
+            </Field>
+            <Field label="Branch / site">
+              <Input
+                name="branch_display"
+                value={orgLocation ?? "—"}
+                disabled
               />
             </Field>
             <Field label="Date of welding test">
               <DatePicker
                 name="date_of_welding"
                 defaultValue={wpq?.date_of_welding ?? ""}
+                required
               />
             </Field>
             <Field label="Examiner / body reference">
@@ -201,6 +235,7 @@ export function PlanStep({
                 name="examiner_ref"
                 defaultValue={wpq?.examiner_ref ?? ""}
                 placeholder="TUV India ref."
+                required
               />
             </Field>
             <Field label="Examiner / examining body name">
@@ -208,12 +243,14 @@ export function PlanStep({
                 name="examiner_name"
                 defaultValue={wpq?.examiner_name ?? ""}
                 placeholder="Soumya R. Panda"
+                required
               />
             </Field>
             <Field label="Revalidation method (cl. 9.3)">
               <Select
                 name="revalidation_method"
                 defaultValue={wpq?.revalidation_method ?? "9.3b"}
+                required
               >
                 {REVALIDATION_METHODS.map((m) => (
                   <option key={m.code} value={m.code}>
@@ -248,28 +285,21 @@ export function TestStep({
         <CardBody className="space-y-5">
           <Header
             title="Step 2 — Test piece record"
-            sub="Enter the actual test piece details. The range of approval updates automatically."
+            sub="Page 1 continued: materials, dimensions, filler and test piece parameters."
+          />
+          <MaterialGradeLookup
+            defaultGrade={wpq.material_grade ?? ""}
+            defaultGroup={wpq.base_material_group ?? "1"}
+          />
+          <DissimilarMaterials
+            defaultSpec={wpq.material2_specification ?? ""}
+            defaultGrade={wpq.material2_grade ?? ""}
+            defaultGroup={wpq.material2_group ?? ""}
           />
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Material grade">
-              <Input
-                name="material_grade"
-                defaultValue={wpq.material_grade ?? ""}
-                placeholder="IS2062 E250 BR+N"
-              />
-            </Field>
-            <Field
-              label="Dimensions"
-              hint="Plate: T x W x L · Tube: OD x T x L"
-            >
-              <Input
-                name="dimensions"
-                defaultValue={wpq.dimensions ?? ""}
-                placeholder="12mm(T)x300(W)x250(L)"
-              />
-            </Field>
+            <ProductDimensions wpq={wpq} />
             <Field label="Confirm position">
-              <Select name="position" defaultValue={wpq.position ?? "PF"}>
+              <Select name="position" defaultValue={wpq.position ?? "PF"} required>
                 {positions.map((p) => (
                   <option key={p} value={p}>
                     {POSITION_LABELS[p] ?? p}
@@ -281,6 +311,7 @@ export function TestStep({
               <Select
                 name="filler_group"
                 defaultValue={wpq.filler_group ?? "FM1"}
+                required
               >
                 {FILLER_GROUPS.map((f) => (
                   <option key={f.code} value={f.code}>
@@ -294,12 +325,14 @@ export function TestStep({
                 name="filler_designation"
                 defaultValue={wpq.filler_designation ?? ""}
                 placeholder="ER70S-6 / SFA 5.18"
+                required
               />
             </Field>
             <Field label="Filler type">
               <Select
                 name="filler_type"
                 defaultValue={wpq.filler_type ?? FILLER_TYPES[1]}
+                required
               >
                 {FILLER_TYPES.map((f) => (
                   <option key={f} value={f}>
@@ -313,12 +346,14 @@ export function TestStep({
                 name="shielding_gas"
                 defaultValue={wpq.shielding_gas ?? ""}
                 placeholder="ISO 14175 - M21"
+                required
               />
             </Field>
             <Field label="Current & polarity">
               <Select
                 name="current_polarity"
                 defaultValue={wpq.current_polarity ?? "DCEP"}
+                required
               >
                 {CURRENT_POLARITY.map((c) => (
                   <option key={c} value={c}>
@@ -331,6 +366,7 @@ export function TestStep({
               <Select
                 name="transfer_mode"
                 defaultValue={wpq.transfer_mode ?? "Spray"}
+                required
               >
                 {TRANSFER_MODE_OPTIONS.map((c) => (
                   <option key={c} value={c}>
@@ -343,6 +379,7 @@ export function TestStep({
               <Select
                 name="weld_details"
                 defaultValue={wpq.weld_details ?? "ss nb"}
+                required
               >
                 {WELD_DETAILS.map((c) => (
                   <option key={c.code} value={c.code}>
@@ -358,6 +395,7 @@ export function TestStep({
                 name="test_thickness_mm"
                 defaultValue={wpq.test_thickness_mm ?? ""}
                 placeholder="12"
+                required
               />
             </Field>
             <Field label="Deposited / throat thickness (mm)">
@@ -366,6 +404,7 @@ export function TestStep({
                 step="0.1"
                 name="deposited_thickness_mm"
                 defaultValue={wpq.deposited_thickness_mm ?? ""}
+                required
               />
             </Field>
             <Field label="Pipe outside diameter (mm)">
@@ -375,12 +414,14 @@ export function TestStep({
                 name="pipe_od_mm"
                 defaultValue={wpq.pipe_od_mm ?? ""}
                 placeholder="42.4"
+                required={wpq.product === "Pipe" || wpq.product === "Branch"}
               />
             </Field>
             <Field label="Layer">
               <Select
                 name="layer_type"
                 defaultValue={wpq.layer_type ?? LAYER_TYPES[1]}
+                required
               >
                 {LAYER_TYPES.map((l) => (
                   <option key={l} value={l}>
@@ -447,7 +488,7 @@ export function NdtStep({
 
           <details className="rounded-[10px] border border-silver">
             <summary className="cursor-pointer px-4 py-3 text-[14px] font-medium text-charcoal">
-              Add optional tests (bend, tensile, macro)
+              Add optional tests (PT, bend, tensile, macro)
             </summary>
             <div className="space-y-3 border-t border-silver p-4">
               {OPTIONAL_TESTS.map((method) => (
@@ -495,7 +536,7 @@ function TestRow({
   return (
     <div
       className={cn(
-        "grid items-end gap-3 rounded-[10px] sm:grid-cols-[1.3fr_0.8fr_1fr_1.2fr]",
+        "grid items-end gap-3 rounded-[10px] sm:grid-cols-[1.1fr_0.7fr_0.9fr_1fr_1fr]",
         !compact && "border border-silver bg-frost/50 p-3",
       )}
     >
@@ -511,6 +552,7 @@ function TestRow({
         <Select
           name={`result__${method}`}
           defaultValue={existing?.result ?? (required ? "Pass" : "NA")}
+          required={required}
         >
           <option value="Pass">Pass</option>
           <option value="Fail">Fail</option>
@@ -521,6 +563,15 @@ function TestRow({
         <DatePicker
           name={`test_date__${method}`}
           defaultValue={existing?.test_date ?? ""}
+          required={required}
+        />
+      </Field>
+      <Field label="Report / ref no.">
+        <Input
+          name={`conducted_by__${method}`}
+          defaultValue={existing?.conducted_by ?? ""}
+          placeholder="NDT report no."
+          required={required}
         />
       </Field>
       <Field label="Report PDF">
@@ -582,6 +633,7 @@ export function CertificateStep({
                   wpq.certificate_issued_date ??
                   new Date().toISOString().slice(0, 10)
                 }
+                required
               />
             </Field>
             <Field label="Authorised examiner name">
@@ -589,12 +641,14 @@ export function CertificateStep({
                 name="examiner_name"
                 defaultValue={wpq.examiner_name ?? ""}
                 placeholder="Examiner / examining body"
+                required
               />
             </Field>
             <Field label="Job knowledge">
               <Select
                 name="job_knowledge"
                 defaultValue={wpq.job_knowledge ?? "Not tested"}
+                required
               >
                 <option value="Acceptable">Acceptable</option>
                 <option value="Not tested">Not tested</option>

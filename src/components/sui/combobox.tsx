@@ -43,10 +43,35 @@ export function Combobox({
   className?: string;
 }) {
   const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = React.useState("");
+  const listRef = React.useRef<HTMLDivElement>(null);
   const selected = options.find((o) => o.value === value);
 
+  const filtered = React.useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return options;
+    return options.filter(
+      (o) =>
+        o.label.toLowerCase().includes(q) ||
+        o.value.toLowerCase().includes(q),
+    );
+  }, [options, search]);
+
+  const handleSearchChange = (next: string) => {
+    setSearch(next);
+    // cmdk reorders filtered items in the DOM but keeps the old scroll offset,
+    // which pushes matches above the visible area on long lists (e.g. countries).
+    if (listRef.current) listRef.current.scrollTop = 0;
+  };
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setSearch("");
+      }}
+    >
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -67,12 +92,16 @@ export function Combobox({
         align="start"
         className="w-(--radix-popover-trigger-width) p-0"
       >
-        <Command>
-          <CommandInput placeholder={searchPlaceholder} />
-          <CommandList>
+        <Command shouldFilter={false}>
+          <CommandInput
+            placeholder={searchPlaceholder}
+            value={search}
+            onValueChange={handleSearchChange}
+          />
+          <CommandList ref={listRef}>
             <CommandEmpty>{emptyText}</CommandEmpty>
             <CommandGroup>
-              {options.map((o) => (
+              {filtered.map((o) => (
                 <CommandItem
                   key={o.value}
                   value={o.label}

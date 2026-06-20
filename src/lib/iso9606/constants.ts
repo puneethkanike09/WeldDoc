@@ -1,5 +1,23 @@
 // EN ISO 9606-1:2017 reference value sets used in dropdowns and the range engine.
 
+export const TESTING_STANDARDS = [
+  { code: "ISO 9606-1:2012", label: "ISO 9606-1:2012" },
+  { code: "EN ISO 9606-1:2017", label: "EN ISO 9606-1:2017" },
+  { code: "DIN EN ISO 9606-1:2017", label: "DIN EN ISO 9606-1:2017" },
+] as const;
+
+/** Annex A — types of test rows on the individual certificate. */
+export const ANNEX_A_TEST_TYPES = [
+  { label: "Visual testing", methods: ["Visual (Root)", "Visual (Cap)"] },
+  { label: "Radiographic testing", methods: ["RT/UT"] },
+  { label: "Ultrasonic testing", methods: ["RT/UT"] },
+  { label: "PT — After back grind", methods: ["PT"] },
+  { label: "Fracture test", methods: ["Fracture Test"] },
+  { label: "Bend test", methods: ["Bend test"] },
+  { label: "Notch tensile test", methods: ["Notch tensile test"] },
+  { label: "Macroscopic examination", methods: ["Macroscopic examination"] },
+] as const;
+
 export const WELDING_PROCESSES = [
   { code: "111", name: "MMA / SMAW (manual metal arc)" },
   { code: "114", name: "Self-shielded tubular-cored arc" },
@@ -134,6 +152,7 @@ export const BW_TESTS = [
 export const FW_TESTS = ["Visual (Root)", "Fracture Test"] as const;
 
 export const OPTIONAL_TESTS = [
+  "PT",
   "Bend test",
   "Notch tensile test",
   "Macroscopic examination",

@@ -76,12 +76,18 @@ export function MasterTable({ rows }: { rows: MasterRow[] }) {
           <option value="BW">Butt weld</option>
           <option value="FW">Fillet weld</option>
         </Select>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <ButtonLink href="/api/masterlist/export?format=csv">
             <FileSpreadsheet className="h-4 w-4" /> Excel
           </ButtonLink>
           <ButtonLink href="/api/masterlist/export?format=pdf">
             <FileDown className="h-4 w-4" /> PDF
+          </ButtonLink>
+          <ButtonLink href="/api/masterlist/export?format=ped-csv">
+            <FileSpreadsheet className="h-4 w-4" /> PED Excel
+          </ButtonLink>
+          <ButtonLink href="/api/masterlist/export?format=ped-pdf">
+            <FileDown className="h-4 w-4" /> PED PDF
           </ButtonLink>
         </div>
       </div>

@@ -15,6 +15,7 @@ import type {
   QualificationRecord,
   RangeOfApproval,
   Signatory,
+  ValidationRecord,
   Welder,
 } from "@/types/db";
 
@@ -52,7 +53,8 @@ export async function GET(
     return new Response("Not found", { status: 404 });
   }
 
-  const [{ data: range }, { data: ndt }, { data: sigs }] = await Promise.all([
+  const [{ data: range }, { data: ndt }, { data: sigs }, { data: validations }] =
+    await Promise.all([
     supabase
       .from("ranges_of_approval")
       .select("*")
@@ -65,6 +67,11 @@ export async function GET(
       .eq("org_id", profile.org_id)
       .eq("is_active", true)
       .order("role", { ascending: true }),
+    supabase
+      .from("validation_records")
+      .select("*")
+      .eq("wpq_id", wpqId)
+      .order("validated_on", { ascending: true }),
   ]);
 
   const signatories: SignatoryWithUrls[] = await Promise.all(
@@ -77,6 +84,7 @@ export async function GET(
 
   const w = welder as Welder;
   const photoUrl = await resolveUrl("welder-photos", w.photo_path);
+  const logoUrl = await resolveUrl("org-assets", (org as Organization).logo_path);
   const qr = await qrDataUrl(verifyUrl(w.qr_token, request.nextUrl.origin));
 
   const data: CertificateData = {
@@ -85,9 +93,11 @@ export async function GET(
     wpq: wpq as QualificationRecord,
     range: (range as RangeOfApproval) ?? null,
     ndt: (ndt ?? []) as NdtDtRecord[],
+    validations: (validations ?? []) as ValidationRecord[],
     signatories,
     qrDataUrl: qr,
     photoUrl,
+    logoUrl,
     certNo: buildCertNo(org as Organization, w, wpq as QualificationRecord),
   };
 

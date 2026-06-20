@@ -46,6 +46,10 @@ export default async function EditWelderPage({
             action={action}
             welder={welder as Welder}
             mode="edit"
+            orgDefaults={{
+              employer: org.name,
+              branchLocation: org.location_code,
+            }}
           />
         </div>
       </div>

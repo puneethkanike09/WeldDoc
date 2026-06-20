@@ -10,6 +10,8 @@ export const COLORS = {
   frost: "#f4f5f6",
   active: "#214224",
   white: "#ffffff",
+  sapphire: "#254fad",
+  border: "#1b61c9",
 };
 
 export const styles = StyleSheet.create({

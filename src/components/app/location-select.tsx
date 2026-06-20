@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Input, Field } from "@/components/ui/input";
-import { Select } from "@/components/sui/select";
 import { Combobox, type ComboboxOption } from "@/components/sui/combobox";
 import { Loader2 } from "lucide-react";
 
@@ -20,9 +19,11 @@ const API = "https://countriesnow.space/api/v0.1";
 export function LocationSelect({
   name = "place_of_birth",
   initialValue,
+  required,
 }: {
   name?: string;
   initialValue?: string | null;
+  required?: boolean;
 }) {
   // Stored as "District, State, Country" — parse back for edit mode.
   const parsed = useMemo(() => {
@@ -136,7 +137,7 @@ export function LocationSelect({
 
   return (
     <div className="grid gap-3 sm:grid-cols-3">
-      <input type="hidden" name={name} value={combined} />
+      <input type="hidden" name={name} value={combined} required={required} />
 
       <Field label="Country">
         <Combobox
@@ -171,20 +172,15 @@ export function LocationSelect({
       <Field label="District / city">
         {cities.length > 0 || loadingCities ? (
           <div className="relative">
-            <Select
+            <Combobox
+              options={toOptions(cities)}
               value={district}
               disabled={!state || loadingCities}
-              onChange={(e) => setDistrict(e.target.value)}
-            >
-              <option value="">
-                {loadingCities ? "Loading…" : "Select district"}
-              </option>
-              {cities.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </Select>
+              placeholder={loadingCities ? "Loading…" : "Select district"}
+              searchPlaceholder="Search districts…"
+              emptyText="No district found."
+              onChange={setDistrict}
+            />
             {loadingCities && (
               <Loader2 className="pointer-events-none absolute right-9 top-3.5 h-4 w-4 animate-spin text-steel" />
             )}

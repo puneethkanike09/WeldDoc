@@ -3,11 +3,14 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
 import { WelderForm } from "../welder-form";
 import { createWelder } from "../actions";
+import { requireSession } from "@/lib/auth";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata: Metadata = { title: "Add welder" };
 
-export default function NewWelderPage() {
+export default async function NewWelderPage() {
+  const { org } = await requireSession();
+
   return (
     <>
       <PageHeader
@@ -22,7 +25,14 @@ export default function NewWelderPage() {
           <ArrowLeft className="h-4 w-4" /> Back to welders
         </Link>
         <div className="max-w-3xl">
-          <WelderForm action={createWelder} mode="create" />
+          <WelderForm
+            action={createWelder}
+            mode="create"
+            orgDefaults={{
+              employer: org.name,
+              branchLocation: org.location_code,
+            }}
+          />
         </div>
       </div>
     </>
