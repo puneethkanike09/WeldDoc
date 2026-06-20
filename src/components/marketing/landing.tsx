@@ -298,9 +298,9 @@ export function Landing() {
                   <QrGlyph className="h-16 w-16 shrink-0 border border-hairline" />
                   <div className="min-w-0">
                     <p className="text-feature-heading leading-tight">
-                      D. Pradhan
+                      J. Morrison
                     </p>
-                    <p className="text-caption mt-1 text-slate">WLD-2026-047</p>
+                    <p className="text-caption mt-1 text-slate">WLD-2024-042</p>
                   </div>
                 </div>
               </div>

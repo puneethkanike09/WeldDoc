@@ -209,7 +209,7 @@ export function PlanStep({
               <Input
                 name="wps_reference"
                 defaultValue={wpq?.wps_reference ?? ""}
-                placeholder="SMS/BBSR/QA/WPS-075 REV-02"
+                placeholder="ACME/PLT-A/QA/WPS-075 REV-02"
                 required
               />
             </Field>
@@ -234,7 +234,7 @@ export function PlanStep({
               <Input
                 name="examiner_ref"
                 defaultValue={wpq?.examiner_ref ?? ""}
-                placeholder="TUV India ref."
+                placeholder="Third-party examiner ref."
                 required
               />
             </Field>
@@ -242,7 +242,7 @@ export function PlanStep({
               <Input
                 name="examiner_name"
                 defaultValue={wpq?.examiner_name ?? ""}
-                placeholder="Soumya R. Panda"
+                placeholder="Jordan Lee"
                 required
               />
             </Field>

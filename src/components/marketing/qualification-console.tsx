@@ -6,9 +6,9 @@ export function QualificationConsole() {
         Live status
       </p>
       <p className="text-feature-heading mt-2 font-normal tracking-normal text-white">
-        D. Pradhan
+        J. Morrison
       </p>
-      <p className="text-caption mt-1 text-white/70">WLD-2026-047 · GMAW 135</p>
+      <p className="text-caption mt-1 text-white/70">WLD-2024-042 · GMAW 135</p>
       <div className="mt-4 flex flex-wrap gap-2">
         <span className="rounded-sm bg-active/30 px-2 py-1 text-micro text-[#b8e6bc]">
           Qualified

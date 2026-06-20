@@ -35,13 +35,13 @@ export function OrgSettingsForm({
         <Field label="Company name">
           <Input name="name" defaultValue={org.name} />
         </Field>
-        <Field label="Location code" hint="e.g. BBSR">
+        <Field label="Location code" hint="e.g. PLT-A">
           <Input name="location_code" defaultValue={org.location_code ?? ""} />
         </Field>
         <Field label="Welder UID prefix">
           <Input name="uid_prefix" defaultValue={org.uid_prefix} />
         </Field>
-        <Field label="Report number prefix" hint="e.g. SMS/BBSR/WPQ-">
+        <Field label="Report number prefix" hint="e.g. ACME/PLT-A/WPQ-">
           <Input name="report_prefix" defaultValue={org.report_prefix} />
         </Field>
         <Field
@@ -94,7 +94,7 @@ export function SignatoryForm({ action }: { action: (fd: FormData) => void }) {
     <form action={action} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Name">
-          <Input name="name" placeholder="Soumya R. Panda" required />
+          <Input name="name" placeholder="Jordan Lee" required />
         </Field>
         <Field label="Role">
           <Select name="role" defaultValue="manufacturer">
@@ -106,7 +106,7 @@ export function SignatoryForm({ action }: { action: (fd: FormData) => void }) {
           <Input name="designation" placeholder="Welding Engineer" />
         </Field>
         <Field label="Organisation">
-          <Input name="organisation" placeholder="SMS India / TUV India" />
+          <Input name="organisation" placeholder="Acme Fabrication / TPI Agency" />
         </Field>
         <Field label="Signature image">
           <FileInput name="signature" label="Upload signature (PNG)" />

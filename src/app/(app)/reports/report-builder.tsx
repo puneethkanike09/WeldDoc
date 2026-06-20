@@ -141,7 +141,7 @@ export function ReportBuilder({
               />
             </Field>
             <Field label="WPS no.">
-              <Input name="wps_no" placeholder="SMS/BBSR/QA/WPS-075 REV-02" />
+              <Input name="wps_no" placeholder="ACME/PLT-A/QA/WPS-075 REV-02" />
             </Field>
             <Field label="Manufacturer signatory">
               <Select name="manufacturer_signatory_id" defaultValue="">

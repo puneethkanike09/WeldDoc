@@ -26,13 +26,13 @@ export function DemoVerifyPage() {
         <div className="mt-4 rounded-[var(--radius-card)] border border-silver bg-white p-5">
           <div className="flex items-center gap-4">
             <span className="grid h-20 w-20 place-items-center rounded-[12px] bg-onyx/5 font-display text-2xl font-semibold text-graphite">
-              D
+              J
             </span>
             <div>
               <h1 className="font-display text-xl font-bold tracking-tight text-onyx">
-                D. Pradhan
+                J. Morrison
               </h1>
-              <p className="font-mono text-[13px] text-charcoal">WLD-2026-047</p>
+              <p className="font-mono text-[13px] text-charcoal">WLD-2024-042</p>
               <div className="mt-1.5">
                 <Badge tone="active">Active</Badge>
               </div>

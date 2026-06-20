@@ -25,8 +25,8 @@ export function HeroPreview() {
         <div className="mt-4 flex gap-4">
           <div className="h-20 w-16 shrink-0 overflow-hidden rounded-[8px] bg-gradient-to-br from-steel/40 to-onyx/20" />
           <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-[13px]">
-            <Field label="Welder" value="D. Pradhan" />
-            <Field label="UID" value="WLD-2026-047" />
+            <Field label="Welder" value="J. Morrison" />
+            <Field label="UID" value="WLD-2024-042" />
             <Field label="Process" value="GMAW (135)" />
             <Field label="Position" value="PF" />
             <Field label="Joint" value="BW / Plate" />
@@ -67,7 +67,7 @@ export function HeroPreview() {
           <div className="flex items-center justify-between">
             <div>
               <p className="font-display text-sm font-semibold text-white">
-                W#199
+                W#247
               </p>
               <p className="text-[10px] text-steel">ISO 9606-1</p>
             </div>

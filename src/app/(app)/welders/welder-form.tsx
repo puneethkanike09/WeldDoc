@@ -60,15 +60,15 @@ export function WelderForm({
               <Input
                 name="full_name"
                 defaultValue={welder?.full_name ?? ""}
-                placeholder="Damburu Pradhan"
+                placeholder="Alex Morgan"
                 required
               />
             </Field>
-            <Field label="Plant welder ID" hint="e.g. W#199">
+            <Field label="Plant welder ID" hint="e.g. W#247">
               <Input
                 name="welder_id"
                 defaultValue={welder?.welder_id ?? ""}
-                placeholder="W#199"
+                placeholder="W#247"
                 required
               />
             </Field>
@@ -131,7 +131,7 @@ export function WelderForm({
               <Input
                 name="employer"
                 defaultValue={welder?.employer ?? orgDefaults?.employer ?? ""}
-                placeholder="SMS India Pvt Ltd"
+                placeholder="Acme Fabrication Ltd"
                 required
               />
             </Field>
@@ -143,7 +143,7 @@ export function WelderForm({
                   orgDefaults?.branchLocation ??
                   ""
                 }
-                placeholder="M / K / Bhubaneswar"
+                placeholder="Plant A / North Yard"
                 required
               />
             </Field>
