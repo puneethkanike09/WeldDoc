@@ -26,7 +26,7 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
             className={cn(
               "grid h-8 w-8 place-items-center rounded-[8px] transition-colors",
               theme === value
-                ? "bg-panel text-onyx shadow-sm"
+                ? "bg-segment-active-bg text-segment-active-fg shadow-sm"
                 : "text-steel hover:text-charcoal",
             )}
           >
@@ -47,7 +47,7 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
           className={cn(
             "flex items-center gap-3 rounded-[12px] border px-4 py-3 text-left transition-colors",
             theme === value
-              ? "border-inverse-bg bg-inverse-bg text-inverse-fg"
+              ? "border-segment-active-border bg-segment-active-bg text-segment-active-fg"
               : "border-silver bg-panel text-charcoal hover:bg-frost/60",
           )}
         >
