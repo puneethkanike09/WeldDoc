@@ -121,7 +121,7 @@ export function WelderForm({
                   orgDefaults?.suggestedPlantWelderId ??
                   ""
                 }
-                placeholder="W#247"
+                placeholder="W#01"
                 className={cn(fieldErrors.welder_id && invalidBorder)}
                 onChange={() => clearError("welder_id")}
               />

@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { BW_POSITIONS, FW_POSITIONS } from "@/lib/iso9606/constants";
 import { weldTypeCode } from "@/lib/iso9606/ped-format";
+import { normalizePlantWelderId } from "@/lib/welders/plant-id";
 import type {
   QualificationRecord,
   QualificationTestReport,
@@ -157,8 +158,7 @@ function resolveSite(
 
 function resolveWelderNo(welder: Welder | undefined): string {
   if (!welder?.welder_id) return "—";
-  const id = welder.welder_id.trim();
-  return /^W#/i.test(id) ? id.toUpperCase() : `W#${id}`;
+  return normalizePlantWelderId(welder.welder_id) ?? welder.welder_id.trim();
 }
 
 export function toPedMasterRow(
