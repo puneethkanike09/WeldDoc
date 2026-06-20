@@ -3,11 +3,12 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { ButtonLink } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
 import { formatDate } from "@/lib/utils";
 import { STATUS_TONE, type WelderSummary } from "@/lib/welder-status";
-import { Search } from "lucide-react";
+import { Eye, Search } from "lucide-react";
 
 export interface WelderRow {
   id: string;
@@ -95,6 +96,7 @@ export function WeldersTable({ rows }: { rows: WelderRow[] }) {
               <th className="px-5 py-3 font-medium">Processes</th>
               <th className="px-5 py-3 font-medium">Status</th>
               <th className="px-5 py-3 font-medium">Nearest expiry</th>
+              <th className="px-5 py-3 text-right font-medium">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -140,12 +142,22 @@ export function WeldersTable({ rows }: { rows: WelderRow[] }) {
                       </span>
                     )}
                 </td>
+                <td className="px-5 py-3 text-right">
+                  <ButtonLink
+                    href={`/welders/${r.id}`}
+                    variant="primary"
+                    size="sm"
+                  >
+                    <Eye className="h-4 w-4" />
+                    View
+                  </ButtonLink>
+                </td>
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={6}
                   className="px-5 py-12 text-center text-graphite"
                 >
                   No welders match your filters.

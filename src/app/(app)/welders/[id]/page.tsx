@@ -91,7 +91,7 @@ export default async function WelderProfilePage({
         <ButtonLink href={`/welders/${id}/edit`} variant="ghost" size="sm">
           <Pencil className="h-4 w-4" /> Edit
         </ButtonLink>
-        <ButtonLink href={`/api/welders/${id}/id-card`} variant="ghost" size="sm">
+        <ButtonLink href={`/welders/${id}/id-card`} variant="ghost" size="sm">
           <IdCard className="h-4 w-4" /> ID card
         </ButtonLink>
       </PageHeader>

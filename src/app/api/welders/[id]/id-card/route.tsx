@@ -59,11 +59,14 @@ export async function GET(
   };
 
   const buffer = await renderToBuffer(<IdCardDocument data={data} />);
+  const download = request.nextUrl.searchParams.get("download") === "1";
 
   return new Response(new Uint8Array(buffer), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="ID-${w.uid}.pdf"`,
+      "Content-Disposition": `${
+        download ? "attachment" : "inline"
+      }; filename="ID-${w.uid}.pdf"`,
     },
   });
 }
