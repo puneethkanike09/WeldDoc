@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { inter, spaceGrotesk } from "@/lib/fonts";
 import { Toaster } from "@/components/sui/sonner";
+import { NavigationRecovery } from "@/components/app/navigation-recovery";
 import "./globals.css";
 export const metadata: Metadata = {
   title: {
@@ -18,6 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable}`} suppressHydrationWarning>
       <body suppressHydrationWarning>
+        <NavigationRecovery />
         {children}
         <Toaster />
       </body>
