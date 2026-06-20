@@ -2,7 +2,6 @@ import { NextRequest } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createClient } from "@/lib/supabase/server";
 import { resolveUrl } from "@/lib/storage";
-import { qrDataUrl, verifyUrl } from "@/lib/qr";
 import { IdCardDocument, type IdCardData } from "@/lib/pdf/id-card";
 import { summarizeWelder } from "@/lib/welder-status";
 import { formatDate } from "@/lib/utils";
@@ -47,16 +46,12 @@ export async function GET(
   const summary = summarizeWelder(w, qualifications);
   const photoUrl = await resolveUrl("welder-photos", w.photo_path);
   const logoUrl = await resolveUrl("org-assets", (org as Organization).logo_path);
-  const verify = verifyUrl(w.qr_token, request.nextUrl.origin);
-  const qr = await qrDataUrl(verify);
 
   const data: IdCardData = {
     org: org as Organization,
     welder: w,
-    qrDataUrl: qr,
     photoUrl,
     logoUrl,
-    verifyUrl: verify,
     processes: summary.processes,
     status: summary.overall,
     expiry: summary.nearestExpiry ? formatDate(summary.nearestExpiry) : null,

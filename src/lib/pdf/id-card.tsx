@@ -5,10 +5,8 @@ import type { Organization, Welder } from "@/types/db";
 export interface IdCardData {
   org: Organization;
   welder: Welder;
-  qrDataUrl: string;
   photoUrl: string | null;
   logoUrl: string | null;
-  verifyUrl: string;
   processes: string[];
   status: string;
   expiry: string | null;
@@ -67,21 +65,12 @@ function Field({
 }
 
 export function IdCardDocument({ data }: { data: IdCardData }) {
-  const {
-    org,
-    welder,
-    qrDataUrl,
-    photoUrl,
-    logoUrl,
-    verifyUrl,
-    processes,
-    status,
-    expiry,
-  } = data;
+  const { org, welder, photoUrl, logoUrl, processes, status, expiry } = data;
 
   const badge = statusStyle(status);
   const welderNo = welder.welder_id ?? welder.uid;
   const site = welder.branch_location ?? org.location_code ?? "—";
+  const processLine = processes.length ? processes.join(", ") : "—";
 
   return (
     <Document title={`Welder ID ${welder.uid}`}>
@@ -204,7 +193,7 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
             </View>
 
             {/* Details */}
-            <View style={{ flex: 1, paddingRight: 4 }}>
+            <View style={{ flex: 1 }}>
               <Text
                 style={{
                   fontFamily: "Helvetica-Bold",
@@ -221,10 +210,7 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
                 <Field label="UID" value={welder.uid} />
               </View>
 
-              <Field
-                label="PROCESSES"
-                value={processes.length ? processes.join(", ") : "—"}
-              />
+              <Field label="PROCESSES" value={processLine} />
               <Field label="STANDARD" value="EN ISO 9606-1:2017" />
 
               <View
@@ -258,37 +244,6 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
                   Valid {expiry ?? "—"}
                 </Text>
               </View>
-            </View>
-
-            {/* QR */}
-            <View
-              style={{
-                alignItems: "center",
-                justifyContent: "flex-end",
-                width: 48,
-              }}
-            >
-              {/* eslint-disable-next-line jsx-a11y/alt-text */}
-              <Image
-                src={qrDataUrl}
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderWidth: 0.5,
-                  borderColor: COLORS.silver,
-                  padding: 1,
-                }}
-              />
-              <Text
-                style={{
-                  fontSize: 4.5,
-                  color: COLORS.steel,
-                  marginTop: 2,
-                  textAlign: "center",
-                }}
-              >
-                Scan to verify
-              </Text>
             </View>
           </View>
 
@@ -333,62 +288,40 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
               paddingHorizontal: 12,
             }}
           >
-            {/* eslint-disable-next-line jsx-a11y/alt-text */}
-            <Image
-              src={qrDataUrl}
-              style={{
-                width: 72,
-                height: 72,
-                borderWidth: 0.75,
-                borderColor: COLORS.silver,
-                padding: 2,
-                marginBottom: 6,
-              }}
-            />
             <Text
               style={{
                 fontFamily: "Helvetica-Bold",
                 fontSize: 7,
                 color: COLORS.onyx,
                 letterSpacing: 0.5,
-                marginBottom: 2,
+                marginBottom: 4,
               }}
             >
-              SCAN TO VERIFY QUALIFICATION
+              WELDER QUALIFICATION
             </Text>
             <Text
               style={{
                 fontSize: 5.5,
-                color: COLORS.steel,
+                color: COLORS.graphite,
                 textAlign: "center",
-                marginBottom: 8,
+                lineHeight: 1.4,
+                marginBottom: 6,
               }}
             >
-              {verifyUrl.replace(/^https?:\/\//, "")}
+              This card certifies welder qualification per EN ISO 9606-1:2017.
             </Text>
-
-            <View
+            <Text
               style={{
-                width: "100%",
-                borderTopWidth: 0.75,
-                borderTopColor: COLORS.silver,
-                paddingTop: 6,
+                fontSize: 5.5,
+                color: COLORS.graphite,
+                textAlign: "center",
+                lineHeight: 1.4,
               }}
             >
-              <Text
-                style={{
-                  fontSize: 5.5,
-                  color: COLORS.graphite,
-                  textAlign: "center",
-                  lineHeight: 1.4,
-                }}
-              >
-                This card certifies welder qualification per EN ISO 9606-1:2017.
-                {"\n"}
-                Processes: {processes.length ? processes.join(", ") : "—"} · Valid
-                until {expiry ?? "—"}
-              </Text>
-            </View>
+              Processes: {processLine}
+              {"\n"}
+              Valid until {expiry ?? "—"}
+            </Text>
           </View>
 
           <View
