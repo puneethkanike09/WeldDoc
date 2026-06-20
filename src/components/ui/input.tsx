@@ -83,6 +83,7 @@ export function Field({
   error,
   children,
   className,
+  reserveMessageSpace,
 }: {
   label?: string;
   hint?: string;
@@ -90,16 +91,24 @@ export function Field({
   error?: string;
   children: React.ReactNode;
   className?: string;
+  /** Keeps a fixed slot under the control so grid rows stay aligned when errors appear. */
+  reserveMessageSpace?: boolean;
 }) {
+  const message = error ? (
+    <p className="text-xs text-ember">{error}</p>
+  ) : hint ? (
+    <p className="text-xs text-steel">{hint}</p>
+  ) : null;
+
   return (
     <div className={className}>
       {label && <Label required={required}>{label}</Label>}
       {children}
-      {error ? (
-        <p className="mt-1 text-xs text-ember">{error}</p>
-      ) : hint ? (
-        <p className="mt-1 text-xs text-steel">{hint}</p>
-      ) : null}
+      {reserveMessageSpace ? (
+        <div className="mt-1 min-h-[1.125rem]">{message}</div>
+      ) : (
+        message && <div className="mt-1">{message}</div>
+      )}
     </div>
   );
 }

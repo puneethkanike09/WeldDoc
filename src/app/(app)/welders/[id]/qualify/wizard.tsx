@@ -666,19 +666,27 @@ function TestRow({
   return (
     <div
       className={cn(
-        "grid items-end gap-3 rounded-[10px] sm:grid-cols-[1.1fr_0.7fr_0.9fr_1fr_1fr]",
+        "grid items-start gap-3 rounded-[10px]",
+        compact
+          ? "sm:grid-cols-[0.7fr_0.9fr_1fr_1fr]"
+          : "sm:grid-cols-[1.1fr_0.7fr_0.9fr_1fr_1fr]",
         !compact && "border border-silver bg-frost/50 p-3",
       )}
     >
-      <div>
-        {!compact && (
+      {!compact && (
+        <div>
           <p className="text-[14px] font-medium text-onyx">
             {method}{" "}
             {required && <span className="text-ember">*</span>}
           </p>
-        )}
-      </div>
-      <Field label="Result" required={required} error={fieldErrors[resultKey]}>
+        </div>
+      )}
+      <Field
+        label="Result"
+        required={required}
+        error={fieldErrors[resultKey]}
+        reserveMessageSpace
+      >
         <Select
           name={resultKey}
           defaultValue={existing?.result ?? (required ? "Pass" : "NA")}
@@ -691,7 +699,12 @@ function TestRow({
           <option value="NA">N/A</option>
         </Select>
       </Field>
-      <Field label="Test date" required={required} error={fieldErrors[dateKey]}>
+      <Field
+        label="Test date"
+        required={required}
+        error={fieldErrors[dateKey]}
+        reserveMessageSpace
+      >
         <DatePicker
           name={dateKey}
           defaultValue={existing?.test_date ?? ""}
@@ -699,7 +712,12 @@ function TestRow({
           error={fieldErrors[dateKey]}
         />
       </Field>
-      <Field label="Report / ref no." required={required} error={fieldErrors[refKey]}>
+      <Field
+        label="Report / ref no."
+        required={required}
+        error={fieldErrors[refKey]}
+        reserveMessageSpace
+      >
         <Input
           name={refKey}
           defaultValue={existing?.conducted_by ?? ""}
@@ -709,7 +727,7 @@ function TestRow({
           onChange={() => clearError(refKey)}
         />
       </Field>
-      <Field label="Report PDF">
+      <Field label="Report PDF" reserveMessageSpace>
         <FileDropzone
           name={`report__${method}`}
           accept="application/pdf,image/*"
