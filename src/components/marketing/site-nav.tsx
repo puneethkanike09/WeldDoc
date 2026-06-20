@@ -32,17 +32,6 @@ export function SiteNav() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50">
-      {/* announcement-bar — desktop/tablet only */}
-      <div className="hidden h-9 items-center justify-center bg-cohere-black px-4 text-micro text-white md:flex">
-        <span>
-          WeldDoc MVP now live for EN ISO 9606-1:2017 —{" "}
-          <Link href="#features" className="underline underline-offset-2">
-            Learn more
-          </Link>
-        </span>
-      </div>
-
-      {/* global nav — transparent at top, frosted once scrolled */}
       <div
         className={cn(
           "border-b transition-[background-color,backdrop-filter,border-color,box-shadow] duration-300 ease-out",
