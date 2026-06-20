@@ -9,9 +9,9 @@ const tones: Record<
 > = {
   brand: {
     shell: "bg-inverse-bg border-inverse-bg",
-    label: "text-white/50",
-    value: "text-white",
-    hint: "text-white/40",
+    label: "text-inverse-fg/50",
+    value: "text-inverse-fg",
+    hint: "text-inverse-fg/40",
   },
   active: {
     shell: "bg-active border-active",

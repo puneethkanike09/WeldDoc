@@ -34,11 +34,12 @@ html[data-app-theme="dark"] {
   --theme-text-strong: #f5f5f5;
   --theme-text-secondary: #a3a3a3;
   --theme-text-muted: #737373;
-  --theme-inverse-bg: #161616;
-  --theme-inverse-fg: #ffffff;
-  --theme-segment-active-bg: #ffffff;
-  --theme-segment-active-fg: #161616;
-  --theme-segment-active-border: #ffffff;
+  /* Inverse = contrast surface: dark pill in light UI, white pill in dark UI */
+  --theme-inverse-bg: #ffffff;
+  --theme-inverse-fg: #161616;
+  --theme-segment-active-bg: var(--theme-inverse-bg);
+  --theme-segment-active-fg: var(--theme-inverse-fg);
+  --theme-segment-active-border: var(--theme-inverse-bg);
   --status-active-ink: #86efac;
   --status-active-soft: rgb(134 239 172 / 0.14);
   --status-expired: #b85c4a;
