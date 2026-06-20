@@ -139,7 +139,7 @@ export function LocationSelect({
     <div className="grid gap-3 sm:grid-cols-3">
       <input type="hidden" name={name} value={combined} required={required} />
 
-      <Field label="Country">
+      <Field label="Country" required={required}>
         <Combobox
           options={toOptions(countries)}
           value={country}
@@ -154,7 +154,7 @@ export function LocationSelect({
         />
       </Field>
 
-      <Field label="State / region">
+      <Field label="State / region" required={required}>
         <Combobox
           options={toOptions(states)}
           value={state}
@@ -169,7 +169,7 @@ export function LocationSelect({
         />
       </Field>
 
-      <Field label="District / city">
+      <Field label="District / city" required={required}>
         {cities.length > 0 || loadingCities ? (
           <div className="relative">
             <Combobox

@@ -96,8 +96,8 @@ export function LegacyForm({
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="B — Welding process">
-              <Select name="process" defaultValue="135">
+            <Field label="B — Welding process" required>
+              <Select name="process" defaultValue="135" required>
                 {WELDING_PROCESSES.map((p) => (
                   <option key={p.code} value={p.code}>
                     {p.code} — {p.name.split(" ")[0]}
@@ -105,8 +105,8 @@ export function LegacyForm({
                 ))}
               </Select>
             </Field>
-            <Field label="C — Joint type">
-              <Select name="joint_type" defaultValue="BW">
+            <Field label="C — Joint type" required>
+              <Select name="joint_type" defaultValue="BW" required>
                 {JOINT_TYPES.map((j) => (
                   <option key={j.code} value={j.code}>
                     {j.label}
@@ -114,8 +114,8 @@ export function LegacyForm({
                 ))}
               </Select>
             </Field>
-            <Field label="D — Position">
-              <Select name="position" defaultValue="PF">
+            <Field label="D — Position" required>
+              <Select name="position" defaultValue="PF" required>
                 {Array.from(new Set([...BW_POSITIONS, ...FW_POSITIONS])).map(
                   (p) => (
                     <option key={p} value={p}>
@@ -125,8 +125,8 @@ export function LegacyForm({
                 )}
               </Select>
             </Field>
-            <Field label="E — FM / parent material group">
-              <Select name="base_material_group" defaultValue="1">
+            <Field label="E — FM / parent material group" required>
+              <Select name="base_material_group" defaultValue="1" required>
                 {MATERIAL_GROUPS.map((m) => (
                   <option key={m.code} value={m.code}>
                     {m.label}
@@ -143,10 +143,11 @@ export function LegacyForm({
                 ))}
               </Select>
             </Field>
-            <Field label="Testing standard">
+            <Field label="Testing standard" required>
               <Select
                 name="testing_standard"
                 defaultValue="EN ISO 9606-1:2017"
+                required
               >
                 {TESTING_STANDARDS.map((s) => (
                   <option key={s.code} value={s.code}>
@@ -155,8 +156,8 @@ export function LegacyForm({
                 ))}
               </Select>
             </Field>
-            <Field label="F — Test thickness (mm)">
-              <Input type="number" step="0.1" name="test_thickness_mm" />
+            <Field label="F — Test thickness (mm)" required>
+              <Input type="number" step="0.1" name="test_thickness_mm" required />
             </Field>
             <Field label="F — Deposited / throat (mm)">
               <Input type="number" step="0.1" name="deposited_thickness_mm" />
@@ -164,8 +165,8 @@ export function LegacyForm({
             <Field label="Pipe OD (mm)">
               <Input type="number" step="0.1" name="pipe_od_mm" />
             </Field>
-            <Field label="Product">
-              <Select name="product" defaultValue="Plate">
+            <Field label="Product" required>
+              <Select name="product" defaultValue="Plate" required>
                 {PRODUCT_TYPES.map((p) => (
                   <option key={p} value={p}>
                     {p}
@@ -182,8 +183,8 @@ export function LegacyForm({
             <Field label="Last 6-month continuity confirmed">
               <DatePicker name="continuity_last_verified" />
             </Field>
-            <Field label="I — Revalidation method">
-              <Select name="revalidation_method" defaultValue="9.3b">
+            <Field label="I — Revalidation method" required>
+              <Select name="revalidation_method" defaultValue="9.3b" required>
                 {REVALIDATION_METHODS.map((m) => (
                   <option key={m.code} value={m.code}>
                     {m.label}

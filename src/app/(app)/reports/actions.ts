@@ -38,6 +38,7 @@ export async function createReport(formData: FormData) {
   const category = (s(formData.get("joint_category")) ?? "BW") as JointCategory;
   const testDate = s(formData.get("test_date")) ?? new Date().toISOString().slice(0, 10);
   const wpsNo = s(formData.get("wps_no"));
+  if (!wpsNo) throw new Error("WPS number is required.");
   const manufacturerId = s(formData.get("manufacturer_signatory_id"));
   const examiningId = s(formData.get("examining_body_signatory_id"));
   const remarks = s(formData.get("remarks"));

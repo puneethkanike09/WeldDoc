@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Input, Textarea, Field } from "@/components/ui/input";
+import { FormError } from "@/components/ui/form-error";
 import { Select } from "@/components/sui/select";
 import { DatePicker } from "@/components/sui/date-picker";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import {
   FW_POSITIONS,
   MATERIAL_GROUPS,
 } from "@/lib/iso9606/constants";
+import { validateReportRows } from "@/lib/reports/validate-report-rows";
 import type { JointCategory, ProductType, Signatory } from "@/types/db";
 import { FilePlus2, Loader2, Plus, Trash2 } from "lucide-react";
 
@@ -81,6 +83,7 @@ export function ReportBuilder({
 }) {
   const [category, setCategory] = useState<JointCategory>("BW");
   const [rows, setRows] = useState<Row[]>([newRow()]);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const manufacturers = signatories.filter((s) => s.role === "manufacturer");
   const examiners = signatories.filter((s) => s.role === "examining_body");
@@ -110,10 +113,27 @@ export function ReportBuilder({
 
   function update(key: string, patch: Partial<Row>) {
     setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)));
+    setFormError(null);
+  }
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const rowError = validateReportRows(rows);
+    if (rowError) {
+      e.preventDefault();
+      setFormError(rowError);
+      return;
+    }
+    if (!e.currentTarget.reportValidity()) {
+      e.preventDefault();
+      setFormError("Fill in all required fields.");
+      return;
+    }
+    setFormError(null);
   }
 
   return (
-    <form action={action} className="space-y-6">
+    <form action={action} className="space-y-6" onSubmit={handleSubmit}>
+      <FormError message={formError} />
       <input type="hidden" name="rows" value={serialized} />
 
       <Card>
@@ -122,10 +142,11 @@ export function ReportBuilder({
             Test session
           </h3>
           <div className="grid gap-5 sm:grid-cols-3">
-            <Field label="Joint category" hint="BW and FW are separate sheets">
+            <Field label="Joint category" hint="BW and FW are separate sheets" required>
               <Select
                 name="joint_category"
                 value={category}
+                required
                 onChange={(e) =>
                   setCategory(e.target.value as JointCategory)
                 }
@@ -134,14 +155,19 @@ export function ReportBuilder({
                 <option value="FW">Fillet weld (FW)</option>
               </Select>
             </Field>
-            <Field label="Test date">
+            <Field label="Test date" required>
               <DatePicker
                 name="test_date"
                 defaultValue={new Date().toISOString().slice(0, 10)}
+                required
               />
             </Field>
-            <Field label="WPS no.">
-              <Input name="wps_no" placeholder="ACME/PLT-A/QA/WPS-075 REV-02" />
+            <Field label="WPS no." required>
+              <Input
+                name="wps_no"
+                placeholder="ACME/PLT-A/QA/WPS-075 REV-02"
+                required
+              />
             </Field>
             <Field label="Manufacturer signatory">
               <Select name="manufacturer_signatory_id" defaultValue="">
@@ -163,8 +189,8 @@ export function ReportBuilder({
                 ))}
               </Select>
             </Field>
-            <Field label="Revalidation method">
-              <Select name="revalidation_method" defaultValue="9.3b">
+            <Field label="Revalidation method" required>
+              <Select name="revalidation_method" defaultValue="9.3b" required>
                 <option value="9.3a">9.3a (3 years)</option>
                 <option value="9.3b">9.3b (2 years)</option>
                 <option value="9.3c">9.3c (6 months)</option>
@@ -220,9 +246,10 @@ export function ReportBuilder({
                   )}
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <Field label="Welder">
+                  <Field label="Welder" required>
                     <Select
                       value={r.welderId}
+                      required
                       onChange={(e) =>
                         update(r.key, { welderId: e.target.value })
                       }
@@ -237,9 +264,10 @@ export function ReportBuilder({
                       ))}
                     </Select>
                   </Field>
-                  <Field label="Process">
+                  <Field label="Process" required>
                     <Select
                       value={r.process}
+                      required
                       onChange={(e) =>
                         update(r.key, { process: e.target.value })
                       }
@@ -251,9 +279,10 @@ export function ReportBuilder({
                       ))}
                     </Select>
                   </Field>
-                  <Field label="Product">
+                  <Field label="Product" required>
                     <Select
                       value={r.product}
+                      required
                       onChange={(e) =>
                         update(r.key, {
                           product: e.target.value as ProductType,
@@ -267,9 +296,10 @@ export function ReportBuilder({
                       ))}
                     </Select>
                   </Field>
-                  <Field label="Position">
+                  <Field label="Position" required>
                     <Select
                       value={r.position}
+                      required
                       onChange={(e) =>
                         update(r.key, { position: e.target.value })
                       }
@@ -281,9 +311,10 @@ export function ReportBuilder({
                       ))}
                     </Select>
                   </Field>
-                  <Field label="Material group">
+                  <Field label="Material group" required>
                     <Select
                       value={r.materialGroup}
+                      required
                       onChange={(e) =>
                         update(r.key, { materialGroup: e.target.value })
                       }
@@ -295,29 +326,33 @@ export function ReportBuilder({
                       ))}
                     </Select>
                   </Field>
-                  <Field label="Material grade">
+                  <Field label="Material grade" required>
                     <Input
                       value={r.materialGrade}
+                      required
                       onChange={(e) =>
                         update(r.key, { materialGrade: e.target.value })
                       }
                       placeholder="IS2062 E250 BR+N"
                     />
                   </Field>
-                  <Field label="Dimensions">
+                  <Field label="Dimensions" required>
                     <Input
                       value={r.dimensions}
+                      required
                       onChange={(e) =>
                         update(r.key, { dimensions: e.target.value })
                       }
                       placeholder="12(T)x300(W)x250(L)"
                     />
                   </Field>
-                  <Field label="Test thickness (mm)">
+                  <Field label="Test thickness (mm)" required>
                     <Input
                       type="number"
                       step="0.1"
+                      min="0.1"
                       value={r.testThickness}
+                      required
                       onChange={(e) =>
                         update(r.key, { testThickness: e.target.value })
                       }
@@ -333,9 +368,10 @@ export function ReportBuilder({
                       }
                     />
                   </Field>
-                  <Field label="Visual">
+                  <Field label="Visual" required>
                     <Select
                       value={r.visualResult}
+                      required
                       onChange={(e) =>
                         update(r.key, {
                           visualResult: e.target.value as "Pass" | "Fail",
@@ -346,9 +382,10 @@ export function ReportBuilder({
                       <option value="Fail">Fail</option>
                     </Select>
                   </Field>
-                  <Field label={category === "BW" ? "RT/UT" : "Fracture"}>
+                  <Field label={category === "BW" ? "RT/UT" : "Fracture"} required>
                     <Select
                       value={r.mainResult}
+                      required
                       onChange={(e) =>
                         update(r.key, {
                           mainResult: e.target.value as

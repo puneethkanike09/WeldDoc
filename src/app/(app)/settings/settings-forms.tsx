@@ -33,17 +33,17 @@ export function OrgSettingsForm({
   return (
     <form action={action} className="space-y-5">
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="Company name">
-          <Input name="name" defaultValue={org.name} />
+        <Field label="Company name" required>
+          <Input name="name" defaultValue={org.name} required />
         </Field>
         <Field label="Location code" hint="e.g. PLT-A">
           <Input name="location_code" defaultValue={org.location_code ?? ""} />
         </Field>
-        <Field label="Welder UID prefix">
-          <Input name="uid_prefix" defaultValue={org.uid_prefix} />
+        <Field label="Welder UID prefix" required>
+          <Input name="uid_prefix" defaultValue={org.uid_prefix} required />
         </Field>
-        <Field label="Report number prefix" hint="e.g. ACME/PLT-A/WPQ-">
-          <Input name="report_prefix" defaultValue={org.report_prefix} />
+        <Field label="Report number prefix" hint="e.g. ACME/PLT-A/WPQ-" required>
+          <Input name="report_prefix" defaultValue={org.report_prefix} required />
         </Field>
         <Field
           label="Alert lead days"

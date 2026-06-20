@@ -75,7 +75,19 @@ export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
 
     return (
       <>
-        {name && <input type="hidden" name={name} value={current} />}
+        {name ? (
+          <input
+            type="text"
+            name={name}
+            value={current}
+            readOnly
+            required={required}
+            tabIndex={-1}
+            aria-hidden="true"
+            onChange={() => {}}
+            className="pointer-events-none absolute h-0 w-0 opacity-0"
+          />
+        ) : null}
         <SelectPrimitive.Root
           value={toRadix(current)}
           onValueChange={handle}

@@ -35,16 +35,17 @@ export function ValidationForm({
       </summary>
       <form action={action} className="space-y-3 border-t border-silver p-3">
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Type">
-            <Select name="kind" defaultValue="continuity">
+          <Field label="Type" required>
+            <Select name="kind" defaultValue="continuity" required>
               <option value="continuity">6-month continuity (9.2)</option>
               <option value="revalidation">Revalidation (extends expiry)</option>
             </Select>
           </Field>
-          <Field label="Date">
+          <Field label="Date" required>
             <DatePicker
               name="validated_on"
               defaultValue={new Date().toISOString().slice(0, 10)}
+              required
             />
           </Field>
           <Field label="Validator">
