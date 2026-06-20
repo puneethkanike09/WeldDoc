@@ -1,16 +1,17 @@
-import type { Organization, Welder } from "@/types/db";
+import type { IdCardQualRow } from "@/lib/iso9606/id-card-model";
 
 export interface WelderIdCardViewProps {
-  org: Pick<Organization, "name" | "location_code">;
-  welder: Pick<
-    Welder,
-    "full_name" | "uid" | "welder_id" | "employer" | "branch_location"
-  >;
+  orgName: string;
+  welderName: string;
+  welderNo: string;
+  uid: string;
   photoUrl: string | null;
   logoUrl: string | null;
-  processes: string[];
+  rows: IdCardQualRow[];
   status: string;
   expiry: string | null;
+  employer: string | null;
+  site: string;
 }
 
 function statusBadge(status: string): { bg: string; fg: string; label: string } {
@@ -32,138 +33,167 @@ function statusBadge(status: string): { bg: string; fg: string; label: string } 
   }
 }
 
-function CardFace({
-  org,
-  welder,
+function PersonalField({
+  label,
+  value,
+  bold,
+}: {
+  label: string;
+  value: string;
+  bold?: boolean;
+}) {
+  return (
+    <div>
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-steel">
+        {label}
+      </p>
+      <p className={`text-sm text-onyx ${bold ? "font-semibold" : ""}`}>
+        {value}
+      </p>
+    </div>
+  );
+}
+
+export function WelderIdCardView({
+  orgName,
+  welderName,
+  welderNo,
+  uid,
   photoUrl,
   logoUrl,
-  processes,
+  rows,
   status,
   expiry,
-  side,
-}: WelderIdCardViewProps & { side: "front" | "back" }) {
-  const welderNo = welder.welder_id ?? welder.uid;
-  const site = welder.branch_location ?? org.location_code ?? "—";
+  employer,
+  site,
+}: WelderIdCardViewProps) {
   const badge = statusBadge(status);
-  const processLine = processes.length ? processes.join(", ") : "—";
-
-  if (side === "back") {
-    return (
-      <div className="flex aspect-[85.6/54] w-full flex-col overflow-hidden rounded-xl border-2 border-charcoal bg-white shadow-[var(--shadow-card)]">
-        <div className="flex flex-1 flex-col items-center justify-center px-6 py-5 text-center">
-          <p className="font-display text-sm font-semibold uppercase tracking-wide text-onyx">
-            Welder qualification
-          </p>
-          <p className="mt-3 max-w-xs text-[13px] leading-relaxed text-graphite">
-            This card certifies welder qualification per EN ISO 9606-1:2017.
-          </p>
-          <p className="mt-3 text-[13px] text-charcoal">
-            Processes: {processLine}
-          </p>
-          <p className="mt-1 text-[13px] text-charcoal">
-            Valid until {expiry ?? "—"}
-          </p>
-        </div>
-        <div className="border-t border-silver bg-onyx px-4 py-2.5 text-center text-[11px] text-steel">
-          Property of {org.name} · {site} · Not transferable
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="flex aspect-[85.6/54] w-full flex-col overflow-hidden rounded-xl border-2 border-charcoal bg-white shadow-[var(--shadow-card)]">
-      <div className="flex items-center justify-between bg-onyx px-4 py-3">
-        <div className="flex min-w-0 flex-1 items-center gap-2 pr-3">
-          {logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={logoUrl}
-              alt=""
-              className="h-4 max-w-[72px] object-contain object-left"
-            />
-          ) : null}
-          <span className="truncate font-display text-sm font-semibold text-white">
-            {org.name}
-          </span>
-        </div>
-        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-silver">
-          Welder ID
+    <div className="overflow-hidden rounded-sm border-2 border-charcoal bg-white shadow-[var(--shadow-card)]">
+      {/* Header — logo + company name (centered) */}
+      <div className="flex items-center justify-center gap-3 bg-ember-soft px-4 py-3.5">
+        {logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={logoUrl}
+            alt=""
+            className="h-7 max-w-[140px] object-contain"
+          />
+        ) : null}
+        <span className="font-display text-base font-bold text-onyx">
+          {orgName}
         </span>
       </div>
 
-      <div className="flex flex-1 gap-3 px-4 py-3">
-        {photoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={photoUrl}
-            alt={welder.full_name}
-            className="h-[72px] w-[58px] shrink-0 border border-silver object-cover"
-          />
-        ) : (
-          <span className="grid h-[72px] w-[58px] shrink-0 place-items-center border border-silver bg-frost font-display text-xl font-semibold text-steel">
-            {welder.full_name.slice(0, 1).toUpperCase()}
-          </span>
-        )}
+      {/* Body — photo left, personal info right */}
+      <div className="flex gap-4 border-b border-silver bg-white px-4 py-4">
+        <div className="shrink-0">
+          {photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={photoUrl}
+              alt={welderName}
+              className="h-[84px] w-[66px] rounded-sm border border-silver object-cover"
+            />
+          ) : (
+            <span className="grid h-[84px] w-[66px] place-items-center rounded-sm border border-silver bg-frost font-display text-xl font-semibold text-steel">
+              {welderName.slice(0, 1).toUpperCase()}
+            </span>
+          )}
+        </div>
 
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-base font-semibold text-onyx">
-            {welder.full_name}
+        <div className="min-w-0 flex-1 space-y-2.5">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-steel">
+            Welder ID card
           </p>
-          <div className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-1.5">
-            <div>
-              <p className="text-[9px] uppercase tracking-wide text-steel">
-                Welder no.
-              </p>
-              <p className="text-xs font-semibold text-onyx">{welderNo}</p>
-            </div>
-            <div>
-              <p className="text-[9px] uppercase tracking-wide text-steel">
-                UID
-              </p>
-              <p className="truncate text-xs text-onyx">{welder.uid}</p>
-            </div>
+          <PersonalField label="Name" value={welderName} bold />
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+            <PersonalField label="Welder ID" value={welderNo} bold />
+            <PersonalField label="UID" value={uid} />
+            {employer ? <PersonalField label="Employer" value={employer} /> : null}
+            {site !== "—" ? <PersonalField label="Branch" value={site} /> : null}
           </div>
-          <div className="mt-1.5">
-            <p className="text-[9px] uppercase tracking-wide text-steel">
-              Processes
-            </p>
-            <p className="truncate text-xs text-onyx">{processLine}</p>
-          </div>
-          <div className="mt-1">
-            <p className="text-[9px] uppercase tracking-wide text-steel">
-              Standard
-            </p>
-            <p className="text-xs text-onyx">EN ISO 9606-1:2017</p>
-          </div>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 pt-0.5">
             <span
               className={`rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${badge.bg} ${badge.fg}`}
             >
               {badge.label}
             </span>
-            <span className="text-[11px] text-graphite">
-              Valid {expiry ?? "—"}
-            </span>
+            <span className="text-xs text-graphite">Valid {expiry ?? "—"}</span>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-between border-t border-silver bg-frost px-4 py-2 text-[11px]">
-        <span className="truncate text-graphite">
-          {welder.employer ?? org.name}
-        </span>
-        <span className="shrink-0 text-steel">{site} · WeldDoc</span>
+      {/* Footer — qualifications */}
+      <div className="bg-frost">
+        <div className="bg-charcoal py-1.5 text-center text-[11px] font-semibold tracking-wide text-white">
+          EN ISO 9606-1:2017
+        </div>
+        <div className="overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
+          <table className="w-full min-w-[520px] border-collapse text-center text-xs text-charcoal">
+            <thead className="bg-frost text-graphite">
+              <tr className="border-b border-silver">
+                <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
+                  Process
+                </th>
+                <th className="border-r border-silver px-2 py-2 font-semibold" colSpan={2}>
+                  Position
+                </th>
+                <th className="border-r border-silver px-2 py-2 font-semibold" colSpan={2}>
+                  Thickness
+                </th>
+                <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
+                  OD
+                </th>
+                <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
+                  Joint type
+                </th>
+                <th className="px-2 py-2 font-semibold" rowSpan={2}>
+                  FM GROUP
+                </th>
+              </tr>
+              <tr className="border-b border-silver">
+                <th className="border-r border-silver px-2 py-1.5 font-semibold">BW</th>
+                <th className="border-r border-silver px-2 py-1.5 font-semibold">FW</th>
+                <th className="border-r border-silver px-2 py-1.5 font-semibold">BW</th>
+                <th className="border-r border-silver px-2 py-1.5 font-semibold">FW</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, i) => (
+                <tr
+                  key={i}
+                  className={`border-b border-silver last:border-b-0 ${i % 2 === 1 ? "bg-white/80" : "bg-white"}`}
+                >
+                  <td className="whitespace-nowrap border-r border-silver px-2 py-2 font-semibold text-onyx">
+                    {row.process}
+                  </td>
+                  <td className="whitespace-pre-line border-r border-silver px-2 py-2">
+                    {row.positionBw}
+                  </td>
+                  <td className="whitespace-pre-line border-r border-silver px-2 py-2">
+                    {row.positionFw}
+                  </td>
+                  <td className="whitespace-nowrap border-r border-silver px-2 py-2">
+                    {row.thicknessBw}
+                  </td>
+                  <td className="whitespace-nowrap border-r border-silver px-2 py-2">
+                    {row.thicknessFw}
+                  </td>
+                  <td className="whitespace-nowrap border-r border-silver px-2 py-2">
+                    {row.od}
+                  </td>
+                  <td className="whitespace-nowrap border-r border-silver px-2 py-2">
+                    {row.jointType}
+                  </td>
+                  <td className="whitespace-pre-line px-2 py-2">{row.fmGroup}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  );
-}
-
-export function WelderIdCardView(props: WelderIdCardViewProps) {
-  return (
-    <div className="mx-auto w-full max-w-md space-y-4">
-      <CardFace {...props} side="front" />
-      <CardFace {...props} side="back" />
     </div>
   );
 }

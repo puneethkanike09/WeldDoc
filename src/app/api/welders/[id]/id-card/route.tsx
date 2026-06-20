@@ -2,12 +2,14 @@ import { NextRequest } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createClient } from "@/lib/supabase/server";
 import { resolveUrl } from "@/lib/storage";
+import { buildIdCardPayload } from "@/lib/iso9606/id-card-model";
 import { IdCardDocument, type IdCardData } from "@/lib/pdf/id-card";
 import { summarizeWelder } from "@/lib/welder-status";
 import { formatDate } from "@/lib/utils";
 import type {
   Organization,
   QualificationRecord,
+  RangeOfApproval,
   Welder,
 } from "@/types/db";
 
@@ -43,6 +45,20 @@ export async function GET(
 
   const w = welder as Welder;
   const qualifications = (wpqs ?? []) as QualificationRecord[];
+
+  const wpqIds = qualifications.map((q) => q.id);
+  const { data: rangeRows } = await supabase
+    .from("ranges_of_approval")
+    .select("*")
+    .in(
+      "wpq_id",
+      wpqIds.length ? wpqIds : ["00000000-0000-0000-0000-000000000000"],
+    );
+  const ranges = new Map(
+    ((rangeRows ?? []) as RangeOfApproval[]).map((r) => [r.wpq_id, r]),
+  );
+
+  const card = buildIdCardPayload(w, qualifications, ranges);
   const summary = summarizeWelder(w, qualifications);
   const photoUrl = await resolveUrl("welder-photos", w.photo_path);
   const logoUrl = await resolveUrl("org-assets", (org as Organization).logo_path);
@@ -52,7 +68,9 @@ export async function GET(
     welder: w,
     photoUrl,
     logoUrl,
-    processes: summary.processes,
+    welderName: card.welderName,
+    welderNo: card.welderNo,
+    rows: card.rows,
     status: summary.overall,
     expiry: summary.nearestExpiry ? formatDate(summary.nearestExpiry) : null,
   };
@@ -63,6 +81,7 @@ export async function GET(
   return new Response(new Uint8Array(buffer), {
     headers: {
       "Content-Type": "application/pdf",
+      "Cache-Control": "no-store, no-cache, must-revalidate",
       "Content-Disposition": `${
         download ? "attachment" : "inline"
       }; filename="ID-${w.uid}.pdf"`,

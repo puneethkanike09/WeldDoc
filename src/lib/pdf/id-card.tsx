@@ -1,5 +1,6 @@
 import { Document, Page, View, Text, Image } from "@react-pdf/renderer";
 import { COLORS } from "./styles";
+import type { IdCardQualRow } from "@/lib/iso9606/id-card-model";
 import type { Organization, Welder } from "@/types/db";
 
 export interface IdCardData {
@@ -7,13 +8,29 @@ export interface IdCardData {
   welder: Welder;
   photoUrl: string | null;
   logoUrl: string | null;
-  processes: string[];
+  welderName: string;
+  welderNo: string;
+  rows: IdCardQualRow[];
   status: string;
   expiry: string | null;
 }
 
-/** ISO/IEC 7810 ID-1 — standard credit-card / badge size (85.6 × 54 mm). */
-const CARD: [number, number] = [243, 153];
+/** Landscape badge — header, body (photo + info), qualification footer. */
+const CARD: [number, number] = [340, 232];
+
+const border = { borderWidth: 0.5, borderColor: COLORS.silver };
+
+/** Flex weights for flat qualification table columns. */
+const COL = {
+  process: 1.15,
+  posBw: 0.82,
+  posFw: 1.05,
+  thkBw: 0.82,
+  thkFw: 1.05,
+  od: 0.95,
+  joint: 0.82,
+  fm: 1.34,
+} as const;
 
 function statusStyle(status: string): { bg: string; fg: string; label: string } {
   switch (status) {
@@ -30,7 +47,24 @@ function statusStyle(status: string): { bg: string; fg: string; label: string } 
   }
 }
 
-function Field({
+const cellPad = { paddingHorizontal: 2, paddingVertical: 2 };
+const hdr = {
+  fontSize: 4,
+  fontFamily: "Helvetica-Bold" as const,
+  textAlign: "center" as const,
+  color: COLORS.graphite,
+  lineHeight: 1.15,
+};
+/** Welder portrait in body (pt). */
+const PHOTO: [number, number] = [56, 72];
+const cell = {
+  fontSize: 4,
+  textAlign: "center" as const,
+  color: COLORS.charcoal,
+  lineHeight: 1.15,
+};
+
+function PersonalField({
   label,
   value,
   bold,
@@ -40,13 +74,13 @@ function Field({
   bold?: boolean;
 }) {
   return (
-    <View style={{ marginBottom: 3 }}>
+    <View style={{ marginBottom: 4 }}>
       <Text
         style={{
-          fontSize: 5,
+          fontSize: 4.5,
           color: COLORS.steel,
-          letterSpacing: 0.6,
-          marginBottom: 0.5,
+          letterSpacing: 0.5,
+          marginBottom: 1,
         }}
       >
         {label}
@@ -64,160 +98,242 @@ function Field({
   );
 }
 
+function TableCell({
+  flex,
+  children,
+  header,
+  bg,
+  bold,
+  last,
+}: {
+  flex: number;
+  children: string;
+  header?: boolean;
+  bg: string;
+  bold?: boolean;
+  last?: boolean;
+}) {
+  return (
+    <View
+      style={{
+        flex,
+        minWidth: 0,
+        ...cellPad,
+        ...border,
+        borderTopWidth: 0,
+        borderLeftWidth: 0,
+        borderRightWidth: last ? 0 : border.borderWidth,
+        backgroundColor: bg,
+        justifyContent: "center",
+      }}
+    >
+      <Text
+        style={
+          header
+            ? hdr
+            : { ...cell, fontFamily: bold ? "Helvetica-Bold" : "Helvetica" }
+        }
+        wrap
+      >
+        {children}
+      </Text>
+    </View>
+  );
+}
+
+function TableHeader() {
+  const bg = COLORS.frost;
+  return (
+    <View style={{ flexDirection: "row", backgroundColor: bg, ...border, borderTopWidth: 0 }}>
+      <TableCell flex={COL.process} header bg={bg}>
+        Process
+      </TableCell>
+      <TableCell flex={COL.posBw} header bg={bg}>
+        {"Pos\nBW"}
+      </TableCell>
+      <TableCell flex={COL.posFw} header bg={bg}>
+        {"Pos\nFW"}
+      </TableCell>
+      <TableCell flex={COL.thkBw} header bg={bg}>
+        {"Thk\nBW"}
+      </TableCell>
+      <TableCell flex={COL.thkFw} header bg={bg}>
+        {"Thk\nFW"}
+      </TableCell>
+      <TableCell flex={COL.od} header bg={bg}>
+        OD
+      </TableCell>
+      <TableCell flex={COL.joint} header bg={bg}>
+        Joint
+      </TableCell>
+      <TableCell flex={COL.fm} header bg={bg} last>
+        FM GROUP
+      </TableCell>
+    </View>
+  );
+}
+
+function TableRow({ row, alt }: { row: IdCardQualRow; alt: boolean }) {
+  const bg = alt ? COLORS.frost : COLORS.white;
+  return (
+    <View style={{ flexDirection: "row", ...border, borderTopWidth: 0, backgroundColor: bg }}>
+      <TableCell flex={COL.process} bg={bg} bold>
+        {row.process}
+      </TableCell>
+      <TableCell flex={COL.posBw} bg={bg}>
+        {row.positionBw}
+      </TableCell>
+      <TableCell flex={COL.posFw} bg={bg}>
+        {row.positionFw}
+      </TableCell>
+      <TableCell flex={COL.thkBw} bg={bg}>
+        {row.thicknessBw}
+      </TableCell>
+      <TableCell flex={COL.thkFw} bg={bg}>
+        {row.thicknessFw}
+      </TableCell>
+      <TableCell flex={COL.od} bg={bg}>
+        {row.od}
+      </TableCell>
+      <TableCell flex={COL.joint} bg={bg}>
+        {row.jointType}
+      </TableCell>
+      <TableCell flex={COL.fm} bg={bg} last>
+        {row.fmGroup}
+      </TableCell>
+    </View>
+  );
+}
+
 export function IdCardDocument({ data }: { data: IdCardData }) {
-  const { org, welder, photoUrl, logoUrl, processes, status, expiry } = data;
+  const { org, welder, photoUrl, logoUrl, welderName, welderNo, rows, status, expiry } = data;
 
   const badge = statusStyle(status);
-  const welderNo = welder.welder_id ?? welder.uid;
   const site = welder.branch_location ?? org.location_code ?? "—";
-  const processLine = processes.length ? processes.join(", ") : "—";
 
   return (
-    <Document title={`Welder ID ${welder.uid}`}>
-      <Page size={CARD} style={{ padding: 0, fontFamily: "Helvetica" }}>
+    <Document title={`Welder ID ${welderNo}`}>
+      <Page size={CARD} style={{ padding: 4, fontFamily: "Helvetica", backgroundColor: COLORS.frost }}>
         <View
           style={{
             flex: 1,
             borderWidth: 1.2,
             borderColor: COLORS.charcoal,
             backgroundColor: COLORS.white,
+            borderRadius: 2,
+            overflow: "hidden",
           }}
         >
-          {/* Header */}
+          {/* Header — logo + company name (centered) */}
           <View
             style={{
-              backgroundColor: COLORS.onyx,
-              paddingHorizontal: 8,
-              paddingTop: 6,
-              paddingBottom: 5,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: COLORS.emberSoft,
+              paddingHorizontal: 10,
+              paddingVertical: 8,
+              minHeight: 32,
+              gap: 8,
             }}
           >
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  flex: 1,
-                  paddingRight: 6,
-                }}
-              >
-                {logoUrl ? (
-                  // eslint-disable-next-line jsx-a11y/alt-text
-                  <Image
-                    src={logoUrl}
-                    style={{
-                      width: 36,
-                      height: 14,
-                      objectFit: "contain",
-                      marginRight: 6,
-                    }}
-                  />
-                ) : null}
-                <Text
-                  style={{
-                    color: COLORS.white,
-                    fontFamily: "Helvetica-Bold",
-                    fontSize: 7.5,
-                    flex: 1,
-                  }}
-                >
-                  {org.name}
-                </Text>
-              </View>
-              <Text
-                style={{
-                  color: COLORS.silver,
-                  fontSize: 5.5,
-                  fontFamily: "Helvetica-Bold",
-                  letterSpacing: 0.8,
-                }}
-              >
-                WELDER ID
-              </Text>
-            </View>
+            {logoUrl ? (
+              // eslint-disable-next-line jsx-a11y/alt-text
+              <Image
+                src={logoUrl}
+                style={{ width: 70, height: 21, objectFit: "contain" }}
+              />
+            ) : null}
+            <Text style={{ fontSize: 10, fontFamily: "Helvetica-Bold", color: COLORS.onyx }}>
+              {org.name}
+            </Text>
           </View>
 
-          {/* Body */}
+          {/* Body — photo left, personal info right */}
           <View
             style={{
-              flex: 1,
               flexDirection: "row",
-              paddingHorizontal: 8,
-              paddingTop: 6,
-              paddingBottom: 4,
+              borderBottomWidth: 0.75,
+              borderBottomColor: COLORS.silver,
+              backgroundColor: COLORS.white,
+              paddingHorizontal: 10,
+              paddingVertical: 8,
             }}
           >
-            {/* Photo */}
-            <View style={{ marginRight: 7 }}>
+            <View style={{ marginRight: 10 }}>
               {photoUrl ? (
                 // eslint-disable-next-line jsx-a11y/alt-text
                 <Image
                   src={photoUrl}
                   style={{
-                    width: 46,
-                    height: 58,
+                    width: PHOTO[0],
+                    height: PHOTO[1],
                     objectFit: "cover",
-                    borderWidth: 0.75,
+                    borderRadius: 2,
+                    borderWidth: 1,
                     borderColor: COLORS.silver,
                   }}
                 />
               ) : (
                 <View
                   style={{
-                    width: 46,
-                    height: 58,
+                    width: PHOTO[0],
+                    height: PHOTO[1],
                     backgroundColor: COLORS.frost,
-                    borderWidth: 0.75,
+                    borderRadius: 2,
+                    borderWidth: 1,
                     borderColor: COLORS.silver,
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      color: COLORS.steel,
-                      fontFamily: "Helvetica-Bold",
-                    }}
-                  >
-                    {welder.full_name.slice(0, 1).toUpperCase()}
+                  <Text style={{ fontSize: 18, fontFamily: "Helvetica-Bold", color: COLORS.steel }}>
+                    {welderName.slice(0, 1).toUpperCase()}
                   </Text>
                 </View>
               )}
             </View>
 
-            {/* Details */}
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, justifyContent: "center" }}>
               <Text
                 style={{
+                  fontSize: 5,
                   fontFamily: "Helvetica-Bold",
-                  fontSize: 9.5,
-                  color: COLORS.onyx,
-                  marginBottom: 3,
+                  color: COLORS.steel,
+                  letterSpacing: 0.8,
+                  marginBottom: 4,
                 }}
               >
-                {welder.full_name}
+                WELDER ID CARD
               </Text>
-
-              <View style={{ flexDirection: "row", marginBottom: 3, gap: 10 }}>
-                <Field label="WELDER NO." value={welderNo} bold />
-                <Field label="UID" value={welder.uid} />
+              <PersonalField label="NAME" value={welderName} bold />
+              <View style={{ flexDirection: "row", gap: 14 }}>
+                <View style={{ flex: 1 }}>
+                  <PersonalField label="WELDER ID" value={welderNo} bold />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <PersonalField label="UID" value={welder.uid} />
+                </View>
               </View>
-
-              <Field label="PROCESSES" value={processLine} />
-              <Field label="STANDARD" value="EN ISO 9606-1:2017" />
-
+              {(welder.employer || site !== "—") && (
+                <View style={{ flexDirection: "row", gap: 14, marginTop: 1 }}>
+                  {welder.employer ? (
+                    <View style={{ flex: 1 }}>
+                      <PersonalField label="EMPLOYER" value={welder.employer} />
+                    </View>
+                  ) : null}
+                  {site !== "—" ? (
+                    <View style={{ flex: 1 }}>
+                      <PersonalField label="BRANCH" value={site} />
+                    </View>
+                  ) : null}
+                </View>
+              )}
               <View
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  marginTop: 2,
+                  marginTop: 4,
                   gap: 6,
                 }}
               >
@@ -226,12 +342,12 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
                     backgroundColor: badge.bg,
                     paddingHorizontal: 5,
                     paddingVertical: 2,
-                    borderRadius: 3,
+                    borderRadius: 2,
                   }}
                 >
                   <Text
                     style={{
-                      fontSize: 5.5,
+                      fontSize: 5,
                       fontFamily: "Helvetica-Bold",
                       color: badge.fg,
                       letterSpacing: 0.4,
@@ -240,108 +356,37 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
                     {badge.label}
                   </Text>
                 </View>
-                <Text style={{ fontSize: 6, color: COLORS.graphite }}>
+                <Text style={{ fontSize: 5.5, color: COLORS.graphite }}>
                   Valid {expiry ?? "—"}
                 </Text>
               </View>
             </View>
           </View>
 
-          {/* Footer strip */}
-          <View
-            style={{
-              borderTopWidth: 0.75,
-              borderTopColor: COLORS.silver,
-              backgroundColor: COLORS.frost,
-              paddingHorizontal: 8,
-              paddingVertical: 3,
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Text style={{ fontSize: 5, color: COLORS.graphite }}>
-              {welder.employer ?? org.name}
-            </Text>
-            <Text style={{ fontSize: 5, color: COLORS.steel }}>
-              {site} · WeldDoc
-            </Text>
-          </View>
-        </View>
-      </Page>
-
-      {/* Back */}
-      <Page size={CARD} style={{ padding: 0, fontFamily: "Helvetica" }}>
-        <View
-          style={{
-            flex: 1,
-            borderWidth: 1.2,
-            borderColor: COLORS.charcoal,
-            backgroundColor: COLORS.white,
-          }}
-        >
-          <View
-            style={{
-              flex: 1,
-              alignItems: "center",
-              justifyContent: "center",
-              paddingHorizontal: 12,
-            }}
-          >
-            <Text
+          {/* Footer — qualifications */}
+          <View style={{ backgroundColor: COLORS.frost }}>
+            <View
               style={{
-                fontFamily: "Helvetica-Bold",
-                fontSize: 7,
-                color: COLORS.onyx,
-                letterSpacing: 0.5,
-                marginBottom: 4,
+                backgroundColor: COLORS.charcoal,
+                paddingVertical: 2,
+                alignItems: "center",
               }}
             >
-              WELDER QUALIFICATION
-            </Text>
-            <Text
-              style={{
-                fontSize: 5.5,
-                color: COLORS.graphite,
-                textAlign: "center",
-                lineHeight: 1.4,
-                marginBottom: 6,
-              }}
-            >
-              This card certifies welder qualification per EN ISO 9606-1:2017.
-            </Text>
-            <Text
-              style={{
-                fontSize: 5.5,
-                color: COLORS.graphite,
-                textAlign: "center",
-                lineHeight: 1.4,
-              }}
-            >
-              Processes: {processLine}
-              {"\n"}
-              Valid until {expiry ?? "—"}
-            </Text>
-          </View>
-
-          <View
-            style={{
-              borderTopWidth: 0.75,
-              borderTopColor: COLORS.silver,
-              backgroundColor: COLORS.onyx,
-              paddingHorizontal: 8,
-              paddingVertical: 4,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 5,
-                color: COLORS.steel,
-                textAlign: "center",
-              }}
-            >
-              Property of {org.name} · {site} · Not transferable
-            </Text>
+              <Text
+                style={{
+                  fontSize: 5,
+                  fontFamily: "Helvetica-Bold",
+                  color: COLORS.white,
+                  letterSpacing: 0.5,
+                }}
+              >
+                EN ISO 9606-1:2017
+              </Text>
+            </View>
+            <TableHeader />
+            {rows.map((row, i) => (
+              <TableRow key={i} row={row} alt={i % 2 === 1} />
+            ))}
           </View>
         </View>
       </Page>

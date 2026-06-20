@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Logo } from "@/components/brand/logo";
 import { formatDate } from "@/lib/utils";
+import { buildIdCardPayload } from "@/lib/iso9606/id-card-model";
 import { summarizeWelder } from "@/lib/welder-status";
-import { resolvePublicUrl } from "@/lib/storage-public";
-import type { Organization, QualificationRecord, Welder } from "@/types/db";
+import type { Organization, QualificationRecord, RangeOfApproval, Welder } from "@/types/db";
 import { ShieldAlert } from "lucide-react";
 import { DemoVerifyPage } from "@/components/marketing/demo-verify";
 import { WelderIdCardView } from "@/components/verify/welder-id-card-view";
@@ -43,12 +43,25 @@ export default async function VerifyPage({
     supabase
       .from("qualification_records")
       .select("*")
-      .eq("welder_id", w.id)
-      .eq("wpq_status", "Approved"),
+      .eq("welder_id", w.id),
   ]);
   const wpqs = (wpqRows ?? []) as QualificationRecord[];
-  const summary = summarizeWelder(w, wpqs);
   const orgRow = org as Organization | null;
+
+  const wpqIds = wpqs.map((q) => q.id);
+  const { data: rangeRows } = await supabase
+    .from("ranges_of_approval")
+    .select("*")
+    .in(
+      "wpq_id",
+      wpqIds.length ? wpqIds : ["00000000-0000-0000-0000-000000000000"],
+    );
+  const ranges = new Map(
+    ((rangeRows ?? []) as RangeOfApproval[]).map((r) => [r.wpq_id, r]),
+  );
+
+  const card = buildIdCardPayload(w, wpqs, ranges);
+  const summary = summarizeWelder(w, wpqs);
 
   const photoUrl = w.photo_path
     ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/welder-photos/${w.photo_path}`
@@ -59,25 +72,26 @@ export default async function VerifyPage({
 
   return (
     <main className="min-h-screen bg-parchment px-4 py-8">
-      <div className="mx-auto max-w-md">
+      <div className="mx-auto max-w-2xl">
         <div className="mb-6 flex items-center justify-between">
           <Logo />
           <span className="text-xs text-steel">Live welder ID</span>
         </div>
 
         <WelderIdCardView
-          org={{
-            name: orgRow?.name ?? "WeldDoc",
-            location_code: orgRow?.location_code ?? null,
-          }}
-          welder={w}
+          orgName={orgRow?.name ?? "WeldDoc"}
+          welderName={card.welderName}
+          welderNo={card.welderNo}
+          uid={w.uid}
           photoUrl={photoUrl}
           logoUrl={logoUrl}
-          processes={summary.processes}
+          rows={card.rows}
           status={summary.overall}
           expiry={
             summary.nearestExpiry ? formatDate(summary.nearestExpiry) : null
           }
+          employer={w.employer}
+          site={w.branch_location ?? orgRow?.location_code ?? "—"}
         />
 
         <p className="mt-6 text-center text-xs text-steel">

@@ -7,6 +7,7 @@ export const COLORS = {
   steel: "#909090",
   silver: "#e2e2e4",
   ember: "#f90a08",
+  emberSoft: "#f48789",
   frost: "#f4f5f6",
   active: "#214224",
   white: "#ffffff",
