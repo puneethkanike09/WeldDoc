@@ -91,20 +91,43 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
             flex: 1,
             borderWidth: 1.2,
             borderColor: COLORS.charcoal,
-            borderRadius: 6,
-            overflow: "hidden",
             backgroundColor: COLORS.white,
           }}
         >
           {/* Header */}
-          <View style={{ backgroundColor: COLORS.onyx, paddingHorizontal: 8, paddingTop: 6, paddingBottom: 5 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-              <View style={{ flexDirection: "row", alignItems: "center", flex: 1, paddingRight: 6 }}>
+          <View
+            style={{
+              backgroundColor: COLORS.onyx,
+              paddingHorizontal: 8,
+              paddingTop: 6,
+              paddingBottom: 5,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  flex: 1,
+                  paddingRight: 6,
+                }}
+              >
                 {logoUrl ? (
                   // eslint-disable-next-line jsx-a11y/alt-text
                   <Image
                     src={logoUrl}
-                    style={{ width: 36, height: 14, objectFit: "contain", marginRight: 6 }}
+                    style={{
+                      width: 36,
+                      height: 14,
+                      objectFit: "contain",
+                      marginRight: 6,
+                    }}
                   />
                 ) : null}
                 <Text
@@ -120,7 +143,7 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
               </View>
               <Text
                 style={{
-                  color: "#f48789",
+                  color: COLORS.silver,
                   fontSize: 5.5,
                   fontFamily: "Helvetica-Bold",
                   letterSpacing: 0.8,
@@ -130,10 +153,17 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
               </Text>
             </View>
           </View>
-          <View style={{ height: 2, backgroundColor: COLORS.ember }} />
 
           {/* Body */}
-          <View style={{ flex: 1, flexDirection: "row", paddingHorizontal: 8, paddingTop: 6, paddingBottom: 4 }}>
+          <View
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              paddingHorizontal: 8,
+              paddingTop: 6,
+              paddingBottom: 4,
+            }}
+          >
             {/* Photo */}
             <View style={{ marginRight: 7 }}>
               {photoUrl ? (
@@ -160,7 +190,13 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
                     justifyContent: "center",
                   }}
                 >
-                  <Text style={{ fontSize: 16, color: COLORS.steel, fontFamily: "Helvetica-Bold" }}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: COLORS.steel,
+                      fontFamily: "Helvetica-Bold",
+                    }}
+                  >
                     {welder.full_name.slice(0, 1).toUpperCase()}
                   </Text>
                 </View>
@@ -191,7 +227,14 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
               />
               <Field label="STANDARD" value="EN ISO 9606-1:2017" />
 
-              <View style={{ flexDirection: "row", alignItems: "center", marginTop: 2, gap: 6 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginTop: 2,
+                  gap: 6,
+                }}
+              >
                 <View
                   style={{
                     backgroundColor: badge.bg,
@@ -218,7 +261,13 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
             </View>
 
             {/* QR */}
-            <View style={{ alignItems: "center", justifyContent: "flex-end", width: 48 }}>
+            <View
+              style={{
+                alignItems: "center",
+                justifyContent: "flex-end",
+                width: 48,
+              }}
+            >
               {/* eslint-disable-next-line jsx-a11y/alt-text */}
               <Image
                 src={qrDataUrl}
@@ -230,7 +279,14 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
                   padding: 1,
                 }}
               />
-              <Text style={{ fontSize: 4.5, color: COLORS.steel, marginTop: 2, textAlign: "center" }}>
+              <Text
+                style={{
+                  fontSize: 4.5,
+                  color: COLORS.steel,
+                  marginTop: 2,
+                  textAlign: "center",
+                }}
+              >
                 Scan to verify
               </Text>
             </View>
@@ -266,14 +322,17 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
             flex: 1,
             borderWidth: 1.2,
             borderColor: COLORS.charcoal,
-            borderRadius: 6,
-            overflow: "hidden",
             backgroundColor: COLORS.white,
           }}
         >
-          <View style={{ height: 2, backgroundColor: COLORS.ember }} />
-
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 12 }}>
+          <View
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              paddingHorizontal: 12,
+            }}
+          >
             {/* eslint-disable-next-line jsx-a11y/alt-text */}
             <Image
               src={qrDataUrl}
@@ -316,10 +375,18 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
                 paddingTop: 6,
               }}
             >
-              <Text style={{ fontSize: 5.5, color: COLORS.graphite, textAlign: "center", lineHeight: 1.4 }}>
+              <Text
+                style={{
+                  fontSize: 5.5,
+                  color: COLORS.graphite,
+                  textAlign: "center",
+                  lineHeight: 1.4,
+                }}
+              >
                 This card certifies welder qualification per EN ISO 9606-1:2017.
                 {"\n"}
-                Processes: {processes.length ? processes.join(", ") : "—"} · Valid until {expiry ?? "—"}
+                Processes: {processes.length ? processes.join(", ") : "—"} · Valid
+                until {expiry ?? "—"}
               </Text>
             </View>
           </View>
@@ -333,7 +400,13 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
               paddingVertical: 4,
             }}
           >
-            <Text style={{ fontSize: 5, color: COLORS.steel, textAlign: "center" }}>
+            <Text
+              style={{
+                fontSize: 5,
+                color: COLORS.steel,
+                textAlign: "center",
+              }}
+            >
               Property of {org.name} · {site} · Not transferable
             </Text>
           </View>
