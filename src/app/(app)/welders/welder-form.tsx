@@ -266,8 +266,9 @@ export function WelderForm({
               />
               <span className="text-[14px] text-charcoal">
                 <span className="font-medium text-onyx">New welder</span> —
-                this is a first-time qualification (uncheck for welders with
-                prior / legacy qualifications).
+                first-time qualification: after save you go to the 4-step
+                Qualify workflow. Uncheck for welders with prior qualifications
+                (opens legacy data entry instead).
               </span>
             </label>
           )}

@@ -257,11 +257,11 @@ export default async function WelderProfilePage({
                           </ButtonLink>
                           {q.wpq_status === "Approved" && (
                             <ButtonLink
-                              href={`/api/welders/${id}/certificate?wpq=${q.id}`}
+                              href={`/welders/${id}/certificate?wpq=${q.id}`}
                               variant="subtle"
                               size="sm"
                             >
-                              <FileDown className="h-4 w-4" /> Certificate PDF
+                              <FileDown className="h-4 w-4" /> Certificate
                             </ButtonLink>
                           )}
                           {q.wpq_status === "Approved" && (

@@ -146,69 +146,123 @@ export function validateWelderRegistration(
 }
 
 /** Step 1 — plan fields 9–17. */
+export function getQualificationPlanFieldErrors(
+  formData: FormData,
+): Record<string, string> {
+  const errors: Record<string, string> = {};
+  if (!str(formData.get("testing_standard"))) {
+    errors.testing_standard = "Code / testing standard is required.";
+  }
+  if (!str(formData.get("process"))) errors.process = "Welding process is required.";
+  if (!str(formData.get("joint_type"))) errors.joint_type = "Joint type is required.";
+  if (!str(formData.get("product"))) errors.product = "Product type is required.";
+  if (!str(formData.get("position"))) errors.position = "Welding position is required.";
+  if (!str(formData.get("base_material_group"))) {
+    errors.base_material_group = "Parent material group is required.";
+  }
+  if (!str(formData.get("wps_reference"))) errors.wps_reference = "WPS reference is required.";
+  if (!str(formData.get("date_of_welding"))) {
+    errors.date_of_welding = "Date of welding test is required.";
+  }
+  if (!str(formData.get("examiner_ref"))) {
+    errors.examiner_ref = "Examiner / body reference is required.";
+  }
+  if (!str(formData.get("examiner_name"))) {
+    errors.examiner_name = "Examiner name is required.";
+  }
+  if (!str(formData.get("revalidation_method"))) {
+    errors.revalidation_method = "Revalidation method is required.";
+  }
+  return errors;
+}
+
 export function validateQualificationPlan(formData: FormData) {
-  requireText(str(formData.get("testing_standard")), "Code / testing standard");
-  requireText(str(formData.get("process")), "Welding process");
-  requireText(str(formData.get("joint_type")), "Joint type");
-  requireText(str(formData.get("product")), "Product type");
-  requireText(str(formData.get("position")), "Welding position");
-  requireText(str(formData.get("base_material_group")), "Parent material group");
-  requireText(str(formData.get("wps_reference")), "WPS reference");
-  requireText(str(formData.get("date_of_welding")), "Date of welding test");
-  requireText(str(formData.get("examiner_ref")), "Examiner / body reference");
-  requireText(str(formData.get("examiner_name")), "Examiner name");
-  requireText(str(formData.get("revalidation_method")), "Revalidation method");
+  const errors = getQualificationPlanFieldErrors(formData);
+  const first = Object.values(errors)[0];
+  if (first) throw new QualificationValidationError(first);
 }
 
 /** Step 2 — test piece fields 18–31. */
-export function validateTestPiece(
+export function getTestPieceFieldErrors(
   formData: FormData,
   jointType: JointCategory,
   product: ProductType,
-) {
-  requireText(str(formData.get("material_grade")), "Material 1 grade");
-  requireText(str(formData.get("material_standard")), "Material 1 specification");
-  requireText(str(formData.get("base_material_group")), "Material 1 parent group");
-  requireText(str(formData.get("filler_group")), "Filler material group");
-  requireText(str(formData.get("filler_designation")), "Filler designation");
-  requireText(str(formData.get("filler_type")), "Filler type");
-  requireText(str(formData.get("shielding_gas")), "Shielding gas");
-  requireText(str(formData.get("current_polarity")), "Current & polarity");
-  requireText(str(formData.get("transfer_mode")), "Transfer mode");
-  requireText(str(formData.get("weld_details")), "Weld details");
-  requireText(str(formData.get("layer_type")), "Layer type");
-  requireText(str(formData.get("position")), "Welding position");
+): Record<string, string> {
+  const errors: Record<string, string> = {};
 
-  requireNumber(num(formData.get("test_thickness_mm")), "Test thickness (mm)");
-  requireNumber(
-    num(formData.get("deposited_thickness_mm")),
-    "Deposited / throat thickness (mm)",
-  );
+  if (!str(formData.get("material_grade"))) {
+    errors.material_grade = "Material grade is required.";
+  }
+  if (!str(formData.get("material_standard"))) {
+    errors.material_standard = "Material standard is required.";
+  }
+  if (!str(formData.get("base_material_group"))) {
+    errors.base_material_group = "Parent material group is required.";
+  }
+  if (!str(formData.get("filler_group"))) {
+    errors.filler_group = "Filler material group is required.";
+  }
+  if (!str(formData.get("filler_designation"))) {
+    errors.filler_designation = "Filler designation is required.";
+  }
+  if (!str(formData.get("filler_type"))) errors.filler_type = "Filler type is required.";
+  if (!str(formData.get("shielding_gas"))) {
+    errors.shielding_gas = "Shielding gas is required.";
+  }
+  if (!str(formData.get("current_polarity"))) {
+    errors.current_polarity = "Current & polarity is required.";
+  }
+  if (!str(formData.get("transfer_mode"))) {
+    errors.transfer_mode = "Transfer mode is required.";
+  }
+  if (!str(formData.get("weld_details"))) errors.weld_details = "Weld details is required.";
+  if (!str(formData.get("layer_type"))) errors.layer_type = "Layer is required.";
+  if (!str(formData.get("position"))) errors.position = "Welding position is required.";
+
+  if (num(formData.get("test_thickness_mm")) == null) {
+    errors.test_thickness_mm = "Test thickness is required.";
+  }
+  if (num(formData.get("deposited_thickness_mm")) == null) {
+    errors.deposited_thickness_mm = "Deposited / throat thickness is required.";
+  }
 
   const t = num(formData.get("dimension_thickness_mm"));
   const w = num(formData.get("dimension_width_mm"));
   const l = num(formData.get("dimension_length_mm"));
   const dimsText = str(formData.get("dimensions"));
   if (!dimsText && (t == null || w == null || l == null)) {
-    throw new QualificationValidationError(
-      "Product dimensions (T × W × L mm) are required.",
-    );
+    const msg = "Product dimensions (T × W × L mm) are required.";
+    if (t == null) errors.dimension_thickness_mm = msg;
+    if (w == null) errors.dimension_width_mm = msg;
+    if (l == null) errors.dimension_length_mm = msg;
   }
 
   if (product === "Pipe" || product === "Branch") {
-    requireNumber(num(formData.get("pipe_od_mm")), "Pipe outside diameter (mm)");
+    if (num(formData.get("pipe_od_mm")) == null) {
+      errors.pipe_od_mm = "Pipe outside diameter is required.";
+    }
   }
 
-  if (jointType === "BW" && !str(formData.get("material2_grade"))) {
-    // Material 2 optional for dissimilar joints — no throw
-  }
+  void jointType;
+  return errors;
+}
+
+export function validateTestPiece(
+  formData: FormData,
+  jointType: JointCategory,
+  product: ProductType,
+) {
+  const errors = getTestPieceFieldErrors(formData, jointType, product);
+  const first = Object.values(errors)[0];
+  if (first) throw new QualificationValidationError(first);
 }
 
 /** Step 3 — NDT / DT (page 2 A–G). */
-export function validateNdtResults(
+export function getNdtFieldErrors(
   formData: FormData,
   jointType: JointCategory,
-) {
+): Record<string, string> {
+  const errors: Record<string, string> = {};
   const methods = [
     ...requiredTestsFor(jointType),
     ...formData.getAll("optional_method").map(String).filter(Boolean),
@@ -217,29 +271,49 @@ export function validateNdtResults(
   for (const method of methods) {
     const result = str(formData.get(`result__${method}`));
     if (!result || result === "NA") {
-      throw new QualificationValidationError(
-        `${method}: result must be Pass or Fail (not N/A).`,
-      );
+      errors[`result__${method}`] = `${method}: select Pass or Fail.`;
+    } else if (requiredTestsFor(jointType).includes(method) && result !== "Pass") {
+      errors[`result__${method}`] = `${method} must pass before issuing a certificate.`;
     }
-    if (requiredTestsFor(jointType).includes(method) && result !== "Pass") {
-      throw new QualificationValidationError(
-        `${method} must pass before issuing a certificate.`,
-      );
+    if (!str(formData.get(`test_date__${method}`))) {
+      errors[`test_date__${method}`] = `${method} test date is required.`;
     }
-    requireText(
-      str(formData.get(`test_date__${method}`)),
-      `${method} test date`,
-    );
-    requireText(
-      str(formData.get(`conducted_by__${method}`)),
-      `${method} report / reference no.`,
-    );
+    if (!str(formData.get(`conducted_by__${method}`))) {
+      errors[`conducted_by__${method}`] = `${method} report / reference no. is required.`;
+    }
   }
+
+  return errors;
+}
+
+export function validateNdtResults(
+  formData: FormData,
+  jointType: JointCategory,
+) {
+  const errors = getNdtFieldErrors(formData, jointType);
+  const first = Object.values(errors)[0];
+  if (first) throw new QualificationValidationError(first);
 }
 
 /** Step 4 — certificate issue. */
+export function getCertificateIssueFieldErrors(
+  formData: FormData,
+): Record<string, string> {
+  const errors: Record<string, string> = {};
+  if (!str(formData.get("certificate_date"))) {
+    errors.certificate_date = "Certificate date is required.";
+  }
+  if (!str(formData.get("examiner_name"))) {
+    errors.examiner_name = "Authorised examiner name is required.";
+  }
+  if (!str(formData.get("job_knowledge"))) {
+    errors.job_knowledge = "Job knowledge is required.";
+  }
+  return errors;
+}
+
 export function validateCertificateIssue(formData: FormData) {
-  requireText(str(formData.get("certificate_date")), "Certificate date");
-  requireText(str(formData.get("examiner_name")), "Authorised examiner name");
-  requireText(str(formData.get("job_knowledge")), "Job knowledge");
+  const errors = getCertificateIssueFieldErrors(formData);
+  const first = Object.values(errors)[0];
+  if (first) throw new QualificationValidationError(first);
 }

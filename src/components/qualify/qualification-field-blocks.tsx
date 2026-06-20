@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { Input, Field } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
 import { MATERIAL_GROUPS } from "@/lib/iso9606/constants";
@@ -113,6 +114,8 @@ export function DissimilarMaterials({
 
 export function ProductDimensions({
   wpq,
+  errors,
+  onFieldChange,
 }: {
   wpq?: {
     dimension_thickness_mm?: number | null;
@@ -121,12 +124,20 @@ export function ProductDimensions({
     dimensions?: string | null;
     pipe_od_mm?: number | null;
   } | null;
+  errors?: {
+    dimension_thickness_mm?: string;
+    dimension_width_mm?: string;
+    dimension_length_mm?: string;
+  };
+  onFieldChange?: (key: string) => void;
 }) {
+  const invalidBorder = "border-ember ring-1 ring-ember/20";
+
   return (
     <div className="sm:col-span-2 space-y-3">
       <p className="text-sm font-medium text-onyx">Product dimensions</p>
       <div className="grid gap-4 sm:grid-cols-3">
-        <Field label="Thickness (mm)" hint="Type — e.g. 12" required>
+        <Field label="Thickness (mm)" hint="Type — e.g. 12" required error={errors?.dimension_thickness_mm}>
           <Input
             type="number"
             step="0.1"
@@ -134,9 +145,11 @@ export function ProductDimensions({
             defaultValue={wpq?.dimension_thickness_mm ?? ""}
             placeholder="12"
             required
+            className={cn(errors?.dimension_thickness_mm && invalidBorder)}
+            onChange={() => onFieldChange?.("dimension_thickness_mm")}
           />
         </Field>
-        <Field label="Width (mm)" required>
+        <Field label="Width (mm)" required error={errors?.dimension_width_mm}>
           <Input
             type="number"
             step="0.1"
@@ -144,9 +157,11 @@ export function ProductDimensions({
             defaultValue={wpq?.dimension_width_mm ?? ""}
             placeholder="300"
             required
+            className={cn(errors?.dimension_width_mm && invalidBorder)}
+            onChange={() => onFieldChange?.("dimension_width_mm")}
           />
         </Field>
-        <Field label="Length (mm)" required>
+        <Field label="Length (mm)" required error={errors?.dimension_length_mm}>
           <Input
             type="number"
             step="0.1"
@@ -154,6 +169,8 @@ export function ProductDimensions({
             defaultValue={wpq?.dimension_length_mm ?? ""}
             placeholder="250"
             required
+            className={cn(errors?.dimension_length_mm && invalidBorder)}
+            onChange={() => onFieldChange?.("dimension_length_mm")}
           />
         </Field>
       </div>

@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useState,
   useTransition,
   type FormEvent,
   type ReactNode,
@@ -77,6 +78,54 @@ export function ServerActionForm({
     <FormPendingContext.Provider value={pending}>
       <form onSubmit={onSubmit} className={className} noValidate>
         {children}
+      </form>
+    </FormPendingContext.Provider>
+  );
+}
+
+/** Like ServerActionForm but exposes fieldErrors to children for inline validation UI. */
+export function ValidatedForm({
+  action,
+  validate,
+  prepare,
+  className,
+  children,
+}: {
+  action: (formData: FormData) => void | Promise<unknown>;
+  validate: (formData: FormData) => FieldErrors;
+  prepare?: (formData: FormData) => void;
+  className?: string;
+  children: (ctx: {
+    fieldErrors: FieldErrors;
+    clearError: (key: string) => void;
+  }) => ReactNode;
+}) {
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  const wrappedValidate = useCallback(
+    (formData: FormData) => {
+      const errors = validate(formData);
+      setFieldErrors(errors);
+      return errors;
+    },
+    [validate],
+  );
+
+  const clearError = useCallback((key: string) => {
+    setFieldErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  }, []);
+
+  const { onSubmit, pending } = useFormSubmit(action, wrappedValidate, prepare);
+
+  return (
+    <FormPendingContext.Provider value={pending}>
+      <form onSubmit={onSubmit} className={className} noValidate>
+        {children({ fieldErrors, clearError })}
       </form>
     </FormPendingContext.Provider>
   );

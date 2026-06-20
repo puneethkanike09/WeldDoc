@@ -27,7 +27,7 @@ Welder qualification document management system for **EN ISO 9606-1:2017**. Weld
    cp .env.example .env.local
    ```
 
-3. Create the Supabase schema by running the SQL files in [`supabase/migrations`](supabase/migrations) **in order** (`0001` → `0004`) against your project, via the SQL editor or the Supabase CLI. This creates all tables, enums, RLS policies, storage buckets and the report/UID sequence functions, and seeds a single default organisation.
+3. Create the Supabase schema by running the SQL files in [`supabase/migrations`](supabase/migrations) **in order** (`0001` → `0008`) against your project, via the SQL editor or the Supabase CLI. Migration `0008` ensures **each new signup gets its own organisation** (data isolation).
 
 4. Run the dev server:
 
@@ -35,7 +35,7 @@ Welder qualification document management system for **EN ISO 9606-1:2017**. Weld
    npm run dev
    ```
 
-   Open [http://localhost:3000](http://localhost:3000), go to **Sign in → Create an account** to register the first welding engineer (they are auto-attached to the seeded organisation), then visit **Settings** to set the company name, alert recipients and add signatories (signature + stamp images used on certificates and report sheets).
+   Open [http://localhost:3000](http://localhost:3000), go to **Sign in → Create an account** to register a welding engineer (a new organisation is created automatically), then visit **Settings** to set the company name, alert recipients and add signatories (signature + stamp images used on certificates and report sheets).
 
 ## First run checklist
 

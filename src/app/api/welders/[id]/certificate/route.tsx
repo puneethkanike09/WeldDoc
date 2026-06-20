@@ -102,6 +102,7 @@ export async function GET(
   };
 
   const buffer = await renderToBuffer(<CertificateDocument data={data} />);
+  const download = request.nextUrl.searchParams.get("download") === "1";
 
   // Persist a copy to storage (best-effort).
   const path = `${profile.org_id}/${id}/certificate-${wpqId}.pdf`;
@@ -116,7 +117,9 @@ export async function GET(
   return new Response(new Uint8Array(buffer), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="WPQ-${w.uid}.pdf"`,
+      "Content-Disposition": `${
+        download ? "attachment" : "inline"
+      }; filename="WPQ-${w.uid}.pdf"`,
     },
   });
 }

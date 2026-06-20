@@ -85,7 +85,12 @@ export async function createWelder(formData: FormData) {
   }
 
   revalidatePath("/welders");
-  redirect(`/welders/${welder.id}`);
+  const isNewWelder = formData.get("is_new_welder") === "on";
+  redirect(
+    isNewWelder
+      ? `/welders/${welder.id}/qualify?mode=new`
+      : `/welders/${welder.id}/qualify?mode=legacy`,
+  );
 }
 
 export async function updateWelder(welderId: string, formData: FormData) {

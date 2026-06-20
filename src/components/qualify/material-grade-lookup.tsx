@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
 import { Input, Field } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
 import {
@@ -13,12 +14,20 @@ interface MaterialGradeLookupProps {
   defaultStandard?: string;
   defaultGrade?: string;
   defaultGroup?: string;
+  errors?: {
+    material_standard?: string;
+    material_grade?: string;
+    base_material_group?: string;
+  };
+  onFieldChange?: (key: string) => void;
 }
 
 export function MaterialGradeLookup({
   defaultStandard = "",
   defaultGrade = "",
   defaultGroup = "1",
+  errors,
+  onFieldChange,
 }: MaterialGradeLookupProps) {
   const standards = useMemo(() => listMaterialStandards(), []);
   const [standard, setStandard] = useState(defaultStandard);
@@ -40,6 +49,8 @@ export function MaterialGradeLookup({
     ? groupOverride
     : (lookup?.iso9606Group ?? groupOverride);
 
+  const invalidBorder = "border-ember ring-1 ring-ember/20";
+
   return (
     <div className="space-y-4 rounded-[var(--radius-card)] border border-silver bg-frost/40 p-4">
       <div>
@@ -51,13 +62,16 @@ export function MaterialGradeLookup({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Material standard" required>
+        <Field label="Material standard" required error={errors?.material_standard}>
           <Select
             value={standard}
             onChange={(e) => {
               setStandard(e.target.value);
               setGrade("");
+              onFieldChange?.("material_standard");
+              onFieldChange?.("material_grade");
             }}
+            className={cn(errors?.material_standard && invalidBorder)}
           >
             <option value="">Select standard…</option>
             {standards.map((s) => (
@@ -68,14 +82,16 @@ export function MaterialGradeLookup({
           </Select>
         </Field>
 
-        <Field label="Material grade / designation" required>
+        <Field label="Material grade / designation" required error={errors?.material_grade}>
           {standard && grades.length > 0 ? (
             <Select
               value={grade}
               onChange={(e) => {
                 setGrade(e.target.value);
                 setManualGroup(false);
+                onFieldChange?.("material_grade");
               }}
+              className={cn(errors?.material_grade && invalidBorder)}
             >
               <option value="">Select grade…</option>
               {grades.map((g) => (
@@ -90,8 +106,10 @@ export function MaterialGradeLookup({
               onChange={(e) => {
                 setGrade(e.target.value);
                 setManualGroup(false);
+                onFieldChange?.("material_grade");
               }}
               placeholder="S355J2, P265GH, E355…"
+              className={cn(errors?.material_grade && invalidBorder)}
             />
           )}
         </Field>
@@ -109,14 +127,21 @@ export function MaterialGradeLookup({
       )}
 
       <div className="flex flex-wrap items-end gap-4">
-        <Field label="Parent material group" className="min-w-[220px] flex-1" required>
+        <Field
+          label="Parent material group"
+          className="min-w-[220px] flex-1"
+          required
+          error={errors?.base_material_group}
+        >
           <Select
             name="base_material_group"
             value={resolvedGroup}
             onChange={(e) => {
               setGroupOverride(e.target.value);
               setManualGroup(true);
+              onFieldChange?.("base_material_group");
             }}
+            className={cn(errors?.base_material_group && invalidBorder)}
           >
             {["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"].map((g) => (
               <option key={g} value={g}>
