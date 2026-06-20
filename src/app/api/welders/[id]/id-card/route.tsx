@@ -46,13 +46,17 @@ export async function GET(
   const qualifications = (wpqs ?? []) as QualificationRecord[];
   const summary = summarizeWelder(w, qualifications);
   const photoUrl = await resolveUrl("welder-photos", w.photo_path);
-  const qr = await qrDataUrl(verifyUrl(w.qr_token, request.nextUrl.origin));
+  const logoUrl = await resolveUrl("org-assets", (org as Organization).logo_path);
+  const verify = verifyUrl(w.qr_token, request.nextUrl.origin);
+  const qr = await qrDataUrl(verify);
 
   const data: IdCardData = {
     org: org as Organization,
     welder: w,
     qrDataUrl: qr,
     photoUrl,
+    logoUrl,
+    verifyUrl: verify,
     processes: summary.processes,
     status: summary.overall,
     expiry: summary.nearestExpiry ? formatDate(summary.nearestExpiry) : null,

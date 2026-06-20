@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 
-const PUBLIC_BUCKETS = new Set(["welder-photos", "generated-pdfs"]);
+const PUBLIC_BUCKETS = new Set(["welder-photos", "generated-pdfs", "org-assets"]);
 
 function safeName(name: string): string {
   return name.replace(/[^a-zA-Z0-9._-]/g, "_");
