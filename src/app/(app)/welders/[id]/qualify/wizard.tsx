@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useFormStatus } from "react-dom";
 import { Input, Textarea, Field } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
 import { DatePicker } from "@/components/sui/date-picker";
@@ -40,13 +39,14 @@ import type {
   Signatory,
 } from "@/types/db";
 import { cn } from "@/lib/utils";
+import { ServerActionForm, useFormPending } from "@/lib/form-toast";
 import { Check, Loader2, Save, ShieldCheck } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 const STEPS = ["Plan", "Test piece", "NDT / DT", "Certificate"] as const;
 
 function Submit({ label, icon: Icon }: { label: string; icon: LucideIcon }) {
-  const { pending } = useFormStatus();
+  const pending = useFormPending();
   return (
     <Button type="submit" disabled={pending}>
       {pending ? (
@@ -130,7 +130,7 @@ export function PlanStep({
   orgLocation: string | null;
 }) {
   return (
-    <form action={action}>
+    <ServerActionForm action={action}>
       <Card>
         <CardBody className="space-y-5">
           <Header
@@ -266,7 +266,7 @@ export function PlanStep({
           </div>
         </CardBody>
       </Card>
-    </form>
+    </ServerActionForm>
   );
 }
 
@@ -281,7 +281,7 @@ export function TestStep({
 }) {
   const positions = wpq.joint_type === "FW" ? FW_POSITIONS : BW_POSITIONS;
   return (
-    <form action={action}>
+    <ServerActionForm action={action}>
       <Card>
         <CardBody className="space-y-5">
           <Header
@@ -452,7 +452,7 @@ export function TestStep({
           </div>
         </CardBody>
       </Card>
-    </form>
+    </ServerActionForm>
   );
 }
 
@@ -469,7 +469,7 @@ export function NdtStep({
   const byMethod = new Map(existing.map((e) => [e.test_method, e]));
 
   return (
-    <form action={action}>
+    <ServerActionForm action={action}>
       <Card>
         <CardBody className="space-y-5">
           <Header
@@ -522,7 +522,7 @@ export function NdtStep({
           </div>
         </CardBody>
       </Card>
-    </form>
+    </ServerActionForm>
   );
 }
 
@@ -605,7 +605,7 @@ export function CertificateStep({
   signatories: Signatory[];
 }) {
   return (
-    <form action={action}>
+    <ServerActionForm action={action}>
       <Card>
         <CardBody className="space-y-5">
           <Header
@@ -690,7 +690,7 @@ export function CertificateStep({
           </div>
         </CardBody>
       </Card>
-    </form>
+    </ServerActionForm>
   );
 }
 

@@ -1,12 +1,15 @@
 "use client";
 
-import { useFormStatus } from "react-dom";
+import { useCallback, useState } from "react";
+import { cn } from "@/lib/utils";
 import { Input, Field } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
 import { DatePicker } from "@/components/sui/date-picker";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { FileDropzone } from "@/components/ui/file-dropzone";
+import { useFormSubmit } from "@/lib/form-toast";
+import type { FieldErrors } from "@/lib/field-errors";
 import {
   WELDING_PROCESSES,
   PRODUCT_TYPES,
@@ -22,8 +25,9 @@ import {
 import type { Welder } from "@/types/db";
 import { FileArchive, Loader2 } from "lucide-react";
 
-function Submit() {
-  const { pending } = useFormStatus();
+const invalidBorder = "border-ember ring-1 ring-ember/20";
+
+function Submit({ pending }: { pending: boolean }) {
   return (
     <Button type="submit" disabled={pending}>
       {pending ? (
@@ -53,11 +57,36 @@ export function LegacyForm({
   action,
   welder,
 }: {
-  action: (fd: FormData) => void;
+  action: (fd: FormData) => Promise<void>;
   welder: Welder;
 }) {
+  const [qualDate, setQualDate] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  const validate = useCallback(
+    (formData: FormData) => {
+      const errors: FieldErrors = {};
+      const date = qualDate || formData.get("date_of_welding")?.toString();
+      if (!date) errors.date_of_welding = "Date of initial qualification is required.";
+      const thickness = formData.get("test_thickness_mm")?.toString().trim();
+      if (!thickness) errors.test_thickness_mm = "Test thickness is required.";
+      setFieldErrors(errors);
+      return errors;
+    },
+    [qualDate],
+  );
+
+  const prepare = useCallback(
+    (formData: FormData) => {
+      if (qualDate) formData.set("date_of_welding", qualDate);
+    },
+    [qualDate],
+  );
+
+  const { onSubmit, pending } = useFormSubmit(action, validate, prepare);
+
   return (
-    <form action={action}>
+    <form onSubmit={onSubmit} noValidate>
       <Card>
         <CardBody className="space-y-5">
           <div>
@@ -156,8 +185,22 @@ export function LegacyForm({
                 ))}
               </Select>
             </Field>
-            <Field label="F — Test thickness (mm)" required>
-              <Input type="number" step="0.1" name="test_thickness_mm" required />
+            <Field label="F — Test thickness (mm)" required error={fieldErrors.test_thickness_mm}>
+              <Input
+                type="number"
+                step="0.1"
+                name="test_thickness_mm"
+                required
+                className={cn(fieldErrors.test_thickness_mm && invalidBorder)}
+                onChange={() =>
+                  setFieldErrors((prev) => {
+                    if (!prev.test_thickness_mm) return prev;
+                    const next = { ...prev };
+                    delete next.test_thickness_mm;
+                    return next;
+                  })
+                }
+              />
             </Field>
             <Field label="F — Deposited / throat (mm)">
               <Input type="number" step="0.1" name="deposited_thickness_mm" />
@@ -174,8 +217,22 @@ export function LegacyForm({
                 ))}
               </Select>
             </Field>
-            <Field label="G — Date of initial qualification" required>
-              <DatePicker name="date_of_welding" required />
+            <Field label="G — Date of initial qualification" required error={fieldErrors.date_of_welding}>
+              <DatePicker
+                name="date_of_welding"
+                value={qualDate}
+                onChange={(v) => {
+                  setQualDate(v);
+                  setFieldErrors((prev) => {
+                    if (!prev.date_of_welding) return prev;
+                    const next = { ...prev };
+                    delete next.date_of_welding;
+                    return next;
+                  });
+                }}
+                required
+                error={fieldErrors.date_of_welding}
+              />
             </Field>
             <Field label="H — Valid up to" hint="Leave blank to compute from 9.3 method">
               <DatePicker name="expiry_date" />
@@ -228,7 +285,7 @@ export function LegacyForm({
           </Field>
 
           <div className="flex justify-end">
-            <Submit />
+            <Submit pending={pending} />
           </div>
         </CardBody>
       </Card>

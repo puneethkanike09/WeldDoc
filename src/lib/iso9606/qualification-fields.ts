@@ -18,6 +18,78 @@ function str(v: FormDataEntryValue | null): string | null {
   return s.length ? s : null;
 }
 
+/** Client-side welder form validation — field-keyed errors for inline display. */
+export function getWelderRegistrationFieldErrors(
+  formData: FormData,
+  mode: "create" | "edit",
+  extras?: {
+    dateOfBirth?: string;
+    country?: string;
+    state?: string;
+    district?: string;
+  },
+): Record<string, string> {
+  const errors: Record<string, string> = {};
+
+  if (!str(formData.get("full_name"))) errors.full_name = "Full name is required.";
+  if (!str(formData.get("welder_id"))) errors.welder_id = "Plant welder ID is required.";
+
+  const dob = extras?.dateOfBirth ?? str(formData.get("date_of_birth"));
+  if (!dob) errors.date_of_birth = "Select a date of birth.";
+
+  const country = extras?.country ?? "";
+  const state = extras?.state ?? "";
+  const district = extras?.district ?? "";
+  const placeFromForm = str(formData.get("place_of_birth"));
+  const placeParts = (placeFromForm ?? "")
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  if (extras?.country !== undefined) {
+    if (!country) errors.country = "Select a country.";
+    else if (!state) errors.state = "Select a state / region.";
+    else if (!district.trim()) errors.district = "Enter a district / city.";
+  } else if (placeParts.length < 3) {
+    if (placeParts.length === 0) errors.country = "Select a country.";
+    else if (placeParts.length === 1) errors.state = "Select a state / region.";
+    else errors.district = "Enter a district / city.";
+  }
+
+  if (!str(formData.get("id_number"))) errors.id_number = "ID number is required.";
+  if (!str(formData.get("employer"))) errors.employer = "Employer is required.";
+  if (!str(formData.get("branch_location"))) errors.branch_location = "Branch / site is required.";
+
+  const idMethod = str(formData.get("id_method"));
+  if (!idMethod) errors.id_method = "ID method is required.";
+  if (idMethod === "Other" && !str(formData.get("id_method_other"))) {
+    errors.id_method_other = "Specify the ID method.";
+  }
+
+  if (mode === "create") {
+    const photo = formData.get("photo");
+    if (!(photo instanceof File) || photo.size === 0) {
+      errors.photo = "Photograph is required for certificate and ID card.";
+    }
+  }
+
+  return errors;
+}
+
+/** @deprecated Use getWelderRegistrationFieldErrors — kept for tests if any */
+export function collectWelderRegistrationErrors(
+  formData: FormData,
+  mode: "create" | "edit",
+  extras?: {
+    dateOfBirth?: string;
+    country?: string;
+    state?: string;
+    district?: string;
+  },
+): string[] {
+  return Object.values(getWelderRegistrationFieldErrors(formData, mode, extras));
+}
+
 function num(v: FormDataEntryValue | null): number | null {
   const s = typeof v === "string" ? v.trim() : "";
   if (!s) return null;

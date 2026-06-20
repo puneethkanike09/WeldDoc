@@ -80,12 +80,14 @@ export function Field({
   label,
   hint,
   required,
+  error,
   children,
   className,
 }: {
   label?: string;
   hint?: string;
   required?: boolean;
+  error?: string;
   children: React.ReactNode;
   className?: string;
 }) {
@@ -93,7 +95,11 @@ export function Field({
     <div className={className}>
       {label && <Label required={required}>{label}</Label>}
       {children}
-      {hint && <p className="mt-1 text-xs text-steel">{hint}</p>}
+      {error ? (
+        <p className="mt-1 text-xs text-ember">{error}</p>
+      ) : hint ? (
+        <p className="mt-1 text-xs text-steel">{hint}</p>
+      ) : null}
     </div>
   );
 }

@@ -27,6 +27,8 @@ export function FileDropzone({
   defaultLabel,
   className,
   compact,
+  error,
+  onFileSelect,
 }: {
   name: string;
   accept?: string;
@@ -36,6 +38,8 @@ export function FileDropzone({
   defaultLabel?: string;
   className?: string;
   compact?: boolean;
+  error?: string;
+  onFileSelect?: () => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -48,8 +52,9 @@ export function FileDropzone({
       const picked = multiple ? files : files.slice(0, 1);
       assignToInput(input, picked);
       setLabel(describeFiles(picked));
+      onFileSelect?.();
     },
-    [multiple],
+    [multiple, onFileSelect],
   );
 
   return (
@@ -61,7 +66,9 @@ export function FileDropzone({
           : "bg-frost px-4 py-3.5 text-sm",
         dragOver
           ? "border-ember bg-ember/5"
-          : "border-silver hover:border-onyx/40",
+          : error
+            ? "border-ember ring-1 ring-ember/20"
+            : "border-silver hover:border-onyx/40",
         className,
       )}
       onDragEnter={(e) => {
@@ -105,6 +112,7 @@ export function FileDropzone({
         onChange={(e) => {
           const files = Array.from(e.target.files ?? []);
           setLabel(files.length ? describeFiles(files) : defaultLabel ?? null);
+          if (files.length) onFileSelect?.();
         }}
       />
     </label>

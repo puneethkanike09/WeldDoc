@@ -24,6 +24,7 @@ type DatePickerInputProps = {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  invalid?: boolean;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   onFocus?: React.FocusEventHandler<HTMLButtonElement>;
   onBlur?: React.FocusEventHandler<HTMLButtonElement>;
@@ -37,6 +38,7 @@ const DatePickerInput = React.forwardRef<HTMLButtonElement, DatePickerInputProps
       placeholder,
       className,
       disabled,
+      invalid,
       onClick,
       onFocus,
       onBlur,
@@ -59,6 +61,7 @@ const DatePickerInput = React.forwardRef<HTMLButtonElement, DatePickerInputProps
         className={cn(
           "h-11 w-full justify-start gap-2 px-3.5 font-normal",
           !value && "text-muted-foreground",
+          invalid && "border-ember ring-1 ring-ember/20",
           className,
         )}
       >
@@ -79,6 +82,7 @@ export function DatePicker({
   placeholder = "Pick a date",
   captionLayout = "dropdown",
   className,
+  error,
 }: {
   name?: string;
   value?: string;
@@ -89,6 +93,7 @@ export function DatePicker({
   placeholder?: string;
   captionLayout?: "label" | "dropdown" | "dropdown-months" | "dropdown-years";
   className?: string;
+  error?: string;
 }) {
   const isControlled = value !== undefined;
   const [internal, setInternal] = React.useState(defaultValue ?? "");
@@ -107,10 +112,8 @@ export function DatePicker({
   };
 
   return (
-    <>
-      {name && (
-        <input type="hidden" name={name} value={current} required={required} />
-      )}
+    <div>
+      {name ? <input type="hidden" name={name} value={current} /> : null}
       <ReactDatePicker
         selected={date ?? null}
         onChange={handleChange}
@@ -130,9 +133,13 @@ export function DatePicker({
         popperClassName="welddoc-datepicker-popper"
         popperPlacement="bottom-start"
         customInput={
-          <DatePickerInput className={className} disabled={disabled} />
+          <DatePickerInput
+            className={className}
+            disabled={disabled}
+            invalid={Boolean(error)}
+          />
         }
       />
-    </>
+    </div>
   );
 }

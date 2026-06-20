@@ -16,6 +16,7 @@ export default function MarketingLayout({
           spaceGrotesk.className,
           "relative min-h-screen bg-canvas font-ds-display text-ink",
         )}
+        suppressHydrationWarning
       >
         <div
           id={NAV_SCROLL_SENTINEL_ID}

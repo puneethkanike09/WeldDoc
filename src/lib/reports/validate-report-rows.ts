@@ -1,30 +1,52 @@
+import type { FieldErrors } from "@/lib/field-errors";
+
 export interface ReportRowDraft {
+  key: string;
   welderId: string;
   materialGrade: string;
   dimensions: string;
   testThickness: string;
 }
 
-export function validateReportRows(rows: ReportRowDraft[]): string | null {
+export function collectReportFormErrors(
+  formData: FormData,
+  rows: ReportRowDraft[],
+): FieldErrors {
+  const errors: FieldErrors = {};
+
+  if (!formData.get("test_date")?.toString().trim()) {
+    errors.test_date = "Test date is required.";
+  }
+  if (!formData.get("wps_no")?.toString().trim()) {
+    errors.wps_no = "WPS number is required.";
+  }
+
   const active = rows.filter((r) => r.welderId);
   if (active.length === 0) {
-    return "Add at least one welder to the report.";
+    errors.rows = "Add at least one welder to the report.";
   }
 
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
+  for (const row of rows) {
     if (!row.welderId) continue;
-    const n = i + 1;
+    const prefix = `row_${row.key}`;
     if (!row.materialGrade.trim()) {
-      return `Welder #${n}: material grade is required.`;
+      errors[`${prefix}_materialGrade`] = "Material grade is required.";
     }
     if (!row.dimensions.trim()) {
-      return `Welder #${n}: dimensions are required.`;
+      errors[`${prefix}_dimensions`] = "Dimensions are required.";
     }
     if (!row.testThickness.trim() || Number(row.testThickness) <= 0) {
-      return `Welder #${n}: test thickness is required.`;
+      errors[`${prefix}_testThickness`] = "Test thickness is required.";
     }
   }
 
-  return null;
+  return errors;
+}
+
+/** @deprecated Use collectReportFormErrors */
+export function validateReportRows(rows: ReportRowDraft[]): string | null {
+  const errors = collectReportFormErrors(new FormData(), rows);
+  if (errors.rows) return errors.rows;
+  const first = Object.values(errors)[0];
+  return first ?? null;
 }

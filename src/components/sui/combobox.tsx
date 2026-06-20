@@ -31,6 +31,7 @@ export function Combobox({
   searchPlaceholder = "Search…",
   emptyText = "No results.",
   disabled,
+  invalid,
   className,
 }: {
   options: ComboboxOption[];
@@ -40,6 +41,7 @@ export function Combobox({
   searchPlaceholder?: string;
   emptyText?: string;
   disabled?: boolean;
+  invalid?: boolean;
   className?: string;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -81,6 +83,7 @@ export function Combobox({
           className={cn(
             "w-full justify-between font-normal",
             !selected && "text-muted-foreground",
+            invalid && "border-ember ring-1 ring-ember/20",
             className,
           )}
         >

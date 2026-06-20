@@ -2,10 +2,15 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input, Field } from "@/components/ui/input";
+import type { FieldErrors } from "@/lib/field-errors";
 import { Loader2, LogIn, UserPlus, Eye, EyeOff } from "lucide-react";
+
+const invalidBorder = "border-ember ring-1 ring-ember/20";
 
 export function LoginForm() {
   const router = useRouter();
@@ -18,13 +23,31 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  const clearError = (key: string) =>
+    setFieldErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const errors: FieldErrors = {};
+    if (mode === "signup" && !fullName.trim()) {
+      errors.full_name = "Full name is required.";
+    }
+    if (!email.trim()) errors.email = "Email is required.";
+    if (!password) errors.password = "Password is required.";
+    if (Object.keys(errors).length) {
+      setFieldErrors(errors);
+      return;
+    }
+    setFieldErrors({});
     setLoading(true);
-    setError(null);
     setNotice(null);
     const supabase = createClient();
 
@@ -34,7 +57,7 @@ export function LoginForm() {
         password,
       });
       if (error) {
-        setError(error.message);
+        toast.error(error.message);
         setLoading(false);
         return;
       }
@@ -47,7 +70,7 @@ export function LoginForm() {
         options: { data: { full_name: fullName } },
       });
       if (error) {
-        setError(error.message);
+        toast.error(error.message);
         setLoading(false);
         return;
       }
@@ -58,6 +81,7 @@ export function LoginForm() {
         setNotice(
           "Account created. Check your email to confirm, then sign in.",
         );
+        toast.success("Account created. Check your email to confirm.");
         setMode("signin");
         setLoading(false);
       }
@@ -75,41 +99,49 @@ export function LoginForm() {
           : "Set up your welding engineer account to get started."}
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+      <form onSubmit={handleSubmit} className="mt-8 space-y-4" noValidate>
         {mode === "signup" && (
-          <Field label="Full name" required>
+          <Field label="Full name" required error={fieldErrors.full_name}>
             <Input
               value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+              onChange={(e) => {
+                setFullName(e.target.value);
+                clearError("full_name");
+              }}
               placeholder="Alex Morgan"
               autoComplete="name"
-              required
+              className={cn(fieldErrors.full_name && invalidBorder)}
             />
           </Field>
         )}
-        <Field label="Email" required>
+        <Field label="Email" required error={fieldErrors.email}>
           <Input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              clearError("email");
+            }}
             placeholder="engineer@plant.com"
             autoComplete="email"
-            required
+            className={cn(fieldErrors.email && invalidBorder)}
           />
         </Field>
-        <Field label="Password" required>
+        <Field label="Password" required error={fieldErrors.password}>
           <div className="relative">
             <Input
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                clearError("password");
+              }}
               placeholder="••••••••"
               autoComplete={
                 mode === "signin" ? "current-password" : "new-password"
               }
               minLength={6}
-              required
-              className="pr-11"
+              className={cn("pr-11", fieldErrors.password && invalidBorder)}
             />
             <button
               type="button"
@@ -126,11 +158,6 @@ export function LoginForm() {
           </div>
         </Field>
 
-        {error && (
-          <p className="rounded-[10px] bg-expired/10 px-3 py-2 text-sm text-expired">
-            {error}
-          </p>
-        )}
         {notice && (
           <p className="rounded-[10px] bg-active/10 px-3 py-2 text-sm text-active-ink">
             {notice}
@@ -155,8 +182,8 @@ export function LoginForm() {
           type="button"
           onClick={() => {
             setMode(mode === "signin" ? "signup" : "signin");
-            setError(null);
             setNotice(null);
+            setFieldErrors({});
           }}
           className="font-medium text-ember hover:underline"
         >

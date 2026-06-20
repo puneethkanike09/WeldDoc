@@ -66,12 +66,19 @@ export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
 
     const toRadix = (v: string) => (v === "" ? EMPTY : v);
     const fromRadix = (v: string) => (v === EMPTY ? "" : v);
+    const radixValue = toRadix(current);
+    const hasOption = options.some((o) => toRadix(o.value) === radixValue);
+    const safeValue = hasOption ? radixValue : undefined;
 
-    const handle = (rv: string) => {
-      const real = fromRadix(rv);
-      if (!isControlled) setInternal(real);
-      onChange?.({ target: { value: real } });
-    };
+    const handle = React.useCallback(
+      (rv: string) => {
+        const real = fromRadix(rv);
+        if (real === current) return;
+        if (!isControlled) setInternal(real);
+        onChange?.({ target: { value: real } });
+      },
+      [current, isControlled, onChange],
+    );
 
     return (
       <>
@@ -89,7 +96,7 @@ export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
           />
         ) : null}
         <SelectPrimitive.Root
-          value={toRadix(current)}
+          value={safeValue}
           onValueChange={handle}
           disabled={disabled}
           required={required}
@@ -97,6 +104,7 @@ export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
           <SelectPrimitive.Trigger
             ref={ref}
             className={cn(triggerClasses, className)}
+            suppressHydrationWarning
           >
             <SelectPrimitive.Value placeholder={placeholder} />
             <SelectPrimitive.Icon asChild>

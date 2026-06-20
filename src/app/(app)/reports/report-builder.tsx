@@ -1,9 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useFormStatus } from "react-dom";
+import { useCallback, useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
 import { Input, Textarea, Field } from "@/components/ui/input";
-import { FormError } from "@/components/ui/form-error";
 import { Select } from "@/components/sui/select";
 import { DatePicker } from "@/components/sui/date-picker";
 import { Button } from "@/components/ui/button";
@@ -15,9 +14,13 @@ import {
   FW_POSITIONS,
   MATERIAL_GROUPS,
 } from "@/lib/iso9606/constants";
-import { validateReportRows } from "@/lib/reports/validate-report-rows";
+import { collectReportFormErrors } from "@/lib/reports/validate-report-rows";
+import { useFormSubmit } from "@/lib/form-toast";
+import type { FieldErrors } from "@/lib/field-errors";
 import type { JointCategory, ProductType, Signatory } from "@/types/db";
 import { FilePlus2, Loader2, Plus, Trash2 } from "lucide-react";
+
+const invalidBorder = "border-ember ring-1 ring-ember/20";
 
 interface WelderOption {
   id: string;
@@ -58,8 +61,7 @@ function newRow(): Row {
   };
 }
 
-function Submit() {
-  const { pending } = useFormStatus();
+function Submit({ pending }: { pending: boolean }) {
   return (
     <Button type="submit" disabled={pending}>
       {pending ? (
@@ -77,13 +79,13 @@ export function ReportBuilder({
   welders,
   signatories,
 }: {
-  action: (fd: FormData) => void;
+  action: (fd: FormData) => Promise<void>;
   welders: WelderOption[];
   signatories: Signatory[];
 }) {
   const [category, setCategory] = useState<JointCategory>("BW");
   const [rows, setRows] = useState<Row[]>([newRow()]);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   const manufacturers = signatories.filter((s) => s.role === "manufacturer");
   const examiners = signatories.filter((s) => s.role === "examining_body");
@@ -113,27 +115,38 @@ export function ReportBuilder({
 
   function update(key: string, patch: Partial<Row>) {
     setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)));
-    setFormError(null);
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    const rowError = validateReportRows(rows);
-    if (rowError) {
-      e.preventDefault();
-      setFormError(rowError);
-      return;
-    }
-    if (!e.currentTarget.reportValidity()) {
-      e.preventDefault();
-      setFormError("Fill in all required fields.");
-      return;
-    }
-    setFormError(null);
-  }
+  const clearError = (key: string) =>
+    setFieldErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+
+  const validate = useCallback(
+    (formData: FormData) => {
+      const errors = collectReportFormErrors(
+        formData,
+        rows.map((r) => ({
+          key: r.key,
+          welderId: r.welderId,
+          materialGrade: r.materialGrade,
+          dimensions: r.dimensions,
+          testThickness: r.testThickness,
+        })),
+      );
+      setFieldErrors(errors);
+      return errors;
+    },
+    [rows],
+  );
+
+  const { onSubmit, pending } = useFormSubmit(action, validate);
 
   return (
-    <form action={action} className="space-y-6" onSubmit={handleSubmit}>
-      <FormError message={formError} />
+    <form onSubmit={onSubmit} className="space-y-6" noValidate>
       <input type="hidden" name="rows" value={serialized} />
 
       <Card>
@@ -155,18 +168,21 @@ export function ReportBuilder({
                 <option value="FW">Fillet weld (FW)</option>
               </Select>
             </Field>
-            <Field label="Test date" required>
+            <Field label="Test date" required error={fieldErrors.test_date}>
               <DatePicker
                 name="test_date"
                 defaultValue={new Date().toISOString().slice(0, 10)}
                 required
+                error={fieldErrors.test_date}
               />
             </Field>
-            <Field label="WPS no." required>
+            <Field label="WPS no." required error={fieldErrors.wps_no}>
               <Input
                 name="wps_no"
                 placeholder="ACME/PLT-A/QA/WPS-075 REV-02"
                 required
+                className={cn(fieldErrors.wps_no && invalidBorder)}
+                onChange={() => clearError("wps_no")}
               />
             </Field>
             <Field label="Manufacturer signatory">
@@ -223,186 +239,204 @@ export function ReportBuilder({
             </Button>
           </div>
 
+          {fieldErrors.rows && (
+            <p className="text-xs text-ember">{fieldErrors.rows}</p>
+          )}
+
           <div className="space-y-4">
-            {rows.map((r, idx) => (
-              <div
-                key={r.key}
-                className="rounded-[12px] border border-silver bg-frost/40 p-4"
-              >
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="font-display text-sm font-semibold text-graphite">
-                    #{idx + 1}
-                  </span>
-                  {rows.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setRows((rs) => rs.filter((x) => x.key !== r.key))
-                      }
-                      className="text-steel hover:text-expired"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  )}
+            {rows.map((r, idx) => {
+              const rowPrefix = `row_${r.key}`;
+              const materialGradeError = fieldErrors[`${rowPrefix}_materialGrade`];
+              const dimensionsError = fieldErrors[`${rowPrefix}_dimensions`];
+              const testThicknessError = fieldErrors[`${rowPrefix}_testThickness`];
+
+              return (
+                <div
+                  key={r.key}
+                  className="rounded-[12px] border border-silver bg-frost/40 p-4"
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="font-display text-sm font-semibold text-graphite">
+                      #{idx + 1}
+                    </span>
+                    {rows.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setRows((rs) => rs.filter((x) => x.key !== r.key))
+                        }
+                        className="text-steel hover:text-expired"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <Field label="Welder" required>
+                      <Select
+                        value={r.welderId}
+                        required
+                        onChange={(e) => {
+                          update(r.key, { welderId: e.target.value });
+                          clearError("rows");
+                        }}
+                      >
+                        <option value="">Select welder</option>
+                        {welders.map((w) => (
+                          <option key={w.id} value={w.id}>
+                            {w.full_name}
+                            {w.welder_id ? ` (${w.welder_id})` : ""}
+                            {w.is_new_welder ? " *" : ""}
+                          </option>
+                        ))}
+                      </Select>
+                    </Field>
+                    <Field label="Process" required>
+                      <Select
+                        value={r.process}
+                        required
+                        onChange={(e) =>
+                          update(r.key, { process: e.target.value })
+                        }
+                      >
+                        {WELDING_PROCESSES.map((p) => (
+                          <option key={p.code} value={p.code}>
+                            {p.name.split(" ")[0]} ({p.code})
+                          </option>
+                        ))}
+                      </Select>
+                    </Field>
+                    <Field label="Product" required>
+                      <Select
+                        value={r.product}
+                        required
+                        onChange={(e) =>
+                          update(r.key, {
+                            product: e.target.value as ProductType,
+                          })
+                        }
+                      >
+                        {PRODUCT_TYPES.map((p) => (
+                          <option key={p} value={p}>
+                            {p}
+                          </option>
+                        ))}
+                      </Select>
+                    </Field>
+                    <Field label="Position" required>
+                      <Select
+                        value={r.position}
+                        required
+                        onChange={(e) =>
+                          update(r.key, { position: e.target.value })
+                        }
+                      >
+                        {positions.map((p) => (
+                          <option key={p} value={p}>
+                            {p}
+                          </option>
+                        ))}
+                      </Select>
+                    </Field>
+                    <Field label="Material group" required>
+                      <Select
+                        value={r.materialGroup}
+                        required
+                        onChange={(e) =>
+                          update(r.key, { materialGroup: e.target.value })
+                        }
+                      >
+                        {MATERIAL_GROUPS.map((m) => (
+                          <option key={m.code} value={m.code}>
+                            Group {m.code}
+                          </option>
+                        ))}
+                      </Select>
+                    </Field>
+                    <Field label="Material grade" required error={materialGradeError}>
+                      <Input
+                        value={r.materialGrade}
+                        required
+                        onChange={(e) => {
+                          update(r.key, { materialGrade: e.target.value });
+                          clearError(`${rowPrefix}_materialGrade`);
+                        }}
+                        placeholder="IS2062 E250 BR+N"
+                        className={cn(materialGradeError && invalidBorder)}
+                      />
+                    </Field>
+                    <Field label="Dimensions" required error={dimensionsError}>
+                      <Input
+                        value={r.dimensions}
+                        required
+                        onChange={(e) => {
+                          update(r.key, { dimensions: e.target.value });
+                          clearError(`${rowPrefix}_dimensions`);
+                        }}
+                        placeholder="12(T)x300(W)x250(L)"
+                        className={cn(dimensionsError && invalidBorder)}
+                      />
+                    </Field>
+                    <Field label="Test thickness (mm)" required error={testThicknessError}>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        min="0.1"
+                        value={r.testThickness}
+                        required
+                        onChange={(e) => {
+                          update(r.key, { testThickness: e.target.value });
+                          clearError(`${rowPrefix}_testThickness`);
+                        }}
+                        className={cn(testThicknessError && invalidBorder)}
+                      />
+                    </Field>
+                    <Field label="Pipe OD (mm)">
+                      <Input
+                        type="number"
+                        step="0.1"
+                        value={r.pipeOd}
+                        onChange={(e) =>
+                          update(r.key, { pipeOd: e.target.value })
+                        }
+                      />
+                    </Field>
+                    <Field label="Visual" required>
+                      <Select
+                        value={r.visualResult}
+                        required
+                        onChange={(e) =>
+                          update(r.key, {
+                            visualResult: e.target.value as "Pass" | "Fail",
+                          })
+                        }
+                      >
+                        <option value="Pass">Pass</option>
+                        <option value="Fail">Fail</option>
+                      </Select>
+                    </Field>
+                    <Field label={category === "BW" ? "RT/UT" : "Fracture"} required>
+                      <Select
+                        value={r.mainResult}
+                        required
+                        onChange={(e) =>
+                          update(r.key, {
+                            mainResult: e.target.value as
+                              | "Pass"
+                              | "Fail"
+                              | "NA",
+                          })
+                        }
+                      >
+                        <option value="Pass">Pass</option>
+                        <option value="Fail">Fail</option>
+                        <option value="NA">N/A</option>
+                      </Select>
+                    </Field>
+                  </div>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <Field label="Welder" required>
-                    <Select
-                      value={r.welderId}
-                      required
-                      onChange={(e) =>
-                        update(r.key, { welderId: e.target.value })
-                      }
-                    >
-                      <option value="">Select welder</option>
-                      {welders.map((w) => (
-                        <option key={w.id} value={w.id}>
-                          {w.full_name}
-                          {w.welder_id ? ` (${w.welder_id})` : ""}
-                          {w.is_new_welder ? " *" : ""}
-                        </option>
-                      ))}
-                    </Select>
-                  </Field>
-                  <Field label="Process" required>
-                    <Select
-                      value={r.process}
-                      required
-                      onChange={(e) =>
-                        update(r.key, { process: e.target.value })
-                      }
-                    >
-                      {WELDING_PROCESSES.map((p) => (
-                        <option key={p.code} value={p.code}>
-                          {p.name.split(" ")[0]} ({p.code})
-                        </option>
-                      ))}
-                    </Select>
-                  </Field>
-                  <Field label="Product" required>
-                    <Select
-                      value={r.product}
-                      required
-                      onChange={(e) =>
-                        update(r.key, {
-                          product: e.target.value as ProductType,
-                        })
-                      }
-                    >
-                      {PRODUCT_TYPES.map((p) => (
-                        <option key={p} value={p}>
-                          {p}
-                        </option>
-                      ))}
-                    </Select>
-                  </Field>
-                  <Field label="Position" required>
-                    <Select
-                      value={r.position}
-                      required
-                      onChange={(e) =>
-                        update(r.key, { position: e.target.value })
-                      }
-                    >
-                      {positions.map((p) => (
-                        <option key={p} value={p}>
-                          {p}
-                        </option>
-                      ))}
-                    </Select>
-                  </Field>
-                  <Field label="Material group" required>
-                    <Select
-                      value={r.materialGroup}
-                      required
-                      onChange={(e) =>
-                        update(r.key, { materialGroup: e.target.value })
-                      }
-                    >
-                      {MATERIAL_GROUPS.map((m) => (
-                        <option key={m.code} value={m.code}>
-                          Group {m.code}
-                        </option>
-                      ))}
-                    </Select>
-                  </Field>
-                  <Field label="Material grade" required>
-                    <Input
-                      value={r.materialGrade}
-                      required
-                      onChange={(e) =>
-                        update(r.key, { materialGrade: e.target.value })
-                      }
-                      placeholder="IS2062 E250 BR+N"
-                    />
-                  </Field>
-                  <Field label="Dimensions" required>
-                    <Input
-                      value={r.dimensions}
-                      required
-                      onChange={(e) =>
-                        update(r.key, { dimensions: e.target.value })
-                      }
-                      placeholder="12(T)x300(W)x250(L)"
-                    />
-                  </Field>
-                  <Field label="Test thickness (mm)" required>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      min="0.1"
-                      value={r.testThickness}
-                      required
-                      onChange={(e) =>
-                        update(r.key, { testThickness: e.target.value })
-                      }
-                    />
-                  </Field>
-                  <Field label="Pipe OD (mm)">
-                    <Input
-                      type="number"
-                      step="0.1"
-                      value={r.pipeOd}
-                      onChange={(e) =>
-                        update(r.key, { pipeOd: e.target.value })
-                      }
-                    />
-                  </Field>
-                  <Field label="Visual" required>
-                    <Select
-                      value={r.visualResult}
-                      required
-                      onChange={(e) =>
-                        update(r.key, {
-                          visualResult: e.target.value as "Pass" | "Fail",
-                        })
-                      }
-                    >
-                      <option value="Pass">Pass</option>
-                      <option value="Fail">Fail</option>
-                    </Select>
-                  </Field>
-                  <Field label={category === "BW" ? "RT/UT" : "Fracture"} required>
-                    <Select
-                      value={r.mainResult}
-                      required
-                      onChange={(e) =>
-                        update(r.key, {
-                          mainResult: e.target.value as
-                            | "Pass"
-                            | "Fail"
-                            | "NA",
-                        })
-                      }
-                    >
-                      <option value="Pass">Pass</option>
-                      <option value="Fail">Fail</option>
-                      <option value="NA">N/A</option>
-                    </Select>
-                  </Field>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardBody>
       </Card>
@@ -412,7 +446,7 @@ export function ReportBuilder({
           A qualification record is created for each welder and the range of
           approval is computed automatically.
         </p>
-        <Submit />
+        <Submit pending={pending} />
       </div>
     </form>
   );
