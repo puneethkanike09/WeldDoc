@@ -42,7 +42,11 @@ export function WelderForm({
   action: (formData: FormData) => void;
   welder?: Welder;
   mode: "create" | "edit";
-  orgDefaults?: { employer: string; branchLocation: string | null };
+  orgDefaults?: {
+    employer: string;
+    branchLocation: string | null;
+    suggestedPlantWelderId?: string;
+  };
 }) {
   const [idMethod, setIdMethod] = useState(welder?.id_method ?? "Aadhar");
   const [photoName, setPhotoName] = useState<string | null>(null);
@@ -64,10 +68,22 @@ export function WelderForm({
                 required
               />
             </Field>
-            <Field label="Plant welder ID" hint="e.g. W#247" required>
+            <Field
+              label="Plant welder ID"
+              hint={
+                mode === "create"
+                  ? "Auto-generated from your welder sequence. You can edit it — must be unique in your organisation."
+                  : "Must be unique in your organisation."
+              }
+              required
+            >
               <Input
                 name="welder_id"
-                defaultValue={welder?.welder_id ?? ""}
+                defaultValue={
+                  welder?.welder_id ??
+                  orgDefaults?.suggestedPlantWelderId ??
+                  ""
+                }
                 placeholder="W#247"
                 required
               />

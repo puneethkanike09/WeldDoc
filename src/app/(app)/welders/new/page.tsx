@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/app/page-header";
 import { WelderForm } from "../welder-form";
 import { createWelder } from "../actions";
 import { requireSession } from "@/lib/auth";
+import { suggestPlantWelderId } from "@/lib/welders/plant-id";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata: Metadata = { title: "Add welder" };
@@ -15,7 +16,7 @@ export default async function NewWelderPage() {
     <>
       <PageHeader
         title="Add welder"
-        description="Create a permanent welder profile. A UID and QR code are issued automatically."
+        description="Create a permanent welder profile. System UID, plant welder ID, and QR code are issued automatically."
       />
       <div className="px-8 py-8">
         <Link
@@ -31,6 +32,7 @@ export default async function NewWelderPage() {
             orgDefaults={{
               employer: org.name,
               branchLocation: org.location_code,
+              suggestedPlantWelderId: suggestPlantWelderId(org.welder_seq),
             }}
           />
         </div>

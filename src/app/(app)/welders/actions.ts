@@ -7,6 +7,12 @@ import { requireSession } from "@/lib/auth";
 import { uploadFile } from "@/lib/storage";
 import type { WelderStatus } from "@/types/db";
 import { validateWelderRegistration } from "@/lib/iso9606/qualification-fields";
+import {
+  assertPlantWelderIdAvailable,
+  isUniqueViolation,
+  normalizePlantWelderId,
+  plantWelderIdFromUid,
+} from "@/lib/welders/plant-id";
 
 function str(v: FormDataEntryValue | null): string | null {
   const s = typeof v === "string" ? v.trim() : "";
@@ -31,6 +37,16 @@ export async function createWelder(formData: FormData) {
   });
   if (uidErr || !uid) throw new Error(uidErr?.message ?? "Could not allocate UID.");
 
+  let plantWelderId = normalizePlantWelderId(str(formData.get("welder_id")));
+  if (!plantWelderId) {
+    plantWelderId = plantWelderIdFromUid(uid as string);
+  }
+  if (!plantWelderId) {
+    throw new Error("Could not assign a plant welder ID.");
+  }
+
+  await assertPlantWelderIdAvailable(supabase, org.id, plantWelderId);
+
   const photo = formData.get("photo");
   const photoPath = await uploadFile(
     "welder-photos",
@@ -43,7 +59,7 @@ export async function createWelder(formData: FormData) {
     .insert({
       org_id: org.id,
       uid,
-      welder_id: str(formData.get("welder_id")),
+      welder_id: plantWelderId,
       full_name: fullName,
       date_of_birth: str(formData.get("date_of_birth")),
       place_of_birth: str(formData.get("place_of_birth")),
@@ -59,7 +75,14 @@ export async function createWelder(formData: FormData) {
     .select("id")
     .single();
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (isUniqueViolation(error)) {
+      throw new Error(
+        `Plant welder ID "${plantWelderId}" is already in use. Choose a different ID.`,
+      );
+    }
+    throw new Error(error.message);
+  }
 
   revalidatePath("/welders");
   redirect(`/welders/${welder.id}`);
@@ -69,6 +92,11 @@ export async function updateWelder(welderId: string, formData: FormData) {
   validateWelderRegistration(formData, "edit");
   const { org } = await requireSession();
   const supabase = await createClient();
+
+  const plantWelderId = normalizePlantWelderId(str(formData.get("welder_id")));
+  if (!plantWelderId) throw new Error("Plant welder ID is required.");
+
+  await assertPlantWelderIdAvailable(supabase, org.id, plantWelderId, welderId);
 
   const photo = formData.get("photo");
   const photoPath = await uploadFile(
@@ -83,7 +111,7 @@ export async function updateWelder(welderId: string, formData: FormData) {
     idMethodRaw === "Other" ? idMethodOther ?? "Other" : idMethodRaw;
 
   const update: Record<string, unknown> = {
-    welder_id: str(formData.get("welder_id")),
+    welder_id: plantWelderId,
     full_name: str(formData.get("full_name")),
     date_of_birth: str(formData.get("date_of_birth")),
     place_of_birth: str(formData.get("place_of_birth")),
@@ -100,7 +128,14 @@ export async function updateWelder(welderId: string, formData: FormData) {
     .eq("id", welderId)
     .eq("org_id", org.id);
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (isUniqueViolation(error)) {
+      throw new Error(
+        `Plant welder ID "${plantWelderId}" is already in use. Choose a different ID.`,
+      );
+    }
+    throw new Error(error.message);
+  }
 
   revalidatePath(`/welders/${welderId}`);
   redirect(`/welders/${welderId}`);
