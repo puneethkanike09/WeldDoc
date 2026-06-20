@@ -14,10 +14,12 @@ import {
   summarizeWelder,
   STATUS_TONE,
   daysUntil,
+  canDiscardWpq,
 } from "@/lib/welder-status";
 import { StatusControl } from "./status-control";
 import { ValidationForm } from "./validation-form";
-import { cloneWpq, saveValidation } from "./qualify/actions";
+import { cloneWpq, discardWpq, saveValidation } from "./qualify/actions";
+import { DiscardWpqButton } from "./discard-wpq-button";
 import type {
   QualificationRecord,
   RangeOfApproval,
@@ -270,6 +272,11 @@ export default async function WelderProfilePage({
                                 <Copy className="h-4 w-4" /> Clone
                               </Button>
                             </form>
+                          )}
+                          {canDiscardWpq(q.wpq_status) && (
+                            <DiscardWpqButton
+                              action={discardWpq.bind(null, id, q.id)}
+                            />
                           )}
                         </div>
 

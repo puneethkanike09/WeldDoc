@@ -140,6 +140,7 @@ export default async function QualifyPage({
             {step === 2 && wpq && (
               <TestStep
                 action={saveTest.bind(null, id, wpq.id)}
+                welderId={id}
                 wpq={wpq}
                 rangePreview={range?.summary ?? null}
               />
@@ -148,6 +149,8 @@ export default async function QualifyPage({
             {step === 3 && wpq && (
               <NdtStep
                 action={saveNdt.bind(null, id, wpq.id, wpq.joint_type)}
+                welderId={id}
+                wpqId={wpq.id}
                 jointType={wpq.joint_type}
                 existing={ndt}
               />
@@ -156,6 +159,7 @@ export default async function QualifyPage({
             {step === 4 && wpq && (
               <CertificateStep
                 action={issueCertificate.bind(null, id, wpq.id)}
+                welderId={id}
                 wpq={wpq}
                 rangeSummary={range?.summary ?? null}
                 signatories={signatories}

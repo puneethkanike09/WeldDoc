@@ -1,4 +1,4 @@
-import type { QualificationRecord, Welder } from "@/types/db";
+import type { QualificationRecord, Welder, WpqStatus } from "@/types/db";
 import { processLabel } from "@/lib/iso9606/constants";
 
 export type OverallStatus =
@@ -107,3 +107,13 @@ export const STATUS_TONE: Record<
   Inactive: "neutral",
   Suspended: "expired",
 };
+
+const DISCARDABLE_WPQ_STATUSES: WpqStatus[] = [
+  "Draft",
+  "Pending_NDT",
+  "Failed",
+];
+
+export function canDiscardWpq(status: WpqStatus): boolean {
+  return DISCARDABLE_WPQ_STATUSES.includes(status);
+}

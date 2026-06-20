@@ -5,7 +5,7 @@ import { useCallback } from "react";
 import { Input, Textarea, Field } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
 import { DatePicker } from "@/components/sui/date-picker";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileDropzone } from "@/components/ui/file-dropzone";
@@ -48,7 +48,7 @@ import type {
 import type { FieldErrors } from "@/lib/field-errors";
 import { cn } from "@/lib/utils";
 import { ValidatedForm, useFormPending } from "@/lib/form-toast";
-import { Check, Loader2, Save, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Save, ShieldCheck } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 const STEPS = ["Plan", "Test piece", "NDT / DT", "Certificate"] as const;
@@ -65,6 +65,28 @@ function Submit({ label, icon: Icon }: { label: string; icon: LucideIcon }) {
       )}
       {label}
     </Button>
+  );
+}
+
+function StepPreviousLink({
+  welderId,
+  wpqId,
+  step,
+}: {
+  welderId: string;
+  wpqId: string;
+  step: number;
+}) {
+  const prev = step - 1;
+  return (
+    <ButtonLink
+      href={`/welders/${welderId}/qualify?wpq=${wpqId}&step=${prev}`}
+      variant="ghost"
+      size="sm"
+    >
+      <ArrowLeft className="h-4 w-4" />
+      Back to {STEPS[prev - 1]}
+    </ButtonLink>
   );
 }
 
@@ -111,6 +133,8 @@ export function Stepper({
             {reachable && !active ? (
               <Link
                 href={`/welders/${welderId}/qualify?wpq=${wpqId}&step=${n}`}
+                className="rounded-[10px] transition-colors hover:bg-frost/80"
+                title={`Back to ${label}`}
               >
                 {content}
               </Link>
@@ -321,10 +345,12 @@ export function PlanStep({
 
 export function TestStep({
   action,
+  welderId,
   wpq,
   rangePreview,
 }: {
   action: (fd: FormData) => void;
+  welderId: string;
   wpq: QualificationRecord;
   rangePreview: string | null;
 }) {
@@ -553,7 +579,8 @@ export function TestStep({
               </div>
             )}
 
-            <div className="flex justify-end">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <StepPreviousLink welderId={welderId} wpqId={wpq.id} step={2} />
               <Submit label="Save & continue" icon={Save} />
             </div>
           </CardBody>
@@ -565,10 +592,14 @@ export function TestStep({
 
 export function NdtStep({
   action,
+  welderId,
+  wpqId,
   jointType,
   existing,
 }: {
   action: (fd: FormData) => void;
+  welderId: string;
+  wpqId: string;
   jointType: JointCategory;
   existing: NdtDtRecord[];
 }) {
@@ -634,7 +665,8 @@ export function NdtStep({
               </div>
             </details>
 
-            <div className="flex justify-end">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <StepPreviousLink welderId={welderId} wpqId={wpqId} step={3} />
               <Submit label="Save results" icon={Check} />
             </div>
           </CardBody>
@@ -744,11 +776,13 @@ function TestRow({
 
 export function CertificateStep({
   action,
+  welderId,
   wpq,
   rangeSummary,
   signatories,
 }: {
   action: (fd: FormData) => void;
+  welderId: string;
   wpq: QualificationRecord;
   rangeSummary: string | null;
   signatories: Signatory[];
@@ -842,11 +876,14 @@ export function CertificateStep({
               </p>
             )}
 
-            <div className="flex items-center justify-between">
-              <Badge tone="active">
-                <Check className="h-3.5 w-3.5" /> All required tests passed
-              </Badge>
-              <Submit label="Issue certificate" icon={ShieldCheck} />
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <StepPreviousLink welderId={welderId} wpqId={wpq.id} step={4} />
+              <div className="flex flex-wrap items-center gap-3">
+                <Badge tone="active">
+                  <Check className="h-3.5 w-3.5" /> All required tests passed
+                </Badge>
+                <Submit label="Issue certificate" icon={ShieldCheck} />
+              </div>
             </div>
           </CardBody>
         </Card>

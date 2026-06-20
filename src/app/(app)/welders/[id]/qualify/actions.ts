@@ -21,6 +21,7 @@ import type {
   RevalidationMethod,
   ValidationKind,
 } from "@/types/db";
+import { canDiscardWpq } from "@/lib/welder-status";
 
 function str(v: FormDataEntryValue | null): string | null {
   const s = typeof v === "string" ? v.trim() : "";
@@ -338,6 +339,73 @@ export async function cloneWpq(welderId: string, sourceWpqId: string) {
 
   await recomputeRange(created.id);
   redirect(`/welders/${welderId}/qualify?wpq=${created.id}&step=2`);
+}
+
+export async function discardWpq(welderId: string, wpqId: string) {
+  const { org } = await requireSession();
+  const supabase = await createClient();
+
+  const { data: wpq } = await supabase
+    .from("qualification_records")
+    .select(
+      "id, wpq_status, certificate_pdf_path, legacy_document_paths, welder_id",
+    )
+    .eq("id", wpqId)
+    .eq("org_id", org.id)
+    .eq("welder_id", welderId)
+    .single();
+
+  if (!wpq) throw new Error("Qualification not found.");
+  const q = wpq as Pick<
+    QualificationRecord,
+    | "id"
+    | "wpq_status"
+    | "certificate_pdf_path"
+    | "legacy_document_paths"
+    | "welder_id"
+  >;
+
+  if (!canDiscardWpq(q.wpq_status)) {
+    throw new Error(
+      "Only draft, pending, or failed qualifications can be discarded.",
+    );
+  }
+
+  const { data: ndtRows } = await supabase
+    .from("ndt_dt_records")
+    .select("report_pdf_path")
+    .eq("wpq_id", wpqId);
+
+  const toRemove: { bucket: string; path: string }[] = [];
+  if (q.certificate_pdf_path) {
+    toRemove.push({ bucket: "generated-pdfs", path: q.certificate_pdf_path });
+  }
+  for (const path of q.legacy_document_paths ?? []) {
+    if (path) toRemove.push({ bucket: "ndt-reports", path });
+  }
+  for (const row of ndtRows ?? []) {
+    if (row.report_pdf_path) {
+      toRemove.push({ bucket: "ndt-reports", path: row.report_pdf_path });
+    }
+  }
+
+  for (const { bucket, path } of toRemove) {
+    await supabase.storage.from(bucket).remove([path]);
+  }
+
+  const { error } = await supabase
+    .from("qualification_records")
+    .delete()
+    .eq("id", wpqId)
+    .eq("org_id", org.id)
+    .eq("welder_id", welderId);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/welders/${welderId}`);
+  revalidatePath("/masterlist");
+  revalidatePath("/welders");
+  redirect(`/welders/${welderId}`);
 }
 
 export async function saveValidation(
