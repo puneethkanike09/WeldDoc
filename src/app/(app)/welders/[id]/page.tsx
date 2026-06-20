@@ -16,6 +16,7 @@ import {
   daysUntil,
   canDiscardWpq,
 } from "@/lib/welder-status";
+import { AuditorQrCard } from "@/components/app/auditor-qr-card";
 import { StatusControl } from "./status-control";
 import { ValidationForm } from "./validation-form";
 import { cloneWpq, discardWpq, saveValidation } from "./qualify/actions";
@@ -32,7 +33,6 @@ import {
   IdCard,
   Pencil,
   Plus,
-  ShieldCheck,
   Workflow,
 } from "lucide-react";
 
@@ -155,23 +155,7 @@ export default async function WelderProfilePage({
               </CardBody>
             </Card>
 
-            <Card>
-              <CardBody className="text-center">
-                <p className="mb-3 font-display text-[13px] font-medium text-charcoal">
-                  Auditor QR code
-                </p>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`/api/qr/${w.qr_token}`}
-                  alt="Welder verification QR code"
-                  className="mx-auto h-40 w-40 rounded-[10px] border border-silver p-2"
-                />
-                <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-graphite">
-                  <ShieldCheck className="h-3.5 w-3.5 text-active-ink" />
-                  Scan to verify live status
-                </p>
-              </CardBody>
-            </Card>
+            <AuditorQrCard qrToken={w.qr_token} />
           </div>
 
           {/* Right: qualifications */}
