@@ -475,4 +475,25 @@ html[data-app-theme="dark"] .welddoc-datepicker select {
     padding-top: clamp(64px, 10vw, 120px);
     padding-bottom: clamp(64px, 10vw, 120px);
   }
+
+  /* Slim, brand-themed scrollbar for inner scroll areas (e.g. sticky panels).
+     Thin track, rounded thumb that darkens on hover; stays out of the way. */
+  .sleek-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--theme-border) transparent;
+  }
+  .sleek-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .sleek-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .sleek-scroll::-webkit-scrollbar-thumb {
+    background-color: var(--theme-border);
+    border-radius: 9999px;
+  }
+  .sleek-scroll:hover::-webkit-scrollbar-thumb {
+    background-color: var(--theme-text-muted);
+  }
 }

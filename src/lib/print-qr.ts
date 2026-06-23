@@ -1,14 +1,3 @@
-"use client";
-
-import { ShieldCheck, Printer } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardBody } from "@/components/ui/card";
-
-interface AuditorQrCardProps {
-  qrToken: string;
-  plantWelderId: string;
-}
-
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, "&amp;")
@@ -17,7 +6,11 @@ function escapeHtml(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function printQrOnly(qrToken: string, plantWelderId: string) {
+/**
+ * Prints just the welder QR code with its plant ID below it, via a hidden
+ * iframe so it never disturbs the current page. Client-only (uses the DOM).
+ */
+export function printQrWithId(qrToken: string, plantWelderId: string) {
   const qrSrc = `${window.location.origin}/api/qr/${qrToken}`;
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -94,38 +87,4 @@ function printQrOnly(qrToken: string, plantWelderId: string) {
   } else {
     window.setTimeout(printFrame, 100);
   }
-}
-
-export function AuditorQrCard({ qrToken, plantWelderId }: AuditorQrCardProps) {
-  return (
-    <Card>
-      <CardBody className="text-center">
-        <p className="mb-3 font-display text-[13px] font-medium text-charcoal">
-          Auditor QR code
-        </p>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={`/api/qr/${qrToken}`}
-          alt="Welder verification QR code"
-          className="mx-auto h-40 w-40 rounded-[10px] border border-silver p-2"
-        />
-        <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-graphite">
-          <ShieldCheck className="h-3.5 w-3.5 text-active-ink" />
-          Scan to verify live status
-        </p>
-        <div className="mt-4">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="w-full"
-            onClick={() => printQrOnly(qrToken, plantWelderId)}
-          >
-            <Printer className="h-4 w-4" />
-            Print QR
-          </Button>
-        </div>
-      </CardBody>
-    </Card>
-  );
 }

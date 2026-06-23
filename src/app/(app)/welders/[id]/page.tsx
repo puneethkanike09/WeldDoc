@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
-import { ButtonLink, Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
@@ -14,35 +14,28 @@ import {
 import { resolveUrl } from "@/lib/storage";
 import { formatDate } from "@/lib/utils";
 import { processLabel, POSITION_LABELS } from "@/lib/iso9606/constants";
-import {
-  summarizeWelder,
-  STATUS_TONE,
-  daysUntil,
-  canDiscardWpq,
-} from "@/lib/welder-status";
-import { AuditorQrCard } from "@/components/app/auditor-qr-card";
+import { summarizeWelder, STATUS_TONE, daysUntil } from "@/lib/welder-status";
+import { QrDialog } from "@/components/app/qr-dialog";
 import { StatusControl } from "./status-control";
-import { ValidationForm } from "./validation-form";
-import { cloneWpq, discardWpq, saveValidation } from "./qualify/actions";
-import { DiscardWpqButton } from "./discard-wpq-button";
+import {
+  WelderQualifications,
+  type QualView,
+  type ValidationView,
+} from "./welder-qualifications";
 import type {
   QualificationRecord,
   RangeOfApproval,
+  ValidationRecord,
   Welder,
 } from "@/types/db";
-import {
-  ArrowLeft,
-  Copy,
-  FileDown,
-  IdCard,
-  Pencil,
-  Plus,
-  Workflow,
-} from "lucide-react";
+import { ArrowLeft, IdCard, Pencil } from "lucide-react";
 
 export const metadata: Metadata = { title: "Welder profile" };
 
-const WPQ_TONE: Record<string, "active" | "expiring" | "expired" | "neutral" | "sapphire"> = {
+const WPQ_TONE: Record<
+  string,
+  "active" | "expiring" | "expired" | "neutral" | "sapphire"
+> = {
   Approved: "active",
   Draft: "neutral",
   Pending_NDT: "sapphire",
@@ -53,10 +46,13 @@ const WPQ_TONE: Record<string, "active" | "expiring" | "expired" | "neutral" | "
 
 export default async function WelderProfilePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ wpq?: string }>;
 }) {
   const { id } = await params;
+  const { wpq: selectedWpq } = await searchParams;
   const { org } = await requireSession();
   const supabase = await createClient();
 
@@ -88,6 +84,35 @@ export default async function WelderProfilePage({
     ((rangeRows ?? []) as RangeOfApproval[]).map((r) => [r.wpq_id, r]),
   );
 
+  const { data: validationRows } = await supabase
+    .from("validation_records")
+    .select("*")
+    .in(
+      "wpq_id",
+      wpqs.length ? wpqs.map((q) => q.id) : ["00000000-0000-0000-0000-000000000000"],
+    )
+    .order("validated_on", { ascending: false });
+  const validations = (validationRows ?? []) as ValidationRecord[];
+
+  const validationsByWpq = new Map<string, ValidationRecord[]>();
+  for (const v of validations) {
+    const arr = validationsByWpq.get(v.wpq_id) ?? [];
+    arr.push(v);
+    validationsByWpq.set(v.wpq_id, arr);
+  }
+
+  // Supporting docs live in the private "ndt-reports" bucket — resolve a
+  // time-limited signed URL per entry so they can be viewed from the profile.
+  const docUrlEntries = await Promise.all(
+    validations
+      .filter((v) => v.supporting_doc_path)
+      .map(
+        async (v) =>
+          [v.id, await resolveUrl("ndt-reports", v.supporting_doc_path)] as const,
+      ),
+  );
+  const docUrlById = new Map(docUrlEntries);
+
   const summary = summarizeWelder(w, wpqs);
   const photoUrl = await resolveUrl("welder-photos", w.photo_path);
   const plantWelderId =
@@ -95,6 +120,41 @@ export default async function WelderProfilePage({
     w.welder_id?.trim() ??
     plantWelderIdFromUid(w.uid) ??
     w.uid;
+
+  const qualViews: QualView[] = wpqs.map((q) => {
+    const position = q.position
+      ? POSITION_LABELS[q.position] ?? q.position
+      : "—";
+    const entries: ValidationView[] = (validationsByWpq.get(q.id) ?? []).map(
+      (v) => ({
+        id: v.id,
+        kind: v.kind,
+        validatedOn: formatDate(v.validated_on),
+        validatorName: v.validator_name,
+        note: v.note,
+        newExpiry: v.new_expiry_date ? formatDate(v.new_expiry_date) : null,
+        docUrl: docUrlById.get(v.id) ?? null,
+      }),
+    );
+    return {
+      id: q.id,
+      title: `${processLabel(q.process)} · ${
+        q.joint_type === "BW" ? "Butt" : "Fillet"
+      } · ${q.product}`,
+      subtitle: `ISO 9606-1 · Position ${position} · Method ${q.revalidation_method}`,
+      status: q.wpq_status,
+      statusLabel: q.wpq_status.replace("_", " "),
+      statusTone: WPQ_TONE[q.wpq_status] ?? "neutral",
+      expiry: formatDate(q.expiry_date),
+      daysToExpiry: daysUntil(q.expiry_date),
+      isLegacy: q.is_legacy,
+      isApproved: q.wpq_status === "Approved",
+      canLogValidation:
+        q.wpq_status === "Approved" || q.wpq_status === "Expired",
+      rangeSummary: ranges.get(q.id)?.summary ?? null,
+      validations: entries,
+    };
+  });
 
   return (
     <>
@@ -105,6 +165,7 @@ export default async function WelderProfilePage({
         <ButtonLink href={`/welders/${id}/id-card`} variant="ghost" size="sm">
           <IdCard className="h-4 w-4" /> ID card
         </ButtonLink>
+        <QrDialog qrToken={w.qr_token} plantWelderId={plantWelderId} />
       </PageHeader>
 
       <div className="px-8 py-8">
@@ -115,178 +176,59 @@ export default async function WelderProfilePage({
           <ArrowLeft className="h-4 w-4" /> Back to welders
         </Link>
 
-        <div className="grid gap-6 lg:grid-cols-[340px_1fr]">
-          {/* Left: identity */}
-          <div className="space-y-6">
-            <Card>
-              <CardBody className="space-y-5">
-                <div className="flex items-center gap-4">
-                  {photoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={photoUrl}
-                      alt={w.full_name}
-                      className="h-20 w-20 rounded-[12px] object-cover"
-                    />
-                  ) : (
-                    <span className="grid h-20 w-20 place-items-center rounded-[12px] bg-onyx/5 font-display text-2xl font-semibold text-graphite">
-                      {w.full_name.slice(0, 1)}
-                    </span>
-                  )}
-                  <div>
-                    <Badge tone={STATUS_TONE[summary.overall]}>
-                      {summary.overall}
-                    </Badge>
-                    <p className="mt-2 font-mono text-[13px] text-charcoal">
-                      {w.uid}
-                    </p>
-                    {w.welder_id && (
-                      <p className="text-xs text-steel">{w.welder_id}</p>
-                    )}
-                  </div>
-                </div>
-
-                <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-[13.5px]">
-                  <Detail label="Date of birth" value={formatDate(w.date_of_birth)} />
-                  <Detail label="Place of birth" value={w.place_of_birth} />
-                  <Detail label="ID method" value={w.id_method} />
-                  <Detail label="ID number" value={w.id_number} />
-                  <Detail label="Employer" value={w.employer} />
-                  <Detail label="Branch" value={w.branch_location} />
-                </dl>
-
-                <div className="border-t border-silver pt-4">
-                  <p className="mb-1.5 font-display text-[13px] font-medium text-charcoal">
-                    Status
-                  </p>
-                  <StatusControl welderId={id} status={w.status} />
-                </div>
-              </CardBody>
-            </Card>
-
-            <AuditorQrCard qrToken={w.qr_token} plantWelderId={plantWelderId} />
-          </div>
-
-          {/* Right: qualifications */}
-          <div>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-display text-lg font-semibold text-onyx">
-                Qualifications
-              </h2>
-              <div className="flex gap-2">
-                <ButtonLink href={`/welders/${id}/qualify`} size="sm">
-                  <Plus className="h-4 w-4" /> New qualification
-                </ButtonLink>
+        {/* Identity band */}
+        <Card className="mb-6">
+          <CardBody className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-4">
+              {photoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={photoUrl}
+                  alt={w.full_name}
+                  className="h-16 w-16 rounded-button object-cover"
+                />
+              ) : (
+                <span className="grid h-16 w-16 place-items-center rounded-button bg-onyx/5 font-display text-xl font-semibold text-graphite">
+                  {w.full_name.slice(0, 1)}
+                </span>
+              )}
+              <div>
+                <Badge tone={STATUS_TONE[summary.overall]}>
+                  {summary.overall}
+                </Badge>
+                <p className="mt-2 font-mono text-[13px] text-charcoal">
+                  {w.uid}
+                </p>
+                <p className="text-xs text-steel">{plantWelderId}</p>
               </div>
             </div>
 
-            {wpqs.length === 0 ? (
-              <Card>
-                <CardBody className="py-12 text-center text-graphite">
-                  No qualifications yet. Start the 4-step workflow to issue a
-                  certificate.
-                </CardBody>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {wpqs.map((q) => {
-                  const range = ranges.get(q.id);
-                  const dte = daysUntil(q.expiry_date);
-                  return (
-                    <Card key={q.id}>
-                      <CardBody>
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-display text-base font-semibold text-onyx">
-                                {processLabel(q.process)} ·{" "}
-                                {q.joint_type === "BW" ? "Butt" : "Fillet"} ·{" "}
-                                {q.product}
-                              </h3>
-                              <Badge tone={WPQ_TONE[q.wpq_status] ?? "neutral"}>
-                                {q.wpq_status.replace("_", " ")}
-                              </Badge>
-                              {q.is_legacy && (
-                                <Badge tone="outline">Legacy</Badge>
-                              )}
-                            </div>
-                            <p className="mt-1 text-[13px] text-steel">
-                              ISO 9606-1 · Position{" "}
-                              {q.position
-                                ? POSITION_LABELS[q.position] ?? q.position
-                                : "—"}{" "}
-                              · Method {q.revalidation_method}
-                            </p>
-                          </div>
-                          <div className="text-right text-[13px]">
-                            <p className="text-steel">Expires</p>
-                            <p className="font-medium text-onyx">
-                              {formatDate(q.expiry_date)}
-                            </p>
-                            {dte !== null && dte >= 0 && dte <= 60 && (
-                              <p className="text-xs text-[#8a6a00]">
-                                in {dte} days
-                              </p>
-                            )}
-                          </div>
-                        </div>
+            <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-3 text-[13px] sm:grid-cols-3 lg:max-w-3xl">
+              <Detail
+                label="Date of birth"
+                value={formatDate(w.date_of_birth)}
+              />
+              <Detail label="Place of birth" value={w.place_of_birth} />
+              <Detail label="ID method" value={w.id_method} />
+              <Detail label="ID number" value={w.id_number} />
+              <Detail label="Employer" value={w.employer} />
+              <Detail label="Branch" value={w.branch_location} />
+            </dl>
 
-                        {range?.summary && (
-                          <div className="mt-3 rounded-[10px] bg-frost p-3">
-                            <p className="font-display text-[10px] font-semibold uppercase tracking-[0.12em] text-graphite">
-                              Range of approval
-                            </p>
-                            <p className="mt-1 text-[13px] leading-snug text-charcoal">
-                              {range.summary}
-                            </p>
-                          </div>
-                        )}
+            <div className="lg:w-52 lg:shrink-0">
+              <p className="mb-1.5 font-display text-[13px] font-medium text-charcoal">
+                Status
+              </p>
+              <StatusControl welderId={id} status={w.status} />
+            </div>
+          </CardBody>
+        </Card>
 
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          <ButtonLink
-                            href={`/welders/${id}/qualify?wpq=${q.id}`}
-                            variant="ghost"
-                            size="sm"
-                          >
-                            <Workflow className="h-4 w-4" /> Open workflow
-                          </ButtonLink>
-                          {q.wpq_status === "Approved" && (
-                            <ButtonLink
-                              href={`/welders/${id}/certificate?wpq=${q.id}`}
-                              variant="subtle"
-                              size="sm"
-                            >
-                              <FileDown className="h-4 w-4" /> Certificate
-                            </ButtonLink>
-                          )}
-                          {q.wpq_status === "Approved" && (
-                            <form action={cloneWpq.bind(null, id, q.id)}>
-                              <Button type="submit" variant="subtle" size="sm">
-                                <Copy className="h-4 w-4" /> Clone
-                              </Button>
-                            </form>
-                          )}
-                          {canDiscardWpq(q.wpq_status) && (
-                            <DiscardWpqButton
-                              action={discardWpq.bind(null, id, q.id)}
-                            />
-                          )}
-                        </div>
-
-                        {(q.wpq_status === "Approved" ||
-                          q.wpq_status === "Expired") && (
-                          <ValidationForm
-                            action={saveValidation.bind(null, id, q.id)}
-                          />
-                        )}
-                      </CardBody>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
+        <WelderQualifications
+          welderId={id}
+          quals={qualViews}
+          defaultSelectedId={selectedWpq}
+        />
       </div>
     </>
   );

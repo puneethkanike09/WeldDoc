@@ -293,54 +293,6 @@ export async function issueCertificate(
   redirect(`/welders/${welderId}?issued=${wpqId}`);
 }
 
-export async function cloneWpq(welderId: string, sourceWpqId: string) {
-  const { org } = await requireSession();
-  const supabase = await createClient();
-
-  const { data: src } = await supabase
-    .from("qualification_records")
-    .select("*")
-    .eq("id", sourceWpqId)
-    .eq("org_id", org.id)
-    .single();
-  if (!src) throw new Error("Source qualification not found.");
-  const s = src as QualificationRecord;
-
-  const { data: created, error } = await supabase
-    .from("qualification_records")
-    .insert({
-      org_id: org.id,
-      welder_id: welderId,
-      standard: s.standard,
-      process: s.process,
-      joint_type: s.joint_type,
-      product: s.product,
-      position: s.position,
-      base_material_group: s.base_material_group,
-      material_grade: s.material_grade,
-      dimensions: s.dimensions,
-      filler_group: s.filler_group,
-      filler_designation: s.filler_designation,
-      filler_type: s.filler_type,
-      shielding_gas: s.shielding_gas,
-      current_polarity: s.current_polarity,
-      test_thickness_mm: s.test_thickness_mm,
-      deposited_thickness_mm: s.deposited_thickness_mm,
-      pipe_od_mm: s.pipe_od_mm,
-      layer_type: s.layer_type,
-      wps_reference: s.wps_reference,
-      revalidation_method: s.revalidation_method,
-      wpq_status: "Draft",
-      cloned_from: sourceWpqId,
-    })
-    .select("id")
-    .single();
-  if (error) throw new Error(error.message);
-
-  await recomputeRange(created.id);
-  redirect(`/welders/${welderId}/qualify?wpq=${created.id}&step=2`);
-}
-
 export async function discardWpq(welderId: string, wpqId: string) {
   const { org } = await requireSession();
   const supabase = await createClient();
@@ -408,6 +360,100 @@ export async function discardWpq(welderId: string, wpqId: string) {
   redirect(`/welders/${welderId}`);
 }
 
+/**
+ * Permanently deletes a qualification regardless of status, along with every
+ * file it owns (certificate, NDT reports, legacy docs, validation evidence).
+ * Child rows (ranges, NDT, validation logs) are removed via DB cascade.
+ */
+export async function deleteWpq(welderId: string, wpqId: string) {
+  const { org } = await requireSession();
+  const supabase = await createClient();
+
+  const { data: wpq } = await supabase
+    .from("qualification_records")
+    .select("id, certificate_pdf_path, legacy_document_paths, welder_id")
+    .eq("id", wpqId)
+    .eq("org_id", org.id)
+    .eq("welder_id", welderId)
+    .single();
+
+  if (!wpq) throw new Error("Qualification not found.");
+  const q = wpq as Pick<
+    QualificationRecord,
+    "id" | "certificate_pdf_path" | "legacy_document_paths" | "welder_id"
+  >;
+
+  const { data: ndtRows } = await supabase
+    .from("ndt_dt_records")
+    .select("report_pdf_path")
+    .eq("wpq_id", wpqId);
+  const { data: valRows } = await supabase
+    .from("validation_records")
+    .select("supporting_doc_path")
+    .eq("wpq_id", wpqId);
+
+  const byBucket: Record<string, string[]> = {};
+  const addFile = (bucket: string, path: string | null | undefined) => {
+    if (path) (byBucket[bucket] ??= []).push(path);
+  };
+  addFile("generated-pdfs", q.certificate_pdf_path);
+  for (const path of q.legacy_document_paths ?? []) addFile("ndt-reports", path);
+  for (const row of ndtRows ?? []) addFile("ndt-reports", row.report_pdf_path);
+  for (const row of valRows ?? [])
+    addFile("ndt-reports", row.supporting_doc_path);
+
+  for (const [bucket, paths] of Object.entries(byBucket)) {
+    if (paths.length) await supabase.storage.from(bucket).remove(paths);
+  }
+
+  const { error } = await supabase
+    .from("qualification_records")
+    .delete()
+    .eq("id", wpqId)
+    .eq("org_id", org.id)
+    .eq("welder_id", welderId);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/welders/${welderId}`);
+  revalidatePath("/masterlist");
+  revalidatePath("/welders");
+  redirect(`/welders/${welderId}`);
+}
+
+/** Deletes a single continuity/revalidation log entry and its uploaded doc. */
+export async function deleteValidation(
+  welderId: string,
+  validationId: string,
+) {
+  const { org } = await requireSession();
+  const supabase = await createClient();
+
+  const { data: rec } = await supabase
+    .from("validation_records")
+    .select("id, supporting_doc_path")
+    .eq("id", validationId)
+    .eq("org_id", org.id)
+    .single();
+
+  if (!rec) throw new Error("Log entry not found.");
+  const r = rec as { id: string; supporting_doc_path: string | null };
+
+  if (r.supporting_doc_path) {
+    await supabase.storage.from("ndt-reports").remove([r.supporting_doc_path]);
+  }
+
+  const { error } = await supabase
+    .from("validation_records")
+    .delete()
+    .eq("id", validationId)
+    .eq("org_id", org.id);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/welders/${welderId}`);
+}
+
 export async function saveValidation(
   welderId: string,
   wpqId: string,
@@ -448,18 +494,23 @@ export async function saveValidation(
     newExpiry = extendExpiry(q.revalidation_method, base);
   }
 
-  await supabase.from("validation_records").insert({
-    org_id: org.id,
-    wpq_id: wpqId,
-    validated_on: validatedOn,
-    supporting_doc_path: docPath,
-    new_expiry_date: newExpiry,
-    validator_name: validatorName,
-    note,
-    kind,
-  });
+  const { error: insertError } = await supabase
+    .from("validation_records")
+    .insert({
+      org_id: org.id,
+      wpq_id: wpqId,
+      validated_on: validatedOn,
+      supporting_doc_path: docPath,
+      new_expiry_date: newExpiry,
+      validator_name: validatorName,
+      note,
+      kind,
+    });
+  if (insertError) {
+    throw new Error(`Could not log entry: ${insertError.message}`);
+  }
 
-  await supabase
+  const { error: updateError } = await supabase
     .from("qualification_records")
     .update({
       continuity_last_verified:
@@ -471,9 +522,13 @@ export async function saveValidation(
     })
     .eq("id", wpqId)
     .eq("org_id", org.id);
+  if (updateError) {
+    throw new Error(`Could not update qualification: ${updateError.message}`);
+  }
 
+  // Refresh in place (no redirect) so the selected qualification stays
+  // selected in the master-detail view after logging an entry.
   revalidatePath(`/welders/${welderId}`);
-  redirect(`/welders/${welderId}`);
 }
 
 export async function saveLegacy(welderId: string, formData: FormData) {
