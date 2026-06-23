@@ -15,7 +15,7 @@ export interface Slice {
   value: number;
 }
 
-const CHART_COLORS = [
+const CHART_COLORS_LIGHT = [
   "#f90a08",
   "#161616",
   "#d43c3b",
@@ -24,6 +24,18 @@ const CHART_COLORS = [
   "#ffbbb4",
   "#de181a",
   "#9a9a9a",
+];
+
+/** Light neutrals instead of near-black so slices + legend stay visible on dark panels. */
+const CHART_COLORS_DARK = [
+  "#f90a08",
+  "#ededed",
+  "#f48789",
+  "#fca5a5",
+  "#a3a3a3",
+  "#ffbbb4",
+  "#ef4444",
+  "#d4d4d4",
 ];
 
 const STATUS_COLORS_LIGHT: Record<string, string> = {
@@ -59,6 +71,9 @@ export function DonutCard({
   const { resolvedTheme } = useAppTheme();
   const isDark = resolvedTheme === "dark";
   const statusColors = isDark ? STATUS_COLORS_DARK : STATUS_COLORS_LIGHT;
+  const chartColors = isDark ? CHART_COLORS_DARK : CHART_COLORS_LIGHT;
+  const tooltipFg = isDark ? "#ededed" : "#161616";
+  const legendFg = isDark ? "#d4d4d4" : "#4a4a4a";
 
   return (
     <div className="rounded-[var(--radius-card)] border border-silver bg-panel p-6">
@@ -87,8 +102,9 @@ export function DonutCard({
                     key={entry.name}
                     fill={
                       useStatusColors
-                        ? statusColors[entry.name] ?? CHART_COLORS[i % CHART_COLORS.length]
-                        : CHART_COLORS[i % CHART_COLORS.length]
+                        ? statusColors[entry.name] ??
+                          chartColors[i % chartColors.length]
+                        : chartColors[i % chartColors.length]
                     }
                   />
                 ))}
@@ -98,17 +114,22 @@ export function DonutCard({
                   borderRadius: 10,
                   border: isDark ? "1px solid #2e2e2e" : "1px solid #e0e2e6",
                   backgroundColor: isDark ? "#1a1a1a" : "#ffffff",
-                  color: isDark ? "#ededed" : "#161616",
+                  color: tooltipFg,
                   fontSize: 13,
                   fontFamily: "var(--font-inter)",
                 }}
+                itemStyle={{ color: tooltipFg }}
+                labelStyle={{ color: tooltipFg }}
               />
               <Legend
                 iconType="circle"
+                formatter={(value) => (
+                  <span style={{ color: legendFg }}>{value}</span>
+                )}
                 wrapperStyle={{
                   fontSize: 12,
                   fontFamily: "var(--font-inter)",
-                  color: isDark ? "#a3a3a3" : "#4a4a4a",
+                  color: legendFg,
                 }}
               />
             </PieChart>
