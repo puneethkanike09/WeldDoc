@@ -6,7 +6,6 @@ import { qrDataUrl, verifyUrl } from "@/lib/qr";
 import {
   CertificateDocument,
   type CertificateData,
-  type SignatoryWithUrls,
 } from "@/lib/pdf/certificate";
 import { buildCertNo } from "@/lib/iso9606/certificate-model";
 import type {
@@ -14,7 +13,6 @@ import type {
   Organization,
   QualificationRecord,
   RangeOfApproval,
-  Signatory,
   ValidationRecord,
   Welder,
 } from "@/types/db";
@@ -53,7 +51,7 @@ export async function GET(
     return new Response("Not found", { status: 404 });
   }
 
-  const [{ data: range }, { data: ndt }, { data: sigs }, { data: validations }] =
+  const [{ data: range }, { data: ndt }, { data: validations }] =
     await Promise.all([
     supabase
       .from("ranges_of_approval")
@@ -62,25 +60,11 @@ export async function GET(
       .maybeSingle(),
     supabase.from("ndt_dt_records").select("*").eq("wpq_id", wpqId),
     supabase
-      .from("signatories")
-      .select("*")
-      .eq("org_id", profile.org_id)
-      .eq("is_active", true)
-      .order("role", { ascending: true }),
-    supabase
       .from("validation_records")
       .select("*")
       .eq("wpq_id", wpqId)
       .order("validated_on", { ascending: true }),
   ]);
-
-  const signatories: SignatoryWithUrls[] = await Promise.all(
-    ((sigs ?? []) as Signatory[]).map(async (s) => ({
-      ...s,
-      signaturePublicUrl: await resolveUrl("signatures", s.signature_path),
-      stampPublicUrl: await resolveUrl("stamps", s.stamp_path),
-    })),
-  );
 
   const w = welder as Welder;
   const photoUrl = await resolveUrl("welder-photos", w.photo_path);
@@ -94,7 +78,6 @@ export async function GET(
     range: (range as RangeOfApproval) ?? null,
     ndt: (ndt ?? []) as NdtDtRecord[],
     validations: (validations ?? []) as ValidationRecord[],
-    signatories,
     qrDataUrl: qr,
     photoUrl,
     logoUrl,

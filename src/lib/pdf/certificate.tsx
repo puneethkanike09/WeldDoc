@@ -23,15 +23,9 @@ import type {
   Organization,
   QualificationRecord,
   RangeOfApproval,
-  Signatory,
   ValidationRecord,
   Welder,
 } from "@/types/db";
-
-export interface SignatoryWithUrls extends Signatory {
-  signaturePublicUrl: string | null;
-  stampPublicUrl: string | null;
-}
 
 export interface CertificateData {
   org: Organization;
@@ -40,7 +34,6 @@ export interface CertificateData {
   range: RangeOfApproval | null;
   ndt: NdtDtRecord[];
   validations: ValidationRecord[];
-  signatories: SignatoryWithUrls[];
   qrDataUrl: string;
   photoUrl: string | null;
   logoUrl: string | null;
@@ -237,7 +230,6 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
     range,
     ndt,
     validations,
-    signatories,
     qrDataUrl,
     photoUrl,
     logoUrl,
@@ -246,8 +238,6 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
 
   const designation = buildDesignation(wpq, range);
   const rows = buildCertRows(wpq, range);
-  const examiner =
-    signatories.find((s) => s.role === "examining_body") ?? signatories[0] ?? null;
   const continuity = continuityRows(validations);
   const examinerRows = examinerRevalidationRows(validations);
   const issueDate = fmt(wpq.certificate_issued_date ?? wpq.date_of_welding);
@@ -625,29 +615,25 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
               </Text>
               <View
                 style={{
-                  flexDirection: "row",
-                  alignItems: "flex-end",
                   minHeight: 34,
-                  gap: 6,
+                  justifyContent: "flex-end",
                 }}
               >
-                <Text style={{ fontSize: 7.5, flex: 1 }}>
-                  {wpq.examiner_name ?? examiner?.name ?? ""}
+                <Text style={{ fontSize: 7.5 }}>
+                  {wpq.examiner_name ?? ""}
                 </Text>
-                {examiner?.signaturePublicUrl ? (
-                  // eslint-disable-next-line jsx-a11y/alt-text
-                  <Image
-                    src={examiner.signaturePublicUrl}
-                    style={{ height: 26, width: 54, objectFit: "contain" }}
-                  />
-                ) : null}
-                {examiner?.stampPublicUrl ? (
-                  // eslint-disable-next-line jsx-a11y/alt-text
-                  <Image
-                    src={examiner.stampPublicUrl}
-                    style={{ height: 30, width: 30, objectFit: "contain" }}
-                  />
-                ) : null}
+                <View
+                  style={{
+                    marginTop: 14,
+                    borderTopWidth: HAIR,
+                    borderColor: COLORS.charcoal,
+                    paddingTop: 2,
+                  }}
+                >
+                  <Text style={{ fontSize: 6, color: COLORS.steel }}>
+                    Signature &amp; stamp
+                  </Text>
+                </View>
               </View>
               <Text style={{ fontSize: 7.5, marginTop: 2 }}>
                 Date of issue: {issueDate}
@@ -659,7 +645,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
                 Location: {welder.branch_location || org.location_code || "—"}
               </Text>
               <Text style={{ fontSize: 7.5 }}>
-                Examining Body: {examiner?.organisation ?? wpq.examiner_ref ?? "—"}
+                Examining Body: {wpq.examiner_ref ?? "—"}
               </Text>
               <Text
                 style={{

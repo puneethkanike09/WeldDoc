@@ -1,4 +1,4 @@
-import { Document, Page, View, Text, Image } from "@react-pdf/renderer";
+import { Document, Page, View, Text } from "@react-pdf/renderer";
 import { COLORS } from "./styles";
 import { processLabel } from "@/lib/iso9606/constants";
 import type {
@@ -21,20 +21,10 @@ export interface SheetRow {
   main: string | null;
 }
 
-export interface SheetSignatory {
-  name: string;
-  designation: string | null;
-  organisation: string | null;
-  signatureUrl: string | null;
-  stampUrl: string | null;
-}
-
 export interface SheetData {
   org: Organization;
   report: QualificationTestReport;
   rows: SheetRow[];
-  manufacturer: SheetSignatory | null;
-  examiner: SheetSignatory | null;
 }
 
 function fmt(d: string | null): string {
@@ -53,7 +43,7 @@ function res(v: string | null): string {
 const border = { borderColor: COLORS.silver, borderWidth: 0.5 };
 
 export function ReportSheetDocument({ data }: { data: SheetData }) {
-  const { org, report, rows, manufacturer, examiner } = data;
+  const { org, report, rows } = data;
   const isBW = report.joint_category === "BW";
   const mainLabel = isBW ? "RT / UT" : "FRACTURE";
 
@@ -150,7 +140,7 @@ export function ReportSheetDocument({ data }: { data: SheetData }) {
           ))}
         </View>
 
-        {/* Signatories */}
+        {/* Signatories — signed by hand on the printed sheet */}
         <View
           style={{
             flexDirection: "row",
@@ -158,8 +148,8 @@ export function ReportSheetDocument({ data }: { data: SheetData }) {
             marginTop: 24,
           }}
         >
-          <SignBlock label="Manufacturer" sig={manufacturer} />
-          <SignBlock label="Examining Body" sig={examiner} />
+          <SignBlock label="Manufacturer" />
+          <SignBlock label="Examining Body" />
         </View>
 
         <Text style={{ marginTop: 12, fontSize: 7, color: COLORS.steel }}>
@@ -178,44 +168,18 @@ function Cell({ w, children }: { w: number; children: React.ReactNode }) {
   );
 }
 
-function SignBlock({
-  label,
-  sig,
-}: {
-  label: string;
-  sig: SheetSignatory | null;
-}) {
+function SignBlock({ label }: { label: string }) {
   return (
     <View style={{ width: "45%" }}>
       <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 9, color: COLORS.onyx }}>
         {label}
       </Text>
-      <View
-        style={{
-          height: 40,
-          flexDirection: "row",
-          alignItems: "flex-end",
-          gap: 8,
-          marginTop: 2,
-        }}
-      >
-        {sig?.signatureUrl ? (
-          // eslint-disable-next-line jsx-a11y/alt-text
-          <Image src={sig.signatureUrl} style={{ height: 34, width: 80, objectFit: "contain" }} />
-        ) : null}
-        {sig?.stampUrl ? (
-          // eslint-disable-next-line jsx-a11y/alt-text
-          <Image src={sig.stampUrl} style={{ height: 38, width: 38, objectFit: "contain" }} />
-        ) : null}
+      <View style={{ height: 40 }} />
+      <View style={{ borderTopWidth: 0.5, borderColor: COLORS.onyx }}>
+        <Text style={{ fontSize: 7.5, color: COLORS.graphite, marginTop: 2 }}>
+          Name, signature &amp; stamp
+        </Text>
       </View>
-      <Text style={{ fontSize: 8, marginTop: 4 }}>
-        Name: {sig?.name ?? "—"}
-      </Text>
-      <Text style={{ fontSize: 7.5, color: COLORS.graphite }}>
-        {sig
-          ? `${sig.designation ?? ""}${sig.organisation ? ` · ${sig.organisation}` : ""}`
-          : ""}
-      </Text>
     </View>
   );
 }

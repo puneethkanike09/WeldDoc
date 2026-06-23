@@ -11,7 +11,6 @@ export type WpqStatus =
   | "Superseded";
 export type RevalidationMethod = "9.3a" | "9.3b" | "9.3c";
 export type ValidationKind = "continuity" | "revalidation";
-export type SignatoryRole = "manufacturer" | "examining_body";
 export type TestResult = "Pass" | "Fail" | "NA";
 
 export interface Organization {
@@ -33,19 +32,6 @@ export interface Profile {
   org_id: string;
   full_name: string | null;
   email: string | null;
-  created_at: string;
-}
-
-export interface Signatory {
-  id: string;
-  org_id: string;
-  name: string;
-  designation: string | null;
-  organisation: string | null;
-  role: SignatoryRole;
-  signature_path: string | null;
-  stamp_path: string | null;
-  is_active: boolean;
   created_at: string;
 }
 
@@ -76,8 +62,6 @@ export interface QualificationTestReport {
   joint_category: JointCategory;
   test_date: string;
   wps_no: string | null;
-  manufacturer_signatory_id: string | null;
-  examining_body_signatory_id: string | null;
   remarks: string | null;
   sheet_pdf_path: string | null;
   created_by: string | null;

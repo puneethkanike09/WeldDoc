@@ -6,6 +6,7 @@
  */
 import pg from "pg";
 import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -53,6 +54,15 @@ try {
   console.log(`✓ Connected\nRunning ${file} ...`);
   await client.query(sql);
   console.log("✅ Migration applied.");
+
+  if (file === "0009_drop_signatories.sql") {
+    console.log("\nRemoving signature/stamp storage buckets ...");
+    const result = spawnSync(process.execPath, ["scripts/drop-signatory-storage.mjs"], {
+      cwd: root,
+      stdio: "inherit",
+    });
+    if (result.status !== 0) process.exitCode = 1;
+  }
 } catch (err) {
   console.error("❌ Failed:", err.message);
   process.exitCode = 1;

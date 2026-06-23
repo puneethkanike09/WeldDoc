@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { ReportBuilder } from "../report-builder";
 import { createReport } from "../actions";
-import type { Signatory, Welder } from "@/types/db";
+import type { Welder } from "@/types/db";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata: Metadata = { title: "New test report" };
@@ -14,18 +14,11 @@ export default async function NewReportPage() {
   const { org } = await requireSession();
   const supabase = await createClient();
 
-  const [{ data: welders }, { data: sigs }] = await Promise.all([
-    supabase
-      .from("welders")
-      .select("id, full_name, welder_id, is_new_welder")
-      .eq("org_id", org.id)
-      .order("full_name"),
-    supabase
-      .from("signatories")
-      .select("*")
-      .eq("org_id", org.id)
-      .eq("is_active", true),
-  ]);
+  const { data: welders } = await supabase
+    .from("welders")
+    .select("id, full_name, welder_id, is_new_welder")
+    .eq("org_id", org.id)
+    .order("full_name");
 
   return (
     <>
@@ -51,7 +44,6 @@ export default async function NewReportPage() {
               Welder,
               "id" | "full_name" | "welder_id" | "is_new_welder"
             >[]}
-            signatories={(sigs ?? []) as Signatory[]}
           />
         )}
       </div>

@@ -17,7 +17,7 @@ import {
 import { collectReportFormErrors } from "@/lib/reports/validate-report-rows";
 import { useFormSubmit } from "@/lib/form-toast";
 import type { FieldErrors } from "@/lib/field-errors";
-import type { JointCategory, ProductType, Signatory } from "@/types/db";
+import type { JointCategory, ProductType } from "@/types/db";
 import { FilePlus2, Loader2, Plus, Trash2 } from "lucide-react";
 
 const invalidBorder = "border-ember ring-1 ring-ember/20";
@@ -77,18 +77,14 @@ function Submit({ pending }: { pending: boolean }) {
 export function ReportBuilder({
   action,
   welders,
-  signatories,
 }: {
   action: (fd: FormData) => Promise<void>;
   welders: WelderOption[];
-  signatories: Signatory[];
 }) {
   const [category, setCategory] = useState<JointCategory>("BW");
   const [rows, setRows] = useState<Row[]>([newRow()]);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
-  const manufacturers = signatories.filter((s) => s.role === "manufacturer");
-  const examiners = signatories.filter((s) => s.role === "examining_body");
   const positions = category === "FW" ? FW_POSITIONS : BW_POSITIONS;
 
   const serialized = useMemo(
@@ -184,26 +180,6 @@ export function ReportBuilder({
                 className={cn(fieldErrors.wps_no && invalidBorder)}
                 onChange={() => clearError("wps_no")}
               />
-            </Field>
-            <Field label="Manufacturer signatory">
-              <Select name="manufacturer_signatory_id" defaultValue="">
-                <option value="">— none —</option>
-                {manufacturers.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Field label="Examining body signatory">
-              <Select name="examining_body_signatory_id" defaultValue="">
-                <option value="">— none —</option>
-                {examiners.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </Select>
             </Field>
             <Field label="Revalidation method" required>
               <Select name="revalidation_method" defaultValue="9.3b" required>

@@ -10,8 +10,7 @@ truncate table
   ranges_of_approval,
   qualification_records,
   qualification_test_reports,
-  welders,
-  signatories
+  welders
 restart identity cascade;
 
 delete from public.profiles;

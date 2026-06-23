@@ -43,7 +43,6 @@ import type {
   JointCategory,
   NdtDtRecord,
   QualificationRecord,
-  Signatory,
 } from "@/types/db";
 import type { FieldErrors } from "@/lib/field-errors";
 import { cn } from "@/lib/utils";
@@ -779,13 +778,11 @@ export function CertificateStep({
   welderId,
   wpq,
   rangeSummary,
-  signatories,
 }: {
   action: (fd: FormData) => void;
   welderId: string;
   wpq: QualificationRecord;
   rangeSummary: string | null;
-  signatories: Signatory[];
 }) {
   const validate = useCallback(
     (formData: FormData) => getCertificateIssueFieldErrors(formData),
@@ -799,7 +796,7 @@ export function CertificateStep({
           <CardBody className="space-y-5">
             <Header
               title="Step 4 — Generate certificate"
-              sub="Review the computed range, confirm the date and issue the stamped certificate."
+              sub="Review the computed range, confirm the date and issue the certificate. The printed certificate is signed by hand."
             />
 
             <div className="rounded-[10px] bg-frost p-4">
@@ -864,17 +861,10 @@ export function CertificateStep({
               </span>
             </label>
 
-            {signatories.length === 0 ? (
-              <p className="rounded-[10px] bg-expiring/15 px-3 py-2 text-sm text-[#8a6a00]">
-                Tip: add signatories with signature &amp; stamp images in
-                Settings so they are applied automatically to the certificate
-                PDF.
-              </p>
-            ) : (
-              <p className="text-sm text-graphite">
-                {signatories.length} signatory record(s) available for stamping.
-              </p>
-            )}
+            <p className="rounded-[10px] bg-frost px-3 py-2 text-sm text-graphite">
+              The certificate leaves a blank examining-body area so it can be
+              signed and stamped by hand after printing.
+            </p>
 
             <div className="flex flex-wrap items-center justify-between gap-3">
               <StepPreviousLink welderId={welderId} wpqId={wpq.id} step={4} />

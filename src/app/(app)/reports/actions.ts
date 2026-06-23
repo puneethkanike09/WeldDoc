@@ -39,8 +39,6 @@ export async function createReport(formData: FormData) {
   const testDate = s(formData.get("test_date")) ?? new Date().toISOString().slice(0, 10);
   const wpsNo = s(formData.get("wps_no"));
   if (!wpsNo) throw new Error("WPS number is required.");
-  const manufacturerId = s(formData.get("manufacturer_signatory_id"));
-  const examiningId = s(formData.get("examining_body_signatory_id"));
   const remarks = s(formData.get("remarks"));
   const method = (s(formData.get("revalidation_method")) ?? "9.3b") as RevalidationMethod;
 
@@ -51,17 +49,6 @@ export async function createReport(formData: FormData) {
     rows = [];
   }
   if (rows.length === 0) throw new Error("Add at least one welder to the report.");
-
-  // Examiner name for the WPQ records.
-  let examinerName: string | null = null;
-  if (examiningId) {
-    const { data } = await supabase
-      .from("signatories")
-      .select("name")
-      .eq("id", examiningId)
-      .single();
-    examinerName = data?.name ?? null;
-  }
 
   const { data: reportNumber, error: rnErr } = await supabase.rpc(
     "next_report_number",
@@ -78,8 +65,6 @@ export async function createReport(formData: FormData) {
       joint_category: category,
       test_date: testDate,
       wps_no: wpsNo,
-      manufacturer_signatory_id: manufacturerId,
-      examining_body_signatory_id: examiningId,
       remarks,
       created_by: userId,
     })
@@ -118,7 +103,6 @@ export async function createReport(formData: FormData) {
         deposited_thickness_mm: category === "FW" ? row.testThickness : null,
         pipe_od_mm: row.pipeOd,
         wps_reference: wpsNo,
-        examiner_name: examinerName,
         date_of_welding: testDate,
         revalidation_method: method,
         wpq_status: allPass ? "Approved" : "Failed",

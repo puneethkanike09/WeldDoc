@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { uploadFile } from "@/lib/storage";
-import type { SignatoryRole } from "@/types/db";
 
 function str(v: FormDataEntryValue | null): string | null {
   const s = typeof v === "string" ? v.trim() : "";
@@ -48,48 +47,5 @@ export async function updateOrgSettings(formData: FormData) {
     .eq("id", org.id);
   if (error) throw new Error(error.message);
 
-  revalidatePath("/settings");
-}
-
-export async function addSignatory(formData: FormData) {
-  const { org } = await requireSession();
-  const supabase = await createClient();
-
-  const signature = formData.get("signature");
-  const stamp = formData.get("stamp");
-  const signaturePath = await uploadFile(
-    "signatures",
-    signature instanceof File ? signature : null,
-    `${org.id}`,
-  );
-  const stampPath = await uploadFile(
-    "stamps",
-    stamp instanceof File ? stamp : null,
-    `${org.id}`,
-  );
-
-  const { error } = await supabase.from("signatories").insert({
-    org_id: org.id,
-    name: str(formData.get("name")) ?? "Unnamed",
-    designation: str(formData.get("designation")),
-    organisation: str(formData.get("organisation")),
-    role: (str(formData.get("role")) ?? "manufacturer") as SignatoryRole,
-    signature_path: signaturePath,
-    stamp_path: stampPath,
-    is_active: true,
-  });
-  if (error) throw new Error(error.message);
-
-  revalidatePath("/settings");
-}
-
-export async function deleteSignatory(signatoryId: string) {
-  const { org } = await requireSession();
-  const supabase = await createClient();
-  await supabase
-    .from("signatories")
-    .update({ is_active: false })
-    .eq("id", signatoryId)
-    .eq("org_id", org.id);
   revalidatePath("/settings");
 }

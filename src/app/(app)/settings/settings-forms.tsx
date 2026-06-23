@@ -3,12 +3,11 @@
 import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Input, Textarea, Field } from "@/components/ui/input";
-import { Select } from "@/components/sui/select";
 import { Button } from "@/components/ui/button";
 import { FileDropzone } from "@/components/ui/file-dropzone";
 import { useFormSubmit } from "@/lib/form-toast";
 import type { FieldErrors } from "@/lib/field-errors";
-import { Loader2, Save as SaveIcon, UserPlus } from "lucide-react";
+import { Loader2, Save as SaveIcon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Organization } from "@/types/db";
 
@@ -141,76 +140,6 @@ export function OrgSettingsForm({
       </Field>
       <div className="flex justify-end">
         <Save label="Save settings" icon={SaveIcon} pending={pending} />
-      </div>
-    </form>
-  );
-}
-
-export function SignatoryForm({
-  action,
-}: {
-  action: (fd: FormData) => Promise<void>;
-}) {
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-
-  const validate = useCallback((formData: FormData) => {
-    const errors: FieldErrors = {};
-    if (!str(formData.get("name"))) errors.name = "Signatory name is required.";
-    setFieldErrors(errors);
-    return errors;
-  }, []);
-
-  const { onSubmit, pending } = useFormSubmit(action, validate);
-
-  return (
-    <form onSubmit={onSubmit} className="space-y-4" noValidate>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Name" required error={fieldErrors.name}>
-          <Input
-            name="name"
-            placeholder="Jordan Lee"
-            className={cn(fieldErrors.name && invalidBorder)}
-            onChange={() =>
-              setFieldErrors((prev) => {
-                if (!prev.name) return prev;
-                const next = { ...prev };
-                delete next.name;
-                return next;
-              })
-            }
-          />
-        </Field>
-        <Field label="Role">
-          <Select name="role" defaultValue="manufacturer">
-            <option value="manufacturer">Manufacturer</option>
-            <option value="examining_body">Examining body / TPI</option>
-          </Select>
-        </Field>
-        <Field label="Designation">
-          <Input name="designation" placeholder="Welding Engineer" />
-        </Field>
-        <Field label="Organisation">
-          <Input name="organisation" placeholder="Acme Fabrication / TPI Agency" />
-        </Field>
-        <Field label="Signature image">
-          <FileDropzone
-            name="signature"
-            accept="image/*"
-            compact
-            placeholder="Drop signature (PNG) or click to browse"
-          />
-        </Field>
-        <Field label="Stamp image">
-          <FileDropzone
-            name="stamp"
-            accept="image/*"
-            compact
-            placeholder="Drop stamp (PNG) or click to browse"
-          />
-        </Field>
-      </div>
-      <div className="flex justify-end">
-        <Save label="Add signatory" icon={UserPlus} pending={pending} />
       </div>
     </form>
   );

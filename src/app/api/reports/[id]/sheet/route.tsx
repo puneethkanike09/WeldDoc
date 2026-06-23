@@ -1,37 +1,21 @@
 import { NextRequest } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createClient } from "@/lib/supabase/server";
-import { resolveUrl } from "@/lib/storage";
 import {
   ReportSheetDocument,
   type SheetData,
   type SheetRow,
-  type SheetSignatory,
 } from "@/lib/pdf/report-sheet";
 import type {
   NdtDtRecord,
   Organization,
   QualificationRecord,
   QualificationTestReport,
-  Signatory,
   Welder,
 } from "@/types/db";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-async function toSheetSig(
-  s: Signatory | null,
-): Promise<SheetSignatory | null> {
-  if (!s) return null;
-  return {
-    name: s.name,
-    designation: s.designation,
-    organisation: s.organisation,
-    signatureUrl: await resolveUrl("signatures", s.signature_path),
-    stampUrl: await resolveUrl("stamps", s.stamp_path),
-  };
-}
 
 export async function GET(
   request: NextRequest,
@@ -118,28 +102,11 @@ export async function GET(
   });
 
   const r = report as QualificationTestReport;
-  const sigIds = [
-    r.manufacturer_signatory_id,
-    r.examining_body_signatory_id,
-  ].filter(Boolean) as string[];
-  const { data: sigRows } = await supabase
-    .from("signatories")
-    .select("*")
-    .in("id", sigIds.length ? sigIds : ["00000000-0000-0000-0000-000000000000"]);
-  const sigs = new Map(((sigRows ?? []) as Signatory[]).map((s) => [s.id, s]));
 
   const data: SheetData = {
     org: org as Organization,
     report: r,
     rows,
-    manufacturer: await toSheetSig(
-      r.manufacturer_signatory_id ? sigs.get(r.manufacturer_signatory_id) ?? null : null,
-    ),
-    examiner: await toSheetSig(
-      r.examining_body_signatory_id
-        ? sigs.get(r.examining_body_signatory_id) ?? null
-        : null,
-    ),
   };
 
   const buffer = await renderToBuffer(<ReportSheetDocument data={data} />);

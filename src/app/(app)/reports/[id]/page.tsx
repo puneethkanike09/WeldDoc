@@ -13,7 +13,6 @@ import type {
   NdtDtRecord,
   QualificationRecord,
   QualificationTestReport,
-  Signatory,
   Welder,
 } from "@/types/db";
 import { ArrowLeft, Download } from "lucide-react";
@@ -67,22 +66,6 @@ export default async function ReportDetailPage({
     arr.push(n);
     ndtByWpq.set(n.wpq_id, arr);
   }
-
-  const sigIds = [
-    report.manufacturer_signatory_id,
-    report.examining_body_signatory_id,
-  ].filter(Boolean) as string[];
-  const { data: sigRows } = await supabase
-    .from("signatories")
-    .select("*")
-    .in("id", sigIds.length ? sigIds : ["00000000-0000-0000-0000-000000000000"]);
-  const sigs = new Map(((sigRows ?? []) as Signatory[]).map((s) => [s.id, s]));
-  const manufacturer = report.manufacturer_signatory_id
-    ? sigs.get(report.manufacturer_signatory_id)
-    : null;
-  const examiner = report.examining_body_signatory_id
-    ? sigs.get(report.examining_body_signatory_id)
-    : null;
 
   const isBW = report.joint_category === "BW";
 
@@ -186,10 +169,13 @@ export default async function ReportDetailPage({
             )}
 
             <div className="mt-6 grid gap-6 border-t border-silver pt-6 sm:grid-cols-2">
-              <SignatoryBlock label="Manufacturer" sig={manufacturer} />
-              <SignatoryBlock label="Examining body" sig={examiner} />
+              <ManualSignBlock label="Manufacturer" />
+              <ManualSignBlock label="Examining body" />
             </div>
-            <p className="mt-4 text-xs text-steel">NOTE: (*) New welder</p>
+            <p className="mt-4 text-xs text-steel">
+              NOTE: (*) New welder · Signatures are applied by hand on the
+              printed sheet.
+            </p>
           </CardBody>
         </Card>
       </div>
@@ -204,26 +190,15 @@ function Result({ value }: { value?: string }) {
   return <Badge tone={tone}>{value === "Pass" ? "OK" : value}</Badge>;
 }
 
-function SignatoryBlock({
-  label,
-  sig,
-}: {
-  label: string;
-  sig: Signatory | null | undefined;
-}) {
+function ManualSignBlock({ label }: { label: string }) {
   return (
     <div>
       <p className="font-display text-[11px] font-semibold uppercase tracking-wide text-steel">
         {label}
       </p>
-      <p className="mt-1 font-medium text-onyx">{sig?.name ?? "—"}</p>
-      <p className="text-sm text-graphite">
-        {sig
-          ? `${sig.designation ?? ""}${
-              sig.organisation ? ` · ${sig.organisation}` : ""
-            }`
-          : "Not assigned"}
-      </p>
+      <div className="mt-8 border-t border-onyx/40 pt-1.5">
+        <p className="text-xs text-steel">Name &amp; signature</p>
+      </div>
     </div>
   );
 }

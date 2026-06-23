@@ -23,7 +23,6 @@ import type {
   NdtDtRecord,
   QualificationRecord,
   RangeOfApproval,
-  Signatory,
   Welder,
 } from "@/types/db";
 import { ArrowLeft } from "lucide-react";
@@ -79,13 +78,6 @@ export default async function QualifyPage({
       range = (r as RangeOfApproval) ?? null;
     }
   }
-
-  const { data: sigRows } = await supabase
-    .from("signatories")
-    .select("*")
-    .eq("org_id", org.id)
-    .eq("is_active", true);
-  const signatories = (sigRows ?? []) as Signatory[];
 
   const step = Math.min(Math.max(Number(sp.step) || 1, 1), 4);
 
@@ -162,7 +154,6 @@ export default async function QualifyPage({
                 welderId={id}
                 wpq={wpq}
                 rangeSummary={range?.summary ?? null}
-                signatories={signatories}
               />
             )}
 

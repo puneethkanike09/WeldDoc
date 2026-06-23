@@ -1,4 +1,4 @@
--- Clear all welder / qualification data. Keeps auth users, orgs, profiles, signatories.
+-- Clear all welder / qualification data. Keeps auth users, orgs, and profiles.
 
 begin;
 
