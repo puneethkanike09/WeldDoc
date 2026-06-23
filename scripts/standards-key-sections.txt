@@ -1,0 +1,1991 @@
+
+################################################################################
+# ISO 9606-1 §1 Scope
+################################################################################
+
+--- ISO 9606-1 §1 Scope page 11 ---
+INTERNATIONAL STANDARD 
+ISO 9606-1:2012(E)
+ 
+© ISO 2012 – All rights reserved 
+1
+ 
+Qualification testing of welders — Fusion welding — 
+Part 1: 
+Steels 
+1 
+Scope 
+This part of ISO 9606 specifies the requirements for qualification testing of welders for fusion welding of steels. 
+It provides a set of technical rules for a systematic qualification test of the welder, and enables such 
+qualifications to be uniformly accepted independently of the type of product, location and examiner or 
+examining body. 
+When qualifying welders, the emphasis is placed on the welder's ability manually to manipulate the electrode, 
+welding torch or welding blowpipe, thereby producing a weld of acceptable quality. 
+The welding processes referred to in this part of ISO 9606 include those fusion-welding processes which are 
+designated as manual or partly mechanized welding. It does not cover fully mechanized and automated 
+welding processes. 
+NOTE 
+For such processes, see ISO 14732[10]. 
+2 
+Normative references 
+The following referenced documents are indispensable for the application of this document. For dated 
+references, only the edition cited applies. For undated references, the latest edition of the referenced 
+document (including any amendments) applies. 
+ISO 857-1, Welding and allied processes — Vocabulary — Part 1: Metal welding processes 
+ISO 3834-2, Quality requirements for fusion welding of metallic materials — Part 2: Comprehensive quality 
+requirements 
+ISO 3834-3, Quality requirements for fusion welding of metallic materials — Part 3: Standard quality 
+requirements 
+ISO 4063, Welding and allied processes — Nomenclature of processes and reference numbers 
+ISO 5173, Destructive tests on welds in metallic materials — Bend tests 
+ISO 5817, Welding — Fusion-welded joints in steel, nickel, titanium and their alloys (beam welding 
+excluded) — Quality levels for imperfections 
+ISO 6947, Welding and allied processes — Welding positions 
+ISO 9017, Destructive tests on welds in metallic materials — Fracture test 
+ISO/TR 15608, Welding — Guidelines for a metallic material grouping system 
+ISO 15609-1, Specification and qualification of welding procedures for metallic materials — Welding 
+procedure specification — Part 1: Arc welding 
+BS EN ISO 9606‑1:2017
+
+
+################################################################################
+# ISO 9606-1 §5 Essential variables
+################################################################################
+
+--- ISO 9606-1 §5 Essential variables page 16 ---
+ISO 9606-1:2012(E) 
+6 
+© ISO 2012 – All rights reserved
+ 
+M 
+metal cored electrode or metal powder 
+P 
+electrode core — rutile, fast-freezing slag 
+S 
+solid wire electrode — solid rod 
+V 
+electrode core — rutile or basic/fluoride 
+W 
+electrode core — basic/fluoride, slow-freezing slag 
+Y 
+electrode core — basic/fluoride, fast-freezing slag 
+Z 
+electrode core — other types 
+4.3.3 For other weld details 
+fb 
+flux backing 
+bs 
+welding from both sides 
+ci 
+consumable insert 
+lw 
+leftward welding 
+mb 
+material backing 
+gb 
+gas backing 
+ml 
+multi-layer 
+nb 
+welding with no material backing 
+rw 
+rightward welding 
+sl 
+single layer 
+ss 
+single side welding 
+4.3.4 For bend tests 
+A 
+minimum tensile elongation after fracture required by the material specification 
+d 
+diameter of the former or the inner roller 
+ts 
+thickness of the bend test specimen 
+4.3.5 Types of arc welding 
+MAG 
+metal active gas 
+MIG 
+metal inert gas 
+TIG 
+tungsten inert gas 
+5 
+Essential variables and range of qualification 
+5.1 General 
+The qualification of welders is based on essential variables. For each essential variable, a range of 
+qualification is defined. If the welder has to weld outside the range of welder qualification, a new qualification 
+test is required. The essential variables are: 
+ welding process(es); 
+ product type (plate or pipe); 
+BS EN ISO 9606‑1:2017
+
+
+--- ISO 9606-1 §5 Essential variables page 17 ---
+ISO 9606-1:2012(E) 
+© ISO 2012 – All rights reserved 
+7
+ 
+ type of weld (butt or fillet); 
+ filler material group; 
+ filler material type; 
+ dimension (material thickness and outside pipe diameter); 
+ welding position; 
+ weld detail(s) (material backing, gas backing, flux backing, consumable insert, single side welding, both 
+side welding, single layer, multi-layer, leftward welding, rightward welding). 
+The parent material group(s) and subgroup(s), in accordance with ISO/TR 15608, that are used in the test 
+shall be recorded on the welder's qualification test certificate. 
+5.2 Welding processes  
+Welding processes are defined in ISO 857-1 and listed in 4.2. 
+Each test normally qualifies only one welding process. A change of welding process requires a new 
+qualification test. 
+Exceptions are as follows: 
+ a change from solid wire electrode 135 to a metal cored electrode 138, or vice versa, does not require 
+requalification (see Table 5); 
+ a change from solid wire electrode 121 to a tubular cored electrode 125, or vice versa, does not require 
+requalification (see Table 5); 
+ welding with 141, 143 or 145 qualifies for 141, 142, 143 and 145, but 142 only qualifies for 142; 
+ qualifying the welder for dip (short-circuit) transfer mode (131, 135 and 138) shall qualify him for other 
+transfer modes, but not vice versa.  
+However, it is permitted for a welder to be qualified for two or more welding processes by welding a single test 
+piece (multi-process joint) or by two or more separate qualification tests. The ranges of qualification 
+concerning the deposited thickness for each welding process used and for the multi-process joint for butt 
+welds are given in Tables 1 and 6. 
+BS EN ISO 9606‑1:2017
+
+
+--- ISO 9606-1 §5 Essential variables page 18 ---
+ISO 9606-1:2012(E) 
+8 
+© ISO 2012 – All rights reserved
+ 
+Table 1 — Deposited thickness range of weld metal for single and multi-process joints for butt welds 
+Welding process used for test piece 
+Deposited thickness range qualified 
+according to Table 6 
+Single process joint 
+Multi-process 
+joint 
+ 
+1 
+welding process 1 (ss nb) 
+2 
+welding process 2 (ss mb) 
+for welding process 1: 
+s = s1 
+for welding process 2: 
+s = s2 
+s = s1 + s2 
+ 
+ 
+ 
+ 
+ 
+1 
+welding process 1 
+2 
+welding process 2 
+3 
+welding with backing (ss mb) 
+4 
+welding without backing (ss nb) 
+for welding process 1: 
+s1 
+for welding process 2: 
+s2 
+for s = s1 + s2 
+welding process 1 
+only for welding of 
+the root area 
+NOTE 
+See 4.3.1 for definitions of the variables. 
+ 
+5.3 Product type 
+The qualification test shall be carried out on plate, pipe or other suitable product form. The following criteria 
+are applicable: 
+a) 
+test piece welds with outside pipe diameter D  25 mm cover welds in plates; 
+b) 
+test piece welds in plates cover welds in fixed pipe of outside pipe diameter D  500 mm; in accordance 
+with Tables 9 and 10. 
+c) 
+test piece welds in plates cover welds in rotating pipes of outside pipe diameter D  75 mm for welding 
+positions PA, PB, PC, and PD; in accordance with Tables 9 and 10. 
+BS EN ISO 9606‑1:2017
+
+
+--- ISO 9606-1 §5 Essential variables page 19 ---
+ISO 9606-1:2012(E) 
+© ISO 2012 – All rights reserved 
+9
+ 
+5.4 Type of weld 
+The qualification test shall be carried out as butt or fillet welding. The following criteria are applicable. 
+a) 
+Butt welds cover butt welds in any type of joint except branch connections [see also c)]. 
+b) 
+Butt welds do not qualify fillet welds or vice versa. It is, however, permissible to qualify a fillet weld in 
+combination with a butt weld, e.g. single bevel joint preparation with permanent material backing (a 
+minimum test piece thickness of 10 mm shall be used). See Annex C. 
+For this combination test, all testing requirements specified in this part of ISO 9606 shall be fulfilled and 
+associated ranges of qualification shall be given based on the test conditions. 
+c) 
+Butt welds in pipes qualify branch joints with an angle 60° and the same range of qualification as in 
+Tables 1 to 12. For a branch weld, the range of qualification is based on the outside diameter of the 
+branch. 
+d) 
+For applications where the type of weld cannot be qualified by means of either a butt or fillet or for branch 
+connections of less than 60°, a specific test piece should be used to qualify the welder, when specified 
+(e.g. by the product standard). 
+e) 
+Butt welds may qualify fillet welds if a supplementary fillet weld test piece (see Figure 3) is welded with 
+each process, filler material (FM) group and electrode covering/core, in accordance with Tables 3, 4, 
+and 5. The test piece shall be at least 10 mm thick, or the thickness of the butt weld test piece if the 
+thickness is less, and completed using a single layer in the PB position. For this supplementary test, the 
+welder shall be qualified for all fillet welds as given for the butt weld qualification variables related to the 
+range of qualification for fillet welds (e.g. Tables 7, 8, 9, 10 and 12). Fillet weld positions PA and PB are 
+qualified by this test. 
+5.5 Filler material grouping 
+5.5.1 General 
+The qualification test shall be carried out with filler material from one of the groups listed in Table 2. When 
+welding with filler materials outside the filler material grouping in Table 2, a separate test is required. 
+The parent material used in a qualification test should be from any suitable material from ISO/TR 15608, 
+material groups 1 to 11. 
+5.5.2 Range of qualification 
+Filler material groups are defined in Table 2. 
+Table 2 — Filler material grouping 
+Group 
+Filler material for welding of 
+Examples of applicable standards 
+FM1 
+Non-alloy and fine grain steels 
+ISO 2560,[2] ISO 14341,[8] ISO 636,[1] ISO 14171,[6] 
+ISO 17632[14] 
+FM2 
+High-strength steels 
+ISO 18275,[21] ISO 16834,[13] ISO 26304,[25] ISO 18276[22] 
+FM3 
+Creep-resisting steels Cr  3,75 % 
+ISO 3580,[3] ISO 21952,[23] ISO 24598,[24] ISO 17634[16] 
+FM4 
+Creep-resisting steels 3,75  Cr  12 % 
+ISO 3580,[3] ISO 21952,[23] ISO 24598,[24] ISO 17634[16] 
+FM5 
+Stainless and heat-resisting steels 
+ISO 3581,[4] ISO 14343,[9] ISO 17633[15] 
+FM6 
+Nickel and nickel alloys 
+ISO 14172,[7] ISO 18274[20] 
+ 
+BS EN ISO 9606‑1:2017
+
+
+--- ISO 9606-1 §5 Essential variables page 20 ---
+ISO 9606-1:2012(E) 
+10 
+© ISO 2012 – All rights reserved
+ 
+Welding with a filler material in one group qualifies the welder for welding with all other filler materials within 
+the same group, as well as other groups, listed in Table 3, and welding on parent materials from groups 1 
+to 11. 
+Table 3 — Range of qualification for filler material 
+Filler material 
+Range of qualification 
+FM1 
+FM2 
+FM3 
+FM4 
+FM5 
+FM6 
+FM1 
+ 
+ 
+— 
+— 
+— 
+— 
+FM2 
+ 
+ 
+— 
+— 
+— 
+— 
+FM3 
+ 
+ 
+ 
+— 
+— 
+— 
+FM4 
+ 
+ 
+ 
+ 
+— 
+— 
+FM5 
+— 
+— 
+— 
+— 
+ 
+— 
+FM6 
+— 
+— 
+— 
+— 
+ 
+ 
+ 
+indicates those filler materials for which the welder is qualified. 
+— 
+indicates those filler materials for which the welder is not qualified. 
+5.6 Filler material type 
+Welding with filler material qualifies for welding without filler material, but not vice versa. 
+NOTE 
+For processes 142 and 311 (without filler material), the parent material group used in the test is the material 
+group that the welder is qualified for. 
+The ranges of qualification for filler material type are given in Tables 4 and 5. 
+Table 4 — Range of qualification for covered electrodesa 
+Welding 
+process 
+Type of covering  
+used in the testb 
+Range of qualification 
+A, RA, RB, RC, RR, R 
+03, 13, 14, 19, 20, 24, 27 
+B 
+15, 16, 18, 28, 45, 48 
+C 
+10, 11 
+111 
+A, RA, RB, RC, RR, R 
+03, 13, 14, 19, 20, 24, 27 
+ 
+— 
+— 
+B 
+15, 16, 18, 28, 45, 48 
+ 
+ 
+— 
+C 
+10, 11 
+— 
+— 
+ 
+ 
+indicates those filler material types for which the welder is qualified. 
+— 
+indicates those filler material types for which the welder is not qualified. 
+a 
+For abbreviations, see 4.3.2. 
+b 
+The type of covering used in the qualification test of welders for root run welding without backing (ss nb) is the type of covering 
+qualified for root run welding in production with no backing (ss nb). 
+BS EN ISO 9606‑1:2017
+
+
+--- ISO 9606-1 §5 Essential variables page 21 ---
+ISO 9606-1:2012(E) 
+© ISO 2012 – All rights reserved 
+11
+ 
+Table 5 — Range of qualification for filler material types
+a,b 
+Filler material types used in test piece 
+Range of qualification 
+S 
+M 
+B 
+R, P, V, W, Y, Z 
+Solid wire electrode, rod (S) 
+ 
+ 
+— 
+— 
+Metal cored electrode, rod (M) 
+ 
+ 
+— 
+— 
+Flux cored electrode, rod (B) 
+— 
+— 
+ 
+ 
+Flux cored electrode, rod (R, P, V, W, Y, Z) 
+— 
+— 
+— 
+ 
+ 
+indicates those filler material types for which the welder is qualified. 
+— 
+indicates those filler material types for which the welder is not qualified. 
+a 
+For abbreviations, see 4.3.2. 
+b 
+The type of flux cored wire used in the qualification test of welders for root run welding without backing (ss, nb) is the type of flux 
+cored wire qualified for root run welding in production with no backing (ss, nb). 
+5.7 Dimensions 
+The welder qualification test of butt welds is based on the deposited thickness and outside pipe diameters. 
+The ranges of qualification are specified in Tables 6 and 7. 
+It is not intended that deposited thickness or outside pipe diameters should be measured precisely, but rather 
+the general philosophy behind the values given in Tables 6 and 7 should be applied. 
+For fillet welds, the range of qualification for material thicknesses is specified in Table 8. 
+For test pieces of different outside pipe diameters and deposited thicknesses, the welder is qualified for: 
+ the thinnest through to the thickest deposited and/or parent metal thickness qualified; and  
+ the smallest through to the largest diameter qualified (refer to Tables 6 and 7). 
+Table 6 — Range of qualification of deposited thickness for butt welds 
+Dimensions in millimetres 
+Deposited thickness of test piece  
+s 
+Range of qualificationa,b 
+s  3 
+s to 3c  
+or 
+s to 2sc 
+whichever is greater 
+3  s < 12 
+3 to 2sd 
+s  12e,f 
+3f 
+a 
+For single process and the same type of filler material, s, is equal to parent material t. 
+b 
+For branch joints, the range of qualification for deposited thickness is:  
+— 
+for set-on branch, see, for example, Figure 1 a), the deposited thickness of the branch; 
+— 
+for set-through and set-in branches, see, for example, Figure1 b) and c), the deposited  thickness of the main pipe or shell. 
+c 
+For oxyacetylene welding (311): s to 1,5s 
+d 
+For oxyacetylene welding (311): 3 to 1,5s 
+e 
+The test piece has to be welded in at least 3 layers 
+f 
+For multi-processes, s is the deposited thickness for each process. 
+ 
+BS EN ISO 9606‑1:2017
+
+
+--- ISO 9606-1 §5 Essential variables page 22 ---
+ISO 9606-1:2012(E) 
+12 
+© ISO 2012 – All rights reserved
+ 
+ 
+ 
+a)  Set-on 
+b)  Set-through 
+ 
+c)  Set-in 
+Key 
+D 
+outside pipe diameter 
+s 
+deposited thickness or fused metal thickness in butt welds 
+t 
+material thickness of test piece (plate or wall thickness) 
+1 
+branch 
+2 
+main pipe or shell 
+Figure 1 — Branch types 
+Table 7 — Range of qualification for outside pipe diameter 
+Dimensions in millimetres 
+Outside pipe diameter of test piecea
+D 
+Range of qualification 
+D  25 
+D to 2D 
+D  25 
+ 0,5D (25 mm min.) 
+a 
+For non-circular hollow sections, D is the dimension of the smaller side. 
+Table 8 — Range of qualification of material thickness for fillet welds 
+Dimensions in millimetres 
+Material thickness of test piece 
+t 
+Range of qualification 
+t  3 
+t to 2t, or 3, whichever is greater 
+t  3  
+ 3 
+ 
+BS EN ISO 9606‑1:2017
+
+
+--- ISO 9606-1 §5 Essential variables page 23 ---
+ISO 9606-1:2012(E) 
+© ISO 2012 – All rights reserved 
+13
+ 
+In the case of branch welding, the deposited thickness criteria to which Table 6 applies and the outside pipe 
+diameter criteria to which Table 7 applies are as follows: 
+ set-on: the deposited thickness and outside pipe diameter of the branch [see Figure 1 a)]; 
+ set-in or set-through: the deposited thickness of the main pipe or shell and the outside pipe diameter of 
+the branch [see Figure 1 b) and c)]. 
+5.8 Welding positions 
+The range of qualification for each welding position is given in Tables 9 and 10. The welding positions and 
+symbols refer to ISO 6947. 
+The test pieces shall be welded in accordance with the testing positions specified in ISO 6947. 
+Welding two pipes with the same outside pipe diameter, one in welding position PH and one in welding 
+position PC, also covers the range of qualification of a pipe welded in welding position H-L045 using upward 
+welding. 
+Welding two pipes with the same outside pipe diameter, one in welding position PJ and one in welding 
+position PC, also covers the range of qualification of a pipe welded in welding position J-L045 using downward 
+welding. 
+Outside pipe diameters D  150 mm can be welded in two welding positions (PH or PJ 2/3 of circumference, 
+PC 1/3 of circumference) using only one test piece. This test covers all positions for the direction of welding  
+used in the test. 
+ 
+NOTE 
+For welding position symbols, refer to ISO 6947. 
+Figure 2 — Outside pipe diameter D  150 mm, positions 
+BS EN ISO 9606‑1:2017
+
+
+--- ISO 9606-1 §5 Essential variables page 24 ---
+ISO 9606-1:2012(E) 
+14 
+© ISO 2012 – All rights reserved
+ 
+Table 9 — Range of qualification for welding positions for butt welds 
+Testing position 
+Range of qualification 
+PA 
+Flat 
+PC 
+Horizontal 
+PE 
+Overhead 
+PF 
+Vertical up 
+PG 
+Vertical down 
+PA 
+ 
+— 
+— 
+— 
+— 
+PC 
+ 
+ 
+— 
+— 
+— 
+PE (plate) 
+ 
+ 
+ 
+— 
+— 
+PF (plate) 
+ 
+— 
+— 
+ 
+— 
+PH (pipe) 
+ 
+— 
+ 
+ 
+— 
+PG (plate) 
+— 
+— 
+— 
+— 
+ 
+PJ (pipe) 
+ 
+— 
+ 
+— 
+ 
+H-L045 
+ 
+ 
+ 
+ 
+— 
+J-L045 
+ 
+ 
+ 
+— 
+ 
+NOTE 
+See also 5.3. 
+ 
+indicates those welding positions for which the welder is qualified. 
+— 
+indicates those welding positions for which the welder is not qualified. 
+Table 10 — Range of qualification for welding positions for fillet welds 
+Testing position 
+Range of qualification 
+PA 
+Flat 
+PB 
+Horizontal 
+PC 
+Horizontal 
+PD 
+Overhead 
+PE 
+Overhead 
+PF 
+Vertical up 
+PG 
+Vertical down
+PA 
+ 
+— 
+— 
+— 
+— 
+— 
+— 
+PB 
+ 
+ 
+— 
+— 
+— 
+— 
+— 
+PC 
+ 
+ 
+ 
+— 
+— 
+— 
+— 
+PD 
+ 
+ 
+ 
+ 
+ 
+— 
+— 
+PE (plate) 
+ 
+ 
+ 
+ 
+ 
+— 
+— 
+PF (plate) 
+ 
+ 
+— 
+— 
+— 
+ 
+— 
+PH (pipe) 
+ 
+ 
+ 
+ 
+ 
+ 
+— 
+PG (plate) 
+— 
+— 
+— 
+— 
+— 
+— 
+ 
+PJ (pipe) 
+ 
+ 
+— 
+ 
+ 
+— 
+ 
+NOTE 
+See also 5.3.
+ 
+indicates those welding positions for which the welder is qualified. 
+— 
+indicates those welding positions for which the welder is not qualified. 
+BS EN ISO 9606‑1:2017
+
+
+--- ISO 9606-1 §5 Essential variables page 25 ---
+ISO 9606-1:2012(E) 
+© ISO 2012 – All rights reserved 
+15
+ 
+5.9 Weld details 
+Depending on the weld details, the ranges of qualification are shown in Tables 11 and 12. 
+When welding with process 311, a change from rightward welding to leftward welding, and vice versa, 
+requires a new qualification test. 
+Table 11 — Range of qualification for backings and consumable inserts 
+Test condition 
+Range for qualification for backing and consumable inserts 
+No 
+backing 
+(ss,nb) 
+Material 
+backing 
+(ss,mb) 
+Welding from 
+both sides 
+(bs) 
+Gas 
+backing 
+(ss,gb) 
+Consumable 
+insert 
+(ci) 
+Flux 
+backing 
+(ss,fb) 
+No backing (ss,nb) 
+ 
+ 
+ 
+ 
+— 
+ 
+Material backing (ss,mb) 
+— 
+ 
+ 
+— 
+— 
+— 
+Welding from both sides (bs) 
+— 
+ 
+ 
+— 
+— 
+— 
+Gas backing (ss,gb) 
+— 
+ 
+ 
+ 
+— 
+— 
+Consumable insert (ci) 
+— 
+ 
+ 
+— 
+ 
+— 
+Flux backing (ss,fb)  
+— 
+ 
+ 
+— 
+— 
+ 
+ 
+indicates those conditions for which the welder is qualified. 
+— 
+indicates those conditions for which the welder is not qualified. 
+Table 12 — Range of qualification of layer technique for fillet welds 
+Test piece 
+Range of qualificationb 
+Single layer 
+(sl) 
+Multi-layer 
+(ml) 
+Single layer (sl) 
+ 
+— 
+Multi-layer (ml)a 
+ 
+ 
+ 
+indicates the layer technique for which the welder is qualified. 
+— 
+indicates the layer technique for which the welder is not qualified. 
+a 
+During the welding of the test piece, the examiner shall perform visual examination of the first layer in accordance with Clause 7. 
+b 
+When a welder has been qualified using a multi-layer butt weld and he or she makes the supplementary fillet weld test described in 
+5.4 e), he or she is qualified for both multi- and single layer fillet welds.
+ 
+6 
+Examination and testing 
+6.1 Examination 
+The welding of test pieces shall be witnessed by the examiner or examining body. The testing shall be verified 
+by the examiner or examining body. 
+The test pieces shall be marked with the identification of the examiner and the welder. Additionally, welding 
+positions for all test pieces shall be marked on the test piece and, for fixed pipe welds, the 12 o'clock welding 
+position shall also be marked. 
+BS EN ISO 9606‑1:2017
+
+
+################################################################################
+# ISO 9606-1 §9 Period of validity
+################################################################################
+
+--- ISO 9606-1 §9 Period of validity page 34 ---
+ISO 9606-1:2012(E) 
+24 
+© ISO 2012 – All rights reserved
+ 
+8 
+Re-tests 
+If any test fails to comply with the requirements of this part of ISO 9606, the welder may be given the 
+opportunity to repeat the qualification test once without further training. 
+9 
+Period of validity 
+9.1 Initial qualification 
+The welder's qualification begins from the date of welding of the test piece(s), provided that the required 
+testing has been carried out and the test results obtained were acceptable. The certificate needs to be 
+confirmed every 6 months otherwise the certificate(s) become(s) invalid. 
+The validity of the certificate may be extended as specified in 9.3. The chosen method of the extension of 
+qualification in accordance with 9.3, a) or b) or c), shall be stated on the certificate at the time of issue. 
+9.2 Confirmation of the validity 
+The qualifications of a welder for a process shall be confirmed every 6 months by the person responsible for 
+welding activities or examiner/examining body. This is confirming that the welder has worked within the range 
+of qualification and extends the validity of the qualification for a further 6 month period. 
+This subclause is applicable to all options of revalidation specified in 9.3. 
+9.3 Revalidation of welder qualification 
+Revalidation shall be carried out by an examiner/examining body. 
+The skill of the welder shall be periodically verified by one of the following methods. 
+a) 
+The welder shall be retested every 3 years. 
+b) 
+Every 2 years, two welds made during the last 6 months of the validity period shall be tested by 
+radiographic or ultrasonic testing or destructive testing and shall be recorded. The acceptance levels for 
+imperfections shall be as specified in Clause 7. The weld tested shall reproduce the original test 
+conditions except for thickness and outside diameter. These tests revalidate the welder's qualifications for 
+an additional 2 years. 
+c) 
+A welder's qualifications for any certificate shall be valid as long as it is confirmed according to 9.2 and 
+provided all the following conditions are fulfilled: 
+ the welder is working for the same manufacturer for whom he or she qualified, and who is 
+responsible for the manufacture of the product; 
+ the manufacturer's quality programme has been verified in accordance with ISO 3834-2 or 
+ISO 3834-3; 
+ the manufacturer has documented that the welder has produced welds of acceptable quality based 
+on application standards; the welds examined shall confirm the following conditions: welding 
+position(s), weld type (FW, BW), material backing (mb) or no material backing (nb). 
+9.4 Revocation of qualification 
+When there is a specific reason to question a welder's ability to make welds that meet the product standard 
+quality requirements, the qualifications that support the welding he or she is doing shall be revoked. All other 
+qualifications not questioned remain valid. 
+BS EN ISO 9606‑1:2017
+
+
+--- ISO 9606-1 §9 Period of validity page 35 ---
+ISO 9606-1:2012(E) 
+© ISO 2012 – All rights reserved 
+25
+ 
+10 Welder's qualification test certificate 
+It shall be verified that the welder has successfully passed the qualification test. All essential variables shall be 
+recorded on the certificate. If the test piece(s) fail(s) any of the required tests, no certificate shall be issued. 
+The certificate shall be issued under the sole responsibility of the examiner or examining body. A 
+recommended format is detailed in Annex A. If any other form of welder's qualification test certificate is used, 
+it shall contain the information required in Annex A. The examiner or examining body is responsible for 
+verifying that all essential variables are addressed in this certificate. 
+The following non-essential variables shall be recorded on the certificate: 
+ type of current and polarity; 
+ parent material group/subgroup; 
+ shielding gas. 
+In general, for each test piece, a separate welder's qualification test certificate shall be issued. 
+If more than one test piece is welded, a single welder's qualification test certificate can be issued that 
+combines the ranges of qualification of the individual test pieces. All essential variables for all tests shall be 
+recorded on the combined certificate. In this case, only one of the following essential variables is permitted to 
+differ, except those given in 5.7. 
+ type of weld, 
+ welding position, 
+ deposited thickness. 
+It is not permissible to change other essential variables. 
+It is recommended that the welder's qualification test certificates be issued in the local language plus at least 
+one of the following languages: English, French or German. 
+The examination of job knowledge (see Annex B) shall be designated by “Accepted” or “Not tested”. 
+In accordance with 5.4 e) the supplementary fillet weld test shall be recorded on the certificate for the 
+associated butt weld qualification. 
+11 Designation 
+The designation of a welder qualification shall comprise the following items in the order given (the system is 
+arranged so that it can be used for computerization): 
+a) 
+the number of this part of ISO 9606 (ISO 9606-1); 
+b) 
+the essential variables: 
+1) 
+welding processes: refer to 4.2, 5.2, and ISO 4063, 
+2) 
+product type: plate (P), pipe (T), refer to 4.3.1 and 5.3, 
+3) 
+type of weld: butt weld (BW), fillet weld (FW), refer to 5.4, 
+4) 
+filler material group or parent material group (autogenous welding): refer to 5.5, 
+BS EN ISO 9606‑1:2017
+
+
+################################################################################
+# ISO 9606-1 §10-11 Certificate & designation
+################################################################################
+
+--- ISO 9606-1 §10-11 Certificate & designation page 35 ---
+ISO 9606-1:2012(E) 
+© ISO 2012 – All rights reserved 
+25
+ 
+10 Welder's qualification test certificate 
+It shall be verified that the welder has successfully passed the qualification test. All essential variables shall be 
+recorded on the certificate. If the test piece(s) fail(s) any of the required tests, no certificate shall be issued. 
+The certificate shall be issued under the sole responsibility of the examiner or examining body. A 
+recommended format is detailed in Annex A. If any other form of welder's qualification test certificate is used, 
+it shall contain the information required in Annex A. The examiner or examining body is responsible for 
+verifying that all essential variables are addressed in this certificate. 
+The following non-essential variables shall be recorded on the certificate: 
+ type of current and polarity; 
+ parent material group/subgroup; 
+ shielding gas. 
+In general, for each test piece, a separate welder's qualification test certificate shall be issued. 
+If more than one test piece is welded, a single welder's qualification test certificate can be issued that 
+combines the ranges of qualification of the individual test pieces. All essential variables for all tests shall be 
+recorded on the combined certificate. In this case, only one of the following essential variables is permitted to 
+differ, except those given in 5.7. 
+ type of weld, 
+ welding position, 
+ deposited thickness. 
+It is not permissible to change other essential variables. 
+It is recommended that the welder's qualification test certificates be issued in the local language plus at least 
+one of the following languages: English, French or German. 
+The examination of job knowledge (see Annex B) shall be designated by “Accepted” or “Not tested”. 
+In accordance with 5.4 e) the supplementary fillet weld test shall be recorded on the certificate for the 
+associated butt weld qualification. 
+11 Designation 
+The designation of a welder qualification shall comprise the following items in the order given (the system is 
+arranged so that it can be used for computerization): 
+a) 
+the number of this part of ISO 9606 (ISO 9606-1); 
+b) 
+the essential variables: 
+1) 
+welding processes: refer to 4.2, 5.2, and ISO 4063, 
+2) 
+product type: plate (P), pipe (T), refer to 4.3.1 and 5.3, 
+3) 
+type of weld: butt weld (BW), fillet weld (FW), refer to 5.4, 
+4) 
+filler material group or parent material group (autogenous welding): refer to 5.5, 
+BS EN ISO 9606‑1:2017
+
+
+--- ISO 9606-1 §10-11 Certificate & designation page 36 ---
+ISO 9606-1:2012(E) 
+26 
+© ISO 2012 – All rights reserved
+ 
+5) 
+filler material types: refer to 5.6, 
+6) 
+dimensions of test piece: deposited thickness, s, or material thickness, t, and outside pipe diameter, 
+D, refer to 5.7, 
+7) 
+welding positions: refer to 5.8 and ISO 6947, 
+8) 
+weld details: refer to 5.9. 
+The type of shielding and backing gas shall not be incorporated in the designation, but shall be included in the 
+welder's qualification test certificate (see Annex A). 
+BS EN ISO 9606‑1:2017
+
+
+################################################################################
+# ISO 9606-1 Annex A certificate
+################################################################################
+
+--- ISO 9606-1 Annex A certificate page 37 ---
+ISO 9606-1:2012(E) 
+© ISO 2012 – All rights reserved 
+27
+ 
+Annex A 
+(informative) 
+ 
+Welder's qualification test certificate 
+Designation(s): 
+ ................................................................................................................ 
+ 
+ ................................................................................................................ 
+WPS – Reference:  
+Examiner or examining body – Reference No.:
+Welder's name: 
+ 
+Identification: 
+ 
+Method of identification: 
+Photograph 
+Date and place of birth: 
+(if required) 
+Employer: 
+ 
+Code/testing standard:  
+ 
+Job knowledge: Acceptable/Not tested (delete as necessary) 
+ 
+Test piece 
+Range of qualification 
+Welding process(es);  
+ 
+ 
+Transfer mode 
+ 
+ 
+Product type (plate or pipe) 
+ 
+ 
+Type of weld 
+ 
+ 
+Parent material group(s)/subgroups 
+ 
+ 
+Filler material group(s) 
+ 
+ 
+Filler material (Designation) 
+ 
+ 
+Shielding gas 
+ 
+ 
+Auxiliaries  
+ 
+------------------------ 
+Type of current and polarity 
+ 
+------------------------ 
+Material thickness (mm) 
+ 
+ 
+Deposited thickness (mm) 
+ 
+ 
+Outside pipe diameter (mm) 
+ 
+ 
+Welding position 
+ 
+ 
+Weld details 
+ 
+ 
+Multi-layer/single layer 
+ 
+ 
+Supplementary fillet weld test (completed in conjunction with a butt weld qualification): acceptable/not acceptable  
+Type of test 
+Performed and accepted 
+Not tested 
+Name of examiner or 
+examining body: 
+Place, date and signature 
+of examiner or examining 
+body: 
+Date of issue: 2007-01-20 
+Visual testing 
+ 
+ 
+Radiographic testing 
+ 
+ 
+Fracture test 
+ 
+ 
+Bend test 
+ 
+ 
+Notch tensile test 
+ 
+ 
+Macroscopic examination 
+ 
+ 
+ 
+Revalidation 
+9.3 a) 
+ 
+Valid until 
+2010-01-20 
+ 
+Revalidation 
+9.3 b) 
+ 
+Valid until 
+2009-01-20 
+ 
+Revalidation 
+9.3 c) 
+ 
+Valid until 
+2007-07-20 
+Revalidation for qualification by examiner or examining body for the following 2 years [refer to 9.3 b)] 
+Date 
+Signature 
+Position or title 
+ 
+ 
+ 
+Confirmation of the validity by employer/welding coordinator/examiner or examining body for the following 6 months [refer to 
+9.2)] 
+Date 
+Signature 
+Position or title 
+ 
+ 
+ 
+BS EN ISO 9606‑1:2017
+
+
+--- ISO 9606-1 Annex A certificate page 38 ---
+ISO 9606-1:2012(E) 
+28 
+© ISO 2012 – All rights reserved
+ 
+Annex B 
+(informative) 
+ 
+Job knowledge 
+B.1 General 
+The test of job knowledge is recommended, but it is not mandatory. 
+However, some countries may require that the welder undergo a test of job knowledge. If the job knowledge 
+test is carried out, it should be recorded on the welder's qualification test certificate. 
+This annex outlines the job knowledge that a welder should have in order to ensure that procedures are 
+followed and common practices are complied with. The job knowledge indicated in this annex is only pitched 
+at the most basic level. 
+Owing to different training programmes in various countries, it is only proposed to standardize general 
+objectives or categories of job knowledge. The actual question used should be drawn up in the individual 
+country concerned, but should include questions on areas covered in B.2, relevant to the qualification test of 
+welders. 
+The actual tests of a welder's job knowledge may be given by any of the following methods or combinations of 
+these methods: 
+a) 
+written objective tests (multiple choice); 
+b) 
+oral questioning following a set of written questions; 
+c) 
+computer testing; 
+d) 
+demonstration/observation testing following a written set of criteria. 
+The test of job knowledge is limited to the matters related to the welding process used in the test. 
+B.2 Requirements 
+B.2.1 Welding equipment 
+B.2.1.1 
+Oxyacetylene welding 
+a) 
+Identification of gas cylinders. 
+b) 
+Identification and assembly of essential components. 
+c) 
+Selection of correct nozzles and welding blowpipes. 
+B.2.1.2 
+Arc welding 
+a) 
+Construction and maintenance of welding equipment and typical parameters. 
+b) 
+Type of welding current. 
+c) 
+Correct connection of the welding return cable. 
+BS EN ISO 9606‑1:2017
+
+
+--- ISO 9606-1 Annex A certificate page 39 ---
+ISO 9606-1:2012(E) 
+© ISO 2012 – All rights reserved 
+29
+ 
+                                                     
+B.2.2 Welding process2) 
+B.2.2.1 
+Oxyacetylene welding (311) 
+a) 
+Gas pressure. 
+b) 
+Selection of nozzle type. 
+c) 
+Type of gas flame. 
+d) 
+Effect of overheating. 
+B.2.2.2 
+Manual metal-arc welding with covered electrode (111) 
+a) 
+Classification of electrodes. 
+B.2.2.3 
+Gas and self-shielded metal-arc welding (114, 13, 14, 15) 
+a) 
+Type and size of electrodes. 
+b) 
+Identification of shielding gas and flow rate (without 114). 
+c) 
+Type, size and maintenance of nozzles/contact tip. 
+d) 
+Selection and limitations of transfer mode. 
+e) 
+Protection of the welding arc from draughts. 
+B.2.2.4 
+Submerged arc welding (121, 125) 
+a) 
+Drying, feeding and correct recovery of flux. 
+b) 
+Correct alignment and travel of welding head. 
+B.2.3 Parent metals 
+a) 
+Identification of material. 
+b) 
+Methods and control of pre-heating. 
+c) 
+Control of interpass temperature. 
+B.2.4 Filler metal types 
+a) 
+Identification of filler metal types. 
+b) 
+Storage, handling and conditions of filler metal types. 
+c) 
+Selection of correct size. 
+d) 
+Cleanliness of electrodes and filler wires. 
+e) 
+Control of wire spooling. 
+f) 
+Control and monitoring of gas flow rates. 
+2) The numbers refer to ISO 4063. 
+BS EN ISO 9606‑1:2017
+
+
+--- ISO 9606-1 Annex A certificate page 40 ---
+ISO 9606-1:2012(E) 
+30 
+© ISO 2012 – All rights reserved
+ 
+B.2.5 Safety precautions 
+B.2.5.1 
+General 
+a) 
+Safe assembly, set-up and turn-off procedures. 
+b) 
+Safe control of welding fumes and gases. 
+c) 
+Personal protection. 
+d) 
+Fire hazards. 
+e) 
+Welding in confined spaces. 
+f) 
+Awareness of welding environment. 
+B.2.5.2 
+Oxyacetylene welding 
+a) 
+Safe storage, handling and use of compressed gases. 
+b) 
+Leak detection on gas hoses and fittings. 
+c) 
+Procedure to be taken in the event of a flashback. 
+B.2.5.3 
+All arc welding processes 
+a) 
+Environment of increased hazard electric shock. 
+b) 
+Radiation from the arc. 
+c) 
+Effects of stray arcing. 
+B.2.5.4 
+Gas-shielded metal-arc welding 
+a) 
+Safe storage, handling and use of compressed gases. 
+b) 
+Leak detection on gas hoses and fittings. 
+B.2.6 Welding sequences/procedures 
+Appreciation of welding procedure requirements and the influence of welding parameters. 
+B.2.7 Joint preparation and weld representation 
+a) 
+Conformity of joint preparation to the welding procedure specification (WPS). 
+b) 
+Cleanliness of fusion faces. 
+B.2.8 Weld imperfections 
+a) 
+Identification of imperfections. 
+b) 
+Causes. 
+c) 
+Prevention and remedial action. 
+B.2.9 Welder qualification 
+The welder shall be aware of the range of the qualification. 
+BS EN ISO 9606‑1:2017
+
+
+# AWS D1.1 TOC — qualification-related
+    5. Prequalification of WPSs ... p-1
+    6. Qualification ... p-1
+  Annex G (Normative) Qualification and Calibration of UT Units with Other Approved Reference Blocks ... p-1
+    H6. Equipment Qualification ... p-1
+    J2. Prequalified WPSs ... p-1
+    J4. WPSs Qualified by Testing ... p-1
+  Annex K (Informative) Contents of Prequalified WPS ... p-1
+  Annex O (Informative) UT Equipment Qualification and Inspection Forms ... p-1
+    C-5. Prequalification of WPSs ... p-1
+    C-6. Qualification ... p-1
+
+################################################################################
+# AWS D1.1 Part C area
+################################################################################
+
+--- AWS D1.1 Part C area page 15 ---
+AWS D1.1/D1.1M2025 
+Part A-WPS Development . ................................................................ 
+62 
+5.2 General WPS Requirements ............................................................ 
+62 
+Part B-Base Metal . ...................................................................... 
+63 
+5.3 Base Metal ......................................................................... 
+63 
+Part C-Weld Joints ...................................................................... 
+63 
+5.4 Weld Joints ......................................................................... 
+63 
+Part D-Welding Processes . ................................................................ 
+65 
+5.5 Welding Processes ................................................................... 
+65 
+Part E-Filler Metals and Shielding Gases .................................................... 
+65 
+5.6 Filler Metal and Shielding Gas .......................................................... 
+65 
+Part F-Preheat and Interpass Temperature Requirements ........................................ 
+66 
+5. 7 Preheat and Interpass Temperature Requirements . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .. 66 
+Part G-WPS Requirements ................................................................ 
+67 
+5.8 WPS requirements ................................................................... 
+67 
+Part H-Postweld Heat Treatment ........................................................... 
+67 
+5.9 Postweld Heat Treatment .............................................................. 
+67 
+6. 
+Qualification .......................................................................... 
+128 
+6.1 Scope ............................................................................ 
+128 
+Part A-General Requirements ..........................
+................................... 
+128 
+6.2 General ........................................................................... 
+128 
+6.3 Common Requirements for WPS and Welding Personnel Perfo1mance Qualification .............. 
+129 
+Part B-Welding Procedure Specification (WPS) Qualification . ................................... 
+129 
+6.4 Production Welding Positions Qualified ................................................. 
+129 
+6.5 Type of Qualification Tests ............................................................ 
+129 
+6.6 Weld Types for WPS Qualification ..................................................... 
+130 
+6.7 Preparation of WPS ................................................................. 
+130 
+6.8 Essential Variables .................................................................. 
+130 
+6.9 WPS Requirements for Production Welding Using Existing Non-Wavefonn or Wavefo1m WPSs .... 132 
+6.10 Methods of Testing and Acceptance Criteria for WPS Qualification ............................ 
+132 
+6.11 CJP Groove Welds .................................................................. 
+134 
+6.12 PJPGrooveWelds .................................................................. 
+134 
+6.13 FilletWelds ........................................................................ 
+135 
+6.14 Plug and Slot Welds ................................................................. 
+136 
+6.15 Consumable Verification Test. ......................................................... 
+136 
+6 .16 Welding Processes Requiring Qualification. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13 7 
+Part C-Peiformance Qualification . ........................................................ 
+137 
+6.17 General. .......................................................................... 
+137 
+6.18 Type of Qualification Tests Required .................................................... 
+138 
+6.19 Weld Types for Welder and Welding Operator Pe1fo1mance Qualification ....................... 
+139 
+6.20 Preparation of Performance Qualification Fo1ms .......................................... 
+139 
+6.21 Essential Variables .................................................................. 
+139 
+6.22 CJP Groove Welds for Nontubular Connections ........................................... 
+139 
+6.23 Methods of Testing and Acceptance Criteria for Welder and Welding Operator Qualification ........ 
+140 
+6.24 Method of Testing and Acceptance Criteria for Tack Welder Qualification ...................... 
+141 
+6.25 Retest ............................................................................ 
+141 
+Part D-Requirements for CVN Toughness Testing ............................................. 
+141 
+6.26 General: CVN Testing ............................................................... 
+141 
+6.27 CVN Tests ........................................................................ 
+142 
+6.28 Combining FCAW-S with Other Welding Processes in a Single Joint .......................... 
+143 
+6.29 Repo1ting ......................................................................... 
+144 
+Copyright American Welding Society 
+Pro\lided b'f Accuria under license with AWS 
+XIV 
+
+
+--- AWS D1.1 Part C area page 16 ---
+ 
+xv
+7.	
+Fabrication.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 193
+7.1  Scope .  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 193
+7.2  Base Metal.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 193
+7.3  Welding Consumables and Electrode Requirements.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . . . . . . . . . . . . . . . . . . . . 193
+7.4  ESW and EGW Processes .  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 196
+7.5  Production Welding.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 196
+7.6  Preheat and Interpass Temperatures.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  . . . . . . . . . . . . . . . . . . . . . . . . . . 196
+7.7  Heat Input Control for Quenched and Tempered Steels.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . . . . . . . . . . . . . . . . . . . 197
+7.8  Postweld Heat Treatment (PWHT) for Stress Relief.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . . . . . . . . . . . . . . . . . . . . 197
+7.9  Backing.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 198
+7.10  Welding and Cutting Equipment .  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  . . . . . . . . . . . . . . . . . . . . . . . . . . . 199
+7.11  Welding Environment.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 199
+7.12  Conformance with Design.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 199
+7.13  Minimum Fillet Weld Sizes.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 199
+7.14  Preparation of Base Metal.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 199
+7.15  Reentrant Corners.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 202
+7.16  Weld Access Holes, Beam Copes, and Connection Material.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . . . . . . . . . . . . . . . . . 202
+7.17  Tack Welds and Construction Aid Welds.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  . . . . . . . . . . . . . . . . . . . . . . . . 202
+7.18  Camber in Built-Up Members.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  . . . . . . . . . . . . . . . . . . . . . . . . . . . . 203
+7.19  Subassembly Sequence. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .203
+7.20  Control of Distortion and Shrinkage .  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . . . . . . . . . . . . . . . . . . . . . . . . . . 203
+7.21  Tolerance of Joint Dimensions.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  . . . . . . . . . . . . . . . . . . . . . . . . . . . . 204
+7.22  Dimensional Tolerance of Welded Structural Members.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . . . . . . . . . . . . . . . . . . . 205
+7.23  Weld Profiles .  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 208
+7.24  Technique for Plug and Slot Welds .  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  . . . . . . . . . . . . . . . . . . . . . . . . . . 208
+7.25  Repairs.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 208
+7.26  Peening.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 210
+7.27  Caulking.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 210
+7.28  Arc Strikes.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 210
+7.29  Weld Cleaning .  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 210
+7.30  Weld Tabs.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 210
+8.	
+Inspection.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 223
+	
+Part A—General Requirements.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 223
+8.1  Scope .  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 223
+8.2  Inspection of Materials and Equipment.  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . . . . . . . . . . . . . . . . . . . . . . . . . 225
+8.3  Inspection of WPSs .  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 225
+8.4  Inspection of Welder, Welding Operator, and Tack Welder Qualifications.  .   .   .   .   .   .   .   .   .   .   .  . . . . . . . . . . . 225
+8.5  Inspection of Work and Records .  .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .  . . . . . . . 
+
+--- AWS D1.1 Part C area page 17 ---
+AWS D1.1/D1.1M2025 
+8 .17 RT Procedures . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 231 
+8.18 Examination, Report, and Disposition ofRadiographs ...................................... 
+234 
+Part F-Ultrasonic Testing (UT) of Groove Welds . ............................................. 
+235 
+8.19 General ........................................................................... 
+235 
+8.20 Qualification Requirements ........................................................... 
+235 
+8.21 UT Equipment ..................................................................... 
+235 
+8.22 Reference Standards ................................................................. 
+236 
+8.23 Equipment Qualification ............................................................. 
+237 
+8.24 Calibration for Testing ............................................................... 
+237 
+8.25 Testing Procedw·es .................................................................. 
+238 
+8.26 Preparation and Disposition of Reports .................................................. 
+239 
+8.27 Calibration of the UT Unit with IIW Type or Other Approved Reference Blocks (Annex G) ........ 
+240 
+8.28 Equipment Qualification Procedw-es .................................................... 
+241 
+8.29 Discontinuity Size Evaluation Procedures ................................................ 
+243 
+8.30 Scanning Patterns ................................................................... 
+243 
+8.31 Examples of dB Accw-acy Certification .................................................. 
+244 
+Part G-Other Examination Methods .....................
+................................... 
+244 
+8.32 General Requirements ............................................................... 
+244 
+8.33 Radiation Imaging Systems ........................................................... 
+244 
+8.34 Advanced Ultrasonic Systems ......................................................... 
+244 
+8.35 Additional Requirements ............................................................. 
+245 
+9. 
+Stud Welding .......................................................................... 
+278 
+9.1 Scope ............................................................................ 
+278 
+9.2 General Requirements ............................................................... 
+278 
+9.3 Mechanical Requirements ............................................................ 
+279 
+9.4 Workmanship/Fabrication ............................................................ 
+279 
+9.5 Technique ......................................................................... 
+280 
+9.6 Stud Application Qualification Requirements ............................................. 
+281 
+9.7 Production Control .................................................................. 
+282 
+9.8 Fabrication and Verification Inspection Requirements ...................................... 
+283 
+9.9 Manufacturers' Stud Base Qualification Requirements ...................................... 
+283 
+10. 
+Tubular Structures ..................................................................... 
+291 
+10.1 Scope ........................................................................... 
+291 
+Part A-Design of Tubular Connections ...................
+................................... 
+291 
+10.2 Design Criteria .................................................................... 
+291 
+10.3 Identification and Parts of Tubular Connections .......................................... 
+293 
+10.4 Symbols ......................................................................... 
+293 
+10.5 Weld Design ...................................................................... 
+293 
+10.6 Thickness Transition ................................................................ 
+294 
+10.7 Material Liniitations ................................................................ 
+294 
+Part B-Prequalification of Welding Procedure Specifications (WPSs) . ............................. 
+295 
+10.8 Fillet Weld Requirements ............................................................ 
+295 
+10.9 PJP Requirements .................................................................. 
+295 
+10.10 CJP Groove Weld Requirements ...................................................... 
+295 
+Part C-Welding Procedure Specification (WPS) Qualification ................................... 
+296 
+10.11 Common Requirements for WPS and Welding Personnel Pe1fonnance Qualification ............. 
+296 
+10.12 Production Welding Positions Qualified ................................................ 
+296 
+10.13 Type of Qualification Tests, Methods of Testing, and Acceptance Criteria for WPS Qualification .... 296 
+10.14 CJP Groove Welds for Tubular Connections ............................................. 
+297 
+10.15 PJP and Fillet Welds Tubular T-, Y-, or K-Connections and Butt Joints ........................ 
+298 
+Copyright American Welding Society 
+Pro\lided b'f Accuria under license with AWS 
+XVI 
+
+
+# ASME IX TOC — QW/QB articles (first 80 qual-related)
+
+################################################################################
+# ASME IX front matter
+################################################################################
+
+--- ASME IX front matter page 5 ---
+TABLE OF CONTENTS
+List of Sections . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+xii
+Foreword . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+xiii
+Statement of Policy on the Use of the ASME Single Certification Mark and Code Authorization in Advertising
+xv
+Statement of Policy on the Use of ASME Marking to Identify Manufactured Items . . . . . . . . . . . . . . . . . .
+xv
+Personnel . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+xvi
+Correspondence With the Committee . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+xxxix
+Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+xli
+Summary of Changes . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+xliv
+Cross-Referencing in the ASME BPVC . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+xlvii
+Part QG
+General Requirements . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1
+QG-100
+Scope . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1
+QG-109
+Definitions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+5
+Part QW
+Welding . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+15
+Article I
+Welding General Requirements . . . . . . . . . . . . . . . . . . . . . . . . . .
+15
+QW-100
+Scope . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+15
+QW-110
+Weld Orientation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+15
+QW-120
+Test Positions for Groove Welds . . . . . . . . . . . . . . . . . . . . . . . . . . .
+15
+QW-130
+Test Positions for Fillet Welds . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+16
+QW-140
+Types and Purposes of Tests and Examinations . . . . . . . . . . . . . . . .
+17
+QW-150
+Tension Tests . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+17
+QW-160
+Guided-Bend Tests . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+18
+QW-170
+Toughness Tests . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+19
+QW-180
+Fillet-Weld Tests . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+20
+QW-190
+Other Tests and Examinations . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+21
+Appendix I
+Rounded Indication Charts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+29
+Article II
+Welding Procedure Qualifications . . . . . . . . . . . . . . . . . . . . . . . .
+30
+QW-200
+General . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+30
+QW-210
+Preparation of Test Coupon . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+33
+QW-220
+Hybrid Welding Procedure Variables . . . . . . . . . . . . . . . . . . . . . . . .
+36
+QW-250
+Welding Variables . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+36
+QW-290
+Temper Bead Welding . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+71
+Article III
+Welding Performance Qualifications . . . . . . . . . . . . . . . . . . . . . .
+75
+QW-300
+General . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+75
+QW-310
+Qualification Test Coupons . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+77
+QW-320
+Retests and Renewal of Qualification . . . . . . . . . . . . . . . . . . . . . . . .
+78
+QW-350
+Welding Variables for Welders . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+79
+QW-360
+Welding Variables for Welding Operators . . . . . . . . . . . . . . . . . . . .
+80
+iii
+
+
+################################################################################
+# ASME IX QW-350 area
+################################################################################
+
+--- ASME IX QW-350 area page 5 ---
+TABLE OF CONTENTS
+List of Sections . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+xii
+Foreword . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+xiii
+Statement of Policy on the Use of the ASME Single Certification Mark and Code Authorization in Advertising
+xv
+Statement of Policy on the Use of ASME Marking to Identify Manufactured Items . . . . . . . . . . . . . . . . . .
+xv
+Personnel . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+xvi
+Correspondence With the Committee . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+xxxix
+Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+xli
+Summary of Changes . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+xliv
+Cross-Referencing in the ASME BPVC . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+xlvii
+Part QG
+General Requirements . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1
+QG-100
+Scope . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1
+QG-109
+Definitions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+5
+Part QW
+Welding . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+15
+Article I
+Welding General Requirements . . . . . . . . . . . . . . . . . . . . . . . . . .
+15
+QW-100
+Scope . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+15
+QW-110
+Weld Orientation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+15
+QW-120
+Test Positions for Groove Welds . . . . . . . . . . . . . . . . . . . . . . . . . . .
+15
+QW-130
+Test Positions for Fillet Welds . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+16
+QW-140
+Types and Purposes of Tests and Examinations . . . . . . . . . . . . . . . .
+17
+QW-150
+Tension Tests . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+17
+QW-160
+Guided-Bend Tests . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+18
+QW-170
+Toughness Tests . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+19
+QW-180
+Fillet-Weld Tests . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+20
+QW-190
+Other Tests and Examinations . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+21
+Appendix I
+Rounded Indication Charts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+29
+Article II
+Welding Procedure Qualifications . . . . . . . . . . . . . . . . . . . . . . . .
+30
+QW-200
+General . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+30
+QW-210
+Preparation of Test Coupon . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+33
+QW-220
+Hybrid Welding Procedure Variables . . . . . . . . . . . . . . . . . . . . . . . .
+36
+QW-250
+Welding Variables . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+36
+QW-290
+Temper Bead Welding . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+71
+Article III
+Welding Performance Qualifications . . . . . . . . . . . . . . . . . . . . . .
+75
+QW-300
+General . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+75
+QW-310
+Qualification Test Coupons . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+77
+QW-320
+Retests and Renewal of Qualification . . . . . . . . . . . . . . . . . . . . . . . .
+78
+QW-350
+Welding Variables for Welders . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+79
+QW-360
+Welding Variables for Welding Operators . . . . . . . . . . . . . . . . . . . .
+80
+iii
+
+
+--- ASME IX QW-350 area page 6 ---
+QW-380
+Special Processes . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+81
+Article IV
+Welding Data . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+84
+QW-400
+Variables . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+84
+QW-410
+Technique . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+95
+QW-420
+P-Numbers . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+100
+QW-430
+F-Numbers . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+194
+QW-440
+Weld Metal Chemical Composition . . . . . . . . . . . . . . . . . . . . . . . . .
+206
+QW-450
+Specimens . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+207
+QW-460
+Graphics . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+212
+QW-470
+Etching — Processes and Reagents . . . . . . . . . . . . . . . . . . . . . . . . .
+251
+Article V
+Standard Welding Procedure Specifications (SWPSS) . . . . . . . . . .
+253
+QW-500
+General . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+253
+QW-510
+Adoption of SWPSS . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+253
+QW-520
+Use of SWPSS Without Discrete Demonstration . . . . . . . . . . . . . . . .
+253
+QW-530
+Forms . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+254
+QW-540
+Production Use of SWPSS . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+254
+Article VI
+Material Manufacturing Using Wire-Additive Welding . . . . . . . . .
+255
+QW-600
+General . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+255
+QW-610
+Qualification Variables for Wire-Additive Welding Procedures . . . . . .
+255
+QW-620
+Specimen Testing and Acceptance Criteria for Wire-Additive Welding
+256
+QW-650
+Welding Variables . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+257
+Part QB
+Brazing . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+259
+Article XI
+Brazing General Requirements . . . . . . . . . . . . . . . . . . . . . . . . . .
+259
+QB-100
+Scope . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+259
+QB-110
+Braze Orientation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+259
+QB-120
+Test Positions for Lap, Butt, Scarf, or Rabbet Joints . . . . . . . . . . . . .
+259
+QB-140
+Types and Purposes of Tests and Examinations . . . . . . . . . . . . . . . .
+260
+QB-150
+Tension Tests . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+260
+QB-160
+Guided-Bend Tests . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+261
+QB-170
+Peel Tests . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+262
+QB-180
+Sectioning Tests and Workmanship Coupons . . . . . . . . . . . . . . . . . .
+262
+Article XII
+Brazing Procedure Qualifications . . . . . . . . . . . . . . . . . . . . . . . . .
+263
+QB-200
+General . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+263
+QB-210
+Preparation of Test Coupon . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+265
+QB-250
+Brazing Variables . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+265
+Article XIII
+Brazing Performance Qualifications . . . . . . . . . . . . . . . . . . . . . . .
+269
+QB-300
+General . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+269
+QB-310
+Qualification Test Coupons . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+270
+QB-320
+Retests and Renewal of Qualification . . . . . . . . . . . . . . . . . . . . . . . .
+270
+QB-350
+Brazing Variables for Brazers and Brazing Operators . . . . . . . . . . . .
+270
+Article XIV
+Brazing Data . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+271
+QB-400
+Variables . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+271
+QB-410
+Technique . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+272
+QB-420
+P-Numbers . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+272
+QB-430
+F-Numbers . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+272
+iv
+
+
+# ISO 14732 TOC (first 60)
+
+################################################################################
+# ISO 14732 scope/start
+################################################################################
+
+--- ISO 14732 scope/start page 1 ---
+
+
+--- ISO 14732 scope/start page 2 ---
+
+
+--- ISO 14732 scope/start page 3 ---
+
+
+--- ISO 14732 scope/start page 4 ---
+
+
+--- ISO 14732 scope/start page 5 ---

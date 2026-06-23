@@ -1,0 +1,53 @@
+be responsible for the qualification 
+of welders, welding operators and tack welders, whether the qualification is conducted by the manufacturer, Contractor, 
+or an independent testing agency.
+6.2.3  Period of Effectiveness
+6.2.3.1  Welders and Welding Operators. The welder’s or welding operator’s qualification as specified in this 
+code shall be considered as remaining in effect indefinitely unless:
+(1)	 the welder is not engaged in a given process of welding for which the welder or welding operator is qualified for 
+a period exceeding six months, or
+(2)	 there is some specific reason to question a welder’s or welding operator’s ability (see 6.25.1).
+6.2.3.2  Tack Welders. A tack welder who passes the test described in Part C or those tests required for welder 
+qualification shall be considered eligible to perform tack welding indefinitely in the positions and with the process for 
+which the tack welder is qualified unless there is some specific reason to question the tack welder’s ability (see 6.25.2).
+6.3  Common Requirements for WPS and Welding Personnel Performance 
+Qualification
+6.3.1  Qualification to Earlier Editions. Qualifications performed to and having met the requirements of earlier 
+editions of AWS D1.1 or AWS D1.0 or AWS D2.0 while those editions were in effect are valid and may be used. The use 
+of earlier editions shall be prohibited for new qualifications in lieu of the current editions, unless the specific early edition 
+is specified in the contract documents.
+6.3.2  Aging. When allowed by the filler metal specification applicable to weld metal being tested, fully welded 
+qualification test specimens may be aged at 200 °F to 220 °F [95 °C to 105 °C] for 48 ± 2 hours.
+6.3.3  Records. Records of the test results shall be kept by the manufacturer or Contractor and shall be made available 
+to those authorized to examine them.
+6.3.4  Positions of Welds. All welds shall be classified as flat (F), horizontal (H), vertical (V), or overhead (OH), in 
+conformance with the definitions shown in Figure 6.1, Figure 6.2, and 10.11.1.
+Test assembly positions are shown in:
+(1)	 Figure 6.3 (groove welds in plate)
+(2)	 Figure 6.4 (fillet welds on plate)
+Part B
+Welding Procedure Specification (WPS) Qualification
+6.4  Production Welding Positions Qualified
+The production welding positions qualified by a plate test shall conform to the requirements of Clause 6 and Table 6.1. 
+The production welding positions qualified by a tubular test shall conform to the requirements of Clause 10 and 
+Table 10.8.
+6.5  Type of Qualification Tests
+The type and number of qualification tests required to qualify a WPS for a given thickness, diameter, or both, shall con­
+form to Table 6.2 (CJP), Table 6.3 (PJP) or Table 6.4 (fillet). Details on the individual NDT and mechanical test require­
+ments are found in the following subclauses:
+AWS D1.1/D1.1M:2025	
+PARTS A & B
+CLAUSE 6. QUALIFICATION
+Copy
+ 
+ 
+ 
+ 
+Provid
+ 
+ 
+ 
+ 
+ 
+ 
+ 

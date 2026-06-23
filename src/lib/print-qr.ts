@@ -1,3 +1,6 @@
+import type { QrPrintColor } from "@/lib/qr";
+import { qrColorHex, qrImageUrl } from "@/lib/qr";
+
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, "&amp;")
@@ -7,11 +10,16 @@ function escapeHtml(text: string): string {
 }
 
 /**
- * Prints just the welder QR code with its plant ID below it, via a hidden
- * iframe so it never disturbs the current page. Client-only (uses the DOM).
+ * Prints the welder QR code (optional dark color) with plant ID below, via a
+ * hidden iframe so it never disturbs the current page. Client-only.
  */
-export function printQrWithId(qrToken: string, plantWelderId: string) {
-  const qrSrc = `${window.location.origin}/api/qr/${qrToken}`;
+export function printQrWithId(
+  qrToken: string,
+  plantWelderId: string,
+  color: QrPrintColor = "black",
+) {
+  const qrSrc = `${window.location.origin}${qrImageUrl(qrToken, color)}`;
+  const ink = qrColorHex(color);
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -38,6 +46,7 @@ export function printQrWithId(qrToken: string, plantWelderId: string) {
       font-size: 32px;
       font-weight: 700;
       letter-spacing: 0.02em;
+      color: ${ink};
     }
   </style>
 </head>

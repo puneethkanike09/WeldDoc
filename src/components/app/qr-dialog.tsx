@@ -1,9 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { QrCode, ShieldCheck, Printer, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { printQrWithId } from "@/lib/print-qr";
+import {
+  QR_PRINT_COLORS,
+  qrImageUrl,
+  type QrPrintColor,
+} from "@/lib/qr";
 
 export function QrDialog({
   qrToken,
@@ -12,6 +19,8 @@ export function QrDialog({
   qrToken: string;
   plantWelderId: string;
 }) {
+  const [color, setColor] = useState<QrPrintColor>("black");
+
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>
@@ -37,14 +46,15 @@ export function QrDialog({
           </Dialog.Title>
           <Dialog.Description className="sr-only">
             Scan this code to verify the welder&apos;s live qualification
-            status.
+            status. Choose a print color before printing.
           </Dialog.Description>
 
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={`/api/qr/${qrToken}`}
+            key={color}
+            src={qrImageUrl(qrToken, color)}
             alt="Welder verification QR code"
-            className="mx-auto mt-4 h-56 w-56 rounded-[10px] border border-silver p-2"
+            className="mx-auto mt-4 h-56 w-56 rounded-[10px] border border-silver bg-white p-2"
           />
           <p className="mt-3 font-display text-lg font-semibold text-onyx">
             {plantWelderId}
@@ -54,12 +64,38 @@ export function QrDialog({
             Scan to verify live status
           </p>
 
+          <div className="mt-5 flex justify-center gap-2">
+            {QR_PRINT_COLORS.map((option) => {
+              const selected = color === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  aria-label={option.label}
+                  aria-pressed={selected}
+                  onClick={() => setColor(option.id)}
+                  className={cn(
+                    "grid h-9 w-9 place-items-center rounded-full border-2 bg-white transition-colors hover:opacity-90",
+                    selected
+                      ? "border-ember ring-2 ring-ember/25 ring-offset-2 ring-offset-popover"
+                      : "border-silver",
+                  )}
+                >
+                  <span
+                    className="h-5 w-5 rounded-full"
+                    style={{ backgroundColor: option.swatch }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+
           <Button
             type="button"
             variant="ghost"
             size="sm"
             className="mt-4 w-full"
-            onClick={() => printQrWithId(qrToken, plantWelderId)}
+            onClick={() => printQrWithId(qrToken, plantWelderId, color)}
           >
             <Printer className="h-4 w-4" />
             Print QR
