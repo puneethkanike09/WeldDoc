@@ -15,47 +15,47 @@ export interface Slice {
   value: number;
 }
 
+/** Muted categorical palette — avoids harsh brand red on large chart fills. */
 const CHART_COLORS_LIGHT = [
-  "#f90a08",
-  "#161616",
-  "#d43c3b",
-  "#f48789",
-  "#686868",
-  "#ffbbb4",
-  "#de181a",
-  "#9a9a9a",
+  "#4d7ec4",
+  "#64748b",
+  "#4a9b8e",
+  "#b8953d",
+  "#7c6aad",
+  "#6b9080",
+  "#8aa4c7",
+  "#94a3b8",
 ];
 
-/** Light neutrals instead of near-black so slices + legend stay visible on dark panels. */
 const CHART_COLORS_DARK = [
-  "#f90a08",
-  "#ededed",
-  "#f48789",
-  "#fca5a5",
-  "#a3a3a3",
-  "#ffbbb4",
-  "#ef4444",
+  "#7eb0e8",
+  "#cbd5e1",
+  "#6bc4b8",
+  "#e4c97a",
+  "#b8a6e0",
+  "#8fbfaa",
+  "#9ec5e8",
   "#d4d4d4",
 ];
 
 const STATUS_COLORS_LIGHT: Record<string, string> = {
-  Active: "#214224",
-  Expiring: "#fcb42a",
-  Expired: "#912e1f",
-  Pending: "#161616",
+  Active: "#3d7a52",
+  Expiring: "#c9a227",
+  Expired: "#a65d52",
+  Pending: "#64748b",
   None: "#909090",
   Inactive: "#cccccc",
-  Suspended: "#f90a08",
+  Suspended: "#b87070",
 };
 
 const STATUS_COLORS_DARK: Record<string, string> = {
-  Active: "#5cb87a",
-  Expiring: "#fcb42a",
-  Expired: "#e07a6a",
-  Pending: "#d4d4d4",
+  Active: "#6bc48a",
+  Expiring: "#e4c97a",
+  Expired: "#d4918f",
+  Pending: "#cbd5e1",
   None: "#737373",
   Inactive: "#525252",
-  Suspended: "#f87171",
+  Suspended: "#dba0a0",
 };
 
 export function DonutCard({
