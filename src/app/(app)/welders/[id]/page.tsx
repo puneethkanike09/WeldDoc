@@ -7,6 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardBody } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
+import {
+  normalizePlantWelderId,
+  plantWelderIdFromUid,
+} from "@/lib/welders/plant-id";
 import { resolveUrl } from "@/lib/storage";
 import { formatDate } from "@/lib/utils";
 import { processLabel, POSITION_LABELS } from "@/lib/iso9606/constants";
@@ -86,6 +90,11 @@ export default async function WelderProfilePage({
 
   const summary = summarizeWelder(w, wpqs);
   const photoUrl = await resolveUrl("welder-photos", w.photo_path);
+  const plantWelderId =
+    normalizePlantWelderId(w.welder_id) ??
+    w.welder_id?.trim() ??
+    plantWelderIdFromUid(w.uid) ??
+    w.uid;
 
   return (
     <>
@@ -155,7 +164,7 @@ export default async function WelderProfilePage({
               </CardBody>
             </Card>
 
-            <AuditorQrCard qrToken={w.qr_token} />
+            <AuditorQrCard qrToken={w.qr_token} plantWelderId={plantWelderId} />
           </div>
 
           {/* Right: qualifications */}

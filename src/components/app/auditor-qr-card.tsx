@@ -6,15 +6,24 @@ import { Card, CardBody } from "@/components/ui/card";
 
 interface AuditorQrCardProps {
   qrToken: string;
+  plantWelderId: string;
 }
 
-function printQrOnly(qrToken: string) {
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function printQrOnly(qrToken: string, plantWelderId: string) {
   const qrSrc = `${window.location.origin}/api/qr/${qrToken}`;
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>QR</title>
+  <title>QR — ${escapeHtml(plantWelderId)}</title>
   <style>
     @page { margin: 12mm; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -24,11 +33,26 @@ function printQrOnly(qrToken: string) {
       justify-content: center;
       min-height: 100vh;
     }
+    .sheet {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
     img { width: 280px; height: 280px; }
+    .plant-id {
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
   </style>
 </head>
 <body>
-  <img src="${qrSrc}" alt="QR code" width="280" height="280" />
+  <div class="sheet">
+    <img src="${qrSrc}" alt="QR code" width="280" height="280" />
+    <p class="plant-id">${escapeHtml(plantWelderId)}</p>
+  </div>
 </body>
 </html>`;
 
@@ -72,7 +96,7 @@ function printQrOnly(qrToken: string) {
   }
 }
 
-export function AuditorQrCard({ qrToken }: AuditorQrCardProps) {
+export function AuditorQrCard({ qrToken, plantWelderId }: AuditorQrCardProps) {
   return (
     <Card>
       <CardBody className="text-center">
@@ -95,7 +119,7 @@ export function AuditorQrCard({ qrToken }: AuditorQrCardProps) {
             variant="ghost"
             size="sm"
             className="w-full"
-            onClick={() => printQrOnly(qrToken)}
+            onClick={() => printQrOnly(qrToken, plantWelderId)}
           >
             <Printer className="h-4 w-4" />
             Print QR
