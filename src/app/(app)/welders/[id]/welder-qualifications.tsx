@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { cn } from "@/lib/utils";
 import { ButtonLink, Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDeleteButton } from "@/components/app/confirm-delete-button";
@@ -129,11 +129,12 @@ export function WelderQualifications({
                   type="button"
                   onClick={() => select(q.id)}
                   aria-current={active}
-                  className={`w-full rounded-[10px] border px-3 py-2.5 text-left transition-colors ${
+                  className={cn(
+                    "w-full rounded-[10px] border px-3 py-2.5 text-left transition-colors",
                     active
-                      ? "border-ember/40 bg-ember/5"
-                      : "border-silver bg-panel hover:bg-frost"
-                  }`}
+                      ? "border-inverse-bg bg-panel"
+                      : "border-silver bg-panel hover:bg-frost",
+                  )}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="truncate font-display text-[13.5px] font-semibold text-onyx">

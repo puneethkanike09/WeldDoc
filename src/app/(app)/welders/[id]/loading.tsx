@@ -1,11 +1,13 @@
 import { Skeleton } from "@/components/app/skeletons";
+import { cn } from "@/lib/utils";
 
 function QualListItemSkeleton({ active }: { active?: boolean }) {
   return (
     <div
-      className={`rounded-[10px] border px-3 py-2.5 ${
-        active ? "border-ember/20 bg-ember/5" : "border-silver bg-panel"
-      }`}
+      className={cn(
+        "rounded-[10px] border px-3 py-2.5",
+        active ? "border-inverse-bg bg-panel" : "border-silver bg-panel",
+      )}
     >
       <div className="flex items-center justify-between gap-2">
         <Skeleton className="h-4 w-[85%]" />
