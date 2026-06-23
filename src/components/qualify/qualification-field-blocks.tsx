@@ -2,185 +2,127 @@
 
 import { cn } from "@/lib/utils";
 import { Input, Field } from "@/components/ui/input";
-import { Select } from "@/components/sui/select";
-import { MATERIAL_GROUPS } from "@/lib/iso9606/constants";
+import type { JointCategory, ProductType } from "@/types/db";
 import {
-  listGradesForStandard,
-  listMaterialStandards,
-  lookupMaterialGroup,
-} from "@/lib/materials/tr20172";
-import { useMemo, useState } from "react";
+  fieldName,
+  materialDimensionBlocks,
+  wpqDimensionValue,
+  type DimensionFieldKey,
+} from "@/lib/iso9606/product-dimensions";
 
-interface DissimilarMaterialsProps {
-  defaultSpec?: string;
-  defaultGrade?: string;
-  defaultGroup?: string;
-}
-
-export function DissimilarMaterials({
-  defaultSpec = "",
-  defaultGrade = "",
-  defaultGroup = "",
-}: DissimilarMaterialsProps) {
-  const standards = useMemo(() => listMaterialStandards(), []);
-  const [spec, setSpec] = useState(defaultSpec);
-  const [grade, setGrade] = useState(defaultGrade);
-  const [group, setGroup] = useState(defaultGroup);
-
-  const grades = useMemo(
-    () => (spec ? listGradesForStandard(spec) : []),
-    [spec],
-  );
-
-  const lookup = useMemo(
-    () => (grade ? lookupMaterialGroup(grade, spec || undefined) : null),
-    [grade, spec],
-  );
-
-  return (
-    <div className="rounded-[var(--radius-card)] border border-silver bg-frost/30 p-4 sm:col-span-2">
-      <p className="text-sm font-medium text-onyx">Material 2 — dissimilar joint (optional)</p>
-      <p className="mt-0.5 text-xs text-steel">
-        For two-plate tests where metal 1 and metal 2 differ. Leave blank for
-        similar-material joints.
-      </p>
-      <div className="mt-3 grid gap-4 sm:grid-cols-3">
-        <Field label="Standard">
-          <Select
-            value={spec}
-            onChange={(e) => {
-              setSpec(e.target.value);
-              setGrade("");
-            }}
-          >
-            <option value="">—</option>
-            {standards.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Field label="Grade">
-          {spec && grades.length ? (
-            <Select
-              value={grade}
-              onChange={(e) => {
-                setGrade(e.target.value);
-                const hit = lookupMaterialGroup(e.target.value, spec);
-                if (hit) setGroup(hit.iso9606Group);
-              }}
-            >
-              <option value="">—</option>
-              {grades.map((g) => (
-                <option key={g.designation} value={g.designation}>
-                  {g.designation}
-                </option>
-              ))}
-            </Select>
-          ) : (
-            <Input
-              name="material2_grade"
-              value={grade}
-              onChange={(e) => setGrade(e.target.value)}
-              placeholder="Optional"
-            />
-          )}
-        </Field>
-        <Field label="Parent group">
-          <Select
-            name="material2_group"
-            value={group || lookup?.iso9606Group || ""}
-            onChange={(e) => setGroup(e.target.value)}
-          >
-            <option value="">—</option>
-            {MATERIAL_GROUPS.map((m) => (
-              <option key={m.code} value={m.code}>
-                Group {m.code}
-              </option>
-            ))}
-          </Select>
-        </Field>
-      </div>
-      {spec ? (
-        <input type="hidden" name="material2_specification" value={spec} />
-      ) : null}
-      {grade && spec && grades.length ? (
-        <input type="hidden" name="material2_grade" value={grade} />
-      ) : null}
-    </div>
-  );
-}
+const FIELD_LABELS: Record<Exclude<DimensionFieldKey, "freeText">, string> = {
+  thickness: "Thickness (mm)",
+  width: "Width (mm)",
+  length: "Length (mm)",
+  diameter: "Outside diameter (mm)",
+};
 
 export function ProductDimensions({
+  product,
+  jointType,
   wpq,
   errors,
   onFieldChange,
 }: {
+  product: ProductType;
+  jointType: JointCategory | string;
   wpq?: {
     dimension_thickness_mm?: number | null;
     dimension_width_mm?: number | null;
     dimension_length_mm?: number | null;
+    dimension2_thickness_mm?: number | null;
+    dimension2_width_mm?: number | null;
+    dimension2_length_mm?: number | null;
+    dimension2_pipe_od_mm?: number | null;
     dimensions?: string | null;
+    dimensions2?: string | null;
     pipe_od_mm?: number | null;
   } | null;
-  errors?: {
-    dimension_thickness_mm?: string;
-    dimension_width_mm?: string;
-    dimension_length_mm?: string;
-  };
+  errors?: Record<string, string | undefined>;
   onFieldChange?: (key: string) => void;
 }) {
   const invalidBorder = "border-ember ring-1 ring-ember/20";
+  const blocks = materialDimensionBlocks(product, jointType);
 
   return (
-    <div className="sm:col-span-2 space-y-3">
-      <p className="text-sm font-medium text-onyx">Product dimensions</p>
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Field label="Thickness (mm)" hint="Type — e.g. 12" required error={errors?.dimension_thickness_mm}>
-          <Input
-            type="number"
-            step="0.1"
-            name="dimension_thickness_mm"
-            defaultValue={wpq?.dimension_thickness_mm ?? ""}
-            placeholder="12"
-            required
-            className={cn(errors?.dimension_thickness_mm && invalidBorder)}
-            onChange={() => onFieldChange?.("dimension_thickness_mm")}
-          />
-        </Field>
-        <Field label="Width (mm)" required error={errors?.dimension_width_mm}>
-          <Input
-            type="number"
-            step="0.1"
-            name="dimension_width_mm"
-            defaultValue={wpq?.dimension_width_mm ?? ""}
-            placeholder="300"
-            required
-            className={cn(errors?.dimension_width_mm && invalidBorder)}
-            onChange={() => onFieldChange?.("dimension_width_mm")}
-          />
-        </Field>
-        <Field label="Length (mm)" required error={errors?.dimension_length_mm}>
-          <Input
-            type="number"
-            step="0.1"
-            name="dimension_length_mm"
-            defaultValue={wpq?.dimension_length_mm ?? ""}
-            placeholder="250"
-            required
-            className={cn(errors?.dimension_length_mm && invalidBorder)}
-            onChange={() => onFieldChange?.("dimension_length_mm")}
-          />
-        </Field>
+    <div className="sm:col-span-2 space-y-5">
+      <div>
+        <p className="text-sm font-medium text-onyx">Product dimensions</p>
+        <p className="mt-0.5 text-xs text-steel">
+          Fields follow the selected product type and joint type from step 1.
+        </p>
       </div>
-      <Field label="Free-text dimensions (optional)" hint="Overrides grid if filled">
-        <Input
-          name="dimensions"
-          defaultValue={wpq?.dimensions ?? ""}
-          placeholder="12mm(T)×300(W)×250(L) or OD×T×L for pipe"
-        />
-      </Field>
+
+      {blocks.map((block) => (
+        <div
+          key={`${block.material}-${block.title}`}
+          className="rounded-[var(--radius-card)] border border-silver bg-white/60 p-4"
+        >
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-steel">
+            {block.title}
+          </p>
+
+          {block.fields.includes("freeText") ? (
+            <Field
+              label="Free-text dimensions"
+              required
+              error={errors?.[fieldName(block.material, "freeText")]}
+            >
+              <Input
+                name={fieldName(block.material, "freeText")}
+                defaultValue={
+                  String(wpqDimensionValue(wpq, block.material, "freeText") ?? "")
+                }
+                placeholder="Describe test piece dimensions"
+                required
+                className={cn(
+                  errors?.[fieldName(block.material, "freeText")] && invalidBorder,
+                )}
+                onChange={() =>
+                  onFieldChange?.(fieldName(block.material, "freeText"))
+                }
+              />
+            </Field>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-3">
+              {block.fields.map((key) => {
+                if (key === "freeText") return null;
+                const name = fieldName(block.material, key);
+                return (
+                  <Field
+                    key={name}
+                    label={FIELD_LABELS[key]}
+                    hint={key === "thickness" ? "Type — e.g. 12" : undefined}
+                    required
+                    error={errors?.[name]}
+                  >
+                    <Input
+                      type="number"
+                      step="0.1"
+                      name={name}
+                      defaultValue={
+                        String(wpqDimensionValue(wpq, block.material, key) ?? "")
+                      }
+                      placeholder={
+                        key === "thickness"
+                          ? "12"
+                          : key === "width"
+                            ? "300"
+                            : key === "length"
+                              ? "250"
+                              : "168.3"
+                      }
+                      required
+                      className={cn(errors?.[name] && invalidBorder)}
+                      onChange={() => onFieldChange?.(name)}
+                    />
+                  </Field>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }

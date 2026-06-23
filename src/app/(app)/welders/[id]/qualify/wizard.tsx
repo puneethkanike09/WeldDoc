@@ -12,8 +12,6 @@ import { FileDropzone } from "@/components/ui/file-dropzone";
 import {
   TESTING_STANDARDS,
   WELDING_PROCESSES,
-  PRODUCT_TYPES,
-  JOINT_TYPES,
   BW_POSITIONS,
   FW_POSITIONS,
   POSITION_LABELS,
@@ -28,18 +26,20 @@ import {
   TRANSFER_MODE_OPTIONS,
   requiredTestsFor,
 } from "@/lib/iso9606/constants";
+import { ndtJointCategory } from "@/lib/iso9606/qualification-fields";
 import {
   getCertificateIssueFieldErrors,
   getNdtFieldErrors,
   getQualificationPlanFieldErrors,
   getTestPieceFieldErrors,
 } from "@/lib/iso9606/qualification-fields";
+import { displayJointType } from "@/lib/iso9606/product-dimensions";
 import { MaterialGradeLookup } from "@/components/qualify/material-grade-lookup";
-import {
-  DissimilarMaterials,
-  ProductDimensions,
-} from "@/components/qualify/qualification-field-blocks";
+import { Material2Lookup } from "@/components/qualify/material2-lookup";
+import { PlanProductJointFields } from "@/components/qualify/plan-product-joint-fields";
+import { ProductDimensions } from "@/components/qualify/qualification-field-blocks";
 import type {
+  BranchConnection,
   JointCategory,
   NdtDtRecord,
   QualificationRecord,
@@ -206,36 +206,17 @@ export function PlanStep({
                   ))}
                 </Select>
               </Field>
-              <Field label="Joint type" required error={fieldErrors.joint_type}>
-                <Select
-                  name="joint_type"
-                  defaultValue={wpq?.joint_type ?? "BW"}
-                  required
-                  className={cn(fieldErrors.joint_type && invalidBorder)}
-                  onChange={() => clearError("joint_type")}
-                >
-                  {JOINT_TYPES.map((j) => (
-                    <option key={j.code} value={j.code}>
-                      {j.label}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label="Product type" required error={fieldErrors.product}>
-                <Select
-                  name="product"
-                  defaultValue={wpq?.product ?? "Plate"}
-                  required
-                  className={cn(fieldErrors.product && invalidBorder)}
-                  onChange={() => clearError("product")}
-                >
-                  {PRODUCT_TYPES.map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
+              <PlanProductJointFields
+                defaultProduct={wpq?.product ?? "Plate"}
+                defaultJoint={displayJointType(wpq ?? { joint_type: "BW", joint_type_extended: null })}
+                defaultBranchConnection={
+                  (wpq?.branch_connection as BranchConnection | null) ?? "set_in"
+                }
+                productError={fieldErrors.product}
+                jointError={fieldErrors.joint_type}
+                branchError={fieldErrors.branch_connection}
+                onFieldChange={clearError}
+              />
               <Field label="Welding position" required error={fieldErrors.position}>
                 <Select
                   name="position"
@@ -353,13 +334,14 @@ export function TestStep({
   wpq: QualificationRecord;
   rangePreview: string | null;
 }) {
-  const positions = wpq.joint_type === "FW" ? FW_POSITIONS : BW_POSITIONS;
-  const pipeRequired = wpq.product === "Pipe" || wpq.product === "Branch";
+  const jointLabel = displayJointType(wpq);
+  const ndtJoint = ndtJointCategory(wpq.joint_type);
+  const positions = ndtJoint === "FW" ? FW_POSITIONS : BW_POSITIONS;
 
   const validate = useCallback(
     (formData: FormData) =>
-      getTestPieceFieldErrors(formData, wpq.joint_type, wpq.product),
-    [wpq.joint_type, wpq.product],
+      getTestPieceFieldErrors(formData, jointLabel, wpq.product),
+    [jointLabel, wpq.product],
   );
 
   return (
@@ -372,6 +354,7 @@ export function TestStep({
               sub="Page 1 continued: materials, dimensions, filler and test piece parameters."
             />
             <MaterialGradeLookup
+              title="Material 1 lookup (CEN ISO/TR 20172)"
               defaultStandard={wpq.material_specification ?? ""}
               defaultGrade={wpq.material_grade ?? ""}
               defaultGroup={wpq.base_material_group ?? "1"}
@@ -382,19 +365,17 @@ export function TestStep({
               }}
               onFieldChange={clearError}
             />
-            <DissimilarMaterials
+            <Material2Lookup
               defaultSpec={wpq.material2_specification ?? ""}
               defaultGrade={wpq.material2_grade ?? ""}
               defaultGroup={wpq.material2_group ?? ""}
             />
             <div className="grid gap-5 sm:grid-cols-2">
               <ProductDimensions
+                product={wpq.product}
+                jointType={jointLabel}
                 wpq={wpq}
-                errors={{
-                  dimension_thickness_mm: fieldErrors.dimension_thickness_mm,
-                  dimension_width_mm: fieldErrors.dimension_width_mm,
-                  dimension_length_mm: fieldErrors.dimension_length_mm,
-                }}
+                errors={fieldErrors}
                 onFieldChange={clearError}
               />
               <Field label="Confirm position" required error={fieldErrors.position}>
@@ -532,22 +513,6 @@ export function TestStep({
                   required
                   className={cn(fieldErrors.deposited_thickness_mm && invalidBorder)}
                   onChange={() => clearError("deposited_thickness_mm")}
-                />
-              </Field>
-              <Field
-                label="Pipe outside diameter (mm)"
-                required={pipeRequired}
-                error={fieldErrors.pipe_od_mm}
-              >
-                <Input
-                  type="number"
-                  step="0.1"
-                  name="pipe_od_mm"
-                  defaultValue={wpq.pipe_od_mm ?? ""}
-                  placeholder="42.4"
-                  required={pipeRequired}
-                  className={cn(fieldErrors.pipe_od_mm && invalidBorder)}
-                  onChange={() => clearError("pipe_od_mm")}
                 />
               </Field>
               <Field label="Layer" required error={fieldErrors.layer_type}>

@@ -4,6 +4,12 @@
  */
 
 import type { JointCategory, ProductType } from "@/types/db";
+import { validateMaterialDimensions } from "@/lib/iso9606/product-dimensions";
+
+/** BW/FW tests apply; other joint types on “Others” product use BW as default. */
+export function ndtJointCategory(jointType: string): JointCategory {
+  return jointType === "FW" ? "FW" : "BW";
+}
 import { requiredTestsFor } from "@/lib/iso9606/constants";
 
 export class QualificationValidationError extends Error {
@@ -156,6 +162,10 @@ export function getQualificationPlanFieldErrors(
   if (!str(formData.get("process"))) errors.process = "Welding process is required.";
   if (!str(formData.get("joint_type"))) errors.joint_type = "Joint type is required.";
   if (!str(formData.get("product"))) errors.product = "Product type is required.";
+  const product = str(formData.get("product"));
+  if (product === "Branch" && !str(formData.get("branch_connection"))) {
+    errors.branch_connection = "Branch connection is required.";
+  }
   if (!str(formData.get("position"))) errors.position = "Welding position is required.";
   if (!str(formData.get("base_material_group"))) {
     errors.base_material_group = "Parent material group is required.";
@@ -185,7 +195,7 @@ export function validateQualificationPlan(formData: FormData) {
 /** Step 2 — test piece fields 18–31. */
 export function getTestPieceFieldErrors(
   formData: FormData,
-  jointType: JointCategory,
+  jointType: string,
   product: ProductType,
 ): Record<string, string> {
   const errors: Record<string, string> = {};
@@ -226,30 +236,14 @@ export function getTestPieceFieldErrors(
     errors.deposited_thickness_mm = "Deposited / throat thickness is required.";
   }
 
-  const t = num(formData.get("dimension_thickness_mm"));
-  const w = num(formData.get("dimension_width_mm"));
-  const l = num(formData.get("dimension_length_mm"));
-  const dimsText = str(formData.get("dimensions"));
-  if (!dimsText && (t == null || w == null || l == null)) {
-    const msg = "Product dimensions (T × W × L mm) are required.";
-    if (t == null) errors.dimension_thickness_mm = msg;
-    if (w == null) errors.dimension_width_mm = msg;
-    if (l == null) errors.dimension_length_mm = msg;
-  }
+  Object.assign(errors, validateMaterialDimensions(formData, product, jointType));
 
-  if (product === "Pipe" || product === "Branch") {
-    if (num(formData.get("pipe_od_mm")) == null) {
-      errors.pipe_od_mm = "Pipe outside diameter is required.";
-    }
-  }
-
-  void jointType;
   return errors;
 }
 
 export function validateTestPiece(
   formData: FormData,
-  jointType: JointCategory,
+  jointType: string,
   product: ProductType,
 ) {
   const errors = getTestPieceFieldErrors(formData, jointType, product);

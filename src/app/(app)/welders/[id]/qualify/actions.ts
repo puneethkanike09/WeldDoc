@@ -9,12 +9,15 @@ import { computeRange } from "@/lib/range-engine/iso9606";
 import { computeExpiry, extendExpiry } from "@/lib/expiry";
 import { requiredTestsFor } from "@/lib/iso9606/constants";
 import {
+  ndtJointCategory,
   validateCertificateIssue,
   validateNdtResults,
   validateQualificationPlan,
   validateTestPiece,
 } from "@/lib/iso9606/qualification-fields";
+import { displayJointType, resolveJointStorage } from "@/lib/iso9606/product-dimensions";
 import type {
+  BranchConnection,
   JointCategory,
   ProductType,
   QualificationRecord,
@@ -45,7 +48,7 @@ async function recomputeRange(wpqId: string) {
   const q = data as QualificationRecord;
 
   const range = computeRange({
-    jointType: q.joint_type,
+    jointType: ndtJointCategory(q.joint_type),
     product: q.product,
     testThicknessMm: q.test_thickness_mm,
     depositedThicknessMm: q.deposited_thickness_mm,
@@ -80,6 +83,9 @@ export async function savePlan(
   const { org } = await requireSession();
   const supabase = await createClient();
 
+  const rawJoint = str(formData.get("joint_type")) ?? "BW";
+  const { joint_type, joint_type_extended } = resolveJointStorage(rawJoint);
+
   const payload = {
     org_id: org.id,
     welder_id: welderId,
@@ -87,8 +93,13 @@ export async function savePlan(
     testing_standard:
       str(formData.get("testing_standard")) ?? "EN ISO 9606-1:2017",
     process: str(formData.get("process")) ?? "135",
-    joint_type: (str(formData.get("joint_type")) ?? "BW") as JointCategory,
+    joint_type,
+    joint_type_extended,
     product: (str(formData.get("product")) ?? "Plate") as ProductType,
+    branch_connection:
+      str(formData.get("product")) === "Branch"
+        ? (str(formData.get("branch_connection")) as BranchConnection)
+        : null,
     position: str(formData.get("position")),
     base_material_group: str(formData.get("base_material_group")),
     wps_reference: str(formData.get("wps_reference")),
@@ -132,15 +143,17 @@ export async function saveTest(
 
   const { data: existing } = await supabase
     .from("qualification_records")
-    .select("joint_type, product")
+    .select("joint_type, joint_type_extended, product")
     .eq("id", wpqId)
     .eq("org_id", org.id)
     .single();
   if (!existing) throw new Error("Qualification not found.");
 
+  const jointLabel = displayJointType(existing as QualificationRecord);
+
   validateTestPiece(
     formData,
-    existing.joint_type as JointCategory,
+    jointLabel,
     existing.product as ProductType,
   );
 
@@ -154,9 +167,14 @@ export async function saveTest(
       material2_grade: str(formData.get("material2_grade")),
       material2_group: str(formData.get("material2_group")),
       dimensions: str(formData.get("dimensions")),
+      dimensions2: str(formData.get("dimensions2")),
       dimension_thickness_mm: num(formData.get("dimension_thickness_mm")),
       dimension_width_mm: num(formData.get("dimension_width_mm")),
       dimension_length_mm: num(formData.get("dimension_length_mm")),
+      dimension2_thickness_mm: num(formData.get("dimension2_thickness_mm")),
+      dimension2_width_mm: num(formData.get("dimension2_width_mm")),
+      dimension2_length_mm: num(formData.get("dimension2_length_mm")),
+      dimension2_pipe_od_mm: num(formData.get("dimension2_pipe_od_mm")),
       filler_group: str(formData.get("filler_group")),
       filler_designation: str(formData.get("filler_designation")),
       filler_type: str(formData.get("filler_type")),
@@ -183,15 +201,16 @@ export async function saveTest(
 export async function saveNdt(
   welderId: string,
   wpqId: string,
-  jointType: JointCategory,
+  jointType: string,
   formData: FormData,
 ) {
-  validateNdtResults(formData, jointType);
+  const ndtJoint = ndtJointCategory(jointType);
+  validateNdtResults(formData, ndtJoint);
   const { org } = await requireSession();
   const supabase = await createClient();
 
   const methods = [
-    ...requiredTestsFor(jointType),
+    ...requiredTestsFor(ndtJoint),
     ...formData.getAll("optional_method").map(String).filter(Boolean),
   ];
 
@@ -215,7 +234,7 @@ export async function saveNdt(
 
     if (result === "Fail") anyFail = true;
     if (
-      requiredTestsFor(jointType).includes(method) &&
+      requiredTestsFor(ndtJoint).includes(method) &&
       result !== "Pass"
     ) {
       allRequiredPass = false;
@@ -569,6 +588,8 @@ export async function saveLegacy(welderId: string, formData: FormData) {
     if (one) scanPaths.push(one);
   }
 
+  const legacyJoint = resolveJointStorage(str(formData.get("joint_type")) ?? "BW");
+
   const { data: created, error } = await supabase
     .from("qualification_records")
     .insert({
@@ -578,7 +599,8 @@ export async function saveLegacy(welderId: string, formData: FormData) {
       testing_standard:
         str(formData.get("testing_standard")) ?? "EN ISO 9606-1:2017",
       process: str(formData.get("process")) ?? "135",
-      joint_type: (str(formData.get("joint_type")) ?? "BW") as JointCategory,
+      joint_type: legacyJoint.joint_type,
+      joint_type_extended: legacyJoint.joint_type_extended,
       product: (str(formData.get("product")) ?? "Plate") as ProductType,
       position: str(formData.get("position")),
       base_material_group: str(formData.get("base_material_group")),

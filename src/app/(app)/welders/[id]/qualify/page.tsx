@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
+import { ndtJointCategory } from "@/lib/iso9606/qualification-fields";
 import {
   savePlan,
   saveTest,
@@ -143,7 +144,7 @@ export default async function QualifyPage({
                 action={saveNdt.bind(null, id, wpq.id, wpq.joint_type)}
                 welderId={id}
                 wpqId={wpq.id}
-                jointType={wpq.joint_type}
+                jointType={ndtJointCategory(wpq.joint_type)}
                 existing={ndt}
               />
             )}

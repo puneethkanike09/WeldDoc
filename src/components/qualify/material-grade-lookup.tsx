@@ -11,6 +11,7 @@ import {
 } from "@/lib/materials/tr20172";
 
 interface MaterialGradeLookupProps {
+  title?: string;
   defaultStandard?: string;
   defaultGrade?: string;
   defaultGroup?: string;
@@ -23,6 +24,7 @@ interface MaterialGradeLookupProps {
 }
 
 export function MaterialGradeLookup({
+  title = "Material 1 lookup (CEN ISO/TR 20172)",
   defaultStandard = "",
   defaultGrade = "",
   defaultGroup = "1",
@@ -54,7 +56,7 @@ export function MaterialGradeLookup({
   return (
     <div className="space-y-4 rounded-[var(--radius-card)] border border-silver bg-frost/40 p-4">
       <div>
-        <p className="text-sm font-medium text-onyx">Material lookup (CEN ISO/TR 20172)</p>
+        <p className="text-sm font-medium text-onyx">{title}</p>
         <p className="mt-0.5 text-xs text-steel">
           Select the EN standard and grade to auto-fill the parent material group.
           Override manually when the grade is not listed.

@@ -1,6 +1,15 @@
 export type WelderStatus = "Active" | "Inactive" | "Suspended";
 export type WeldingStandard = "ISO_9606_1" | "ASME_IX" | "AWS_D1_1";
 export type JointCategory = "BW" | "FW";
+/** Extended joint types when product is Other (client registry). */
+export type ExtendedJointType =
+  | JointCategory
+  | "Lap"
+  | "Edge"
+  | "Corner"
+  | "Overlay"
+  | "Product Base";
+export type BranchConnection = "set_in" | "set_on" | "set_through";
 export type ProductType = "Plate" | "Pipe" | "Branch" | "Other";
 export type WpqStatus =
   | "Draft"
@@ -76,8 +85,10 @@ export interface QualificationRecord {
   standard: WeldingStandard;
   process: string;
   joint_type: JointCategory;
+  joint_type_extended: string | null;
   position: string | null;
   product: ProductType;
+  branch_connection: BranchConnection | null;
   base_material_group: string | null;
   material_specification: string | null;
   material_grade: string | null;
@@ -88,6 +99,11 @@ export interface QualificationRecord {
   dimension_thickness_mm: number | null;
   dimension_width_mm: number | null;
   dimension_length_mm: number | null;
+  dimension2_thickness_mm: number | null;
+  dimension2_width_mm: number | null;
+  dimension2_length_mm: number | null;
+  dimension2_pipe_od_mm: number | null;
+  dimensions2: string | null;
   testing_standard: string | null;
   filler_group: string | null;
   filler_designation: string | null;
