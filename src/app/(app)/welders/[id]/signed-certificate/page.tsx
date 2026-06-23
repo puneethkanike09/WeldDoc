@@ -27,7 +27,7 @@ export async function generateMetadata({
     .single();
 
   if (!welder || !wpqId) {
-    return { title: "Certificate preview" };
+    return { title: "Signed certificate" };
   }
 
   const { data: wpq } = await supabase
@@ -44,11 +44,11 @@ export async function generateMetadata({
     : "Qualification";
 
   return {
-    title: `Certificate — ${welder.full_name} (${qual})`,
+    title: `Signed certificate — ${welder.full_name} (${qual})`,
   };
 }
 
-export default async function WelderCertificatePreviewPage({
+export default async function WelderSignedCertificatePage({
   params,
   searchParams,
 }: {
@@ -71,7 +71,7 @@ export default async function WelderCertificatePreviewPage({
       .single(),
     supabase
       .from("qualification_records")
-      .select("id, process, joint_type, wpq_status")
+      .select("id, process, joint_type, wpq_status, signed_certificate_pdf_path")
       .eq("id", wpqId)
       .eq("welder_id", id)
       .eq("org_id", org.id)
@@ -83,21 +83,25 @@ export default async function WelderCertificatePreviewPage({
   const w = welder as Pick<Welder, "full_name" | "uid">;
   const q = wpq as Pick<
     QualificationRecord,
-    "id" | "process" | "joint_type" | "wpq_status"
+    | "id"
+    | "process"
+    | "joint_type"
+    | "wpq_status"
+    | "signed_certificate_pdf_path"
   >;
 
-  if (q.wpq_status !== "Approved") {
+  if (q.wpq_status !== "Approved" || !q.signed_certificate_pdf_path) {
     notFound();
   }
 
   const qualLabel = `${processLabel(q.process)} · ${q.joint_type === "BW" ? "Butt weld" : "Fillet weld"}`;
-  const previewSrc = `/api/welders/${id}/certificate?wpq=${wpqId}`;
-  const downloadSrc = `/api/welders/${id}/certificate?wpq=${wpqId}&download=1`;
+  const previewSrc = `/api/welders/${id}/signed-certificate?wpq=${wpqId}`;
+  const downloadSrc = `/api/welders/${id}/signed-certificate?wpq=${wpqId}&download=1`;
 
   return (
     <>
       <PageHeader
-        title="Qualification certificate"
+        title="Signed certificate"
         description={`${w.full_name} · ${w.uid} · ${qualLabel}`}
       />
       <div className="px-8 py-8">
@@ -105,12 +109,8 @@ export default async function WelderCertificatePreviewPage({
           src={previewSrc}
           backHref={`/welders/${id}?wpq=${wpqId}`}
           downloadHref={downloadSrc}
-          title={`Certificate — ${w.full_name}`}
+          title={`Signed certificate — ${w.full_name}`}
         />
-        <p className="mt-4 text-sm text-graphite">
-          Sign this certificate by hand, then upload the scanned copy from the
-          welder profile under this qualification.
-        </p>
       </div>
     </>
   );

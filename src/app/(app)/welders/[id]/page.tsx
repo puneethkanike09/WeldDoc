@@ -149,6 +149,7 @@ export default async function WelderProfilePage({
       daysToExpiry: daysUntil(q.expiry_date),
       isLegacy: q.is_legacy,
       isApproved: q.wpq_status === "Approved",
+      hasSignedCertificate: Boolean(q.signed_certificate_pdf_path),
       canLogValidation:
         q.wpq_status === "Approved" || q.wpq_status === "Expired",
       rangeSummary: ranges.get(q.id)?.summary ?? null,

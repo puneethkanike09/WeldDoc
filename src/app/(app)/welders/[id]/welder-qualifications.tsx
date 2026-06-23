@@ -6,8 +6,14 @@ import { ButtonLink, Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDeleteButton } from "@/components/app/confirm-delete-button";
 import { ValidationForm } from "./validation-form";
-import { deleteWpq, deleteValidation, saveValidation } from "./qualify/actions";
-import { FileDown, FileText, Plus, Trash2, Workflow } from "lucide-react";
+import { SignedCertificateForm } from "./signed-certificate-form";
+import {
+  deleteWpq,
+  deleteValidation,
+  saveValidation,
+  uploadSignedCertificate,
+} from "./qualify/actions";
+import { FileDown, FileText, FileCheck, Plus, Trash2, Workflow } from "lucide-react";
 
 type BadgeTone = "active" | "expiring" | "expired" | "neutral" | "sapphire";
 
@@ -32,6 +38,7 @@ export interface QualView {
   daysToExpiry: number | null;
   isLegacy: boolean;
   isApproved: boolean;
+  hasSignedCertificate: boolean;
   canLogValidation: boolean;
   rangeSummary: string | null;
   validations: ValidationView[];
@@ -205,13 +212,24 @@ export function WelderQualifications({
               <Workflow className="h-4 w-4" /> Open workflow
             </ButtonLink>
             {selected.isApproved && (
-              <ButtonLink
-                href={`/welders/${welderId}/certificate?wpq=${selected.id}`}
-                variant="subtle"
-                size="sm"
-              >
-                <FileDown className="h-4 w-4" /> Certificate
-              </ButtonLink>
+              <>
+                <ButtonLink
+                  href={`/welders/${welderId}/certificate?wpq=${selected.id}`}
+                  variant="subtle"
+                  size="sm"
+                >
+                  <FileDown className="h-4 w-4" /> Certificate
+                </ButtonLink>
+                {selected.hasSignedCertificate && (
+                  <ButtonLink
+                    href={`/welders/${welderId}/signed-certificate?wpq=${selected.id}`}
+                    variant="subtle"
+                    size="sm"
+                  >
+                    <FileCheck className="h-4 w-4" /> Signed copy
+                  </ButtonLink>
+                )}
+              </>
             )}
             <ConfirmDeleteButton
               action={() => deleteWpq(welderId, selected.id)}
@@ -230,6 +248,15 @@ export function WelderQualifications({
               }
             />
           </div>
+
+          {selected.isApproved && (
+            <SignedCertificateForm
+              hasSignedCertificate={selected.hasSignedCertificate}
+              action={(fd) =>
+                uploadSignedCertificate(welderId, selected.id, fd)
+              }
+            />
+          )}
 
           {/* Continuity & revalidation log */}
           <div className="mt-6">

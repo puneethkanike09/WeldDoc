@@ -300,7 +300,7 @@ export async function discardWpq(welderId: string, wpqId: string) {
   const { data: wpq } = await supabase
     .from("qualification_records")
     .select(
-      "id, wpq_status, certificate_pdf_path, legacy_document_paths, welder_id",
+      "id, wpq_status, certificate_pdf_path, signed_certificate_pdf_path, legacy_document_paths, welder_id",
     )
     .eq("id", wpqId)
     .eq("org_id", org.id)
@@ -313,6 +313,7 @@ export async function discardWpq(welderId: string, wpqId: string) {
     | "id"
     | "wpq_status"
     | "certificate_pdf_path"
+    | "signed_certificate_pdf_path"
     | "legacy_document_paths"
     | "welder_id"
   >;
@@ -331,6 +332,12 @@ export async function discardWpq(welderId: string, wpqId: string) {
   const toRemove: { bucket: string; path: string }[] = [];
   if (q.certificate_pdf_path) {
     toRemove.push({ bucket: "generated-pdfs", path: q.certificate_pdf_path });
+  }
+  if (q.signed_certificate_pdf_path) {
+    toRemove.push({
+      bucket: "generated-pdfs",
+      path: q.signed_certificate_pdf_path,
+    });
   }
   for (const path of q.legacy_document_paths ?? []) {
     if (path) toRemove.push({ bucket: "ndt-reports", path });
@@ -371,7 +378,7 @@ export async function deleteWpq(welderId: string, wpqId: string) {
 
   const { data: wpq } = await supabase
     .from("qualification_records")
-    .select("id, certificate_pdf_path, legacy_document_paths, welder_id")
+    .select("id, certificate_pdf_path, signed_certificate_pdf_path, legacy_document_paths, welder_id")
     .eq("id", wpqId)
     .eq("org_id", org.id)
     .eq("welder_id", welderId)
@@ -380,7 +387,7 @@ export async function deleteWpq(welderId: string, wpqId: string) {
   if (!wpq) throw new Error("Qualification not found.");
   const q = wpq as Pick<
     QualificationRecord,
-    "id" | "certificate_pdf_path" | "legacy_document_paths" | "welder_id"
+    "id" | "certificate_pdf_path" | "signed_certificate_pdf_path" | "legacy_document_paths" | "welder_id"
   >;
 
   const { data: ndtRows } = await supabase
@@ -397,6 +404,7 @@ export async function deleteWpq(welderId: string, wpqId: string) {
     if (path) (byBucket[bucket] ??= []).push(path);
   };
   addFile("generated-pdfs", q.certificate_pdf_path);
+  addFile("generated-pdfs", q.signed_certificate_pdf_path);
   for (const path of q.legacy_document_paths ?? []) addFile("ndt-reports", path);
   for (const row of ndtRows ?? []) addFile("ndt-reports", row.report_pdf_path);
   for (const row of valRows ?? [])
@@ -616,4 +624,56 @@ export async function saveLegacy(welderId: string, formData: FormData) {
 
   revalidatePath(`/welders/${welderId}`);
   redirect(`/welders/${welderId}`);
+}
+
+/** Upload a manually signed certificate scan (PDF or image). */
+export async function uploadSignedCertificate(
+  welderId: string,
+  wpqId: string,
+  formData: FormData,
+) {
+  const { org } = await requireSession();
+  const supabase = await createClient();
+
+  const { data: wpq } = await supabase
+    .from("qualification_records")
+    .select("id, wpq_status, signed_certificate_pdf_path")
+    .eq("id", wpqId)
+    .eq("welder_id", welderId)
+    .eq("org_id", org.id)
+    .single();
+
+  if (!wpq) throw new Error("Qualification not found.");
+  if (wpq.wpq_status !== "Approved") {
+    throw new Error(
+      "Only approved qualifications can have a signed certificate uploaded.",
+    );
+  }
+
+  const file = formData.get("signed_certificate");
+  if (!(file instanceof File) || file.size === 0) {
+    throw new Error("Select a signed certificate file to upload.");
+  }
+
+  const path = await uploadFile(
+    "generated-pdfs",
+    file,
+    `${org.id}/${welderId}/signed`,
+  );
+  if (!path) throw new Error("Upload failed.");
+
+  if (wpq.signed_certificate_pdf_path) {
+    await supabase.storage
+      .from("generated-pdfs")
+      .remove([wpq.signed_certificate_pdf_path]);
+  }
+
+  const { error } = await supabase
+    .from("qualification_records")
+    .update({ signed_certificate_pdf_path: path })
+    .eq("id", wpqId)
+    .eq("org_id", org.id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/welders/${welderId}`);
 }

@@ -112,6 +112,7 @@ export interface QualificationRecord {
   is_legacy: boolean;
   certificate_issued_date: string | null;
   certificate_pdf_path: string | null;
+  signed_certificate_pdf_path: string | null;
   legacy_document_paths: string[];
   continuity_last_verified: string | null;
   expiry_date: string | null;
