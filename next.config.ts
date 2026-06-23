@@ -13,6 +13,13 @@ const nextConfig: NextConfig = {
       // NDT step can upload multiple report PDFs in one form submit.
       bodySizeLimit: "25mb",
     },
+    // Next 15/16 defaults the client Router Cache for dynamic routes to 0s,
+    // so every back/forward nav re-fetches and re-shows the loading skeleton.
+    // Keep visited pages warm for a short window so revisits feel instant.
+    staleTimes: {
+      dynamic: 30,
+      static: 180,
+    },
   },
   images: {
     remotePatterns: [
