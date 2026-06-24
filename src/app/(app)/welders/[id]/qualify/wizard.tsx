@@ -357,7 +357,7 @@ export function TestStep({
               title="Material 1 lookup (CEN ISO/TR 20172)"
               defaultStandard={wpq.material_specification ?? ""}
               defaultGrade={wpq.material_grade ?? ""}
-              defaultGroup={wpq.base_material_group ?? "1"}
+              defaultGroup={wpq.base_material_group ?? ""}
               errors={{
                 material_standard: fieldErrors.material_standard,
                 material_grade: fieldErrors.material_grade,

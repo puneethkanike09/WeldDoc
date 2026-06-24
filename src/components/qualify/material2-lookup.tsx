@@ -1,9 +1,7 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { Input, Field } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
-import { MATERIAL_GROUPS } from "@/lib/iso9606/constants";
 import {
   listGradesForStandard,
   listMaterialStandards,
@@ -25,7 +23,6 @@ export function Material2Lookup({
   const standards = useMemo(() => listMaterialStandards(), []);
   const [spec, setSpec] = useState(defaultSpec);
   const [grade, setGrade] = useState(defaultGrade);
-  const [group, setGroup] = useState(defaultGroup);
 
   const grades = useMemo(
     () => (spec ? listGradesForStandard(spec) : []),
@@ -37,6 +34,10 @@ export function Material2Lookup({
     [grade, spec],
   );
 
+  const parentGroup =
+    lookup?.iso9606Group ??
+    (grade === defaultGrade && spec === defaultSpec ? defaultGroup : "");
+
   return (
     <div className="rounded-[var(--radius-card)] border border-silver bg-frost/30 p-4 sm:col-span-2">
       <p className="text-sm font-medium text-onyx">
@@ -44,7 +45,8 @@ export function Material2Lookup({
       </p>
       <p className="mt-0.5 text-xs text-steel">
         Second material for two-material test pieces (e.g. pipe-to-plate fillet,
-        branch joints). Leave blank when both sides use the same material.
+        branch joints). Leave blank when both sides use the same material. Parent
+        group is set automatically from the grade.
       </p>
       <div className="mt-3 grid gap-4 sm:grid-cols-3">
         <Field label="Material standard">
@@ -67,11 +69,7 @@ export function Material2Lookup({
           {spec && grades.length ? (
             <Select
               value={grade}
-              onChange={(e) => {
-                setGrade(e.target.value);
-                const hit = lookupMaterialGroup(e.target.value, spec);
-                if (hit) setGroup(hit.iso9606Group);
-              }}
+              onChange={(e) => setGrade(e.target.value)}
             >
               <option value="">—</option>
               {grades.map((g) => (
@@ -90,18 +88,13 @@ export function Material2Lookup({
           )}
         </Field>
         <Field label="Parent material group">
-          <Select
-            name="material2_group"
-            value={group || lookup?.iso9606Group || ""}
-            onChange={(e) => setGroup(e.target.value)}
-          >
-            <option value="">—</option>
-            {MATERIAL_GROUPS.map((m) => (
-              <option key={m.code} value={m.code}>
-                Group {m.code}
-              </option>
-            ))}
-          </Select>
+          <Input
+            readOnly
+            tabIndex={-1}
+            value={parentGroup ? `Group ${parentGroup}` : grade ? "—" : ""}
+            placeholder="From grade lookup"
+            className="cursor-default bg-frost text-onyx"
+          />
         </Field>
       </div>
       {spec ? (
@@ -109,6 +102,9 @@ export function Material2Lookup({
       ) : null}
       {grade && spec && grades.length ? (
         <input type="hidden" name="material2_grade" value={grade} />
+      ) : null}
+      {parentGroup ? (
+        <input type="hidden" name="material2_group" value={parentGroup} />
       ) : null}
     </div>
   );

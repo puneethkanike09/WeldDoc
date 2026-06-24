@@ -27,15 +27,13 @@ export function MaterialGradeLookup({
   title = "Material 1 lookup (CEN ISO/TR 20172)",
   defaultStandard = "",
   defaultGrade = "",
-  defaultGroup = "1",
+  defaultGroup = "",
   errors,
   onFieldChange,
 }: MaterialGradeLookupProps) {
   const standards = useMemo(() => listMaterialStandards(), []);
   const [standard, setStandard] = useState(defaultStandard);
   const [grade, setGrade] = useState(defaultGrade);
-  const [groupOverride, setGroupOverride] = useState(defaultGroup);
-  const [manualGroup, setManualGroup] = useState(false);
 
   const grades = useMemo(
     () => (standard ? listGradesForStandard(standard) : []),
@@ -47,10 +45,9 @@ export function MaterialGradeLookup({
     [grade, standard],
   );
 
-  const resolvedGroup = manualGroup
-    ? groupOverride
-    : (lookup?.iso9606Group ?? groupOverride);
-
+  const parentGroup =
+    lookup?.iso9606Group ??
+    (grade === defaultGrade && standard === defaultStandard ? defaultGroup : "");
   const invalidBorder = "border-ember ring-1 ring-ember/20";
 
   return (
@@ -58,12 +55,12 @@ export function MaterialGradeLookup({
       <div>
         <p className="text-sm font-medium text-onyx">{title}</p>
         <p className="mt-0.5 text-xs text-steel">
-          Select the EN standard and grade to auto-fill the parent material group.
-          Override manually when the grade is not listed.
+          Select the EN standard and grade — the parent material group is set
+          automatically from TR 20172 and cannot be changed manually.
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <Field label="Material standard" required error={errors?.material_standard}>
           <Select
             value={standard}
@@ -72,6 +69,7 @@ export function MaterialGradeLookup({
               setGrade("");
               onFieldChange?.("material_standard");
               onFieldChange?.("material_grade");
+              onFieldChange?.("base_material_group");
             }}
             className={cn(errors?.material_standard && invalidBorder)}
           >
@@ -90,8 +88,8 @@ export function MaterialGradeLookup({
               value={grade}
               onChange={(e) => {
                 setGrade(e.target.value);
-                setManualGroup(false);
                 onFieldChange?.("material_grade");
+                onFieldChange?.("base_material_group");
               }}
               className={cn(errors?.material_grade && invalidBorder)}
             >
@@ -107,17 +105,36 @@ export function MaterialGradeLookup({
               value={grade}
               onChange={(e) => {
                 setGrade(e.target.value);
-                setManualGroup(false);
                 onFieldChange?.("material_grade");
+                onFieldChange?.("base_material_group");
               }}
               placeholder="S355J2, P265GH, E355…"
               className={cn(errors?.material_grade && invalidBorder)}
             />
           )}
         </Field>
+
+        <Field label="Parent material group" required error={errors?.base_material_group}>
+          <Input
+            readOnly
+            tabIndex={-1}
+            value={
+              parentGroup
+                ? `Group ${parentGroup}`
+                : grade
+                  ? "—"
+                  : ""
+            }
+            placeholder="From grade lookup"
+            className={cn(
+              "cursor-default bg-frost text-onyx",
+              errors?.base_material_group && invalidBorder,
+            )}
+          />
+        </Field>
       </div>
 
-      {lookup && !manualGroup && (
+      {lookup ? (
         <p className="text-xs text-graphite">
           TR 20172 group <span className="font-medium">{lookup.trGroup}</span>
           {" → "}
@@ -126,49 +143,16 @@ export function MaterialGradeLookup({
           {" · "}
           {lookup.material.number}
         </p>
-      )}
-
-      <div className="flex flex-wrap items-end gap-4">
-        <Field
-          label="Parent material group"
-          className="min-w-[220px] flex-1"
-          required
-          error={errors?.base_material_group}
-        >
-          <Select
-            name="base_material_group"
-            value={resolvedGroup}
-            onChange={(e) => {
-              setGroupOverride(e.target.value);
-              setManualGroup(true);
-              onFieldChange?.("base_material_group");
-            }}
-            className={cn(errors?.base_material_group && invalidBorder)}
-          >
-            {["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"].map((g) => (
-              <option key={g} value={g}>
-                Group {g}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <label className="flex items-center gap-2 pb-2 text-xs text-graphite">
-          <input
-            type="checkbox"
-            checked={manualGroup}
-            onChange={(e) => setManualGroup(e.target.checked)}
-          />
-          Manual override
-        </label>
-      </div>
+      ) : grade ? (
+        <p className="text-xs text-steel">
+          No TR 20172 match for this grade — choose from the list or check the
+          designation.
+        </p>
+      ) : null}
 
       <input type="hidden" name="material_grade" value={grade} required />
-      <input
-        type="hidden"
-        name="material_standard"
-        value={standard}
-        required
-      />
+      <input type="hidden" name="material_standard" value={standard} required />
+      <input type="hidden" name="base_material_group" value={parentGroup} required />
     </div>
   );
 }
