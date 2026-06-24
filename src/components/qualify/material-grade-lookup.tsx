@@ -138,7 +138,7 @@ export function MaterialGradeLookup({
               <option value="">Select grade…</option>
               {grades.map((g) => (
                 <option key={`${g.designation}-${g.number}`} value={g.designation}>
-                  {g.designation} ({g.number}) — Group {g.group}
+                  {g.designation} ({g.number})
                 </option>
               ))}
             </Select>
