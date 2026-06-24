@@ -167,9 +167,6 @@ export function getQualificationPlanFieldErrors(
     errors.branch_connection = "Branch connection is required.";
   }
   if (!str(formData.get("position"))) errors.position = "Welding position is required.";
-  if (!str(formData.get("base_material_group"))) {
-    errors.base_material_group = "Parent material group is required.";
-  }
   if (!str(formData.get("wps_reference"))) errors.wps_reference = "WPS reference is required.";
   if (!str(formData.get("date_of_welding"))) {
     errors.date_of_welding = "Date of welding test is required.";
@@ -209,6 +206,15 @@ export function getTestPieceFieldErrors(
   if (!str(formData.get("base_material_group"))) {
     errors.base_material_group = "Parent material group is required.";
   }
+  if (!str(formData.get("material2_grade"))) {
+    errors.material2_grade = "Material 2 grade is required.";
+  }
+  if (!str(formData.get("material2_specification"))) {
+    errors.material2_specification = "Material 2 standard is required.";
+  }
+  if (!str(formData.get("material2_group"))) {
+    errors.material2_group = "Material 2 parent material group is required.";
+  }
   if (!str(formData.get("filler_group"))) {
     errors.filler_group = "Filler material group is required.";
   }
@@ -227,7 +233,6 @@ export function getTestPieceFieldErrors(
   }
   if (!str(formData.get("weld_details"))) errors.weld_details = "Weld details is required.";
   if (!str(formData.get("layer_type"))) errors.layer_type = "Layer is required.";
-  if (!str(formData.get("position"))) errors.position = "Welding position is required.";
 
   if (num(formData.get("test_thickness_mm")) == null) {
     errors.test_thickness_mm = "Test thickness is required.";

@@ -15,7 +15,6 @@ import {
   BW_POSITIONS,
   FW_POSITIONS,
   POSITION_LABELS,
-  MATERIAL_GROUPS,
   FILLER_GROUPS,
   FILLER_TYPES,
   CURRENT_POLARITY,
@@ -26,7 +25,6 @@ import {
   TRANSFER_MODE_OPTIONS,
   requiredTestsFor,
 } from "@/lib/iso9606/constants";
-import { ndtJointCategory } from "@/lib/iso9606/qualification-fields";
 import {
   getCertificateIssueFieldErrors,
   getNdtFieldErrors,
@@ -35,7 +33,6 @@ import {
 } from "@/lib/iso9606/qualification-fields";
 import { displayJointType } from "@/lib/iso9606/product-dimensions";
 import { MaterialGradeLookup } from "@/components/qualify/material-grade-lookup";
-import { Material2Lookup } from "@/components/qualify/material2-lookup";
 import { PlanProductJointFields } from "@/components/qualify/plan-product-joint-fields";
 import { ProductDimensions } from "@/components/qualify/qualification-field-blocks";
 import { Iso9606RevalidationPdfLink } from "@/components/qualify/standard-pdf-link";
@@ -236,21 +233,6 @@ export function PlanStep({
                   )}
                 </Select>
               </Field>
-              <Field label="Parent material group" required error={fieldErrors.base_material_group}>
-                <Select
-                  name="base_material_group"
-                  defaultValue={wpq?.base_material_group ?? "1"}
-                  required
-                  className={cn(fieldErrors.base_material_group && invalidBorder)}
-                  onChange={() => clearError("base_material_group")}
-                >
-                  {MATERIAL_GROUPS.map((m) => (
-                    <option key={m.code} value={m.code}>
-                      {m.label}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
               <Field label="WPS reference" required error={fieldErrors.wps_reference}>
                 <Input
                   name="wps_reference"
@@ -350,8 +332,6 @@ export function TestStep({
   rangePreview: string | null;
 }) {
   const jointLabel = displayJointType(wpq);
-  const ndtJoint = ndtJointCategory(wpq.joint_type);
-  const positions = ndtJoint === "FW" ? FW_POSITIONS : BW_POSITIONS;
 
   const validate = useCallback(
     (formData: FormData) =>
@@ -370,7 +350,7 @@ export function TestStep({
             />
             <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
               <MaterialGradeLookup
-                title="Material 1 lookup (CEN ISO/TR 20172)"
+                variant={1}
                 defaultStandard={wpq.material_specification ?? ""}
                 defaultGrade={wpq.material_grade ?? ""}
                 defaultGroup={wpq.base_material_group ?? ""}
@@ -381,10 +361,17 @@ export function TestStep({
                 }}
                 onFieldChange={clearError}
               />
-              <Material2Lookup
-                defaultSpec={wpq.material2_specification ?? ""}
+              <MaterialGradeLookup
+                variant={2}
+                defaultStandard={wpq.material2_specification ?? ""}
                 defaultGrade={wpq.material2_grade ?? ""}
                 defaultGroup={wpq.material2_group ?? ""}
+                errors={{
+                  material2_specification: fieldErrors.material2_specification,
+                  material2_grade: fieldErrors.material2_grade,
+                  material2_group: fieldErrors.material2_group,
+                }}
+                onFieldChange={clearError}
               />
             </div>
             <div className="grid gap-5 sm:grid-cols-2">
@@ -395,21 +382,6 @@ export function TestStep({
                 errors={fieldErrors}
                 onFieldChange={clearError}
               />
-              <Field label="Confirm position" required error={fieldErrors.position}>
-                <Select
-                  name="position"
-                  defaultValue={wpq.position ?? "PF"}
-                  required
-                  className={cn(fieldErrors.position && invalidBorder)}
-                  onChange={() => clearError("position")}
-                >
-                  {positions.map((p) => (
-                    <option key={p} value={p}>
-                      {POSITION_LABELS[p] ?? p}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
               <Field label="Filler material group" required error={fieldErrors.filler_group}>
                 <Select
                   name="filler_group"

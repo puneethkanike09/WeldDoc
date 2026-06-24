@@ -101,7 +101,6 @@ export async function savePlan(
         ? (str(formData.get("branch_connection")) as BranchConnection)
         : null,
     position: str(formData.get("position")),
-    base_material_group: str(formData.get("base_material_group")),
     wps_reference: str(formData.get("wps_reference")),
     examiner_ref: str(formData.get("examiner_ref")),
     examiner_name: str(formData.get("examiner_name")),
@@ -186,7 +185,6 @@ export async function saveTest(
       deposited_thickness_mm: num(formData.get("deposited_thickness_mm")),
       pipe_od_mm: num(formData.get("pipe_od_mm")),
       layer_type: str(formData.get("layer_type")),
-      position: str(formData.get("position")),
       certificate_pdf_path: null,
     })
     .eq("id", wpqId)
