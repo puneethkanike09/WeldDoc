@@ -368,23 +368,25 @@ export function TestStep({
               title="Step 2 — Test piece record"
               sub="Page 1 continued: materials, dimensions, filler and test piece parameters."
             />
-            <MaterialGradeLookup
-              title="Material 1 lookup (CEN ISO/TR 20172)"
-              defaultStandard={wpq.material_specification ?? ""}
-              defaultGrade={wpq.material_grade ?? ""}
-              defaultGroup={wpq.base_material_group ?? ""}
-              errors={{
-                material_standard: fieldErrors.material_standard,
-                material_grade: fieldErrors.material_grade,
-                base_material_group: fieldErrors.base_material_group,
-              }}
-              onFieldChange={clearError}
-            />
-            <Material2Lookup
-              defaultSpec={wpq.material2_specification ?? ""}
-              defaultGrade={wpq.material2_grade ?? ""}
-              defaultGroup={wpq.material2_group ?? ""}
-            />
+            <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
+              <MaterialGradeLookup
+                title="Material 1 lookup (CEN ISO/TR 20172)"
+                defaultStandard={wpq.material_specification ?? ""}
+                defaultGrade={wpq.material_grade ?? ""}
+                defaultGroup={wpq.base_material_group ?? ""}
+                errors={{
+                  material_standard: fieldErrors.material_standard,
+                  material_grade: fieldErrors.material_grade,
+                  base_material_group: fieldErrors.base_material_group,
+                }}
+                onFieldChange={clearError}
+              />
+              <Material2Lookup
+                defaultSpec={wpq.material2_specification ?? ""}
+                defaultGrade={wpq.material2_grade ?? ""}
+                defaultGroup={wpq.material2_group ?? ""}
+              />
+            </div>
             <div className="grid gap-5 sm:grid-cols-2">
               <ProductDimensions
                 product={wpq.product}

@@ -39,16 +39,18 @@ export function Material2Lookup({
     (grade === defaultGrade && spec === defaultSpec ? defaultGroup : "");
 
   return (
-    <div className="rounded-[var(--radius-card)] border border-silver bg-frost/30 p-4 sm:col-span-2">
-      <p className="text-sm font-medium text-onyx">
-        Material 2 lookup (CEN ISO/TR 20172)
-      </p>
-      <p className="mt-0.5 text-xs text-steel">
-        Second material for two-material test pieces (e.g. pipe-to-plate fillet,
-        branch joints). Leave blank when both sides use the same material. Parent
-        group is set automatically from the grade.
-      </p>
-      <div className="mt-3 grid gap-4 sm:grid-cols-3">
+    <div className="h-full space-y-4 rounded-[var(--radius-card)] border border-silver bg-frost/40 p-4">
+      <div>
+        <p className="text-sm font-medium text-onyx">
+          Material 2 lookup (CEN ISO/TR 20172)
+        </p>
+        <p className="mt-0.5 text-xs text-steel">
+          Second material for two-material test pieces (e.g. pipe-to-plate fillet,
+          branch joints). Leave blank when both sides use the same material. Parent
+          group is set automatically from the grade.
+        </p>
+      </div>
+      <div className="grid gap-4">
         <Field label="Material standard">
           <Select
             value={spec}
@@ -97,6 +99,21 @@ export function Material2Lookup({
           />
         </Field>
       </div>
+      {lookup ? (
+        <p className="text-xs text-graphite">
+          TR 20172 group <span className="font-medium">{lookup.trGroup}</span>
+          {" → "}
+          ISO 9606-1 parent group{" "}
+          <span className="font-medium">{lookup.iso9606Group}</span>
+          {" · "}
+          {lookup.material.number}
+        </p>
+      ) : grade ? (
+        <p className="text-xs text-steel">
+          No TR 20172 match for this grade — choose from the list or check the
+          designation.
+        </p>
+      ) : null}
       {spec ? (
         <input type="hidden" name="material2_specification" value={spec} />
       ) : null}

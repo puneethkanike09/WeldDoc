@@ -51,7 +51,7 @@ export function MaterialGradeLookup({
   const invalidBorder = "border-ember ring-1 ring-ember/20";
 
   return (
-    <div className="space-y-4 rounded-[var(--radius-card)] border border-silver bg-frost/40 p-4">
+    <div className="h-full space-y-4 rounded-[var(--radius-card)] border border-silver bg-frost/40 p-4">
       <div>
         <p className="text-sm font-medium text-onyx">{title}</p>
         <p className="mt-0.5 text-xs text-steel">
@@ -60,7 +60,7 @@ export function MaterialGradeLookup({
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4">
         <Field label="Material standard" required error={errors?.material_standard}>
           <Select
             value={standard}
