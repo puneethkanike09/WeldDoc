@@ -22,6 +22,8 @@ import {
   REVALIDATION_METHODS,
   TESTING_STANDARDS,
 } from "@/lib/iso9606/constants";
+import { Iso9606RevalidationPdfLink } from "@/components/qualify/standard-pdf-link";
+import { ISO_9606_1 } from "@/lib/iso9606/standards-reference";
 import type { Welder } from "@/types/db";
 import { FileArchive, Loader2 } from "lucide-react";
 
@@ -240,7 +242,19 @@ export function LegacyForm({
             <Field label="Last 6-month continuity confirmed">
               <DatePicker name="continuity_last_verified" />
             </Field>
-            <Field label="I — Revalidation method" required>
+            <Field
+              label="I — Revalidation method"
+              required
+              hint={
+                <>
+                  See{" "}
+                  <Iso9606RevalidationPdfLink
+                    label={`${ISO_9606_1.title}, clause ${ISO_9606_1.clauses.revalidation.section}`}
+                  />{" "}
+                  for options 9.3a, 9.3b and 9.3c.
+                </>
+              }
+            >
               <Select name="revalidation_method" defaultValue="9.3b" required>
                 {REVALIDATION_METHODS.map((m) => (
                   <option key={m.code} value={m.code}>

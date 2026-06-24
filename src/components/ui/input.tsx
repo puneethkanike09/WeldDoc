@@ -86,7 +86,7 @@ export function Field({
   reserveMessageSpace,
 }: {
   label?: string;
-  hint?: string;
+  hint?: React.ReactNode;
   required?: boolean;
   error?: string;
   children: React.ReactNode;

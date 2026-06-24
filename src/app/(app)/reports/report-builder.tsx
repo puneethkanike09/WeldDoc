@@ -15,6 +15,8 @@ import {
   MATERIAL_GROUPS,
 } from "@/lib/iso9606/constants";
 import { collectReportFormErrors } from "@/lib/reports/validate-report-rows";
+import { Iso9606RevalidationPdfLink } from "@/components/qualify/standard-pdf-link";
+import { ISO_9606_1 } from "@/lib/iso9606/standards-reference";
 import { useFormSubmit } from "@/lib/form-toast";
 import type { FieldErrors } from "@/lib/field-errors";
 import type { JointCategory, ProductType } from "@/types/db";
@@ -181,7 +183,19 @@ export function ReportBuilder({
                 onChange={() => clearError("wps_no")}
               />
             </Field>
-            <Field label="Revalidation method" required>
+            <Field
+              label="Revalidation method"
+              required
+              hint={
+                <>
+                  See{" "}
+                  <Iso9606RevalidationPdfLink
+                    label={`${ISO_9606_1.title}, clause ${ISO_9606_1.clauses.revalidation.section}`}
+                  />{" "}
+                  for the standard definitions.
+                </>
+              }
+            >
               <Select name="revalidation_method" defaultValue="9.3b" required>
                 <option value="9.3a">9.3a (3 years)</option>
                 <option value="9.3b">9.3b (2 years)</option>
