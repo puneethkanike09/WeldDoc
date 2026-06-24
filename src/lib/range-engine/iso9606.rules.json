@@ -2,7 +2,7 @@
   "standard": "ISO_9606_1",
   "title": "EN ISO 9606-1:2017",
   "thickness": {
-    "note": "Material/test thickness ranges per Table 9 (single value t in mm).",
+    "note": "Deposited thickness range for butt welds per Table 6 (s in mm).",
     "bands": [
       { "max": 3, "minFactor": 0.5, "maxFactor": 2, "unlimited": false },
       { "min": 3, "max": 12, "minAbsolute": 3, "maxFactor": 2, "unlimited": false },
@@ -10,11 +10,11 @@
     ]
   },
   "filletThroat": {
-    "note": "Fillet weld throat thickness 'a' per Table 10 — qualifies a and above.",
+    "note": "Material thickness range for fillet welds per Table 8 (t in mm).",
     "bands": [{ "min": 0, "minAbsolute": 0, "unlimited": true }]
   },
   "pipeOd": {
-    "note": "Outside diameter ranges per Table 11 (D in mm). Plate qualifies pipe OD > 500 mm.",
+    "note": "Outside pipe diameter range per Table 7 (D in mm). Plate test qualifies pipe OD ≥ 500 mm (§5.3 b).",
     "bands": [
       { "max": 25, "minFactor": 0.5, "maxFactor": 2, "unlimited": false },
       { "min": 25, "max": 150, "minFactor": 0.5, "unlimited": true },
@@ -22,22 +22,32 @@
     ],
     "plateQualifiesPipeOdMin": 500
   },
-  "positionMap": {
-    "note": "Position coverage per Table 12 / ISO 6947.",
+  "positionMapBw": {
+    "note": "Table 9 — range of qualification for welding positions for butt welds (§5.8). See also §5.3.",
+    "PA": ["PA"],
+    "PC": ["PA", "PC"],
+    "PE": ["PA", "PC", "PE"],
+    "PF": ["PA", "PF"],
+    "PH": ["PA", "PE", "PF"],
+    "PG": ["PG"],
+    "PJ": ["PA", "PE", "PG"],
+    "H-L045": ["PA", "PC", "PE", "PF"],
+    "J-L045": ["PA", "PC", "PE", "PG"]
+  },
+  "positionMapFw": {
+    "note": "Table 10 — range of qualification for welding positions for fillet welds (§5.8). See also §5.3.",
     "PA": ["PA"],
     "PB": ["PA", "PB"],
-    "PC": ["PA", "PC"],
-    "PD": ["PA", "PB", "PD"],
-    "PE": ["PA", "PC", "PE"],
-    "PF": ["PA", "PB", "PC", "PD", "PE", "PF"],
+    "PC": ["PA", "PB", "PC"],
+    "PD": ["PA", "PB", "PC", "PD", "PE"],
+    "PE": ["PA", "PB", "PC", "PD", "PE"],
+    "PF": ["PA", "PB", "PF"],
+    "PH": ["PA", "PB", "PC", "PD", "PE", "PF"],
     "PG": ["PG"],
-    "PH": ["PA", "PB", "PC", "PD", "PE", "PF", "PH"],
-    "PJ": ["PA", "PB", "PC", "PD", "PE", "PF", "PH", "PJ"],
-    "H-L045": ["PA", "PB", "PC", "PD", "PE", "PF", "PH", "H-L045"],
-    "J-L045": ["PA", "PB", "PC", "PD", "PE", "PF", "PG", "PH", "PJ", "H-L045", "J-L045"]
+    "PJ": ["PA", "PB", "PD", "PE", "PG"]
   },
   "materialGroupMap": {
-    "note": "Parent material group coverage per Table 7 (CR ISO 15608 groupings).",
+    "note": "Parent material group coverage per ISO/TR 15608 groupings (§5.2).",
     "1": ["1", "2"],
     "2": ["1", "2"],
     "3": ["1", "2", "3"],

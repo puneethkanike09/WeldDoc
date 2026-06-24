@@ -66,7 +66,8 @@ export function computeRange(input: RangeInput): RangeResult {
   const r = rules as unknown as {
     thickness: { bands: Band[] };
     pipeOd: { bands: Band[]; plateQualifiesPipeOdMin: number };
-    positionMap: Record<string, string[]>;
+    positionMapBw: Record<string, string[]>;
+    positionMapFw: Record<string, string[]>;
     materialGroupMap: Record<string, string[]>;
     jointTypeMap: Record<string, string[]>;
   };
@@ -108,8 +109,10 @@ export function computeRange(input: RangeInput): RangeResult {
     pipeOdUnlimited = true;
   }
 
+  const positionMap =
+    input.jointType === "FW" ? r.positionMapFw : r.positionMapBw;
   const approvedPositions = input.position
-    ? (r.positionMap[input.position] ?? [input.position])
+    ? (positionMap[input.position] ?? [input.position])
     : [];
 
   const approvedMaterialGroups = input.materialGroup

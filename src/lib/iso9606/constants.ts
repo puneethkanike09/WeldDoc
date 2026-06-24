@@ -54,7 +54,17 @@ export const BW_POSITIONS = [
   "J-L045",
 ] as const;
 
-export const FW_POSITIONS = ["PA", "PB", "PD", "PF", "PG", "PH", "PJ"] as const;
+export const FW_POSITIONS = [
+  "PA",
+  "PB",
+  "PC",
+  "PD",
+  "PE",
+  "PF",
+  "PG",
+  "PH",
+  "PJ",
+] as const;
 
 export const POSITION_LABELS: Record<string, string> = {
   PA: "PA — flat",
