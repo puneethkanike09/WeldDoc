@@ -56,9 +56,8 @@ export function AppShell({
 
       {/* Sidebar: off-canvas drawer on mobile, sticky column on desktop */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-out lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0 ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-out lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <Sidebar
           orgName={orgName}

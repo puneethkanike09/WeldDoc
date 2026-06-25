@@ -22,8 +22,7 @@ import {
   REVALIDATION_METHODS,
   TESTING_STANDARDS,
 } from "@/lib/iso9606/constants";
-import { Iso9606RevalidationPdfLink } from "@/components/qualify/standard-pdf-link";
-import { ISO_9606_1 } from "@/lib/iso9606/standards-reference";
+import { Iso9606RevalidationPdfDrawer } from "@/components/qualify/iso9606-pdf-drawer";
 import type { Welder } from "@/types/db";
 import { FileArchive, Loader2 } from "lucide-react";
 
@@ -245,15 +244,7 @@ export function LegacyForm({
             <Field
               label="I — Revalidation method"
               required
-              hint={
-                <>
-                  See{" "}
-                  <Iso9606RevalidationPdfLink
-                    label={`${ISO_9606_1.title}, clause ${ISO_9606_1.clauses.revalidation.section}`}
-                  />{" "}
-                  for options 9.3a, 9.3b and 9.3c.
-                </>
-              }
+              labelAccessory={<Iso9606RevalidationPdfDrawer />}
             >
               <Select name="revalidation_method" defaultValue="9.3b" required>
                 {REVALIDATION_METHODS.map((m) => (

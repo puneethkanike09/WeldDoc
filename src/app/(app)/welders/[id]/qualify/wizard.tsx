@@ -35,8 +35,7 @@ import { displayJointType } from "@/lib/iso9606/product-dimensions";
 import { MaterialGradeLookup } from "@/components/qualify/material-grade-lookup";
 import { PlanProductJointFields } from "@/components/qualify/plan-product-joint-fields";
 import { ProductDimensions } from "@/components/qualify/qualification-field-blocks";
-import { Iso9606RevalidationPdfLink } from "@/components/qualify/standard-pdf-link";
-import { ISO_9606_1 } from "@/lib/iso9606/standards-reference";
+import { Iso9606RevalidationPdfDrawer } from "@/components/qualify/iso9606-pdf-drawer";
 import type {
   BranchConnection,
   JointCategory,
@@ -285,15 +284,7 @@ export function PlanStep({
                 label="Revalidation method (cl. 9.3)"
                 required
                 error={fieldErrors.revalidation_method}
-                hint={
-                  <>
-                    How validity is extended after the initial test — open{" "}
-                    <Iso9606RevalidationPdfLink
-                      label={`${ISO_9606_1.title}, clause ${ISO_9606_1.clauses.revalidation.section}`}
-                    />{" "}
-                    for the full wording of options 9.3a, 9.3b and 9.3c.
-                  </>
-                }
+                labelAccessory={<Iso9606RevalidationPdfDrawer />}
               >
                 <Select
                   name="revalidation_method"

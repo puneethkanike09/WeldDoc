@@ -79,6 +79,7 @@ export function Label({
 export function Field({
   label,
   hint,
+  labelAccessory,
   required,
   error,
   children,
@@ -87,6 +88,7 @@ export function Field({
 }: {
   label?: string;
   hint?: React.ReactNode;
+  labelAccessory?: React.ReactNode;
   required?: boolean;
   error?: string;
   children: React.ReactNode;
@@ -102,7 +104,12 @@ export function Field({
 
   return (
     <div className={className}>
-      {label && <Label required={required}>{label}</Label>}
+      {label ? (
+        <div className="mb-1.5 flex items-center justify-between gap-2">
+          <Label required={required}>{label}</Label>
+          {labelAccessory}
+        </div>
+      ) : null}
       {children}
       {reserveMessageSpace ? (
         <div className="mt-1 min-h-[1.125rem]">{message}</div>
