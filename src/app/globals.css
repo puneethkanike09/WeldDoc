@@ -66,6 +66,15 @@ html[data-app-theme="dark"] {
   color-scheme: dark;
 }
 
+/* Qualify stepper — completed step uses active-ink bg; dark mode needs dark checkmark on mint green */
+.step-done {
+  background-color: var(--color-active-ink);
+  color: #ffffff;
+}
+html[data-app-theme="dark"] .step-done {
+  color: #161616;
+}
+
 @theme {
   /* WeldDoc brand palette (Weld. red + Doc black) */
   /* Surfaces — remapped for admin dark mode */

@@ -2,15 +2,17 @@
 
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { QrCode, ShieldCheck, Printer, X } from "lucide-react";
+import { QrCode, ShieldCheck, Printer, Copy, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { printQrWithId } from "@/lib/print-qr";
+import { copyQrImage } from "@/lib/print-bulk-qr";
 import {
   QR_PRINT_COLORS,
   qrImageUrl,
   type QrPrintColor,
 } from "@/lib/qr";
+import { toast } from "sonner";
 
 export function QrDialog({
   qrToken,
@@ -90,16 +92,33 @@ export function QrDialog({
             })}
           </div>
 
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="mt-4 w-full"
-            onClick={() => printQrWithId(qrToken, plantWelderId, color)}
-          >
-            <Printer className="h-4 w-4" />
-            Print QR
-          </Button>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              variant="subtle"
+              size="sm"
+              onClick={async () => {
+                try {
+                  await copyQrImage(qrToken, color);
+                  toast.success("QR copied — paste into Word or a label sheet.");
+                } catch {
+                  toast.error("Could not copy QR to clipboard.");
+                }
+              }}
+            >
+              <Copy className="h-4 w-4" />
+              Copy image
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => printQrWithId(qrToken, plantWelderId, color)}
+            >
+              <Printer className="h-4 w-4" />
+              Print QR
+            </Button>
+          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

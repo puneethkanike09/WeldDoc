@@ -8,9 +8,9 @@ export const TESTING_STANDARDS = [
 
 /** Annex A — types of test rows on the individual certificate. */
 export const ANNEX_A_TEST_TYPES = [
-  { label: "Visual testing", methods: ["Visual (Root)", "Visual (Cap)"] },
+  { label: "Visual testing", methods: ["Visual"] },
   { label: "Radiographic testing", methods: ["RT/UT"] },
-  { label: "Ultrasonic testing", methods: ["RT/UT"] },
+  { label: "Ultrasonic testing", methods: ["UT"] },
   { label: "PT — After back grind", methods: ["PT"] },
   { label: "Fracture test", methods: ["Fracture Test"] },
   { label: "Bend test", methods: ["Bend test"] },
@@ -145,27 +145,34 @@ export const TRANSFER_MODE_OPTIONS = [
 export const ID_METHODS = ["Aadhar", "Passport", "ID Card", "Other"] as const;
 
 export const REVALIDATION_METHODS = [
-  { code: "9.3a", label: "9.3a — prolongation by employer (every 6 months)" },
-  { code: "9.3b", label: "9.3b — prolongation by examiner (every 2 years)" },
-  {
-    code: "9.3c",
-    label: "9.3c — ISO 3834 quality system (6-monthly, unlimited)",
-  },
+  { code: "9.3a", label: "9.3a" },
+  { code: "9.3b", label: "9.3b" },
+  { code: "9.3c", label: "9.3c" },
 ] as const;
 
-export const BW_TESTS = [
-  "Visual (Root)",
-  "Visual (Cap)",
-  "RT/UT",
-] as const;
+export const VISUAL_TEST_METHOD = "Visual";
 
-export const FW_TESTS = ["Visual (Root)", "Fracture Test"] as const;
+export function isVisualTestMethod(method: string): boolean {
+  return method === VISUAL_TEST_METHOD || method.startsWith("Visual");
+}
+
+export const BW_TESTS = ["Visual", "RT/UT"] as const;
+
+export const FW_TESTS = ["Visual", "Fracture Test"] as const;
 
 export const OPTIONAL_TESTS = [
   "PT",
   "Bend test",
   "Notch tensile test",
   "Macroscopic examination",
+] as const;
+
+/** All NDT/DT methods available for selection in Step 3 (stable display order). */
+export const ALL_NDT_TESTS = [
+  VISUAL_TEST_METHOD,
+  "RT/UT",
+  "Fracture Test",
+  ...OPTIONAL_TESTS,
 ] as const;
 
 export function processLabel(code: string): string {

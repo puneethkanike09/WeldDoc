@@ -16,22 +16,28 @@ import {
   FW_POSITIONS,
   POSITION_LABELS,
   FILLER_GROUPS,
-  FILLER_TYPES,
   CURRENT_POLARITY,
   LAYER_TYPES,
   REVALIDATION_METHODS,
-  OPTIONAL_TESTS,
+  ALL_NDT_TESTS,
   WELD_DETAILS,
   TRANSFER_MODE_OPTIONS,
-  requiredTestsFor,
 } from "@/lib/iso9606/constants";
 import {
   getCertificateIssueFieldErrors,
   getNdtFieldErrors,
+  initialSelectedNdtTests,
   getQualificationPlanFieldErrors,
   getTestPieceFieldErrors,
+  ndtRecordForMethod,
 } from "@/lib/iso9606/qualification-fields";
 import { displayJointType } from "@/lib/iso9606/product-dimensions";
+import { fillerTypesForProcess } from "@/lib/iso9606/filler-types";
+import {
+  DEFAULT_SHIELDING_GAS,
+  ISO_14175_GASES,
+  normalizeShieldingGas,
+} from "@/lib/iso9606/shielding-gas";
 import { MaterialLookupPair } from "@/components/qualify/material-lookup-pair";
 import { SupplementaryFilletFields } from "@/components/qualify/supplementary-fillet-fields";
 import { NdtReportViewer } from "@/components/qualify/ndt-report-viewer";
@@ -120,7 +126,7 @@ export function Stepper({
               className={cn(
                 "grid h-8 w-8 place-items-center rounded-full font-display text-[13px] font-semibold",
                 active && "bg-inverse-bg text-inverse-fg",
-                done && "bg-active-ink text-white",
+                done && "step-done",
                 !active && !done && "bg-onyx/5 text-steel",
               )}
             >
@@ -192,6 +198,8 @@ export function PlanStep({
       {({ fieldErrors, clearError, draftRevision }) => {
         const draft =
           draftRevision > 0 && draftKey ? loadQualifyDraft(draftKey) : null;
+        const revalidationDefault =
+          draft?.revalidation_method ?? wpq?.revalidation_method ?? null;
         return (
         <Card>
           <CardBody className="space-y-5">
@@ -317,19 +325,33 @@ export function PlanStep({
                 error={fieldErrors.revalidation_method}
                 labelAccessory={<Iso9606RevalidationPdfDrawer />}
               >
-                <Select
-                  name="revalidation_method"
-                  defaultValue={wpq?.revalidation_method ?? "9.3b"}
-                  required
-                  className={cn(fieldErrors.revalidation_method && invalidBorder)}
-                  onChange={() => clearError("revalidation_method")}
+                <div
+                  key={`revalidation-${draftRevision}`}
+                  className="flex flex-col gap-3 pt-1 sm:flex-row sm:flex-wrap sm:gap-4"
+                  role="radiogroup"
+                  aria-label="Confirmation of revalidation"
                 >
-                  {REVALIDATION_METHODS.map((m) => (
-                    <option key={m.code} value={m.code}>
+                  {REVALIDATION_METHODS.map((m, index) => (
+                    <label
+                      key={m.code}
+                      className="inline-flex cursor-pointer items-center gap-2 text-sm text-charcoal"
+                    >
+                      <input
+                        type="radio"
+                        name="revalidation_method"
+                        value={m.code}
+                        defaultChecked={
+                          revalidationDefault != null &&
+                          revalidationDefault === m.code
+                        }
+                        required={index === 0}
+                        className="h-4 w-4 accent-[#f90a08]"
+                        onChange={() => clearError("revalidation_method")}
+                      />
                       {m.label}
-                    </option>
+                    </label>
                   ))}
-                </Select>
+                </div>
               </Field>
             </div>
             <div className="flex justify-end">
@@ -355,6 +377,7 @@ export function TestStep({
   rangePreview: string | null;
 }) {
   const jointLabel = displayJointType(wpq);
+  const shieldingDefault = normalizeShieldingGas(wpq.shielding_gas);
   const showTestThickness = showTestThicknessField(
     wpq.product,
     wpq.joint_type,
@@ -366,6 +389,12 @@ export function TestStep({
     jointLabel,
   );
   const depositedLabel = branchDepositedThicknessLabel(wpq);
+  const fillerTypeOptions = fillerTypesForProcess(wpq.process);
+  const fillerTypeDefault =
+    wpq.filler_type &&
+    (fillerTypeOptions as readonly string[]).includes(wpq.filler_type)
+      ? wpq.filler_type
+      : fillerTypeOptions[0];
 
   const validate = useCallback(
     (formData: FormData) =>
@@ -393,23 +422,9 @@ export function TestStep({
               sub="Page 1 continued: materials, dimensions, filler and test piece parameters."
             />
             <MaterialLookupPair
-              material1={{
-                defaultStandard:
-                  draft?.material_standard ?? wpq.material_specification ?? "",
-                defaultGrade: draft?.material_grade ?? wpq.material_grade ?? "",
-                defaultGroup:
-                  draft?.base_material_group ?? wpq.base_material_group ?? "",
-              }}
-              material2={{
-                defaultStandard:
-                  draft?.material2_specification ??
-                  wpq.material2_specification ??
-                  "",
-                defaultGrade:
-                  draft?.material2_grade ?? wpq.material2_grade ?? "",
-                defaultGroup:
-                  draft?.material2_group ?? wpq.material2_group ?? "",
-              }}
+              key={`materials-${draftRevision}`}
+              wpq={wpq}
+              draft={draft}
               errors={{
                 material_standard: fieldErrors.material_standard,
                 material_grade: fieldErrors.material_grade,
@@ -453,30 +468,44 @@ export function TestStep({
                   onChange={() => clearError("filler_designation")}
                 />
               </Field>
-              <Field label="Filler type" required error={fieldErrors.filler_type}>
+              <Field
+                label="Filler type"
+                required
+                error={fieldErrors.filler_type}
+                labelAccessory={
+                  <Iso9606TablePdfGlobe
+                    table={wpq.process === "111" ? "fillerType111" : "fillerTypeOther"}
+                  />
+                }
+              >
                 <Select
                   name="filler_type"
-                  defaultValue={wpq.filler_type ?? FILLER_TYPES[1]}
+                  defaultValue={fillerTypeDefault}
                   required
                   className={cn(fieldErrors.filler_type && invalidBorder)}
                   onChange={() => clearError("filler_type")}
                 >
-                  {FILLER_TYPES.map((f) => (
+                  {fillerTypeOptions.map((f) => (
                     <option key={f} value={f}>
                       {f}
                     </option>
                   ))}
                 </Select>
               </Field>
-              <Field label="Shielding gas" required error={fieldErrors.shielding_gas}>
-                <Input
+              <Field label="Shielding gas (ISO 14175)" required error={fieldErrors.shielding_gas}>
+                <Select
                   name="shielding_gas"
-                  defaultValue={wpq.shielding_gas ?? ""}
-                  placeholder="ISO 14175 - M21"
+                  defaultValue={shieldingDefault || DEFAULT_SHIELDING_GAS}
                   required
                   className={cn(fieldErrors.shielding_gas && invalidBorder)}
                   onChange={() => clearError("shielding_gas")}
-                />
+                >
+                  {ISO_14175_GASES.map((g) => (
+                    <option key={g} value={g}>
+                      {g}
+                    </option>
+                  ))}
+                </Select>
               </Field>
               <Field label="Current & polarity" required error={fieldErrors.current_polarity}>
                 <Select
@@ -617,12 +646,25 @@ export function NdtStep({
   jointType: JointCategory;
   existing: NdtDtRecord[];
 }) {
-  const required = requiredTestsFor(jointType);
-  const byMethod = new Map(existing.map((e) => [e.test_method, e]));
+  const [selected, setSelected] = useState<string[]>(() =>
+    initialSelectedNdtTests(jointType, existing),
+  );
 
   const validate = useCallback(
     (formData: FormData) => getNdtFieldErrors(formData, jointType),
     [jointType],
+  );
+
+  function toggleTest(method: string) {
+    setSelected((prev) =>
+      prev.includes(method)
+        ? prev.filter((m) => m !== method)
+        : [...prev, method],
+    );
+  }
+
+  const selectedOrdered = ALL_NDT_TESTS.filter((method) =>
+    selected.includes(method),
   );
 
   return (
@@ -632,54 +674,70 @@ export function NdtStep({
           <CardBody className="space-y-5">
             <Header
               title="Step 3 — NDT / DT results"
-              sub={`Required for ${
-                jointType === "BW" ? "butt welds" : "fillet welds"
-              }: ${required.join(", ")}. All required tests must pass to issue a certificate.`}
+              sub="Check the tests you performed — only checked tests need results. Unchecked tests are ignored."
             />
 
-            <div className="space-y-3">
-              {required.map((method) => (
-                <TestRow
-                  key={method}
-                  method={method}
-                  required
-                  welderId={welderId}
-                  existing={byMethod.get(method)}
-                  fieldErrors={fieldErrors}
-                  clearError={clearError}
-                />
-              ))}
-            </div>
+            <div className="rounded-[10px] border border-silver bg-frost/40 p-4">
+              <p className="mb-3 text-[13px] font-medium text-charcoal">
+                Tests performed
+              </p>
+              <div className="flex flex-wrap gap-x-5 gap-y-2">
+                {ALL_NDT_TESTS.map((method) => {
+                  const checked = selected.includes(method);
 
-            <details className="rounded-[10px] border border-silver">
-              <summary className="cursor-pointer px-4 py-3 text-[14px] font-medium text-charcoal">
-                Add optional tests (PT, bend, tensile, macro)
-              </summary>
-              <div className="space-y-3 border-t border-silver p-4">
-                {OPTIONAL_TESTS.map((method) => (
-                  <label key={method} className="block">
-                    <span className="mb-2 flex items-center gap-2 text-[14px] text-charcoal">
+                  return (
+                    <label
+                      key={method}
+                      className="flex cursor-pointer items-center gap-2 text-[14px] text-charcoal"
+                    >
                       <input
                         type="checkbox"
-                        name="optional_method"
-                        value={method}
-                        defaultChecked={byMethod.has(method)}
+                        checked={checked}
+                        onChange={() => toggleTest(method)}
                         className="h-4 w-4 accent-[#f90a08]"
                       />
                       {method}
-                    </span>
-                    <TestRow
-                      method={method}
-                      welderId={welderId}
-                      existing={byMethod.get(method)}
-                      compact
-                      fieldErrors={fieldErrors}
-                      clearError={clearError}
-                    />
-                  </label>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {selectedOrdered.map((method) => (
+              <input
+                key={method}
+                type="hidden"
+                name="selected_method"
+                value={method}
+              />
+            ))}
+
+            {selectedOrdered.length > 0 ? (
+              <div className="space-y-3">
+                <div className="hidden px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-steel sm:grid sm:grid-cols-[1.1fr_0.7fr_0.9fr_1fr_1fr] sm:gap-3">
+                  <span>Test</span>
+                  <span>Result</span>
+                  <span>Test date</span>
+                  <span>Report / ref no.</span>
+                  <span>Report PDF</span>
+                </div>
+                {selectedOrdered.map((method) => (
+                  <TestRow
+                    key={method}
+                    method={method}
+                    required
+                    welderId={welderId}
+                    existing={ndtRecordForMethod(existing, method)}
+                    fieldErrors={fieldErrors}
+                    clearError={clearError}
+                  />
                 ))}
               </div>
-            </details>
+            ) : (
+              <p className="rounded-[10px] bg-frost px-4 py-3 text-sm text-graphite">
+                Check one or more tests above to enter results.
+              </p>
+            )}
 
             <div className="flex flex-wrap items-center justify-between gap-3">
               <StepPreviousLink welderId={welderId} wpqId={wpqId} step={3} />
@@ -848,6 +906,7 @@ export function CertificateStep({
                   name="certificate_date"
                   defaultValue={
                     wpq.certificate_issued_date ??
+                    wpq.date_of_welding ??
                     new Date().toISOString().slice(0, 10)
                   }
                   required
@@ -895,7 +954,7 @@ export function CertificateStep({
               <div className="flex flex-wrap items-center gap-3">
                 {ndtReady ? (
                   <Badge tone="active">
-                    <Check className="h-3.5 w-3.5" /> All required tests passed
+                    <Check className="h-3.5 w-3.5" /> All selected tests passed
                   </Badge>
                 ) : (
                   <Badge tone="expiring">

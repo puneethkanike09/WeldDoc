@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Input, Field } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
@@ -12,6 +12,7 @@ import {
   MATERIAL_LOOKUP_OPTIONS,
   type MaterialLookupSource,
 } from "@/lib/materials/material-lookup";
+import { Tr20172PdfGlobe, Tr20173PdfGlobe } from "@/components/qualify/iso9606-pdf-drawer";
 
 type MaterialVariant = 1 | 2;
 
@@ -49,8 +50,15 @@ interface MaterialGradeLookupProps {
   defaultStandard?: string;
   defaultGrade?: string;
   defaultGroup?: string;
+  defaultLookupSource?: MaterialLookupSource;
   errors?: MaterialLookupErrors;
   onFieldChange?: (key: string) => void;
+  onValuesChange?: (values: {
+    lookupSource: MaterialLookupSource | "";
+    standard: string;
+    grade: string;
+    group: string;
+  }) => void;
 }
 
 export function MaterialGradeLookup({
@@ -59,14 +67,16 @@ export function MaterialGradeLookup({
   defaultStandard = "",
   defaultGrade = "",
   defaultGroup = "",
+  defaultLookupSource,
   errors,
   onFieldChange,
+  onValuesChange,
 }: MaterialGradeLookupProps) {
   const config = VARIANT_CONFIG[variant];
   const displayTitle = title ?? config.title;
 
   const [lookupSource, setLookupSource] = useState<MaterialLookupSource | "">(
-    () => inferMaterialLookupSource(defaultStandard),
+    () => defaultLookupSource ?? inferMaterialLookupSource(defaultStandard),
   );
   const [standard, setStandard] = useState(defaultStandard);
   const [grade, setGrade] = useState(defaultGrade);
@@ -93,7 +103,7 @@ export function MaterialGradeLookup({
   );
 
   const parentGroup =
-    lookup?.iso9606Group ??
+    lookup?.trGroup ??
     (grade &&
     standard &&
     lookupSource &&
@@ -118,11 +128,26 @@ export function MaterialGradeLookup({
     for (const key of keys) onFieldChange?.(key);
   };
 
+  useEffect(() => {
+    onValuesChange?.({
+      lookupSource,
+      standard,
+      grade,
+      group: parentGroup,
+    });
+  }, [lookupSource, standard, grade, parentGroup, onValuesChange]);
+
   return (
     <div className="h-full space-y-4 rounded-[var(--radius-card)] border border-silver bg-frost/40 p-4">
-      <div>
-        <p className="text-sm font-medium text-onyx">{displayTitle}</p>
-        <p className="mt-0.5 text-xs text-steel">{config.description}</p>
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <p className="text-sm font-medium text-onyx">{displayTitle}</p>
+          <p className="mt-0.5 text-xs text-steel">{config.description}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
+          {lookupSource === "TR20172" ? <Tr20172PdfGlobe /> : null}
+          {lookupSource === "TR20173" ? <Tr20173PdfGlobe /> : null}
+        </div>
       </div>
 
       <div className="grid gap-4">
@@ -253,6 +278,11 @@ export function MaterialGradeLookup({
       <input type="hidden" name={config.gradeName} value={grade} required />
       <input type="hidden" name={config.standardName} value={standard} required />
       <input type="hidden" name={config.groupName} value={parentGroup} required />
+      <input
+        type="hidden"
+        name={variant === 1 ? "material_lookup_source" : "material2_lookup_source"}
+        value={lookupSource}
+      />
     </div>
   );
 }

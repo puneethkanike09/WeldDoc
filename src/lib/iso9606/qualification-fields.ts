@@ -9,7 +9,12 @@ import {
   showDepositedThicknessField,
   showTestThicknessField,
 } from "@/lib/iso9606/test-piece-thickness";
-import { requiredTestsFor } from "@/lib/iso9606/constants";
+import {
+  ALL_NDT_TESTS,
+  isVisualTestMethod,
+  requiredTestsFor,
+  VISUAL_TEST_METHOD,
+} from "@/lib/iso9606/constants";
 
 /** BW/FW tests apply; other joint types on “Others” product use BW as default. */
 export function ndtJointCategory(jointType: string): JointCategory {
@@ -182,7 +187,7 @@ export function getQualificationPlanFieldErrors(
     errors.examiner_name = "Examiner name is required.";
   }
   if (!str(formData.get("revalidation_method"))) {
-    errors.revalidation_method = "Revalidation method is required.";
+    errors.revalidation_method = "Confirmation of revalidation is required.";
   }
   const joint = str(formData.get("joint_type"));
   if (
@@ -283,23 +288,43 @@ export function validateTestPiece(
   if (first) throw new QualificationValidationError(first);
 }
 
-/** Step 3 — NDT / DT (page 2 A–G). */
+function selectedNdtMethods(formData: FormData): string[] {
+  return formData.getAll("selected_method").map(String).filter(Boolean);
+}
+
+/** Default checked tests: saved rows only, or joint-type suggestions on first visit. */
+export function initialSelectedNdtTests(
+  jointType: JointCategory,
+  records: Pick<NdtDtRecord, "test_method">[],
+): string[] {
+  if (records.length > 0) {
+    const selected = new Set<string>();
+    for (const record of records) {
+      if (isVisualTestMethod(record.test_method)) {
+        selected.add(VISUAL_TEST_METHOD);
+      } else if (
+        (ALL_NDT_TESTS as readonly string[]).includes(record.test_method)
+      ) {
+        selected.add(record.test_method);
+      }
+    }
+    return ALL_NDT_TESTS.filter((method) => selected.has(method));
+  }
+  return [...requiredTestsFor(jointType)];
+}
+
+/** Step 3 — NDT / DT (page 2 A–G). Only checked tests are validated. */
 export function getNdtFieldErrors(
   formData: FormData,
-  jointType: JointCategory,
+  _jointType: JointCategory,
 ): Record<string, string> {
   const errors: Record<string, string> = {};
-  const methods = [
-    ...requiredTestsFor(jointType),
-    ...formData.getAll("optional_method").map(String).filter(Boolean),
-  ];
+  const methods = selectedNdtMethods(formData);
 
   for (const method of methods) {
     const result = str(formData.get(`result__${method}`));
     if (!result || result === "NA") {
       errors[`result__${method}`] = `${method}: select Pass or Fail.`;
-    } else if (requiredTestsFor(jointType).includes(method) && result !== "Pass") {
-      errors[`result__${method}`] = `${method} must pass before issuing a certificate.`;
     }
     if (!str(formData.get(`test_date__${method}`))) {
       errors[`test_date__${method}`] = `${method} test date is required.`;
@@ -344,15 +369,26 @@ export function validateCertificateIssue(formData: FormData) {
   if (first) throw new QualificationValidationError(first);
 }
 
-/** True when all required NDT tests are recorded as Pass. */
+/** True when every saved NDT row is Pass (checked tests only). */
 export function ndtTestsComplete(
-  jointType: JointCategory,
+  _jointType: JointCategory,
   records: Pick<NdtDtRecord, "test_method" | "result">[],
 ): boolean {
-  const required = requiredTestsFor(jointType);
-  return required.every((method) =>
-    records.some((r) => r.test_method === method && r.result === "Pass"),
-  );
+  if (records.length === 0) return false;
+  return records.every((r) => r.result === "Pass");
+}
+
+/** Resolve saved NDT row for a required/optional test (supports legacy visual names). */
+export function ndtRecordForMethod(
+  records: NdtDtRecord[],
+  method: string,
+): NdtDtRecord | undefined {
+  const direct = records.find((r) => r.test_method === method);
+  if (direct) return direct;
+  if (isVisualTestMethod(method)) {
+    return records.find((r) => isVisualTestMethod(r.test_method));
+  }
+  return undefined;
 }
 
 /** WPQ is ready for certificate issue (Step 4). */

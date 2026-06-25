@@ -121,6 +121,7 @@ export async function createReport(formData: FormData) {
         thickness_max_mm: range.thicknessMax,
         thickness_unlimited: range.thicknessUnlimited,
         pipe_od_min_mm: range.pipeOdMin,
+        pipe_od_max_mm: range.pipeOdMax,
         pipe_od_unlimited: range.pipeOdUnlimited,
         approved_positions: range.approvedPositions,
         approved_material_groups: range.approvedMaterialGroups,
@@ -133,12 +134,11 @@ export async function createReport(formData: FormData) {
     const ndtRows =
       category === "BW"
         ? [
-            { test_method: "Visual (Root)", result: row.visualResult },
-            { test_method: "Visual (Cap)", result: row.visualResult },
+            { test_method: "Visual", result: row.visualResult },
             { test_method: "RT/UT", result: row.mainResult },
           ]
         : [
-            { test_method: "Visual (Root)", result: row.visualResult },
+            { test_method: "Visual", result: row.visualResult },
             { test_method: "Fracture Test", result: row.mainResult },
           ];
 

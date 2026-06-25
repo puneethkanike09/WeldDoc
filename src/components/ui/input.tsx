@@ -99,13 +99,13 @@ export function Field({
   const message = error ? (
     <p className="text-xs text-ember">{error}</p>
   ) : hint ? (
-    <p className="text-xs text-steel">{hint}</p>
+    <p className="text-xs text-graphite">{hint}</p>
   ) : null;
 
   return (
     <div className={className}>
       {label ? (
-        <div className="mb-1.5 flex items-center justify-between gap-2">
+        <div className="mb-1.5 flex items-center gap-1.5">
           <Label required={required}>{label}</Label>
           {labelAccessory}
         </div>

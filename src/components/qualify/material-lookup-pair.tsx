@@ -1,94 +1,149 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   MaterialGradeLookup,
   type MaterialLookupErrors,
 } from "@/components/qualify/material-grade-lookup";
+import {
+  inferMaterialLookupSource,
+  type MaterialLookupSource,
+} from "@/lib/materials/material-lookup";
+import type { QualificationRecord } from "@/types/db";
 
-interface MaterialLookupPairProps {
-  material1: {
-    defaultStandard?: string;
-    defaultGrade?: string;
-    defaultGroup?: string;
+export interface MaterialSnapshot {
+  lookupSource: MaterialLookupSource | "";
+  standard: string;
+  grade: string;
+  group: string;
+}
+
+const LOOKUP_SOURCE_KEYS = {
+  1: "material_lookup_source",
+  2: "material2_lookup_source",
+} as const;
+
+function snapshotFromWpq(
+  wpq: QualificationRecord,
+  variant: 1 | 2,
+): MaterialSnapshot {
+  if (variant === 1) {
+    return {
+      lookupSource: inferMaterialLookupSource(wpq.material_specification ?? ""),
+      standard: wpq.material_specification ?? "",
+      grade: wpq.material_grade ?? "",
+      group: wpq.base_material_group ?? "",
+    };
+  }
+  return {
+    lookupSource: inferMaterialLookupSource(wpq.material2_specification ?? ""),
+    standard: wpq.material2_specification ?? "",
+    grade: wpq.material2_grade ?? "",
+    group: wpq.material2_group ?? "",
   };
-  material2: {
-    defaultStandard?: string;
-    defaultGrade?: string;
-    defaultGroup?: string;
+}
+
+function snapshotFromDraft(
+  draft: Record<string, string>,
+  variant: 1 | 2,
+): MaterialSnapshot {
+  const sourceKey = LOOKUP_SOURCE_KEYS[variant];
+  const stdKey = variant === 1 ? "material_standard" : "material2_specification";
+  const gradeKey = variant === 1 ? "material_grade" : "material2_grade";
+  const groupKey = variant === 1 ? "base_material_group" : "material2_group";
+  const standard = draft[stdKey] ?? "";
+  return {
+    lookupSource:
+      (draft[sourceKey] as MaterialLookupSource | undefined) ??
+      inferMaterialLookupSource(standard),
+    standard,
+    grade: draft[gradeKey] ?? "",
+    group: draft[groupKey] ?? "",
   };
-  errors?: MaterialLookupErrors;
-  onFieldChange?: (key: string) => void;
 }
 
 /** Material 1 and 2 lookups with copy-to-material-2 action. */
 export function MaterialLookupPair({
-  material1,
-  material2,
+  wpq,
+  draft,
   errors,
   onFieldChange,
-}: MaterialLookupPairProps) {
-  const [m2Defaults, setM2Defaults] = useState(material2);
+}: {
+  wpq: QualificationRecord | null;
+  draft?: Record<string, string> | null;
+  errors?: MaterialLookupErrors;
+  onFieldChange?: (key: string) => void;
+}) {
+  const initial1 = useMemo(
+    () =>
+      draft
+        ? snapshotFromDraft(draft, 1)
+        : wpq
+          ? snapshotFromWpq(wpq, 1)
+          : { lookupSource: "" as const, standard: "", grade: "", group: "" },
+    [draft, wpq],
+  );
+  const initial2 = useMemo(
+    () =>
+      draft
+        ? snapshotFromDraft(draft, 2)
+        : wpq
+          ? snapshotFromWpq(wpq, 2)
+          : { lookupSource: "" as const, standard: "", grade: "", group: "" },
+    [draft, wpq],
+  );
 
-  const copyToMaterial2 = () => {
-    const form = document.querySelector<HTMLFormElement>(
-      "form[data-qualify-step='2']",
-    );
-    if (!form) return;
-    const std =
-      form.querySelector<HTMLInputElement>('input[name="material_standard"]')
-        ?.value ?? "";
-    const grade =
-      form.querySelector<HTMLInputElement>('input[name="material_grade"]')
-        ?.value ?? "";
-    const group =
-      form.querySelector<HTMLInputElement>('input[name="base_material_group"]')
-        ?.value ?? "";
-    setM2Defaults({ defaultStandard: std, defaultGrade: grade, defaultGroup: group });
+  const [material1, setMaterial1] = useState<MaterialSnapshot>(initial1);
+  const [material2Key, setMaterial2Key] = useState(0);
+  const [material2, setMaterial2] = useState<MaterialSnapshot>(initial2);
+
+  const onMaterial1Change = useCallback((values: MaterialSnapshot) => {
+    setMaterial1(values);
+  }, []);
+
+  const copyMaterial1To2 = useCallback(() => {
+    setMaterial2({ ...material1 });
+    setMaterial2Key((k) => k + 1);
     onFieldChange?.("material2_specification");
     onFieldChange?.("material2_grade");
     onFieldChange?.("material2_group");
-  };
+    onFieldChange?.("material2_lookup_source");
+  }, [material1, onFieldChange]);
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_auto_1fr] lg:items-start">
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-start">
       <MaterialGradeLookup
         variant={1}
-        defaultStandard={material1.defaultStandard}
-        defaultGrade={material1.defaultGrade}
-        defaultGroup={material1.defaultGroup}
-        errors={{
-          material_standard: errors?.material_standard,
-          material_grade: errors?.material_grade,
-          base_material_group: errors?.base_material_group,
-        }}
+        defaultStandard={initial1.standard}
+        defaultGrade={initial1.grade}
+        defaultGroup={initial1.group}
+        defaultLookupSource={initial1.lookupSource || undefined}
+        errors={errors}
         onFieldChange={onFieldChange}
+        onValuesChange={onMaterial1Change}
       />
-      <div className="flex justify-center pt-8 lg:pt-16">
-        <Button
+      <div className="flex justify-center lg:pt-16">
+        <button
           type="button"
-          variant="ghost"
-          size="sm"
-          title="Copy Material 1 to Material 2"
-          onClick={copyToMaterial2}
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-silver bg-panel text-steel transition-colors hover:border-onyx/20 hover:bg-frost hover:text-onyx"
+          aria-label="Copy Material 1 to Material 2"
+          title="Same as Material 1"
+          onClick={copyMaterial1To2}
         >
-          <ArrowRight className="h-4 w-4" />
-          Copy
-        </Button>
+          <ArrowRight className="size-4" aria-hidden />
+        </button>
       </div>
       <MaterialGradeLookup
-        key={`m2-${m2Defaults.defaultStandard}-${m2Defaults.defaultGrade}`}
+        key={material2Key}
         variant={2}
-        defaultStandard={m2Defaults.defaultStandard}
-        defaultGrade={m2Defaults.defaultGrade}
-        defaultGroup={m2Defaults.defaultGroup}
-        errors={{
-          material2_specification: errors?.material2_specification,
-          material2_grade: errors?.material2_grade,
-          material2_group: errors?.material2_group,
-        }}
+        defaultStandard={material2.standard || initial2.standard}
+        defaultGrade={material2.grade || initial2.grade}
+        defaultGroup={material2.group || initial2.group}
+        defaultLookupSource={
+          material2.lookupSource || initial2.lookupSource || undefined
+        }
+        errors={errors}
         onFieldChange={onFieldChange}
       />
     </div>

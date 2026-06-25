@@ -87,8 +87,6 @@ export default async function QualifyPage({
   const certReady = wpq
     ? wpqReadyForCertificate(wpq, ndt)
     : false;
-  const effectiveStep =
-    step === 4 && wpq && !certReady ? 3 : step;
 
   return (
     <>
@@ -127,16 +125,16 @@ export default async function QualifyPage({
           <LegacyForm action={saveLegacy.bind(null, id)} welder={welder} />
         ) : (
           <>
-            <Stepper step={effectiveStep} wpqId={wpq?.id ?? null} welderId={id} />
+            <Stepper step={step} wpqId={wpq?.id ?? null} welderId={id} />
 
             {step === 4 && wpq && !certReady && (
               <p className="mb-4 rounded-[10px] bg-expiring/15 px-4 py-3 text-sm text-[#8a6a00]">
-                Complete all required NDT tests with Pass results before issuing
-                a certificate.
+                Add NDT tests on step 3 with Pass results before issuing a
+                certificate, or go back to step 3 to update them.
               </p>
             )}
 
-            {effectiveStep === 1 && (
+            {step === 1 && (
               <PlanStep
                 action={savePlan.bind(null, id, wpq?.id ?? null)}
                 wpq={wpq}
@@ -146,7 +144,7 @@ export default async function QualifyPage({
               />
             )}
 
-            {effectiveStep === 2 && wpq && (
+            {step === 2 && wpq && (
               <TestStep
                 action={saveTest.bind(null, id, wpq.id)}
                 welderId={id}
@@ -155,7 +153,7 @@ export default async function QualifyPage({
               />
             )}
 
-            {effectiveStep === 3 && wpq && (
+            {step === 3 && wpq && (
               <NdtStep
                 action={saveNdt.bind(null, id, wpq.id, wpq.joint_type)}
                 welderId={id}
@@ -165,17 +163,17 @@ export default async function QualifyPage({
               />
             )}
 
-            {effectiveStep === 4 && wpq && certReady && (
+            {step === 4 && wpq && (
               <CertificateStep
                 action={issueCertificate.bind(null, id, wpq.id)}
                 welderId={id}
                 wpq={wpq}
                 rangeSummary={range?.summary ?? null}
-                ndtReady
+                ndtReady={certReady}
               />
             )}
 
-            {effectiveStep > 1 && !wpq && (
+            {step > 1 && !wpq && (
               <p className="rounded-[10px] bg-expiring/15 px-4 py-3 text-sm text-[#8a6a00]">
                 Start at step 1 to create the qualification record first.
               </p>

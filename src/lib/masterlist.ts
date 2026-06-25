@@ -36,9 +36,12 @@ function thicknessText(r: RangeOfApproval | undefined): string {
 
 function pipeText(r: RangeOfApproval | undefined): string {
   if (!r || r.pipe_od_min_mm == null) return "—";
+  if (r.pipe_od_max_mm != null) {
+    return `${r.pipe_od_min_mm}–${r.pipe_od_max_mm} mm`;
+  }
   return r.pipe_od_unlimited
     ? `≥ ${r.pipe_od_min_mm} mm`
-    : `from ${r.pipe_od_min_mm} mm`;
+    : `≥ ${r.pipe_od_min_mm} mm`;
 }
 
 export async function getMasterListRows(

@@ -5,6 +5,7 @@
 
 import type { QualificationRecord, RangeOfApproval } from "@/types/db";
 import { branchPipeOdTestMm, isBranchQualification } from "@/lib/iso9606/branch-deposited-thickness";
+import { fillerTypeQualificationRange } from "@/lib/iso9606/filler-types";
 import { displayJointType } from "@/lib/iso9606/product-dimensions";
 import rules from "@/lib/range-engine/iso9606.rules.json";
 
@@ -19,13 +20,18 @@ type Rules = typeof rules & {
 
 const r = rules as Rules;
 
+/** PDF-safe minimum thickness text (Helvetica lacks U+2265). */
+export function formatMinMm(value: number): string {
+  return `>= ${value} mm`;
+}
+
 export function formatThicknessRange(range: RangeOfApproval | null): string {
   if (!range || range.thickness_min_mm == null) return "—";
-  if (range.thickness_unlimited) return `≥ ${range.thickness_min_mm} mm`;
+  if (range.thickness_unlimited) return formatMinMm(range.thickness_min_mm);
   if (range.thickness_max_mm != null) {
     return `${range.thickness_min_mm} – ${range.thickness_max_mm} mm`;
   }
-  return `≥ ${range.thickness_min_mm} mm`;
+  return formatMinMm(range.thickness_min_mm);
 }
 
 export function formatPipeOdRange(
@@ -33,17 +39,20 @@ export function formatPipeOdRange(
   range: RangeOfApproval | null,
 ): string {
   if (wpq.product === "Plate") {
-    return `Fixed pipe ≥ ${r.pipeOd.plateFixedPipeMinMm} mm; rotating pipe ≥ ${r.pipeOd.plateRotatingPipeMinMm} mm (PA, PC)`;
+    return `Fixed pipe >= ${r.pipeOd.plateFixedPipeMinMm} mm; rotating pipe >= ${r.pipeOd.plateRotatingPipeMinMm} mm (PA, PB, PC, PD)`;
   }
   if (isBranchQualification(wpq)) {
     if (range?.pipe_od_min_mm != null) {
-      return `Branch OD ≥ ${range.pipe_od_min_mm} mm`;
+      return formatMinMm(range.pipe_od_min_mm);
     }
     return "—";
   }
   if (!range || range.pipe_od_min_mm == null) return "—";
-  if (range.pipe_od_unlimited) return `≥ ${range.pipe_od_min_mm} mm`;
-  return `≥ ${range.pipe_od_min_mm} mm`;
+  if (range.pipe_od_max_mm != null) {
+    return `${range.pipe_od_min_mm} – ${range.pipe_od_max_mm} mm`;
+  }
+  if (range.pipe_od_unlimited) return formatMinMm(range.pipe_od_min_mm);
+  return formatMinMm(range.pipe_od_min_mm);
 }
 
 export function formatPipeOdTest(
@@ -64,6 +73,13 @@ export function processRangeText(process: string): string {
 export function fillerGroupRangeText(group: string | null): string {
   if (!group) return "—";
   return r.fillerGroupRanges[group] ?? group;
+}
+
+export function fillerTypeRangeText(
+  fillerType: string | null | undefined,
+  process: string,
+): string {
+  return fillerTypeQualificationRange(fillerType, process);
 }
 
 export function weldDetailsRangeText(test: string | null): string {
@@ -113,13 +129,19 @@ export function materialGroupRangeText(
   group: string | null,
   range: RangeOfApproval | null,
 ): string {
-  if (range?.approved_material_groups?.length) {
-    return range.approved_material_groups
-      .map((g) => `${g} & ${g}.1`)
-      .join(", ");
+  const approved = range?.approved_material_groups ?? [];
+  if (
+    approved.length === 11 &&
+    approved.every((g, i) => g === String(i + 1))
+  ) {
+    return "1–11";
+  }
+  if (approved.length > 0) {
+    return approved.map((g) => `${g} & ${g}.1`).join(", ");
   }
   if (!group) return "—";
-  return `${group} & ${group}.1`;
+  const major = group.split(".")[0];
+  return `${major} & ${major}.1`;
 }
 
 export function positionsRangeText(positions: string[]): string {

@@ -12,7 +12,7 @@ import {
 import { createPortal } from "react-dom";
 import { Globe, RotateCcw, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ISO_9606_1, iso9606PdfHref, type Iso9606TableKey } from "@/lib/iso9606/standards-reference";
+import { ISO_9606_1, iso9606PdfHref, tr20172PdfHref, tr20173PdfHref, TR_20172, TR_20173, type Iso9606TableKey } from "@/lib/iso9606/standards-reference";
 
 export interface StandardPdfDrawerPayload {
   src: string;
@@ -53,8 +53,13 @@ export function StandardPdfDrawerProvider({ children }: { children: ReactNode })
   const [pdfLoading, setPdfLoading] = useState(false);
   const [hostReady, setHostReady] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const iframeSrcRef = useRef<string | null>(null);
   const targetSrcRef = useRef<string | null>(null);
+  const iframeSrcRef = useRef<string | null>(null);
+  const [iframeSrc, setIframeSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    iframeSrcRef.current = iframeSrc;
+  }, [iframeSrc]);
 
   useEffect(() => setHostReady(true), []);
 
@@ -68,11 +73,10 @@ export function StandardPdfDrawerProvider({ children }: { children: ReactNode })
   }, [open]);
 
   const resetIframeView = useCallback(() => {
-    const iframe = iframeRef.current;
     const target = targetSrcRef.current;
-    if (!iframe || !target) return;
+    if (!target) return;
     setPdfLoading(true);
-    iframe.src = pdfSrcWithReloadToken(target);
+    setIframeSrc(pdfSrcWithReloadToken(target));
   }, []);
 
   const recoverBlankIframe = useCallback(() => {
@@ -81,16 +85,24 @@ export function StandardPdfDrawerProvider({ children }: { children: ReactNode })
     if (!iframe || !target) return;
     if (iframe.src === "about:blank" || iframe.src.endsWith("about:blank")) {
       setPdfLoading(true);
-      iframe.src = pdfSrcWithReloadToken(target);
+      setIframeSrc(pdfSrcWithReloadToken(target));
     }
   }, []);
 
   const openDrawer = useCallback((payload: StandardPdfDrawerPayload) => {
-    const isFirstOpen = !iframeSrcRef.current;
-    if (!iframeSrcRef.current) iframeSrcRef.current = payload.src;
+    const sameTarget = targetSrcRef.current === payload.src;
     targetSrcRef.current = payload.src;
     setMeta(payload);
-    if (isFirstOpen) setPdfLoading(true);
+
+    const prev = iframeSrcRef.current;
+    if (!prev) {
+      setPdfLoading(true);
+      setIframeSrc(payload.src);
+    } else if (!sameTarget) {
+      setPdfLoading(true);
+      setIframeSrc(pdfSrcWithReloadToken(payload.src));
+    }
+
     setOpen(true);
   }, []);
 
@@ -112,8 +124,6 @@ export function StandardPdfDrawerProvider({ children }: { children: ReactNode })
     setPdfLoading(false);
     recoverBlankIframe();
   }, [recoverBlankIframe]);
-
-  const iframeSrc = iframeSrcRef.current;
 
   return (
     <StandardPdfDrawerContext.Provider value={{ open: openDrawer }}>
@@ -199,12 +209,18 @@ interface Iso9606PdfDrawerProps {
   className?: string;
 }
 
-export function Iso9606PdfDrawer({
-  page = ISO_9606_1.tables.revalidation.page,
-  title = `${ISO_9606_1.title} — ${ISO_9606_1.tables.revalidation.label}`,
-  description = "Reference PDF — open standard at the cited section",
+/** Opens any standard PDF in the side drawer. */
+export function StandardPdfGlobe({
+  src,
+  title,
+  description,
   className,
-}: Iso9606PdfDrawerProps) {
+}: {
+  src: string;
+  title: string;
+  description: string;
+  className?: string;
+}) {
   const { open } = useStandardPdfDrawer();
 
   return (
@@ -215,16 +231,26 @@ export function Iso9606PdfDrawer({
         className,
       )}
       aria-label={`Open ${title} in reference panel`}
-      onClick={() =>
-        open({
-          src: iso9606PdfHref(page),
-          title,
-          description,
-        })
-      }
+      onClick={() => open({ src, title, description })}
     >
       <Globe className="size-4" aria-hidden />
     </button>
+  );
+}
+
+export function Iso9606PdfDrawer({
+  page = ISO_9606_1.tables.revalidation.page,
+  title = `${ISO_9606_1.title} — ${ISO_9606_1.tables.revalidation.label}`,
+  description = "Reference PDF — open standard at the cited section",
+  className,
+}: Iso9606PdfDrawerProps) {
+  return (
+    <StandardPdfGlobe
+      src={iso9606PdfHref(page)}
+      title={title}
+      description={description}
+      className={className}
+    />
   );
 }
 
@@ -241,6 +267,28 @@ export function Iso9606TablePdfGlobe({ table }: { table: Iso9606TableKey }) {
       page={ref.page}
       title={`${ISO_9606_1.shortTitle} — ${ref.label}`}
       description={ref.label}
+    />
+  );
+}
+
+export function Tr20172PdfGlobe({ className }: { className?: string }) {
+  return (
+    <StandardPdfGlobe
+      src={tr20172PdfHref(TR_20172.materialTablePage)}
+      title={TR_20172.title}
+      description="Material grouping table — ISO/TR 15608"
+      className={className}
+    />
+  );
+}
+
+export function Tr20173PdfGlobe({ className }: { className?: string }) {
+  return (
+    <StandardPdfGlobe
+      src={tr20173PdfHref(TR_20173.materialTablePage)}
+      title={TR_20173.title}
+      description="Material grouping table — ISO/TR 15608"
+      className={className}
     />
   );
 }

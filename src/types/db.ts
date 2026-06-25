@@ -144,6 +144,7 @@ export interface RangeOfApproval {
   thickness_max_mm: number | null;
   thickness_unlimited: boolean;
   pipe_od_min_mm: number | null;
+  pipe_od_max_mm: number | null;
   pipe_od_unlimited: boolean;
   approved_positions: string[];
   approved_material_groups: string[];

@@ -9,6 +9,7 @@ import { formatFilletMaterialRangeText } from "@/lib/range-engine/iso9606";
 import rules from "@/lib/range-engine/iso9606.rules.json";
 import {
   fillerGroupRangeText,
+  fillerTypeRangeText,
   formatPipeOdRange,
   formatPipeOdTest,
   formatThicknessRange,
@@ -200,7 +201,7 @@ export function buildCertRows(
     {
       label: "Filler material (type)",
       test: wpq.filler_type ?? "—",
-      range: wpq.filler_type ?? "—",
+      range: fillerTypeRangeText(wpq.filler_type, wpq.process),
     },
     {
       label: "Shielding gas",

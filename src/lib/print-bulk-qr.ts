@@ -1,3 +1,4 @@
+import type { QrPrintColor } from "@/lib/qr";
 import { qrImageUrl } from "@/lib/qr";
 
 function escapeHtml(text: string): string {
@@ -64,4 +65,21 @@ export function printBulkQrLabels(entries: BulkQrEntry[]) {
   } else {
     setTimeout(print, 150);
   }
+}
+
+/** Copy a QR PNG to the clipboard for paste into Word etc. */
+export async function copyQrImage(
+  qrToken: string,
+  color: QrPrintColor = "black",
+): Promise<void> {
+  const url = `${window.location.origin}${qrImageUrl(qrToken, color)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Could not load QR image.");
+  const blob = await res.blob();
+  if (!navigator.clipboard?.write) {
+    throw new Error("Clipboard not supported in this browser.");
+  }
+  await navigator.clipboard.write([
+    new ClipboardItem({ [blob.type]: blob }),
+  ]);
 }

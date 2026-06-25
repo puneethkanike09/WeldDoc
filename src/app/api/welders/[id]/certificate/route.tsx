@@ -7,6 +7,7 @@ import {
   type CertificateData,
 } from "@/lib/pdf/certificate";
 import { buildCertNo } from "@/lib/iso9606/certificate-model";
+import { effectiveRangeForWpq } from "@/lib/iso9606/effective-range";
 import type {
   NdtDtRecord,
   Organization,
@@ -73,11 +74,17 @@ export async function GET(
   const photoUrl = await resolveUrl("welder-photos", w.photo_path);
   const logoUrl = await resolveUrl("org-assets", (org as Organization).logo_path);
 
+  const q = wpq as QualificationRecord;
+  const effectiveRange = effectiveRangeForWpq(
+    q,
+    (range as RangeOfApproval) ?? null,
+  );
+
   const data: CertificateData = {
     org: org as Organization,
     welder: w,
-    wpq: wpq as QualificationRecord,
-    range: (range as RangeOfApproval) ?? null,
+    wpq: q,
+    range: effectiveRange,
     ndt: (ndt ?? []) as NdtDtRecord[],
     validations: (validations ?? []) as ValidationRecord[],
     photoUrl,

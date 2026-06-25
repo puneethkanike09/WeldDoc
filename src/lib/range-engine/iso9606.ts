@@ -1,5 +1,4 @@
-import rules from "./iso9606.rules.json";
-import { POSITION_LABELS } from "@/lib/iso9606/constants";
+import rules from "./iso9606.rules.json" with { type: "json" };
 
 export interface RangeInput {
   jointType: "BW" | "FW";
@@ -8,10 +7,18 @@ export interface RangeInput {
   testThicknessMm?: number | null;
   /** Deposited thickness s — Table 6 (butt / branch). */
   depositedThicknessMm?: number | null;
+  /** Welding process code — Table 6 footnotes c/d (311). */
+  process?: string | null;
+  /** Layer type — Table 6 footnote e (≥3 layers for s ≥ 12). */
+  layer?: string | null;
   pipeOdMm?: number | null;
   position?: string | null;
   /** Parent material group major number (1–11). */
   materialGroup?: string | null;
+  /** Filler material group FM1–FM6 — Table 3. */
+  fillerGroup?: string | null;
+  /** Filler type — Tables 4 & 5; nm = no filler test. */
+  fillerType?: string | null;
   supplementaryFillet?: boolean;
   jointTypeExtended?: string | null;
 }
@@ -21,6 +28,7 @@ export interface RangeResult {
   thicknessMax: number | null;
   thicknessUnlimited: boolean;
   pipeOdMin: number | null;
+  pipeOdMax: number | null;
   pipeOdUnlimited: boolean;
   approvedPositions: string[];
   approvedMaterialGroups: string[];
@@ -31,18 +39,13 @@ export interface RangeResult {
 interface Band {
   min?: number;
   max?: number;
-  minFactor?: number;
-  maxFactor?: number;
-  minAbsolute?: number;
-  minFloor?: number;
-  unlimited?: boolean;
+  note?: string;
 }
 
 type RulesJson = typeof rules & {
   thickness: { bands: Band[] };
-  filletMaterial: { bands: Band[] };
+  filletMaterial: { note?: string };
   pipeOd: {
-    bands: Band[];
     plateFixedPipeMinMm: number;
     plateRotatingPipeMinMm: number;
   };
@@ -55,46 +58,100 @@ function round(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-/** Inclusive lower bound, exclusive upper — ISO table row boundaries. */
-function pickBand(bands: Band[], value: number): Band | null {
-  for (const b of bands) {
-    const aboveMin = b.min === undefined ? true : value >= b.min;
-    const belowMax = b.max === undefined ? true : value < b.max;
-    if (aboveMin && belowMax) return b;
-  }
-  return null;
+function isMultiLayer(layer: string | null | undefined): boolean {
+  return Boolean(layer && !/single|sl/i.test(layer));
 }
 
-function applyThicknessBands(t: number, bands: Band[]) {
-  const band = pickBand(bands, t);
-  if (!band) return { min: round(t), max: round(t), unlimited: false };
-  const min =
-    band.minAbsolute !== undefined
-      ? band.minAbsolute
-      : band.minFactor !== undefined
-        ? round(band.minFactor * t)
-        : round(t);
-  const max = band.unlimited
-    ? null
-    : band.maxFactor !== undefined
-      ? round(band.maxFactor * t)
-      : round(t);
-  return { min, max, unlimited: Boolean(band.unlimited) };
+/** Table 6 — range of qualification for deposited thickness s (butt welds). */
+export function computeTable6DepositedRange(
+  s: number,
+  opts?: { process?: string | null; layer?: string | null },
+): { min: number; max: number | null; unlimited: boolean } {
+  if (s <= 0) return { min: 0, max: 0, unlimited: false };
+
+  const is311 = opts?.process === "311";
+
+  if (s >= 12) {
+    if (isMultiLayer(opts?.layer)) {
+      return { min: 3, max: null, unlimited: true };
+    }
+    const max = is311 ? round(1.5 * s) : round(2 * s);
+    return { min: 3, max, unlimited: false };
+  }
+
+  if (s >= 3) {
+    const max = is311 ? round(1.5 * s) : round(2 * s);
+    return { min: 3, max, unlimited: false };
+  }
+
+  const scaledMax = is311 ? 1.5 * s : 2 * s;
+  const max = is311 ? round(scaledMax) : round(Math.max(3, scaledMax));
+  return { min: round(s), max, unlimited: false };
 }
 
-function applyPipeOd(D: number, bands: Band[]) {
-  const band = pickBand(bands, D);
-  if (!band) return { min: round(D), unlimited: false };
-  let min: number;
-  if (band.minAbsolute !== undefined) {
-    min = band.minAbsolute;
-  } else if (band.minFactor !== undefined) {
-    min = round(band.minFactor * D);
-    if (band.minFloor !== undefined) min = Math.max(min, band.minFloor);
-  } else {
-    min = round(D);
+/** Table 8 — material thickness t for fillet welds. */
+export function computeTable8FilletRange(
+  t: number,
+): { min: number; max: number | null; unlimited: boolean } {
+  if (t <= 0) return { min: 0, max: 0, unlimited: false };
+
+  if (t >= 3) {
+    return { min: 3, max: null, unlimited: true };
   }
-  return { min, unlimited: Boolean(band.unlimited) };
+
+  const max = round(Math.max(3, 2 * t));
+  return { min: round(t), max, unlimited: false };
+}
+
+/** Table 7 — outside pipe diameter D. */
+export function computeTable7PipeOdRange(
+  D: number,
+): { min: number; max: number | null; unlimited: boolean } {
+  if (D <= 0) return { min: 0, max: 0, unlimited: false };
+
+  if (D <= 25) {
+    return { min: round(D), max: round(2 * D), unlimited: false };
+  }
+
+  return { min: round(Math.max(0.5 * D, 25)), max: null, unlimited: true };
+}
+
+export const STEEL_PARENT_MATERIAL_GROUPS = [
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "10",
+  "11",
+] as const;
+
+/** §5.6 — 142/311 without filler, or any nm-only test: parent range = test group only. */
+export function isNoFillerQualificationTest(
+  process: string | null | undefined,
+  fillerType: string | null | undefined,
+): boolean {
+  if (process === "142") return true;
+  if (fillerType && /^no filler|^nm$/i.test(fillerType.trim())) return true;
+  if (
+    process === "311" &&
+    (!fillerType || /^no filler|^nm$/i.test(fillerType.trim()))
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function resolveApprovedMaterialGroups(input: RangeInput): string[] {
+  if (!isNoFillerQualificationTest(input.process, input.fillerType)) {
+    return [...STEEL_PARENT_MATERIAL_GROUPS];
+  }
+  const major = input.materialGroup?.split(".")[0] ?? input.materialGroup;
+  return major ? [major] : [];
 }
 
 function isStandardBwFw(jointTypeExtended: string | null | undefined): boolean {
@@ -108,11 +165,10 @@ function resolveApprovedJointTypes(input: RangeInput): string[] {
 }
 
 export function computeFilletMaterialRange(testThicknessMm: number) {
-  const r = rules as unknown as RulesJson;
   if (testThicknessMm <= 0) {
     return { min: null, max: null, unlimited: false };
   }
-  const res = applyThicknessBands(testThicknessMm, r.filletMaterial.bands);
+  const res = computeTable8FilletRange(testThicknessMm);
   return { min: res.min, max: res.max, unlimited: res.unlimited };
 }
 
@@ -120,9 +176,9 @@ export function formatFilletMaterialRangeText(testThicknessMm: number | null): s
   if (testThicknessMm == null || testThicknessMm <= 0) return "—";
   const r = computeFilletMaterialRange(testThicknessMm);
   if (r.min == null) return "—";
-  if (r.unlimited) return `≥ ${r.min} mm`;
+  if (r.unlimited) return `>= ${r.min} mm`;
   if (r.max != null) return `${r.min} – ${r.max} mm`;
-  return `≥ ${r.min} mm`;
+  return `>= ${r.min} mm`;
 }
 
 export function computeRange(input: RangeInput): RangeResult {
@@ -139,7 +195,7 @@ export function computeRange(input: RangeInput): RangeResult {
     if (input.jointType === "FW") {
       const t = input.testThicknessMm ?? 0;
       if (t > 0) {
-        const res = applyThicknessBands(t, r.filletMaterial.bands);
+        const res = computeTable8FilletRange(t);
         thicknessMin = res.min;
         thicknessMax = res.max;
         thicknessUnlimited = res.unlimited;
@@ -147,7 +203,10 @@ export function computeRange(input: RangeInput): RangeResult {
     } else {
       const s = input.depositedThicknessMm ?? 0;
       if (s > 0) {
-        const res = applyThicknessBands(s, r.thickness.bands);
+        const res = computeTable6DepositedRange(s, {
+          process: input.process,
+          layer: input.layer,
+        });
         thicknessMin = res.min;
         thicknessMax = res.max;
         thicknessUnlimited = res.unlimited;
@@ -156,13 +215,15 @@ export function computeRange(input: RangeInput): RangeResult {
   }
 
   let pipeOdMin: number | null = null;
+  let pipeOdMax: number | null = null;
   let pipeOdUnlimited = false;
   const isPipeProduct =
     input.product === "Pipe" || input.product === "Branch";
 
   if (!skipThicknessRange && isPipeProduct && input.pipeOdMm && input.pipeOdMm > 0) {
-    const od = applyPipeOd(input.pipeOdMm, r.pipeOd.bands);
+    const od = computeTable7PipeOdRange(input.pipeOdMm);
     pipeOdMin = od.min;
+    pipeOdMax = od.max;
     pipeOdUnlimited = od.unlimited;
   } else if (!skipThicknessRange && input.product === "Plate") {
     pipeOdMin = r.pipeOd.plateFixedPipeMinMm;
@@ -175,10 +236,7 @@ export function computeRange(input: RangeInput): RangeResult {
     ? (positionMap[input.position] ?? [input.position])
     : [];
 
-  const majorGroup = input.materialGroup?.split(".")[0] ?? input.materialGroup;
-  const approvedMaterialGroups = majorGroup
-    ? (r.materialGroupMap[majorGroup] ?? [majorGroup])
-    : [];
+  const approvedMaterialGroups = resolveApprovedMaterialGroups(input);
 
   const approvedJointTypes = resolveApprovedJointTypes(input);
 
@@ -187,6 +245,7 @@ export function computeRange(input: RangeInput): RangeResult {
     thicknessMax,
     thicknessUnlimited,
     pipeOdMin,
+    pipeOdMax,
     pipeOdUnlimited,
     approvedPositions,
     approvedMaterialGroups,
@@ -209,11 +268,15 @@ export function buildSummary(r: RangeResult): string {
   }
 
   if (r.pipeOdMin !== null) {
-    parts.push(
-      r.pipeOdUnlimited
-        ? `pipe OD ≥ ${r.pipeOdMin} mm`
-        : `pipe OD ≥ ${r.pipeOdMin} mm (max per Table 7)`,
-    );
+    if (r.pipeOdMax != null) {
+      parts.push(`pipe OD ${r.pipeOdMin}–${r.pipeOdMax} mm`);
+    } else {
+      parts.push(
+        r.pipeOdUnlimited
+          ? `pipe OD ≥ ${r.pipeOdMin} mm`
+          : `pipe OD ≥ ${r.pipeOdMin} mm`,
+      );
+    }
   }
 
   if (r.approvedPositions.length) {
@@ -234,5 +297,5 @@ export function buildSummary(r: RangeResult): string {
 }
 
 export function positionLabel(code: string): string {
-  return POSITION_LABELS[code] ?? code;
+  return code;
 }

@@ -3,22 +3,17 @@
   "thickness": {
     "note": "Table 6 — deposited thickness s (mm) for butt welds.",
     "bands": [
-      { "max": 3, "minFactor": 0.5, "maxFactor": 2, "unlimited": false },
-      { "min": 3, "max": 12, "minAbsolute": 3, "maxFactor": 2, "unlimited": false },
-      { "min": 12, "minAbsolute": 3, "unlimited": true }
+      { "max": 3, "note": "s to max(3, 2s) — implemented in computeTable6DepositedRange" },
+      { "min": 3, "max": 12, "note": "3 to 2s — implemented in computeTable6DepositedRange" },
+      { "min": 12, "note": "≥ 3 with ml — implemented in computeTable6DepositedRange" }
     ]
   },
   "filletMaterial": {
-    "note": "Table 8 — material thickness t (mm) for fillet welds.",
-    "bands": [{ "min": 0, "minAbsolute": 0, "unlimited": true }]
+    "note": "Table 8 — implemented in computeTable8FilletRange"
   },
   "pipeOd": {
-    "note": "Table 7 — outside diameter D (mm). Plate test: fixed pipe D ≥ 500 mm; rotating pipe D ≥ 75 mm for PA & PC (§5.3).",
-    "bands": [
-      { "max": 25, "minFactor": 0.5, "maxFactor": 2, "unlimited": false },
-      { "min": 25, "max": 150, "minFactor": 0.5, "minFloor": 25, "unlimited": true },
-      { "min": 150, "minAbsolute": 75, "unlimited": true }
-    ],
+    "note": "Table 7 — implemented in computeTable7PipeOdRange. Plate test: fixed pipe D ≥ 500 mm; rotating pipe D ≥ 75 mm for PA & PC (§5.3).",
+    "bands": [],
     "plateFixedPipeMinMm": 500,
     "plateRotatingPipeMinMm": 75
   },
@@ -45,17 +40,7 @@
     "PJ": ["PA", "PB", "PD", "PE", "PG"]
   },
   "materialGroupMap": {
-    "1": ["1", "2"],
-    "2": ["1", "2"],
-    "3": ["1", "2", "3"],
-    "4": ["4", "5"],
-    "5": ["4", "5"],
-    "6": ["6"],
-    "7": ["7"],
-    "8": ["8"],
-    "9": ["9"],
-    "10": ["8", "10"],
-    "11": ["11"]
+    "_note": "Deprecated — parent material range uses §5.5.2 in computeRange (1–11 with filler; test group only without filler)."
   },
   "processRanges": {
     "111": "111",

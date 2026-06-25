@@ -100,7 +100,11 @@ export function annexTestResult(
   ndt: NdtDtRecord[],
   methods: readonly string[],
 ): { performed: string; notTested: boolean; reportRef: string } {
-  const rec = ndt.find((n) => methods.includes(n.test_method));
+  const rec = ndt.find((n) =>
+    methods.includes("Visual")
+      ? n.test_method === "Visual" || n.test_method.startsWith("Visual")
+      : methods.includes(n.test_method),
+  );
   if (!rec) return { performed: "", notTested: true, reportRef: "" };
   const reportRef = rec.conducted_by ?? "";
   if (rec.result === "Pass") {

@@ -7,7 +7,7 @@ import { requireSession } from "@/lib/auth";
 import { uploadFile, uploadFiles } from "@/lib/storage";
 import { computeRange } from "@/lib/range-engine/iso9606";
 import { computeExpiry, extendExpiry } from "@/lib/expiry";
-import { requiredTestsFor } from "@/lib/iso9606/constants";
+import { VISUAL_TEST_METHOD } from "@/lib/iso9606/constants";
 import {
   ndtJointCategory,
   validateCertificateIssue,
@@ -18,6 +18,7 @@ import {
 } from "@/lib/iso9606/qualification-fields";
 import { branchPipeOdForRange } from "@/lib/iso9606/branch-deposited-thickness";
 import { displayJointType, resolveJointStorage } from "@/lib/iso9606/product-dimensions";
+import { formatShieldingGas } from "@/lib/iso9606/shielding-gas";
 import type {
   BranchConnection,
   JointCategory,
@@ -55,20 +56,25 @@ async function recomputeRange(wpqId: string) {
     product: q.product === "Branch" ? "Pipe" : q.product,
     testThicknessMm: q.test_thickness_mm,
     depositedThicknessMm: q.deposited_thickness_mm,
+    process: q.process,
+    layer: q.layer_type,
     pipeOdMm: branchPipeOdForRange(q),
     position: q.position,
     materialGroup: q.base_material_group,
+    fillerGroup: q.filler_group,
+    fillerType: q.filler_type,
     supplementaryFillet: q.supplementary_fillet,
     jointTypeExtended: q.joint_type_extended,
   });
 
-  await supabase.from("ranges_of_approval").upsert(
+  const { error } = await supabase.from("ranges_of_approval").upsert(
     {
       wpq_id: wpqId,
       thickness_min_mm: range.thicknessMin,
       thickness_max_mm: range.thicknessMax,
       thickness_unlimited: range.thicknessUnlimited,
       pipe_od_min_mm: range.pipeOdMin,
+      pipe_od_max_mm: range.pipeOdMax,
       pipe_od_unlimited: range.pipeOdUnlimited,
       approved_positions: range.approvedPositions,
       approved_material_groups: range.approvedMaterialGroups,
@@ -77,6 +83,9 @@ async function recomputeRange(wpqId: string) {
     },
     { onConflict: "wpq_id" },
   );
+  if (error) {
+    throw new Error(`Failed to save range of approval: ${error.message}`);
+  }
 }
 
 export async function savePlan(
@@ -110,8 +119,9 @@ export async function savePlan(
     examiner_ref: str(formData.get("examiner_ref")),
     examiner_name: str(formData.get("examiner_name")),
     date_of_welding: str(formData.get("date_of_welding")),
-    revalidation_method: (str(formData.get("revalidation_method")) ??
-      "9.3b") as RevalidationMethod,
+    revalidation_method: str(
+      formData.get("revalidation_method"),
+    ) as RevalidationMethod,
     supplementary_fillet: formData.get("supplementary_fillet") === "on",
     supplementary_fillet_position:
       formData.get("supplementary_fillet") === "on"
@@ -191,7 +201,7 @@ export async function saveTest(
       filler_group: str(formData.get("filler_group")),
       filler_designation: str(formData.get("filler_designation")),
       filler_type: str(formData.get("filler_type")),
-      shielding_gas: str(formData.get("shielding_gas")),
+      shielding_gas: formatShieldingGas(str(formData.get("shielding_gas"))),
       current_polarity: str(formData.get("current_polarity")),
       transfer_mode: str(formData.get("transfer_mode")),
       weld_details: str(formData.get("weld_details")),
@@ -221,10 +231,7 @@ export async function saveNdt(
   const { org } = await requireSession();
   const supabase = await createClient();
 
-  const methods = [
-    ...requiredTestsFor(ndtJoint),
-    ...formData.getAll("optional_method").map(String).filter(Boolean),
-  ];
+  const methods = formData.getAll("selected_method").map(String).filter(Boolean);
 
   const { data: existingNdt } = await supabase
     .from("ndt_dt_records")
@@ -234,11 +241,24 @@ export async function saveNdt(
     (existingNdt ?? []).map((r) => [r.test_method, r.report_pdf_path as string | null]),
   );
 
+  function existingReportPath(method: string): string | null {
+    const direct = existingByMethod.get(method);
+    if (direct) return direct;
+    if (method === VISUAL_TEST_METHOD) {
+      return (
+        existingByMethod.get("Visual (Root)") ??
+        existingByMethod.get("Visual (Cap)") ??
+        null
+      );
+    }
+    return null;
+  }
+
   // Clear existing rows for idempotent re-save.
   await supabase.from("ndt_dt_records").delete().eq("wpq_id", wpqId);
 
   let anyFail = false;
-  let allRequiredPass = true;
+  let allSelectedPass = methods.length > 0;
 
   for (const method of methods) {
     const result = (str(formData.get(`result__${method}`)) ??
@@ -252,15 +272,10 @@ export async function saveNdt(
       `${org.id}/${wpqId}`,
     );
     const reportPath =
-      uploaded ?? existingByMethod.get(method) ?? null;
+      uploaded ?? existingReportPath(method) ?? null;
 
     if (result === "Fail") anyFail = true;
-    if (
-      requiredTestsFor(ndtJoint).includes(method) &&
-      result !== "Pass"
-    ) {
-      allRequiredPass = false;
-    }
+    if (result !== "Pass") allSelectedPass = false;
 
     await supabase.from("ndt_dt_records").insert({
       org_id: org.id,
@@ -275,7 +290,7 @@ export async function saveNdt(
 
   const newStatus = anyFail
     ? "Failed"
-    : allRequiredPass
+    : methods.length > 0 && allSelectedPass
       ? "Pending_NDT"
       : "Draft";
 
@@ -286,7 +301,7 @@ export async function saveNdt(
     .eq("org_id", org.id);
 
   revalidatePath(`/welders/${welderId}`);
-  const nextStep = allRequiredPass && !anyFail ? 4 : 3;
+  const nextStep = anyFail ? 3 : 4;
   redirect(`/welders/${welderId}/qualify?wpq=${wpqId}&step=${nextStep}`);
 }
 
@@ -314,7 +329,7 @@ export async function issueCertificate(
     .eq("wpq_id", wpqId);
   if (!wpqReadyForCertificate(q, (ndtRows ?? []) as Pick<NdtDtRecord, "test_method" | "result">[])) {
     throw new Error(
-      "Complete all required NDT tests with Pass results before issuing a certificate.",
+      "All selected NDT tests must pass before issuing a certificate.",
     );
   }
 
@@ -658,7 +673,7 @@ export async function saveLegacy(welderId: string, formData: FormData) {
   await recomputeRange(wpqId);
 
   const legacyTests = [
-    { method: "Visual (Root)", field: "result_vt" },
+    { method: VISUAL_TEST_METHOD, field: "result_vt" },
     { method: "RT/UT", field: "result_rt_ut" },
     { method: "Fracture Test", field: "result_fracture" },
   ] as const;

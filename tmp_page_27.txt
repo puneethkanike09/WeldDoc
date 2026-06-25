@@ -1,0 +1,16 @@
+ISO 9606-1:2012(E) 
+© ISO 2012 – All rights reserved 17
+ 
+Dimensions in millimetres 
+ 
+Key 
+t material thickness of test piece 
+NOTE The parent material can be of dissimilar thickness. 
+Figure 4 — Dimensions of test piece for a fillet weld on plate 
+Dimensions in millimetres 
+ 
+Key 
+D outside pipe diameter 
+t material thickness of test piece (wall thickness) 
+Figure 5 — Dimensions of test piece for a butt weld in pipe 
+BS EN ISO 9606‑1:2017

@@ -1,0 +1,17 @@
+ISO 9606-1:2012(E) 
+16 © ISO 2012 – All rights reserved
+ 
+The examiner or examining body may stop the test if the welding conditions are not correct or if it appears that 
+the welder does not have the skill to fulfil the requirements, e.g. where there are excessive and/or systematic 
+repairs. 
+6.2 Test pieces 
+The shape and dimension of test pieces required are shown in Figures 3 to 6. 
+A minimum test piece length for plates of 200 mm is required; the examination length is 150 mm. For pipe 
+circumferences of less than 150 mm, additional test pieces will be required with a maximum of three test 
+pieces. 
+Dimensions in millimetres 
+ 
+Key 
+t material thickness of test piece 
+Figure 3 — Dimensions of test piece for a butt weld in plate 
+BS EN ISO 9606‑1:2017

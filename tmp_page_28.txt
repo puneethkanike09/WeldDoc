@@ -1,0 +1,32 @@
+ISO 9606-1:2012(E) 
+18 © ISO 2012 – All rights reserved
+ 
+Dimensions in millimetres 
+ 
+Key 
+D outside pipe diameter 
+l1 length of test piece 
+t material thickness of test piece (plate or wall thickness) 
+NOTE The parent material can be of dissi milar thickness for the pipe and plate. 
+Figure 6 — Dimensions of test piece for a fillet weld on pipe 
+6.3 Welding conditions 
+The qualification test of welders shall follow a pWPS or WPS prepared in accordance with ISO 15609-1 or 
+ISO 15609-2. The required throat thickness of the fillet weld test piece shall be defined in the pWPS or WPS 
+used for the test. 
+The following welding conditions shall apply. 
+ The test piece shall have at least one stop and restart in the root run and in the capping run. When more 
+than one process is used, then at least one stop and restart shall be carried out for each process, this 
+includes the root run and final run. The stop and restart areas shall be marked. 
+ The welder shall be allowed to remove minor imperfections by grinding, except for the capping run for 
+which only the stop and restart may be ground. The permission of the examiner or examining body shall 
+be obtained. 
+ Any post-weld heat treatment required in the pWPS or WPS may be omitted at the discretion of the 
+manufacturer. 
+6.4 Test methods 
+After welding the test piece shall be tested in accordance with Table 13. 
+If the weld is accepted by visual testing, the remaining test(s) according to Table 13 shall be carried out. 
+When material backing is used in the qualification test, it shall be removed prior to destructive testing (except 
+for macroscopic examination) and need not be removed before non-destructive testing (NDT). 
+The test specimen for macroscopic examination shall be prepared and etched on one side to clearly reveal 
+the weld. Polishing is not required. 
+BS EN ISO 9606‑1:2017

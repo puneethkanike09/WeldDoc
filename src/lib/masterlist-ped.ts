@@ -116,6 +116,9 @@ function formatDiameter(
     return product === "Plate" ? "ALL" : "—";
   }
   if (product === "Plate" && range.pipe_od_unlimited) return "ALL";
+  if (range.pipe_od_max_mm != null) {
+    return `${trimMm(range.pipe_od_min_mm)}–${trimMm(range.pipe_od_max_mm)}mm`;
+  }
   if (range.pipe_od_unlimited) return `≥${trimMm(range.pipe_od_min_mm)}mm`;
   return `≥${trimMm(range.pipe_od_min_mm)}mm`;
 }
