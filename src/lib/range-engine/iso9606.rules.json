@@ -1,29 +1,28 @@
 {
-  "standard": "ISO_9606_1",
-  "title": "EN ISO 9606-1:2017",
+  "standard": "EN ISO 9606-1:2017",
   "thickness": {
-    "note": "Deposited thickness range for butt welds per Table 6 (s in mm).",
+    "note": "Table 6 — deposited thickness s (mm) for butt welds.",
     "bands": [
       { "max": 3, "minFactor": 0.5, "maxFactor": 2, "unlimited": false },
       { "min": 3, "max": 12, "minAbsolute": 3, "maxFactor": 2, "unlimited": false },
       { "min": 12, "minAbsolute": 3, "unlimited": true }
     ]
   },
-  "filletThroat": {
-    "note": "Material thickness range for fillet welds per Table 8 (t in mm).",
+  "filletMaterial": {
+    "note": "Table 8 — material thickness t (mm) for fillet welds.",
     "bands": [{ "min": 0, "minAbsolute": 0, "unlimited": true }]
   },
   "pipeOd": {
-    "note": "Outside pipe diameter range per Table 7 (D in mm). Plate test qualifies pipe OD ≥ 500 mm (§5.3 b).",
+    "note": "Table 7 — outside diameter D (mm). Plate test: fixed pipe D ≥ 500 mm; rotating pipe D ≥ 75 mm for PA & PC (§5.3).",
     "bands": [
       { "max": 25, "minFactor": 0.5, "maxFactor": 2, "unlimited": false },
-      { "min": 25, "max": 150, "minFactor": 0.5, "unlimited": true },
+      { "min": 25, "max": 150, "minFactor": 0.5, "minFloor": 25, "unlimited": true },
       { "min": 150, "minAbsolute": 75, "unlimited": true }
     ],
-    "plateQualifiesPipeOdMin": 500
+    "plateFixedPipeMinMm": 500,
+    "plateRotatingPipeMinMm": 75
   },
   "positionMapBw": {
-    "note": "Table 9 — range of qualification for welding positions for butt welds (§5.8). See also §5.3.",
     "PA": ["PA"],
     "PC": ["PA", "PC"],
     "PE": ["PA", "PC", "PE"],
@@ -35,7 +34,6 @@
     "J-L045": ["PA", "PC", "PE", "PG"]
   },
   "positionMapFw": {
-    "note": "Table 10 — range of qualification for welding positions for fillet welds (§5.8). See also §5.3.",
     "PA": ["PA"],
     "PB": ["PA", "PB"],
     "PC": ["PA", "PB", "PC"],
@@ -47,7 +45,6 @@
     "PJ": ["PA", "PB", "PD", "PE", "PG"]
   },
   "materialGroupMap": {
-    "note": "Parent material group coverage per ISO/TR 15608 groupings (§5.2).",
     "1": ["1", "2"],
     "2": ["1", "2"],
     "3": ["1", "2", "3"],
@@ -60,9 +57,41 @@
     "10": ["8", "10"],
     "11": ["11"]
   },
-  "jointTypeMap": {
-    "note": "A butt weld test also qualifies fillet welds; a fillet test qualifies fillet welds only.",
-    "BW": ["BW", "FW"],
-    "FW": ["FW"]
-  }
+  "processRanges": {
+    "111": "111",
+    "114": "114",
+    "121": "121, 125",
+    "125": "125, 121",
+    "131": "131",
+    "135": "135, 138",
+    "136": "136",
+    "138": "138, 135",
+    "141": "141, 142, 143, 145",
+    "142": "142",
+    "143": "141, 142, 143, 145",
+    "145": "141, 142, 143, 145",
+    "15": "15",
+    "311": "311"
+  },
+  "fillerGroupRanges": {
+    "FM1": "FM1, FM2",
+    "FM2": "FM1, FM2",
+    "FM3": "FM1, FM2, FM3",
+    "FM4": "FM1, FM2, FM3, FM4",
+    "FM5": "FM5",
+    "FM6": "FM5, FM6"
+  },
+  "weldDetailRanges": {
+    "ss nb": "ss nb, ss mb, bs, ss gb, ss fb",
+    "ss mb": "ss mb, bs",
+    "bs": "ss mb, bs",
+    "ss gb": "ss mb, bs, ss gb",
+    "ss fb": "ss mb, bs, ss fb",
+    "bs gg": "bs gg"
+  },
+  "layerRanges": {
+    "sl": "sl",
+    "ml": "sl, ml"
+  },
+  "gmaWProcesses": ["131", "135", "138"]
 }

@@ -8,6 +8,7 @@ export interface IdCardData {
   welder: Welder;
   photoUrl: string | null;
   logoUrl: string | null;
+  qrDataUrl: string | null;
   welderName: string;
   welderNo: string;
   rows: IdCardQualRow[];
@@ -206,7 +207,18 @@ function TableRow({ row, alt }: { row: IdCardQualRow; alt: boolean }) {
 }
 
 export function IdCardDocument({ data }: { data: IdCardData }) {
-  const { org, welder, photoUrl, logoUrl, welderName, welderNo, rows, status, expiry } = data;
+  const {
+    org,
+    welder,
+    photoUrl,
+    logoUrl,
+    qrDataUrl,
+    welderName,
+    welderNo,
+    rows,
+    status,
+    expiry,
+  } = data;
 
   const badge = statusStyle(status);
   const site = welder.branch_location ?? org.location_code ?? "—";
@@ -292,6 +304,18 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
                   </Text>
                 </View>
               )}
+              {qrDataUrl ? (
+                // eslint-disable-next-line jsx-a11y/alt-text
+                <Image
+                  src={qrDataUrl}
+                  style={{
+                    width: 40,
+                    height: 40,
+                    marginTop: 4,
+                    alignSelf: "center",
+                  }}
+                />
+              ) : null}
             </View>
 
             <View style={{ flex: 1, justifyContent: "center" }}>

@@ -3,14 +3,18 @@
  * Required fields match Ram's Excel: no optional gaps on the new-welder path.
  */
 
-import type { JointCategory, ProductType } from "@/types/db";
+import type { JointCategory, NdtDtRecord, ProductType, QualificationRecord } from "@/types/db";
 import { validateMaterialDimensions } from "@/lib/iso9606/product-dimensions";
+import {
+  showDepositedThicknessField,
+  showTestThicknessField,
+} from "@/lib/iso9606/test-piece-thickness";
+import { requiredTestsFor } from "@/lib/iso9606/constants";
 
 /** BW/FW tests apply; other joint types on “Others” product use BW as default. */
 export function ndtJointCategory(jointType: string): JointCategory {
   return jointType === "FW" ? "FW" : "BW";
 }
-import { requiredTestsFor } from "@/lib/iso9606/constants";
 
 export class QualificationValidationError extends Error {
   constructor(message: string) {
@@ -169,7 +173,7 @@ export function getQualificationPlanFieldErrors(
   if (!str(formData.get("position"))) errors.position = "Welding position is required.";
   if (!str(formData.get("wps_reference"))) errors.wps_reference = "WPS reference is required.";
   if (!str(formData.get("date_of_welding"))) {
-    errors.date_of_welding = "Date of welding test is required.";
+    errors.date_of_welding = "Date of welding is required.";
   }
   if (!str(formData.get("examiner_ref"))) {
     errors.examiner_ref = "Examiner / body reference is required.";
@@ -179,6 +183,23 @@ export function getQualificationPlanFieldErrors(
   }
   if (!str(formData.get("revalidation_method"))) {
     errors.revalidation_method = "Revalidation method is required.";
+  }
+  const joint = str(formData.get("joint_type"));
+  if (
+    formData.get("supplementary_fillet") === "on" &&
+    joint !== "FW"
+  ) {
+    if (!str(formData.get("supplementary_fillet_position"))) {
+      errors.supplementary_fillet_position =
+        "Supplementary fillet position is required.";
+    }
+    if (num(formData.get("supplementary_fillet_thickness_mm")) == null) {
+      errors.supplementary_fillet_thickness_mm =
+        "Supplementary fillet material thickness is required.";
+    }
+  }
+  if (joint === "Branch" && !str(formData.get("branch_connection"))) {
+    errors.branch_connection = "Branch connection is required.";
   }
   return errors;
 }
@@ -234,11 +255,17 @@ export function getTestPieceFieldErrors(
   if (!str(formData.get("weld_details"))) errors.weld_details = "Weld details is required.";
   if (!str(formData.get("layer_type"))) errors.layer_type = "Layer is required.";
 
-  if (num(formData.get("test_thickness_mm")) == null) {
-    errors.test_thickness_mm = "Test thickness is required.";
+  const category = ndtJointCategory(jointType);
+
+  if (showTestThicknessField(product, category, jointType)) {
+    if (num(formData.get("test_thickness_mm")) == null) {
+      errors.test_thickness_mm = "Material thickness is required.";
+    }
   }
-  if (num(formData.get("deposited_thickness_mm")) == null) {
-    errors.deposited_thickness_mm = "Deposited / throat thickness is required.";
+  if (showDepositedThicknessField(product, category, jointType)) {
+    if (num(formData.get("deposited_thickness_mm")) == null) {
+      errors.deposited_thickness_mm = "Deposited thickness is required.";
+    }
   }
 
   Object.assign(errors, validateMaterialDimensions(formData, product, jointType));
@@ -315,4 +342,25 @@ export function validateCertificateIssue(formData: FormData) {
   const errors = getCertificateIssueFieldErrors(formData);
   const first = Object.values(errors)[0];
   if (first) throw new QualificationValidationError(first);
+}
+
+/** True when all required NDT tests are recorded as Pass. */
+export function ndtTestsComplete(
+  jointType: JointCategory,
+  records: Pick<NdtDtRecord, "test_method" | "result">[],
+): boolean {
+  const required = requiredTestsFor(jointType);
+  return required.every((method) =>
+    records.some((r) => r.test_method === method && r.result === "Pass"),
+  );
+}
+
+/** WPQ is ready for certificate issue (Step 4). */
+export function wpqReadyForCertificate(
+  wpq: Pick<QualificationRecord, "wpq_status" | "joint_type">,
+  ndtRecords: Pick<NdtDtRecord, "test_method" | "result">[],
+): boolean {
+  if (wpq.wpq_status === "Failed") return false;
+  if (wpq.wpq_status !== "Pending_NDT") return false;
+  return ndtTestsComplete(ndtJointCategory(wpq.joint_type), ndtRecords);
 }

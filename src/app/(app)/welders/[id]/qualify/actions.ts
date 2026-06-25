@@ -14,11 +14,14 @@ import {
   validateNdtResults,
   validateQualificationPlan,
   validateTestPiece,
+  wpqReadyForCertificate,
 } from "@/lib/iso9606/qualification-fields";
+import { branchPipeOdForRange } from "@/lib/iso9606/branch-deposited-thickness";
 import { displayJointType, resolveJointStorage } from "@/lib/iso9606/product-dimensions";
 import type {
   BranchConnection,
   JointCategory,
+  NdtDtRecord,
   ProductType,
   QualificationRecord,
   RevalidationMethod,
@@ -49,12 +52,14 @@ async function recomputeRange(wpqId: string) {
 
   const range = computeRange({
     jointType: ndtJointCategory(q.joint_type),
-    product: q.product,
+    product: q.product === "Branch" ? "Pipe" : q.product,
     testThicknessMm: q.test_thickness_mm,
     depositedThicknessMm: q.deposited_thickness_mm,
-    pipeOdMm: q.pipe_od_mm,
+    pipeOdMm: branchPipeOdForRange(q),
     position: q.position,
     materialGroup: q.base_material_group,
+    supplementaryFillet: q.supplementary_fillet,
+    jointTypeExtended: q.joint_type_extended,
   });
 
   await supabase.from("ranges_of_approval").upsert(
@@ -97,7 +102,7 @@ export async function savePlan(
     joint_type_extended,
     product: (str(formData.get("product")) ?? "Plate") as ProductType,
     branch_connection:
-      str(formData.get("product")) === "Branch"
+      joint_type_extended === "Branch" || str(formData.get("product")) === "Branch"
         ? (str(formData.get("branch_connection")) as BranchConnection)
         : null,
     position: str(formData.get("position")),
@@ -107,6 +112,15 @@ export async function savePlan(
     date_of_welding: str(formData.get("date_of_welding")),
     revalidation_method: (str(formData.get("revalidation_method")) ??
       "9.3b") as RevalidationMethod,
+    supplementary_fillet: formData.get("supplementary_fillet") === "on",
+    supplementary_fillet_position:
+      formData.get("supplementary_fillet") === "on"
+        ? str(formData.get("supplementary_fillet_position"))
+        : null,
+    supplementary_fillet_thickness_mm:
+      formData.get("supplementary_fillet") === "on"
+        ? num(formData.get("supplementary_fillet_thickness_mm"))
+        : null,
   };
 
   let id = wpqId;
@@ -212,6 +226,14 @@ export async function saveNdt(
     ...formData.getAll("optional_method").map(String).filter(Boolean),
   ];
 
+  const { data: existingNdt } = await supabase
+    .from("ndt_dt_records")
+    .select("test_method, report_pdf_path")
+    .eq("wpq_id", wpqId);
+  const existingByMethod = new Map(
+    (existingNdt ?? []).map((r) => [r.test_method, r.report_pdf_path as string | null]),
+  );
+
   // Clear existing rows for idempotent re-save.
   await supabase.from("ndt_dt_records").delete().eq("wpq_id", wpqId);
 
@@ -224,11 +246,13 @@ export async function saveNdt(
     const conductedBy = str(formData.get(`conducted_by__${method}`));
     const testDate = str(formData.get(`test_date__${method}`));
     const file = formData.get(`report__${method}`);
-    const reportPath = await uploadFile(
+    const uploaded = await uploadFile(
       "ndt-reports",
       file instanceof File ? file : null,
       `${org.id}/${wpqId}`,
     );
+    const reportPath =
+      uploaded ?? existingByMethod.get(method) ?? null;
 
     if (result === "Fail") anyFail = true;
     if (
@@ -284,6 +308,16 @@ export async function issueCertificate(
   if (!wpq) throw new Error("Qualification not found.");
   const q = wpq as QualificationRecord;
 
+  const { data: ndtRows } = await supabase
+    .from("ndt_dt_records")
+    .select("test_method, result")
+    .eq("wpq_id", wpqId);
+  if (!wpqReadyForCertificate(q, (ndtRows ?? []) as Pick<NdtDtRecord, "test_method" | "result">[])) {
+    throw new Error(
+      "Complete all required NDT tests with Pass results before issuing a certificate.",
+    );
+  }
+
   const issueDate = str(formData.get("certificate_date")) ?? new Date()
     .toISOString()
     .slice(0, 10);
@@ -297,7 +331,6 @@ export async function issueCertificate(
       continuity_last_verified: issueDate,
       expiry_date: expiry,
       job_knowledge: str(formData.get("job_knowledge")) ?? q.job_knowledge,
-      supplementary_fillet: formData.get("supplementary_fillet") === "on",
       examiner_name:
         str(formData.get("examiner_name")) ?? q.examiner_name,
     })
@@ -357,7 +390,7 @@ export async function discardWpq(welderId: string, wpqId: string) {
     });
   }
   for (const path of q.legacy_document_paths ?? []) {
-    if (path) toRemove.push({ bucket: "ndt-reports", path });
+    if (path) toRemove.push({ bucket: "legacy-docs", path });
   }
   for (const row of ndtRows ?? []) {
     if (row.report_pdf_path) {
@@ -422,7 +455,7 @@ export async function deleteWpq(welderId: string, wpqId: string) {
   };
   addFile("generated-pdfs", q.certificate_pdf_path);
   addFile("generated-pdfs", q.signed_certificate_pdf_path);
-  for (const path of q.legacy_document_paths ?? []) addFile("ndt-reports", path);
+  for (const path of q.legacy_document_paths ?? []) addFile("legacy-docs", path);
   for (const row of ndtRows ?? []) addFile("ndt-reports", row.report_pdf_path);
   for (const row of valRows ?? [])
     addFile("ndt-reports", row.supporting_doc_path);

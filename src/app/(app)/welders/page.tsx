@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
 import { AddWelderButton } from "@/components/app/add-welder-button";
+import { BulkQrPrintButton } from "@/components/app/bulk-qr-print-button";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { summarizeWelder } from "@/lib/welder-status";
@@ -41,13 +42,21 @@ export default async function WeldersPage() {
     summary: summarizeWelder(w, wpqByWelder.get(w.id) ?? []),
   }));
 
+  const qrEntries = ((welders ?? []) as Welder[]).map((w) => ({
+    qrToken: w.qr_token,
+    plantWelderId: w.welder_id ?? w.uid,
+  }));
+
   return (
     <>
       <PageHeader
         title="Welders"
         description="Your central welder registry. Search, filter and open a profile."
       >
-        <AddWelderButton />
+        <div className="flex items-center gap-2">
+          <BulkQrPrintButton entries={qrEntries} />
+          <AddWelderButton />
+        </div>
       </PageHeader>
       <div className="px-8 py-8">
         {rows.length === 0 ? (

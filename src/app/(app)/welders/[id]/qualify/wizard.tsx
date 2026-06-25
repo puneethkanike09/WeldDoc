@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { Input, Textarea, Field } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
 import { DatePicker } from "@/components/sui/date-picker";
@@ -32,10 +32,21 @@ import {
   getTestPieceFieldErrors,
 } from "@/lib/iso9606/qualification-fields";
 import { displayJointType } from "@/lib/iso9606/product-dimensions";
-import { MaterialGradeLookup } from "@/components/qualify/material-grade-lookup";
+import { MaterialLookupPair } from "@/components/qualify/material-lookup-pair";
+import { SupplementaryFilletFields } from "@/components/qualify/supplementary-fillet-fields";
+import { NdtReportViewer } from "@/components/qualify/ndt-report-viewer";
+import {
+  qualifyDraftKey,
+  loadQualifyDraft,
+} from "@/lib/qualify/wizard-draft";
 import { PlanProductJointFields } from "@/components/qualify/plan-product-joint-fields";
 import { ProductDimensions } from "@/components/qualify/qualification-field-blocks";
-import { Iso9606RevalidationPdfDrawer } from "@/components/qualify/iso9606-pdf-drawer";
+import { Iso9606RevalidationPdfDrawer, Iso9606TablePdfGlobe } from "@/components/qualify/iso9606-pdf-drawer";
+import { branchDepositedThicknessLabel } from "@/lib/iso9606/branch-deposited-thickness";
+import {
+  showDepositedThicknessField,
+  showTestThicknessField,
+} from "@/lib/iso9606/test-piece-thickness";
 import type {
   BranchConnection,
   JointCategory,
@@ -153,20 +164,35 @@ export function PlanStep({
   wpq,
   orgName,
   orgLocation,
+  welderId,
 }: {
   action: (fd: FormData) => void;
   wpq: QualificationRecord | null;
   orgName: string;
   orgLocation: string | null;
+  welderId: string;
 }) {
+  const defaultJoint = displayJointType(
+    wpq ?? { joint_type: "BW", joint_type_extended: null },
+  );
+  const [planJoint, setPlanJoint] = useState(defaultJoint);
   const validate = useCallback(
     (formData: FormData) => getQualificationPlanFieldErrors(formData),
     [],
   );
+  const draftKey = wpq?.id ? qualifyDraftKey(welderId, wpq.id, 1) : null;
 
   return (
-    <ValidatedForm action={action} validate={validate}>
-      {({ fieldErrors, clearError }) => (
+    <ValidatedForm
+      action={action}
+      validate={validate}
+      draftStorageKey={draftKey}
+      stepNumber={1}
+    >
+      {({ fieldErrors, clearError, draftRevision }) => {
+        const draft =
+          draftRevision > 0 && draftKey ? loadQualifyDraft(draftKey) : null;
+        return (
         <Card>
           <CardBody className="space-y-5">
             <Header
@@ -206,32 +232,37 @@ export function PlanStep({
               </Field>
               <PlanProductJointFields
                 defaultProduct={wpq?.product ?? "Plate"}
-                defaultJoint={displayJointType(wpq ?? { joint_type: "BW", joint_type_extended: null })}
+                defaultJoint={defaultJoint}
                 defaultBranchConnection={
                   (wpq?.branch_connection as BranchConnection | null) ?? "set_in"
                 }
+                defaultPosition={draft?.position ?? wpq?.position ?? "PF"}
                 productError={fieldErrors.product}
                 jointError={fieldErrors.joint_type}
                 branchError={fieldErrors.branch_connection}
+                positionError={fieldErrors.position}
                 onFieldChange={clearError}
+                onJointChange={setPlanJoint}
               />
-              <Field label="Welding position" required error={fieldErrors.position}>
-                <Select
-                  name="position"
-                  defaultValue={wpq?.position ?? "PF"}
-                  required
-                  className={cn(fieldErrors.position && invalidBorder)}
-                  onChange={() => clearError("position")}
-                >
-                  {Array.from(new Set([...BW_POSITIONS, ...FW_POSITIONS])).map(
-                    (p) => (
-                      <option key={p} value={p}>
-                        {POSITION_LABELS[p] ?? p}
-                      </option>
-                    ),
-                  )}
-                </Select>
-              </Field>
+              <SupplementaryFilletFields
+                show={planJoint !== "FW"}
+                defaultChecked={
+                  draft?.supplementary_fillet === "on" ||
+                  (wpq?.supplementary_fillet ?? false)
+                }
+                defaultPosition={
+                  draft?.supplementary_fillet_position ??
+                  wpq?.supplementary_fillet_position ??
+                  "PB"
+                }
+                defaultThickness={
+                  draft?.supplementary_fillet_thickness_mm != null
+                    ? Number(draft.supplementary_fillet_thickness_mm)
+                    : wpq?.supplementary_fillet_thickness_mm
+                }
+                positionError={fieldErrors.supplementary_fillet_position}
+                thicknessError={fieldErrors.supplementary_fillet_thickness_mm}
+              />
               <Field label="WPS reference" required error={fieldErrors.wps_reference}>
                 <Input
                   name="wps_reference"
@@ -252,7 +283,7 @@ export function PlanStep({
                   disabled
                 />
               </Field>
-              <Field label="Date of welding test" required error={fieldErrors.date_of_welding}>
+              <Field label="Date of welding" required error={fieldErrors.date_of_welding}>
                 <DatePicker
                   name="date_of_welding"
                   defaultValue={wpq?.date_of_welding ?? ""}
@@ -281,7 +312,7 @@ export function PlanStep({
                 />
               </Field>
               <Field
-                label="Revalidation method (cl. 9.3)"
+                label="Confirmation of revalidation"
                 required
                 error={fieldErrors.revalidation_method}
                 labelAccessory={<Iso9606RevalidationPdfDrawer />}
@@ -306,7 +337,8 @@ export function PlanStep({
             </div>
           </CardBody>
         </Card>
-      )}
+        );
+      }}
     </ValidatedForm>
   );
 }
@@ -323,6 +355,17 @@ export function TestStep({
   rangePreview: string | null;
 }) {
   const jointLabel = displayJointType(wpq);
+  const showTestThickness = showTestThicknessField(
+    wpq.product,
+    wpq.joint_type,
+    jointLabel,
+  );
+  const showDepositedThickness = showDepositedThicknessField(
+    wpq.product,
+    wpq.joint_type,
+    jointLabel,
+  );
+  const depositedLabel = branchDepositedThicknessLabel(wpq);
 
   const validate = useCallback(
     (formData: FormData) =>
@@ -330,41 +373,53 @@ export function TestStep({
     [jointLabel, wpq.product],
   );
 
+  const draftKey = qualifyDraftKey(welderId, wpq.id, 2);
+
   return (
-    <ValidatedForm action={action} validate={validate}>
-      {({ fieldErrors, clearError }) => (
+    <ValidatedForm
+      action={action}
+      validate={validate}
+      draftStorageKey={draftKey}
+      stepNumber={2}
+    >
+      {({ fieldErrors, clearError, draftRevision }) => {
+        const draft =
+          draftRevision > 0 ? loadQualifyDraft(draftKey) : null;
+        return (
         <Card>
           <CardBody className="space-y-5">
             <Header
               title="Step 2 — Test piece record"
               sub="Page 1 continued: materials, dimensions, filler and test piece parameters."
             />
-            <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
-              <MaterialGradeLookup
-                variant={1}
-                defaultStandard={wpq.material_specification ?? ""}
-                defaultGrade={wpq.material_grade ?? ""}
-                defaultGroup={wpq.base_material_group ?? ""}
-                errors={{
-                  material_standard: fieldErrors.material_standard,
-                  material_grade: fieldErrors.material_grade,
-                  base_material_group: fieldErrors.base_material_group,
-                }}
-                onFieldChange={clearError}
-              />
-              <MaterialGradeLookup
-                variant={2}
-                defaultStandard={wpq.material2_specification ?? ""}
-                defaultGrade={wpq.material2_grade ?? ""}
-                defaultGroup={wpq.material2_group ?? ""}
-                errors={{
-                  material2_specification: fieldErrors.material2_specification,
-                  material2_grade: fieldErrors.material2_grade,
-                  material2_group: fieldErrors.material2_group,
-                }}
-                onFieldChange={clearError}
-              />
-            </div>
+            <MaterialLookupPair
+              material1={{
+                defaultStandard:
+                  draft?.material_standard ?? wpq.material_specification ?? "",
+                defaultGrade: draft?.material_grade ?? wpq.material_grade ?? "",
+                defaultGroup:
+                  draft?.base_material_group ?? wpq.base_material_group ?? "",
+              }}
+              material2={{
+                defaultStandard:
+                  draft?.material2_specification ??
+                  wpq.material2_specification ??
+                  "",
+                defaultGrade:
+                  draft?.material2_grade ?? wpq.material2_grade ?? "",
+                defaultGroup:
+                  draft?.material2_group ?? wpq.material2_group ?? "",
+              }}
+              errors={{
+                material_standard: fieldErrors.material_standard,
+                material_grade: fieldErrors.material_grade,
+                base_material_group: fieldErrors.base_material_group,
+                material2_specification: fieldErrors.material2_specification,
+                material2_grade: fieldErrors.material2_grade,
+                material2_group: fieldErrors.material2_group,
+              }}
+              onFieldChange={clearError}
+            />
             <div className="grid gap-5 sm:grid-cols-2">
               <ProductDimensions
                 product={wpq.product}
@@ -453,7 +508,9 @@ export function TestStep({
                   ))}
                 </Select>
               </Field>
-              <Field label="Weld details" required error={fieldErrors.weld_details}>
+              <Field label="Weld details" required error={fieldErrors.weld_details}
+                labelAccessory={<Iso9606TablePdfGlobe table="weldDetails" />}
+              >
                 <Select
                   name="weld_details"
                   defaultValue={wpq.weld_details ?? "ss nb"}
@@ -468,34 +525,46 @@ export function TestStep({
                   ))}
                 </Select>
               </Field>
-              <Field label="Test thickness (mm)" required error={fieldErrors.test_thickness_mm}>
-                <Input
-                  type="number"
-                  step="0.1"
-                  name="test_thickness_mm"
-                  defaultValue={wpq.test_thickness_mm ?? ""}
-                  placeholder="12"
+              {showTestThickness ? (
+                <Field
+                  label="Material thickness (mm)"
                   required
-                  className={cn(fieldErrors.test_thickness_mm && invalidBorder)}
-                  onChange={() => clearError("test_thickness_mm")}
-                />
-              </Field>
-              <Field
-                label="Deposited / throat thickness (mm)"
-                required
-                error={fieldErrors.deposited_thickness_mm}
+                  error={fieldErrors.test_thickness_mm}
+                  labelAccessory={<Iso9606TablePdfGlobe table="thicknessFw" />}
+                >
+                  <Input
+                    type="number"
+                    step="0.1"
+                    name="test_thickness_mm"
+                    defaultValue={wpq.test_thickness_mm ?? ""}
+                    placeholder="12"
+                    required
+                    className={cn(fieldErrors.test_thickness_mm && invalidBorder)}
+                    onChange={() => clearError("test_thickness_mm")}
+                  />
+                </Field>
+              ) : null}
+              {showDepositedThickness ? (
+                <Field
+                  label={depositedLabel}
+                  required
+                  error={fieldErrors.deposited_thickness_mm}
+                  labelAccessory={<Iso9606TablePdfGlobe table="thicknessBw" />}
+                >
+                  <Input
+                    type="number"
+                    step="0.1"
+                    name="deposited_thickness_mm"
+                    defaultValue={wpq.deposited_thickness_mm ?? ""}
+                    required
+                    className={cn(fieldErrors.deposited_thickness_mm && invalidBorder)}
+                    onChange={() => clearError("deposited_thickness_mm")}
+                  />
+                </Field>
+              ) : null}
+              <Field label="Layer" required error={fieldErrors.layer_type}
+                labelAccessory={<Iso9606TablePdfGlobe table="layerTechnique" />}
               >
-                <Input
-                  type="number"
-                  step="0.1"
-                  name="deposited_thickness_mm"
-                  defaultValue={wpq.deposited_thickness_mm ?? ""}
-                  required
-                  className={cn(fieldErrors.deposited_thickness_mm && invalidBorder)}
-                  onChange={() => clearError("deposited_thickness_mm")}
-                />
-              </Field>
-              <Field label="Layer" required error={fieldErrors.layer_type}>
                 <Select
                   name="layer_type"
                   defaultValue={wpq.layer_type ?? LAYER_TYPES[1]}
@@ -529,7 +598,8 @@ export function TestStep({
             </div>
           </CardBody>
         </Card>
-      )}
+        );
+      }}
     </ValidatedForm>
   );
 }
@@ -573,6 +643,7 @@ export function NdtStep({
                   key={method}
                   method={method}
                   required
+                  welderId={welderId}
                   existing={byMethod.get(method)}
                   fieldErrors={fieldErrors}
                   clearError={clearError}
@@ -599,6 +670,7 @@ export function NdtStep({
                     </span>
                     <TestRow
                       method={method}
+                      welderId={welderId}
                       existing={byMethod.get(method)}
                       compact
                       fieldErrors={fieldErrors}
@@ -623,6 +695,7 @@ export function NdtStep({
 function TestRow({
   method,
   required,
+  welderId,
   existing,
   compact,
   fieldErrors,
@@ -630,6 +703,7 @@ function TestRow({
 }: {
   method: string;
   required?: boolean;
+  welderId: string;
   existing?: NdtDtRecord;
   compact?: boolean;
   fieldErrors: FieldErrors;
@@ -704,15 +778,24 @@ function TestRow({
         />
       </Field>
       <Field label="Report PDF" reserveMessageSpace>
-        <FileDropzone
-          name={`report__${method}`}
-          accept="application/pdf,image/*"
-          compact
-          defaultLabel={
-            existing?.report_pdf_path ? "Replace report" : undefined
-          }
-          placeholder="Drop PDF or click to browse"
-        />
+        <div className="flex flex-col gap-1.5">
+          {existing?.id && existing.report_pdf_path ? (
+            <NdtReportViewer
+              welderId={welderId}
+              recordId={existing.id}
+              testMethod={method}
+            />
+          ) : null}
+          <FileDropzone
+            name={`report__${method}`}
+            accept="application/pdf,image/*"
+            compact
+            defaultLabel={
+              existing?.report_pdf_path ? "Replace report" : undefined
+            }
+            placeholder="Drop PDF or click to browse"
+          />
+        </div>
       </Field>
     </div>
   );
@@ -723,11 +806,13 @@ export function CertificateStep({
   welderId,
   wpq,
   rangeSummary,
+  ndtReady = false,
 }: {
   action: (fd: FormData) => void;
   welderId: string;
   wpq: QualificationRecord;
   rangeSummary: string | null;
+  ndtReady?: boolean;
 }) {
   const validate = useCallback(
     (formData: FormData) => getCertificateIssueFieldErrors(formData),
@@ -793,18 +878,12 @@ export function CertificateStep({
               </Field>
             </div>
 
-            <label className="flex items-start gap-3 rounded-[10px] bg-frost px-4 py-3">
-              <input
-                type="checkbox"
-                name="supplementary_fillet"
-                defaultChecked={wpq.supplementary_fillet}
-                className="mt-0.5 h-4 w-4 accent-[#f90a08]"
-              />
-              <span className="text-[14px] text-charcoal">
-                Supplementary fillet weld test completed in conjunction with this
-                butt-weld qualification (acceptable).
-              </span>
-            </label>
+            {wpq.supplementary_fillet ? (
+              <p className="rounded-[10px] bg-frost px-4 py-3 text-sm text-charcoal">
+                Supplementary fillet weld test was recorded on the
+                qualification plan (Step 1).
+              </p>
+            ) : null}
 
             <p className="rounded-[10px] bg-frost px-3 py-2 text-sm text-graphite">
               The certificate leaves a blank examining-body area so it can be
@@ -814,9 +893,15 @@ export function CertificateStep({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <StepPreviousLink welderId={welderId} wpqId={wpq.id} step={4} />
               <div className="flex flex-wrap items-center gap-3">
-                <Badge tone="active">
-                  <Check className="h-3.5 w-3.5" /> All required tests passed
-                </Badge>
+                {ndtReady ? (
+                  <Badge tone="active">
+                    <Check className="h-3.5 w-3.5" /> All required tests passed
+                  </Badge>
+                ) : (
+                  <Badge tone="expiring">
+                    NDT incomplete
+                  </Badge>
+                )}
                 <Submit label="Issue certificate" icon={ShieldCheck} />
               </div>
             </div>

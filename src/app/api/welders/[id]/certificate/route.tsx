@@ -2,7 +2,6 @@ import { NextRequest } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createClient } from "@/lib/supabase/server";
 import { resolveUrl } from "@/lib/storage";
-import { qrDataUrl, verifyUrl } from "@/lib/qr";
 import {
   CertificateDocument,
   type CertificateData,
@@ -47,8 +46,12 @@ export async function GET(
     supabase.from("qualification_records").select("*").eq("id", wpqId).single(),
   ]);
 
-  if (!org || !welder || !wpq || wpq.welder_id !== id) {
+  if (!org || !welder || !wpq || wpq.welder_id !== id || wpq.org_id !== profile.org_id) {
     return new Response("Not found", { status: 404 });
+  }
+
+  if ((wpq as QualificationRecord).wpq_status !== "Approved") {
+    return new Response("Certificate not yet issued", { status: 403 });
   }
 
   const [{ data: range }, { data: ndt }, { data: validations }] =
@@ -69,7 +72,6 @@ export async function GET(
   const w = welder as Welder;
   const photoUrl = await resolveUrl("welder-photos", w.photo_path);
   const logoUrl = await resolveUrl("org-assets", (org as Organization).logo_path);
-  const qr = await qrDataUrl(verifyUrl(w.qr_token, request.nextUrl.origin));
 
   const data: CertificateData = {
     org: org as Organization,
@@ -78,7 +80,6 @@ export async function GET(
     range: (range as RangeOfApproval) ?? null,
     ndt: (ndt ?? []) as NdtDtRecord[],
     validations: (validations ?? []) as ValidationRecord[],
-    qrDataUrl: qr,
     photoUrl,
     logoUrl,
     certNo: buildCertNo(org as Organization, w, wpq as QualificationRecord),

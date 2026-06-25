@@ -4,6 +4,8 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
+  useRef,
   useState,
   useTransition,
   type FormEvent,
@@ -12,6 +14,12 @@ import {
 import { toast } from "sonner";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { hasFieldErrors, type FieldErrors } from "@/lib/field-errors";
+import {
+  applyQualifyDraft,
+  clearQualifyDraft,
+  loadQualifyDraft,
+  saveQualifyDraft,
+} from "@/lib/qualify/wizard-draft";
 
 const FormPendingContext = createContext(false);
 
@@ -89,18 +97,33 @@ export function ValidatedForm({
   validate,
   prepare,
   className,
+  draftStorageKey,
+  stepNumber,
   children,
 }: {
   action: (formData: FormData) => void | Promise<unknown>;
   validate: (formData: FormData) => FieldErrors;
   prepare?: (formData: FormData) => void;
   className?: string;
+  draftStorageKey?: string | null;
+  stepNumber?: number;
   children: (ctx: {
     fieldErrors: FieldErrors;
     clearError: (key: string) => void;
+    draftRevision: number;
   }) => ReactNode;
 }) {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [draftRevision, setDraftRevision] = useState(0);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (!draftStorageKey || !formRef.current) return;
+    const draft = loadQualifyDraft(draftStorageKey);
+    if (!draft) return;
+    applyQualifyDraft(formRef.current, draft);
+    setDraftRevision(1);
+  }, [draftStorageKey]);
 
   const wrappedValidate = useCallback(
     (formData: FormData) => {
@@ -120,12 +143,38 @@ export function ValidatedForm({
     });
   }, []);
 
-  const { onSubmit, pending } = useFormSubmit(action, wrappedValidate, prepare);
+  const wrappedPrepare = useCallback(
+    (formData: FormData) => {
+      if (draftStorageKey) clearQualifyDraft(draftStorageKey);
+      prepare?.(formData);
+    },
+    [draftStorageKey, prepare],
+  );
+
+  const persistDraft = useCallback(() => {
+    if (!draftStorageKey || !formRef.current) return;
+    saveQualifyDraft(draftStorageKey, formRef.current);
+  }, [draftStorageKey]);
+
+  const { onSubmit, pending } = useFormSubmit(
+    action,
+    wrappedValidate,
+    wrappedPrepare,
+  );
 
   return (
     <FormPendingContext.Provider value={pending}>
-      <form onSubmit={onSubmit} className={className} noValidate>
-        {children({ fieldErrors, clearError })}
+      <form
+        ref={formRef}
+        onSubmit={onSubmit}
+        onChange={persistDraft}
+        className={className}
+        noValidate
+        {...(stepNumber != null
+          ? { "data-qualify-step": String(stepNumber) }
+          : {})}
+      >
+        {children({ fieldErrors, clearError, draftRevision })}
       </form>
     </FormPendingContext.Provider>
   );

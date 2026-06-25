@@ -12,7 +12,7 @@ import {
 import { createPortal } from "react-dom";
 import { Globe, RotateCcw, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ISO_9606_1, iso9606PdfHref } from "@/lib/iso9606/standards-reference";
+import { ISO_9606_1, iso9606PdfHref, type Iso9606TableKey } from "@/lib/iso9606/standards-reference";
 
 export interface StandardPdfDrawerPayload {
   src: string;
@@ -36,7 +36,7 @@ interface StandardPdfDrawerContextValue {
 const StandardPdfDrawerContext =
   createContext<StandardPdfDrawerContextValue | null>(null);
 
-function useStandardPdfDrawer() {
+export function useStandardPdfDrawer() {
   const ctx = useContext(StandardPdfDrawerContext);
   if (!ctx) {
     throw new Error(
@@ -200,9 +200,9 @@ interface Iso9606PdfDrawerProps {
 }
 
 export function Iso9606PdfDrawer({
-  page = ISO_9606_1.clauses.revalidation.page,
-  title = `${ISO_9606_1.title} — clause ${ISO_9606_1.clauses.revalidation.section}`,
-  description = `Reference PDF — ${ISO_9606_1.clauses.revalidation.heading}`,
+  page = ISO_9606_1.tables.revalidation.page,
+  title = `${ISO_9606_1.title} — ${ISO_9606_1.tables.revalidation.label}`,
+  description = "Reference PDF — open standard at the cited section",
   className,
 }: Iso9606PdfDrawerProps) {
   const { open } = useStandardPdfDrawer();
@@ -231,4 +231,16 @@ export function Iso9606PdfDrawer({
 /** Globe trigger — opens clause 9.3 revalidation reference. */
 export function Iso9606RevalidationPdfDrawer() {
   return <Iso9606PdfDrawer />;
+}
+
+/** Globe next to a field label — opens the relevant ISO 9606-1 table. */
+export function Iso9606TablePdfGlobe({ table }: { table: Iso9606TableKey }) {
+  const ref = ISO_9606_1.tables[table];
+  return (
+    <Iso9606PdfDrawer
+      page={ref.page}
+      title={`${ISO_9606_1.shortTitle} — ${ref.label}`}
+      description={ref.label}
+    />
+  );
 }

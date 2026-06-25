@@ -13,6 +13,7 @@ import {
   BW_POSITIONS,
   FW_POSITIONS,
   MATERIAL_GROUPS,
+  REVALIDATION_METHODS,
 } from "@/lib/iso9606/constants";
 import { collectReportFormErrors } from "@/lib/reports/validate-report-rows";
 import { Iso9606RevalidationPdfDrawer } from "@/components/qualify/iso9606-pdf-drawer";
@@ -183,14 +184,16 @@ export function ReportBuilder({
               />
             </Field>
             <Field
-              label="Revalidation method"
+              label="Confirmation of revalidation"
               required
               labelAccessory={<Iso9606RevalidationPdfDrawer />}
             >
               <Select name="revalidation_method" defaultValue="9.3b" required>
-                <option value="9.3a">9.3a (3 years)</option>
-                <option value="9.3b">9.3b (2 years)</option>
-                <option value="9.3c">9.3c (6 months)</option>
+                {REVALIDATION_METHODS.map((m) => (
+                  <option key={m.code} value={m.code}>
+                    {m.label}
+                  </option>
+                ))}
               </Select>
             </Field>
           </div>

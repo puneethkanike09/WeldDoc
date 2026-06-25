@@ -109,7 +109,6 @@ export async function createReport(formData: FormData) {
         certificate_issued_date: allPass ? testDate : null,
         continuity_last_verified: allPass ? testDate : null,
         expiry_date: allPass ? computeExpiry(method, testDate) : null,
-        created_by: userId,
       })
       .select("id")
       .single();

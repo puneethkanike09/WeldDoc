@@ -34,7 +34,6 @@ export interface CertificateData {
   range: RangeOfApproval | null;
   ndt: NdtDtRecord[];
   validations: ValidationRecord[];
-  qrDataUrl: string;
   photoUrl: string | null;
   logoUrl: string | null;
   certNo: string;
@@ -230,7 +229,6 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
     range,
     ndt,
     validations,
-    qrDataUrl,
     photoUrl,
     logoUrl,
     certNo,
@@ -392,6 +390,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
                 padding: 4,
               }}
             >
+              {/* Photo only — QR verification is on the welder ID card */}
               {photoUrl ? (
                 // eslint-disable-next-line jsx-a11y/alt-text
                 <Image
@@ -407,11 +406,6 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
                   }}
                 />
               )}
-              {/* eslint-disable-next-line jsx-a11y/alt-text */}
-              <Image
-                src={qrDataUrl}
-                style={{ width: 42, height: 42, marginTop: 4 }}
-              />
             </View>
           </View>
 
@@ -692,7 +686,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
           }}
           fixed
         >
-          Scan QR to verify · {org.name} · WeldDoc
+          {org.name} · WeldDoc
         </Text>
       </Page>
     </Document>

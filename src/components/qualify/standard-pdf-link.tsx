@@ -27,7 +27,7 @@ export function Iso9606RevalidationPdfLink({
   label: string;
 }) {
   return (
-    <StandardPdfLink href={iso9606PdfHref(ISO_9606_1.clauses.revalidation.page)}>
+    <StandardPdfLink href={iso9606PdfHref(ISO_9606_1.tables.revalidation.page)}>
       {label}
     </StandardPdfLink>
   );

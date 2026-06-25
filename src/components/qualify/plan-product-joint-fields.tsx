@@ -2,37 +2,48 @@
 
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Input, Field } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
+import { Field } from "@/components/ui/input";
 import type { ProductType } from "@/types/db";
 import {
   BRANCH_CONNECTIONS,
   jointOptionsForProduct,
   type BranchConnection,
 } from "@/lib/iso9606/product-dimensions";
+import { BW_POSITIONS, FW_POSITIONS, POSITION_LABELS } from "@/lib/iso9606/constants";
+import { Iso9606TablePdfGlobe } from "@/components/qualify/iso9606-pdf-drawer";
 
 interface PlanProductJointFieldsProps {
   defaultProduct?: ProductType;
   defaultJoint?: string;
   defaultBranchConnection?: BranchConnection | null;
+  defaultPosition?: string;
   productError?: string;
   jointError?: string;
   branchError?: string;
+  positionError?: string;
   onFieldChange?: (key: string) => void;
+  onJointChange?: (joint: string) => void;
 }
 
 export function PlanProductJointFields({
   defaultProduct = "Plate",
   defaultJoint = "BW",
   defaultBranchConnection = "set_in",
+  defaultPosition = "PF",
   productError,
   jointError,
   branchError,
+  positionError,
   onFieldChange,
+  onJointChange,
 }: PlanProductJointFieldsProps) {
-  const [product, setProduct] = useState<ProductType>(defaultProduct);
+  const [product, setProduct] = useState<ProductType>(
+    defaultProduct === "Branch" ? "Pipe" : defaultProduct,
+  );
   const jointOptions = useMemo(() => jointOptionsForProduct(product), [product]);
   const [joint, setJoint] = useState(() => {
+    if (defaultProduct === "Branch") return "Branch";
     const ok = jointOptions.some((j) => j.value === defaultJoint);
     return ok ? defaultJoint : jointOptions[0]?.value ?? "BW";
   });
@@ -40,16 +51,40 @@ export function PlanProductJointFields({
     defaultBranchConnection ?? "set_in",
   );
 
+  const positionOptions = useMemo(() => {
+    const isFillet = joint === "FW";
+    const codes = isFillet ? FW_POSITIONS : BW_POSITIONS;
+    return codes.map((p) => ({ value: p, label: POSITION_LABELS[p] ?? p }));
+  }, [joint]);
+
+  const [position, setPosition] = useState(() => {
+    const ok = positionOptions.some((p) => p.value === defaultPosition);
+    return ok ? defaultPosition : positionOptions[0]?.value ?? "PA";
+  });
+
   const invalidBorder = "border-ember ring-1 ring-ember/20";
 
   const onProductChange = (value: ProductType) => {
     setProduct(value);
     const nextJoints = jointOptionsForProduct(value);
     setJoint((prev) =>
-      nextJoints.some((j) => j.value === prev) ? prev : nextJoints[0]?.value ?? "BW",
+      prev === "Branch" && value === "Pipe"
+        ? "Branch"
+        : nextJoints.some((j) => j.value === prev)
+          ? prev
+          : nextJoints[0]?.value ?? "BW",
     );
     onFieldChange?.("product");
     onFieldChange?.("joint_type");
+  };
+
+  const onJointChangeInternal = (value: string) => {
+    setJoint(value);
+    const codes = value === "FW" ? FW_POSITIONS : BW_POSITIONS;
+    setPosition((prev) => (codes.includes(prev as never) ? prev : codes[0]));
+    onFieldChange?.("joint_type");
+    onFieldChange?.("position");
+    onJointChange?.(value);
   };
 
   return (
@@ -64,12 +99,27 @@ export function PlanProductJointFields({
         >
           <option value="Plate">Plate</option>
           <option value="Pipe">Pipe</option>
-          <option value="Branch">Branch</option>
           <option value="Other">Others</option>
         </Select>
       </Field>
 
-      {product === "Branch" ? (
+      <Field label="Joint type" required error={jointError}>
+        <Select
+          name="joint_type"
+          value={joint}
+          required
+          className={cn(jointError && invalidBorder)}
+          onChange={(e) => onJointChangeInternal(e.target.value)}
+        >
+          {jointOptions.map((j) => (
+            <option key={j.value} value={j.value}>
+              {j.label}
+            </option>
+          ))}
+        </Select>
+      </Field>
+
+      {joint === "Branch" ? (
         <Field label="Branch connection" required error={branchError}>
           <Select
             name="branch_connection"
@@ -90,20 +140,29 @@ export function PlanProductJointFields({
         </Field>
       ) : null}
 
-      <Field label="Joint type" required error={jointError}>
+      <Field
+        label="Welding position"
+        required
+        error={positionError}
+        labelAccessory={
+          <Iso9606TablePdfGlobe
+            table={joint === "FW" ? "positionFw" : "positionBw"}
+          />
+        }
+      >
         <Select
-          name="joint_type"
-          value={joint}
+          name="position"
+          value={position}
           required
-          className={cn(jointError && invalidBorder)}
+          className={cn(positionError && invalidBorder)}
           onChange={(e) => {
-            setJoint(e.target.value);
-            onFieldChange?.("joint_type");
+            setPosition(e.target.value);
+            onFieldChange?.("position");
           }}
         >
-          {jointOptions.map((j) => (
-            <option key={j.value} value={j.value}>
-              {j.label}
+          {positionOptions.map((p) => (
+            <option key={p.value} value={p.value}>
+              {p.label}
             </option>
           ))}
         </Select>

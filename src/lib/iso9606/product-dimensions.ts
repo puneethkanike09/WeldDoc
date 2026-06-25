@@ -104,7 +104,9 @@ export function materialDimensionBlocks(
   jointType: string,
 ): MaterialDimensionBlock[] {
   if (product === "Other") return OTHER_FREE;
-  if (product === "Branch") return BRANCH_BW;
+  if (product === "Branch" || (product === "Pipe" && jointType === "Branch")) {
+    return BRANCH_BW;
+  }
   if (product === "Pipe") {
     return jointType === "FW" ? PIPE_FW : PIPE_BW;
   }
@@ -121,6 +123,13 @@ export function jointOptionsForProduct(product: ProductType): { value: string; l
   }
   if (product === "Other") {
     return OTHER_JOINT_TYPES.map((j) => ({ value: j.value, label: j.label }));
+  }
+  if (product === "Pipe") {
+    return [
+      { value: "BW", label: "Butt weld (BW)" },
+      { value: "FW", label: "Fillet weld (FW)" },
+      { value: "Branch", label: "Branch (pipe tee)" },
+    ];
   }
   return [
     { value: "BW", label: "Butt weld (BW)" },

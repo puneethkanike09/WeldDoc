@@ -3,6 +3,13 @@ import { daysUntil } from "@/lib/welder-status";
 import { normalizePlantWelderId } from "@/lib/welders/plant-id";
 import { BW_POSITIONS, FW_POSITIONS, WELDING_PROCESSES } from "./constants";
 import { weldTypeCode } from "./ped-format";
+import { resolveJointTypes } from "./joint-coverage";
+import {
+  fillerGroupRangeText,
+  formatThicknessRange,
+} from "./certificate-ranges";
+import { formatFilletMaterialRangeText } from "@/lib/range-engine/iso9606";
+import rules from "@/lib/range-engine/iso9606.rules.json";
 
 export interface IdCardQualRow {
   process: string;
@@ -37,35 +44,17 @@ const POS_ORDER = [
   "J-L045",
 ];
 
+type RulesJson = typeof rules & {
+  positionMapFw: Record<string, string[]>;
+};
+
+const r = rules as RulesJson;
+
 export function processCompact(code: string): string {
   const p = WELDING_PROCESSES.find((x) => x.code === code);
   if (!p) return code;
   const short = p.name.split(/[\s(/]/)[0];
   return `${short}(${code})`;
-}
-
-function layerIsSingle(layer: string | null): boolean {
-  if (!layer) return true;
-  return /single|^sl$/i.test(layer);
-}
-
-function trimMm(n: number): string {
-  return Number.isInteger(n) ? String(n) : String(n);
-}
-
-function formatThickness(
-  range: RangeOfApproval | undefined,
-  layer: string | null,
-): string {
-  if (layerIsSingle(layer)) return "SL";
-  if (!range || range.thickness_min_mm == null) return "—";
-  if (range.thickness_unlimited) {
-    return `≥${trimMm(range.thickness_min_mm)}mm`;
-  }
-  if (range.thickness_max_mm != null) {
-    return `${trimMm(range.thickness_min_mm)}–${trimMm(range.thickness_max_mm)}mm`;
-  }
-  return `≥${trimMm(range.thickness_min_mm)}mm`;
 }
 
 function formatDiameter(
@@ -76,7 +65,7 @@ function formatDiameter(
     return product === "Plate" ? "ALL" : "—";
   }
   if (product === "Plate" && range.pipe_od_unlimited) return "ALL";
-  return `≥${trimMm(range.pipe_od_min_mm)}mm`;
+  return `≥${range.pipe_od_min_mm}mm`;
 }
 
 function formatPositionsSlash(
@@ -92,33 +81,12 @@ function formatPositionsSlash(
   if (!list.length) return "NA";
   const ordered = POS_ORDER.filter((p) => list.includes(p));
   if (ordered.length <= 3) return ordered.join("/");
-  // Wrap long position lists onto two lines for narrow ID-card cells.
   const mid = Math.ceil(ordered.length / 2);
   return `${ordered.slice(0, mid).join("/")}\n${ordered.slice(mid).join("/")}`;
 }
 
-function resolveJointTypes(
-  q: QualificationRecord,
-  range: RangeOfApproval | undefined,
-): string[] {
-  if (range?.approved_joint_types?.length) return range.approved_joint_types;
-  if (q.joint_type === "BW" && q.supplementary_fillet) return ["BW", "FW"];
-  return [q.joint_type];
-}
-
-function fmGroupText(
-  q: QualificationRecord,
-  range: RangeOfApproval | undefined,
-): string {
-  if (range?.approved_material_groups?.length) {
-    return range.approved_material_groups
-      .map((g) => (g.startsWith("FM") ? g : `FM${g}`))
-      .join(", ");
-  }
-  const group = q.filler_group;
-  if (!group) return "—";
-  if (group === "FM1") return "FM1, FM2";
-  return group;
+function compactThickness(text: string): string {
+  return text.replace(/ mm/g, "mm").replace(/ – /g, "–");
 }
 
 function toIdCardRow(
@@ -126,25 +94,45 @@ function toIdCardRow(
   range: RangeOfApproval | undefined,
 ): IdCardQualRow {
   const jointTypes = resolveJointTypes(q, range);
-  const positions = range?.approved_positions?.length
+  const hasSuppFillet = q.joint_type === "BW" && q.supplementary_fillet;
+
+  const bwPositions = range?.approved_positions?.length
     ? range.approved_positions
     : q.position
       ? [q.position]
       : [];
 
+  const fwPositions =
+    hasSuppFillet && q.supplementary_fillet_position
+      ? (r.positionMapFw[q.supplementary_fillet_position] ?? [
+          q.supplementary_fillet_position,
+        ])
+      : jointTypes.includes("FW") && q.joint_type === "FW"
+        ? bwPositions
+        : [];
+
+  const thickBw = jointTypes.includes("BW")
+    ? compactThickness(formatThicknessRange(range ?? null))
+    : "NA";
+
+  let thickFw = "NA";
+  if (hasSuppFillet) {
+    thickFw = compactThickness(
+      formatFilletMaterialRangeText(q.supplementary_fillet_thickness_mm),
+    );
+  } else if (jointTypes.includes("FW")) {
+    thickFw = compactThickness(formatThicknessRange(range ?? null));
+  }
+
   return {
     process: processCompact(q.process),
-    positionBw: formatPositionsSlash(positions, "BW", jointTypes),
-    positionFw: formatPositionsSlash(positions, "FW", jointTypes),
-    thicknessBw: jointTypes.includes("BW")
-      ? formatThickness(range, q.layer_type)
-      : "NA",
-    thicknessFw: jointTypes.includes("FW")
-      ? formatThickness(range, q.layer_type)
-      : "NA",
+    positionBw: formatPositionsSlash(bwPositions, "BW", jointTypes),
+    positionFw: formatPositionsSlash(fwPositions, "FW", jointTypes),
+    thicknessBw: thickBw,
+    thicknessFw: thickFw,
     od: formatDiameter(range, q.product),
     jointType: weldTypeCode(jointTypes),
-    fmGroup: fmGroupText(q, range),
+    fmGroup: fillerGroupRangeText(q.filler_group),
   };
 }
 

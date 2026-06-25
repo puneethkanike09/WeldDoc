@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "db:migrate": "node scripts/migrate.mjs",
-    "db:migrate:latest": "node scripts/apply-migration.mjs 0005_qualification_excel_fields.sql"
+    "db:migrate:latest": "node scripts/apply-migration.mjs 0005_qualification_excel_fields.sql",
+    "verify:range": "node scripts/verify-range-engine.mjs"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.17",

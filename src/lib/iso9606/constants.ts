@@ -119,7 +119,7 @@ export const FILLER_TYPES = [
   "Covered electrode (R/RR — rutile)",
 ] as const;
 
-export const CURRENT_POLARITY = ["AC", "DCEP", "DCEN", "Pulsed"] as const;
+export const CURRENT_POLARITY = ["AC", "DCEP", "DCEN"] as const;
 
 export const LAYER_TYPES = ["Single layer (sl)", "Multi-layer (ml)"] as const;
 

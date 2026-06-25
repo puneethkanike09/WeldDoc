@@ -118,6 +118,8 @@ export interface QualificationRecord {
   weld_details: string | null;
   job_knowledge: string;
   supplementary_fillet: boolean;
+  supplementary_fillet_position: string | null;
+  supplementary_fillet_thickness_mm: number | null;
   wps_reference: string | null;
   examiner_ref: string | null;
   examiner_name: string | null;
