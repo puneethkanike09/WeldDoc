@@ -10,13 +10,11 @@ import { Card, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileDropzone } from "@/components/ui/file-dropzone";
 import {
-  TESTING_STANDARDS,
-  WELDING_PROCESSES,
-  BW_POSITIONS,
   FW_POSITIONS,
   POSITION_LABELS,
+  TESTING_STANDARDS,
+  WELDING_PROCESSES,
   FILLER_GROUPS,
-  FILLER_TYPES,
   CURRENT_POLARITY,
   LAYER_TYPES,
   REVALIDATION_METHODS,
@@ -32,10 +30,23 @@ import {
   getTestPieceFieldErrors,
 } from "@/lib/iso9606/qualification-fields";
 import { displayJointType } from "@/lib/iso9606/product-dimensions";
-import { MaterialGradeLookup } from "@/components/qualify/material-grade-lookup";
+import {
+  showDepositedThicknessField,
+  showTestThicknessField,
+} from "@/lib/iso9606/test-piece-thickness";
+import { fillerTypesForProcess } from "@/lib/iso9606/filler-types";
+import {
+  ISO_14175_GASES,
+  parseShieldingGasCode,
+} from "@/lib/iso9606/shielding-gas";
+import { MaterialLookupPair } from "@/components/qualify/material-lookup-pair";
+import {
+  Iso9606RevalidationPdfDrawer,
+  Iso9606TablePdfGlobe,
+} from "@/components/qualify/iso9606-pdf-drawer";
+import { qualifyDraftKey, loadQualifyDraft } from "@/lib/qualify/wizard-draft";
 import { PlanProductJointFields } from "@/components/qualify/plan-product-joint-fields";
 import { ProductDimensions } from "@/components/qualify/qualification-field-blocks";
-import { Iso9606RevalidationPdfDrawer } from "@/components/qualify/iso9606-pdf-drawer";
 import type {
   BranchConnection,
   JointCategory,
@@ -150,11 +161,13 @@ export function Stepper({
 
 export function PlanStep({
   action,
+  welderId,
   wpq,
   orgName,
   orgLocation,
 }: {
   action: (fd: FormData) => void;
+  welderId: string;
   wpq: QualificationRecord | null;
   orgName: string;
   orgLocation: string | null;
@@ -163,10 +176,14 @@ export function PlanStep({
     (formData: FormData) => getQualificationPlanFieldErrors(formData),
     [],
   );
+  const draftKey = qualifyDraftKey(welderId, wpq?.id ?? null, 1);
 
   return (
-    <ValidatedForm action={action} validate={validate}>
-      {({ fieldErrors, clearError }) => (
+    <ValidatedForm action={action} validate={validate} draftStorageKey={draftKey}>
+      {({ fieldErrors, clearError, draftRevision }) => {
+        const draft =
+          draftRevision > 0 ? loadQualifyDraft(draftKey) : null;
+        return (
         <Card>
           <CardBody className="space-y-5">
             <Header
@@ -205,33 +222,28 @@ export function PlanStep({
                 </Select>
               </Field>
               <PlanProductJointFields
-                defaultProduct={wpq?.product ?? "Plate"}
-                defaultJoint={displayJointType(wpq ?? { joint_type: "BW", joint_type_extended: null })}
-                defaultBranchConnection={
-                  (wpq?.branch_connection as BranchConnection | null) ?? "set_in"
+                key={`plan-joint-${draftRevision}`}
+                defaultProduct={
+                  (draft?.product as QualificationRecord["product"]) ??
+                  wpq?.product ??
+                  "Plate"
                 }
+                defaultJoint={
+                  draft?.joint_type ??
+                  displayJointType(wpq ?? { joint_type: "BW", joint_type_extended: null })
+                }
+                defaultBranchConnection={
+                  (draft?.branch_connection as BranchConnection | null) ??
+                  (wpq?.branch_connection as BranchConnection | null) ??
+                  "set_in"
+                }
+                defaultPosition={draft?.position ?? wpq?.position ?? "PF"}
                 productError={fieldErrors.product}
                 jointError={fieldErrors.joint_type}
                 branchError={fieldErrors.branch_connection}
+                positionError={fieldErrors.position}
                 onFieldChange={clearError}
               />
-              <Field label="Welding position" required error={fieldErrors.position}>
-                <Select
-                  name="position"
-                  defaultValue={wpq?.position ?? "PF"}
-                  required
-                  className={cn(fieldErrors.position && invalidBorder)}
-                  onChange={() => clearError("position")}
-                >
-                  {Array.from(new Set([...BW_POSITIONS, ...FW_POSITIONS])).map(
-                    (p) => (
-                      <option key={p} value={p}>
-                        {POSITION_LABELS[p] ?? p}
-                      </option>
-                    ),
-                  )}
-                </Select>
-              </Field>
               <Field label="WPS reference" required error={fieldErrors.wps_reference}>
                 <Input
                   name="wps_reference"
@@ -252,7 +264,7 @@ export function PlanStep({
                   disabled
                 />
               </Field>
-              <Field label="Date of welding test" required error={fieldErrors.date_of_welding}>
+              <Field label="Date of welding" required error={fieldErrors.date_of_welding}>
                 <DatePicker
                   name="date_of_welding"
                   defaultValue={wpq?.date_of_welding ?? ""}
@@ -286,27 +298,54 @@ export function PlanStep({
                 error={fieldErrors.revalidation_method}
                 labelAccessory={<Iso9606RevalidationPdfDrawer />}
               >
-                <Select
-                  name="revalidation_method"
-                  defaultValue={wpq?.revalidation_method ?? "9.3b"}
-                  required
-                  className={cn(fieldErrors.revalidation_method && invalidBorder)}
-                  onChange={() => clearError("revalidation_method")}
+                <div
+                  className="flex flex-wrap gap-4 pt-1"
+                  role="radiogroup"
+                  aria-label="Revalidation method"
                 >
                   {REVALIDATION_METHODS.map((m) => (
-                    <option key={m.code} value={m.code}>
+                    <label
+                      key={m.code}
+                      className="inline-flex cursor-pointer items-center gap-2 text-sm text-charcoal"
+                    >
+                      <input
+                        type="radio"
+                        name="revalidation_method"
+                        value={m.code}
+                        defaultChecked={
+                          (wpq?.revalidation_method ?? "9.3b") === m.code
+                        }
+                        required
+                        className="h-4 w-4 accent-[#f90a08]"
+                        onChange={() => clearError("revalidation_method")}
+                      />
                       {m.label}
-                    </option>
+                    </label>
                   ))}
-                </Select>
+                </div>
               </Field>
+              <div className="sm:col-span-2">
+                <label className="flex items-start gap-3 rounded-[10px] border border-silver bg-frost/50 px-4 py-3">
+                  <input
+                    type="checkbox"
+                    name="supplementary_fillet"
+                    defaultChecked={wpq?.supplementary_fillet}
+                    className="mt-0.5 h-4 w-4 accent-[#f90a08]"
+                  />
+                  <span className="text-[14px] text-charcoal">
+                    Supplementary fillet weld test (qualifies fillet in addition
+                    to butt weld per §5.4)
+                  </span>
+                </label>
+              </div>
             </div>
             <div className="flex justify-end">
               <Submit label="Save & continue" icon={Save} />
             </div>
           </CardBody>
         </Card>
-      )}
+        );
+      }}
     </ValidatedForm>
   );
 }
@@ -323,48 +362,115 @@ export function TestStep({
   rangePreview: string | null;
 }) {
   const jointLabel = displayJointType(wpq);
+  const fillerTypes = fillerTypesForProcess(wpq.process);
+  const shieldingDefault = parseShieldingGasCode(wpq.shielding_gas ?? "");
+  const showTestThickness = showTestThicknessField(
+    wpq.product,
+    wpq.joint_type,
+    jointLabel,
+  );
+  const showDepositedThickness = showDepositedThicknessField(
+    wpq.product,
+    wpq.joint_type,
+    jointLabel,
+  );
 
   const validate = useCallback(
     (formData: FormData) =>
-      getTestPieceFieldErrors(formData, jointLabel, wpq.product),
-    [jointLabel, wpq.product],
+      getTestPieceFieldErrors(
+        formData,
+        jointLabel,
+        wpq.product,
+        wpq.joint_type,
+      ),
+    [jointLabel, wpq.product, wpq.joint_type],
   );
+  const draftKey = qualifyDraftKey(welderId, wpq.id, 2);
+  const fillerTable = wpq.process === "111" ? "fillerType111" : "fillerTypeOther";
 
   return (
-    <ValidatedForm action={action} validate={validate}>
-      {({ fieldErrors, clearError }) => (
+    <ValidatedForm action={action} validate={validate} draftStorageKey={draftKey}>
+      {({ fieldErrors, clearError, draftRevision }) => {
+        const draft =
+          draftRevision > 0 ? loadQualifyDraft(draftKey) : null;
+        return (
         <Card>
           <CardBody className="space-y-5">
             <Header
               title="Step 2 — Test piece record"
               sub="Page 1 continued: materials, dimensions, filler and test piece parameters."
             />
-            <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
-              <MaterialGradeLookup
-                variant={1}
-                defaultStandard={wpq.material_specification ?? ""}
-                defaultGrade={wpq.material_grade ?? ""}
-                defaultGroup={wpq.base_material_group ?? ""}
-                errors={{
-                  material_standard: fieldErrors.material_standard,
-                  material_grade: fieldErrors.material_grade,
-                  base_material_group: fieldErrors.base_material_group,
-                }}
-                onFieldChange={clearError}
-              />
-              <MaterialGradeLookup
-                variant={2}
-                defaultStandard={wpq.material2_specification ?? ""}
-                defaultGrade={wpq.material2_grade ?? ""}
-                defaultGroup={wpq.material2_group ?? ""}
-                errors={{
-                  material2_specification: fieldErrors.material2_specification,
-                  material2_grade: fieldErrors.material2_grade,
-                  material2_group: fieldErrors.material2_group,
-                }}
-                onFieldChange={clearError}
-              />
-            </div>
+            <MaterialLookupPair
+              key={`materials-${draftRevision}`}
+              wpq={wpq}
+              draft={draft}
+              errors={{
+                material_standard: fieldErrors.material_standard,
+                material_grade: fieldErrors.material_grade,
+                base_material_group: fieldErrors.base_material_group,
+                material2_specification: fieldErrors.material2_specification,
+                material2_grade: fieldErrors.material2_grade,
+                material2_group: fieldErrors.material2_group,
+              }}
+              onFieldChange={clearError}
+            />
+            {wpq.supplementary_fillet ? (
+              <div className="rounded-[10px] border border-sapphire/25 bg-sapphire/5 p-4">
+                <p className="font-display text-sm font-semibold text-onyx">
+                  Supplementary fillet test piece
+                </p>
+                <p className="mt-1 text-xs text-steel">
+                  Position and material thickness for the supplementary fillet
+                  weld (Table 10 / Table 8).
+                </p>
+                <input type="hidden" name="supplementary_fillet_required" value="1" />
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <Field
+                    label="Fillet welding position"
+                    required
+                    error={fieldErrors.supplementary_fillet_position}
+                    labelAccessory={<Iso9606TablePdfGlobe table="positionFw" />}
+                  >
+                    <Select
+                      name="supplementary_fillet_position"
+                      defaultValue={wpq.supplementary_fillet_position ?? "PB"}
+                      required
+                      className={cn(
+                        fieldErrors.supplementary_fillet_position && invalidBorder,
+                      )}
+                      onChange={() => clearError("supplementary_fillet_position")}
+                    >
+                      {FW_POSITIONS.map((p) => (
+                        <option key={p} value={p}>
+                          {POSITION_LABELS[p] ?? p}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                  <Field
+                    label="Fillet material thickness (mm)"
+                    required
+                    error={fieldErrors.supplementary_fillet_thickness_mm}
+                    labelAccessory={<Iso9606TablePdfGlobe table="thicknessFw" />}
+                  >
+                    <Input
+                      type="number"
+                      step="0.1"
+                      name="supplementary_fillet_thickness_mm"
+                      defaultValue={wpq.supplementary_fillet_thickness_mm ?? ""}
+                      required
+                      className={cn(
+                        fieldErrors.supplementary_fillet_thickness_mm &&
+                          invalidBorder,
+                      )}
+                      onChange={() =>
+                        clearError("supplementary_fillet_thickness_mm")
+                      }
+                    />
+                  </Field>
+                </div>
+              </div>
+            ) : null}
             <div className="grid gap-5 sm:grid-cols-2">
               <ProductDimensions
                 product={wpq.product}
@@ -373,7 +479,12 @@ export function TestStep({
                 errors={fieldErrors}
                 onFieldChange={clearError}
               />
-              <Field label="Filler material group" required error={fieldErrors.filler_group}>
+              <Field
+                label="Filler material group"
+                required
+                error={fieldErrors.filler_group}
+                labelAccessory={<Iso9606TablePdfGlobe table="fmGroup" />}
+              >
                 <Select
                   name="filler_group"
                   defaultValue={wpq.filler_group ?? "FM1"}
@@ -398,30 +509,40 @@ export function TestStep({
                   onChange={() => clearError("filler_designation")}
                 />
               </Field>
-              <Field label="Filler type" required error={fieldErrors.filler_type}>
+              <Field
+                label="Filler type"
+                required
+                error={fieldErrors.filler_type}
+                labelAccessory={<Iso9606TablePdfGlobe table={fillerTable} />}
+              >
                 <Select
                   name="filler_type"
-                  defaultValue={wpq.filler_type ?? FILLER_TYPES[1]}
+                  defaultValue={wpq.filler_type ?? fillerTypes[0]}
                   required
                   className={cn(fieldErrors.filler_type && invalidBorder)}
                   onChange={() => clearError("filler_type")}
                 >
-                  {FILLER_TYPES.map((f) => (
+                  {fillerTypes.map((f) => (
                     <option key={f} value={f}>
                       {f}
                     </option>
                   ))}
                 </Select>
               </Field>
-              <Field label="Shielding gas" required error={fieldErrors.shielding_gas}>
-                <Input
+              <Field label="Shielding gas (ISO 14175)" required error={fieldErrors.shielding_gas}>
+                <Select
                   name="shielding_gas"
-                  defaultValue={wpq.shielding_gas ?? ""}
-                  placeholder="ISO 14175 - M21"
+                  defaultValue={shieldingDefault || ISO_14175_GASES[5].code}
                   required
                   className={cn(fieldErrors.shielding_gas && invalidBorder)}
                   onChange={() => clearError("shielding_gas")}
-                />
+                >
+                  {ISO_14175_GASES.map((g) => (
+                    <option key={g.code} value={g.code}>
+                      {g.label}
+                    </option>
+                  ))}
+                </Select>
               </Field>
               <Field label="Current & polarity" required error={fieldErrors.current_polarity}>
                 <Select
@@ -438,7 +559,12 @@ export function TestStep({
                   ))}
                 </Select>
               </Field>
-              <Field label="Transfer mode" required error={fieldErrors.transfer_mode}>
+              <Field
+                label="Transfer mode"
+                required
+                error={fieldErrors.transfer_mode}
+                labelAccessory={<Iso9606TablePdfGlobe table="transferMode" />}
+              >
                 <Select
                   name="transfer_mode"
                   defaultValue={wpq.transfer_mode ?? "Spray"}
@@ -453,7 +579,12 @@ export function TestStep({
                   ))}
                 </Select>
               </Field>
-              <Field label="Weld details" required error={fieldErrors.weld_details}>
+              <Field
+                label="Weld details"
+                required
+                error={fieldErrors.weld_details}
+                labelAccessory={<Iso9606TablePdfGlobe table="weldDetails" />}
+              >
                 <Select
                   name="weld_details"
                   defaultValue={wpq.weld_details ?? "ss nb"}
@@ -468,34 +599,51 @@ export function TestStep({
                   ))}
                 </Select>
               </Field>
-              <Field label="Test thickness (mm)" required error={fieldErrors.test_thickness_mm}>
-                <Input
-                  type="number"
-                  step="0.1"
-                  name="test_thickness_mm"
-                  defaultValue={wpq.test_thickness_mm ?? ""}
-                  placeholder="12"
+              {showTestThickness ? (
+                <Field
+                  label="Material thickness (mm)"
                   required
-                  className={cn(fieldErrors.test_thickness_mm && invalidBorder)}
-                  onChange={() => clearError("test_thickness_mm")}
-                />
-              </Field>
+                  error={fieldErrors.test_thickness_mm}
+                  labelAccessory={
+                    <Iso9606TablePdfGlobe table="thicknessFw" />
+                  }
+                >
+                  <Input
+                    type="number"
+                    step="0.1"
+                    name="test_thickness_mm"
+                    defaultValue={wpq.test_thickness_mm ?? ""}
+                    placeholder="12"
+                    required
+                    className={cn(fieldErrors.test_thickness_mm && invalidBorder)}
+                    onChange={() => clearError("test_thickness_mm")}
+                  />
+                </Field>
+              ) : null}
+              {showDepositedThickness ? (
+                <Field
+                  label="Deposited thickness (mm)"
+                  required
+                  error={fieldErrors.deposited_thickness_mm}
+                  labelAccessory={<Iso9606TablePdfGlobe table="thicknessBw" />}
+                >
+                  <Input
+                    type="number"
+                    step="0.1"
+                    name="deposited_thickness_mm"
+                    defaultValue={wpq.deposited_thickness_mm ?? ""}
+                    required
+                    className={cn(fieldErrors.deposited_thickness_mm && invalidBorder)}
+                    onChange={() => clearError("deposited_thickness_mm")}
+                  />
+                </Field>
+              ) : null}
               <Field
-                label="Deposited / throat thickness (mm)"
+                label="Layer"
                 required
-                error={fieldErrors.deposited_thickness_mm}
+                error={fieldErrors.layer_type}
+                labelAccessory={<Iso9606TablePdfGlobe table="layerTechnique" />}
               >
-                <Input
-                  type="number"
-                  step="0.1"
-                  name="deposited_thickness_mm"
-                  defaultValue={wpq.deposited_thickness_mm ?? ""}
-                  required
-                  className={cn(fieldErrors.deposited_thickness_mm && invalidBorder)}
-                  onChange={() => clearError("deposited_thickness_mm")}
-                />
-              </Field>
-              <Field label="Layer" required error={fieldErrors.layer_type}>
                 <Select
                   name="layer_type"
                   defaultValue={wpq.layer_type ?? LAYER_TYPES[1]}
@@ -529,7 +677,8 @@ export function TestStep({
             </div>
           </CardBody>
         </Card>
-      )}
+        );
+      }}
     </ValidatedForm>
   );
 }
@@ -539,45 +688,60 @@ export function NdtStep({
   welderId,
   wpqId,
   jointType,
+  process,
   existing,
 }: {
   action: (fd: FormData) => void;
   welderId: string;
   wpqId: string;
   jointType: JointCategory;
+  process: string;
   existing: NdtDtRecord[];
 }) {
-  const required = requiredTestsFor(jointType);
-  const byMethod = new Map(existing.map((e) => [e.test_method, e]));
-
-  const validate = useCallback(
-    (formData: FormData) => getNdtFieldErrors(formData, jointType),
-    [jointType],
+  const required = requiredTestsFor(jointType, process);
+  const byMethod = new Map(
+    existing.map((e) => [e.test_method, e] as const),
   );
 
+  const validate = useCallback(
+    (formData: FormData) => getNdtFieldErrors(formData, jointType, process),
+    [jointType, process],
+  );
+  const draftKey = qualifyDraftKey(welderId, wpqId, 3);
+
   return (
-    <ValidatedForm action={action} validate={validate}>
+    <ValidatedForm action={action} validate={validate} draftStorageKey={draftKey}>
       {({ fieldErrors, clearError }) => (
         <Card>
           <CardBody className="space-y-5">
             <Header
               title="Step 3 — NDT / DT results"
-              sub={`Required for ${
-                jointType === "BW" ? "butt welds" : "fillet welds"
-              }: ${required.join(", ")}. All required tests must pass to issue a certificate.`}
+              sub={`Table 13 mandatory tests for process ${process} · ${
+                jointType === "BW" ? "butt weld" : "fillet weld"
+              }: ${required.join(", ")}`}
+              accessory={<Iso9606TablePdfGlobe table="testing" />}
             />
 
-            <div className="space-y-3">
-              {required.map((method) => (
-                <TestRow
-                  key={method}
-                  method={method}
-                  required
-                  existing={byMethod.get(method)}
-                  fieldErrors={fieldErrors}
-                  clearError={clearError}
-                />
-              ))}
+            <div className="overflow-x-auto rounded-[10px] border border-silver">
+              <div className="grid min-w-[720px] grid-cols-[1.2fr_repeat(4,minmax(0,1fr))] gap-3 border-b border-silver bg-frost px-3 py-2 text-xs font-semibold uppercase tracking-wide text-steel">
+                <span>Test method</span>
+                <span>Result</span>
+                <span>Test date</span>
+                <span>Report no.</span>
+                <span>Report PDF</span>
+              </div>
+              <div className="divide-y divide-silver p-3">
+                {required.map((method) => (
+                  <TestRow
+                    key={method}
+                    method={method}
+                    required
+                    existing={byMethod.get(method)}
+                    fieldErrors={fieldErrors}
+                    clearError={clearError}
+                  />
+                ))}
+              </div>
             </div>
 
             <details className="rounded-[10px] border border-silver">
@@ -586,8 +750,8 @@ export function NdtStep({
               </summary>
               <div className="space-y-3 border-t border-silver p-4">
                 {OPTIONAL_TESTS.map((method) => (
-                  <label key={method} className="block">
-                    <span className="mb-2 flex items-center gap-2 text-[14px] text-charcoal">
+                  <label key={method} className="block space-y-2">
+                    <span className="flex items-center gap-2 text-[14px] text-charcoal">
                       <input
                         type="checkbox"
                         name="optional_method"
@@ -642,11 +806,11 @@ function TestRow({
   return (
     <div
       className={cn(
-        "grid items-start gap-3 rounded-[10px]",
+        "grid items-start gap-3",
         compact
-          ? "sm:grid-cols-[0.7fr_0.9fr_1fr_1fr]"
-          : "sm:grid-cols-[1.1fr_0.7fr_0.9fr_1fr_1fr]",
-        !compact && "border border-silver bg-frost/50 p-3",
+          ? "grid-cols-1 sm:grid-cols-4"
+          : "grid-cols-1 sm:grid-cols-[1.2fr_repeat(4,minmax(0,1fr))]",
+        !compact && "py-1",
       )}
     >
       {!compact && (
@@ -733,9 +897,10 @@ export function CertificateStep({
     (formData: FormData) => getCertificateIssueFieldErrors(formData),
     [],
   );
+  const draftKey = qualifyDraftKey(welderId, wpq.id, 4);
 
   return (
-    <ValidatedForm action={action} validate={validate}>
+    <ValidatedForm action={action} validate={validate} draftStorageKey={draftKey}>
       {({ fieldErrors, clearError }) => (
         <Card>
           <CardBody className="space-y-5">
@@ -763,6 +928,7 @@ export function CertificateStep({
                   name="certificate_date"
                   defaultValue={
                     wpq.certificate_issued_date ??
+                    wpq.date_of_welding ??
                     new Date().toISOString().slice(0, 10)
                   }
                   required
@@ -787,24 +953,22 @@ export function CertificateStep({
                   className={cn(fieldErrors.job_knowledge && invalidBorder)}
                   onChange={() => clearError("job_knowledge")}
                 >
-                  <option value="Acceptable">Acceptable</option>
+                  <option value="Tested">Tested</option>
                   <option value="Not tested">Not tested</option>
                 </Select>
               </Field>
             </div>
 
-            <label className="flex items-start gap-3 rounded-[10px] bg-frost px-4 py-3">
-              <input
-                type="checkbox"
-                name="supplementary_fillet"
-                defaultChecked={wpq.supplementary_fillet}
-                className="mt-0.5 h-4 w-4 accent-[#f90a08]"
-              />
-              <span className="text-[14px] text-charcoal">
-                Supplementary fillet weld test completed in conjunction with this
-                butt-weld qualification (acceptable).
-              </span>
-            </label>
+            {wpq.supplementary_fillet ? (
+              <p className="rounded-[10px] bg-active-soft px-4 py-3 text-sm text-active-ink">
+                Supplementary fillet weld test was selected in the qualification
+                plan — fillet qualification is included on this certificate.
+              </p>
+            ) : wpq.joint_type === "BW" ? (
+              <p className="rounded-[10px] bg-frost px-4 py-3 text-sm text-graphite">
+                Supplementary fillet weld test: not done.
+              </p>
+            ) : null}
 
             <p className="rounded-[10px] bg-frost px-3 py-2 text-sm text-graphite">
               The certificate leaves a blank examining-body area so it can be
@@ -827,11 +991,22 @@ export function CertificateStep({
   );
 }
 
-function Header({ title, sub }: { title: string; sub: string }) {
+function Header({
+  title,
+  sub,
+  accessory,
+}: {
+  title: string;
+  sub: string;
+  accessory?: React.ReactNode;
+}) {
   return (
-    <div>
-      <h3 className="font-display text-lg font-semibold text-onyx">{title}</h3>
-      <p className="mt-1 text-[14px] text-graphite">{sub}</p>
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <h3 className="font-display text-lg font-semibold text-onyx">{title}</h3>
+        <p className="mt-1 text-[14px] text-graphite">{sub}</p>
+      </div>
+      {accessory ? <div className="shrink-0 pt-1">{accessory}</div> : null}
     </div>
   );
 }

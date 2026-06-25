@@ -4,6 +4,8 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
+  useRef,
   useState,
   useTransition,
   type FormEvent,
@@ -12,6 +14,13 @@ import {
 import { toast } from "sonner";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { hasFieldErrors, type FieldErrors } from "@/lib/field-errors";
+import {
+  applyDraftToForm,
+  clearQualifyDraft,
+  formDataToDraft,
+  loadQualifyDraft,
+  saveQualifyDraft,
+} from "@/lib/qualify/wizard-draft";
 
 const FormPendingContext = createContext(false);
 
@@ -89,18 +98,41 @@ export function ValidatedForm({
   validate,
   prepare,
   className,
+  draftStorageKey,
   children,
 }: {
   action: (formData: FormData) => void | Promise<unknown>;
   validate: (formData: FormData) => FieldErrors;
   prepare?: (formData: FormData) => void;
   className?: string;
+  /** sessionStorage key — restores unsaved edits when navigating between steps */
+  draftStorageKey?: string;
   children: (ctx: {
     fieldErrors: FieldErrors;
     clearError: (key: string) => void;
+    /** Bumps after session draft is applied — remount controlled sub-forms. */
+    draftRevision: number;
   }) => ReactNode;
 }) {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [draftRevision, setDraftRevision] = useState(0);
+  const formRef = useRef<HTMLFormElement>(null);
+  const draftRestored = useRef(false);
+
+  useEffect(() => {
+    if (!draftStorageKey || draftRestored.current || !formRef.current) return;
+    const draft = loadQualifyDraft(draftStorageKey);
+    if (draft) {
+      applyDraftToForm(formRef.current, draft);
+      setDraftRevision((r) => r + 1);
+    }
+    draftRestored.current = true;
+  }, [draftStorageKey]);
+
+  const persistDraft = useCallback(() => {
+    if (!draftStorageKey || !formRef.current) return;
+    saveQualifyDraft(draftStorageKey, formDataToDraft(formRef.current));
+  }, [draftStorageKey]);
 
   const wrappedValidate = useCallback(
     (formData: FormData) => {
@@ -120,12 +152,30 @@ export function ValidatedForm({
     });
   }, []);
 
-  const { onSubmit, pending } = useFormSubmit(action, wrappedValidate, prepare);
+  const wrappedPrepare = useCallback(
+    (formData: FormData) => {
+      prepare?.(formData);
+      if (draftStorageKey) clearQualifyDraft(draftStorageKey);
+    },
+    [prepare, draftStorageKey],
+  );
+
+  const { onSubmit, pending } = useFormSubmit(
+    action,
+    wrappedValidate,
+    wrappedPrepare,
+  );
 
   return (
     <FormPendingContext.Provider value={pending}>
-      <form onSubmit={onSubmit} className={className} noValidate>
-        {children({ fieldErrors, clearError })}
+      <form
+        ref={formRef}
+        onSubmit={onSubmit}
+        onChange={persistDraft}
+        className={className}
+        noValidate
+      >
+        {children({ fieldErrors, clearError, draftRevision })}
       </form>
     </FormPendingContext.Provider>
   );

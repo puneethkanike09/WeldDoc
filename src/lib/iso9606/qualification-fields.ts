@@ -5,6 +5,10 @@
 
 import type { JointCategory, ProductType } from "@/types/db";
 import { validateMaterialDimensions } from "@/lib/iso9606/product-dimensions";
+import {
+  showDepositedThicknessField,
+  showTestThicknessField,
+} from "@/lib/iso9606/test-piece-thickness";
 
 /** BW/FW tests apply; other joint types on “Others” product use BW as default. */
 export function ndtJointCategory(jointType: string): JointCategory {
@@ -192,8 +196,9 @@ export function validateQualificationPlan(formData: FormData) {
 /** Step 2 — test piece fields 18–31. */
 export function getTestPieceFieldErrors(
   formData: FormData,
-  jointType: string,
+  jointLabel: string,
   product: ProductType,
+  jointType: JointCategory = jointLabel === "FW" ? "FW" : "BW",
 ): Record<string, string> {
   const errors: Record<string, string> = {};
 
@@ -234,36 +239,61 @@ export function getTestPieceFieldErrors(
   if (!str(formData.get("weld_details"))) errors.weld_details = "Weld details is required.";
   if (!str(formData.get("layer_type"))) errors.layer_type = "Layer is required.";
 
-  if (num(formData.get("test_thickness_mm")) == null) {
-    errors.test_thickness_mm = "Test thickness is required.";
+  if (
+    showTestThicknessField(product, jointType, jointLabel) &&
+    num(formData.get("test_thickness_mm")) == null
+  ) {
+    errors.test_thickness_mm = "Material thickness is required.";
   }
-  if (num(formData.get("deposited_thickness_mm")) == null) {
-    errors.deposited_thickness_mm = "Deposited / throat thickness is required.";
+  if (
+    showDepositedThicknessField(product, jointType, jointLabel) &&
+    num(formData.get("deposited_thickness_mm")) == null
+  ) {
+    errors.deposited_thickness_mm = "Deposited thickness is required.";
   }
 
-  Object.assign(errors, validateMaterialDimensions(formData, product, jointType));
+  if (formData.get("supplementary_fillet_required") === "1") {
+    if (!str(formData.get("supplementary_fillet_position"))) {
+      errors.supplementary_fillet_position =
+        "Supplementary fillet position is required.";
+    }
+    if (num(formData.get("supplementary_fillet_thickness_mm")) == null) {
+      errors.supplementary_fillet_thickness_mm =
+        "Supplementary fillet material thickness is required.";
+    }
+  }
+
+  Object.assign(errors, validateMaterialDimensions(formData, product, jointLabel));
 
   return errors;
 }
 
 export function validateTestPiece(
   formData: FormData,
-  jointType: string,
+  jointLabel: string,
   product: ProductType,
+  jointType?: JointCategory,
 ) {
-  const errors = getTestPieceFieldErrors(formData, jointType, product);
+  const errors = getTestPieceFieldErrors(
+    formData,
+    jointLabel,
+    product,
+    jointType,
+  );
   const first = Object.values(errors)[0];
   if (first) throw new QualificationValidationError(first);
 }
 
-/** Step 3 — NDT / DT (page 2 A–G). */
+/** Step 3 — NDT / DT (Table 13). */
 export function getNdtFieldErrors(
   formData: FormData,
   jointType: JointCategory,
+  process?: string,
 ): Record<string, string> {
   const errors: Record<string, string> = {};
+  const mandatory = requiredTestsFor(jointType, process);
   const methods = [
-    ...requiredTestsFor(jointType),
+    ...mandatory,
     ...formData.getAll("optional_method").map(String).filter(Boolean),
   ];
 
@@ -271,7 +301,7 @@ export function getNdtFieldErrors(
     const result = str(formData.get(`result__${method}`));
     if (!result || result === "NA") {
       errors[`result__${method}`] = `${method}: select Pass or Fail.`;
-    } else if (requiredTestsFor(jointType).includes(method) && result !== "Pass") {
+    } else if (mandatory.includes(method) && result !== "Pass") {
       errors[`result__${method}`] = `${method} must pass before issuing a certificate.`;
     }
     if (!str(formData.get(`test_date__${method}`))) {
@@ -288,8 +318,9 @@ export function getNdtFieldErrors(
 export function validateNdtResults(
   formData: FormData,
   jointType: JointCategory,
+  process?: string,
 ) {
-  const errors = getNdtFieldErrors(formData, jointType);
+  const errors = getNdtFieldErrors(formData, jointType, process);
   const first = Object.values(errors)[0];
   if (first) throw new QualificationValidationError(first);
 }

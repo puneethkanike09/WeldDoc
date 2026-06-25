@@ -17,7 +17,7 @@
     "note": "Outside pipe diameter range per Table 7 (D in mm). Plate test qualifies pipe OD ≥ 500 mm (§5.3 b).",
     "bands": [
       { "max": 25, "minFactor": 0.5, "maxFactor": 2, "unlimited": false },
-      { "min": 25, "max": 150, "minFactor": 0.5, "unlimited": true },
+      { "min": 25, "max": 150, "minFactor": 0.5, "minFloor": 25, "unlimited": true },
       { "min": 150, "minAbsolute": 75, "unlimited": true }
     ],
     "plateQualifiesPipeOdMin": 500
@@ -61,8 +61,8 @@
     "11": ["11"]
   },
   "jointTypeMap": {
-    "note": "A butt weld test also qualifies fillet welds; a fillet test qualifies fillet welds only.",
-    "BW": ["BW", "FW"],
+    "note": "BW qualifies BW only; supplementary fillet test adds FW. FW qualifies FW only.",
+    "BW": ["BW"],
     "FW": ["FW"]
   }
 }

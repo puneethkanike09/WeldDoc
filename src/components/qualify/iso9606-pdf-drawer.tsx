@@ -12,7 +12,7 @@ import {
 import { createPortal } from "react-dom";
 import { Globe, RotateCcw, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ISO_9606_1, iso9606PdfHref } from "@/lib/iso9606/standards-reference";
+import { ISO_9606_1, iso9606PdfHref, tr20172PdfHref, tr20173PdfHref, TR_20172, TR_20173 } from "@/lib/iso9606/standards-reference";
 
 export interface StandardPdfDrawerPayload {
   src: string;
@@ -192,6 +192,35 @@ export function StandardPdfDrawerProvider({ children }: { children: ReactNode })
   );
 }
 
+/** Opens any standard PDF in the side drawer. */
+export function StandardPdfGlobe({
+  src,
+  title,
+  description,
+  className,
+}: {
+  src: string;
+  title: string;
+  description: string;
+  className?: string;
+}) {
+  const { open } = useStandardPdfDrawer();
+
+  return (
+    <button
+      type="button"
+      className={cn(
+        "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-steel transition-colors hover:bg-frost hover:text-onyx focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-onyx/20",
+        className,
+      )}
+      aria-label={`Open ${title} in reference panel`}
+      onClick={() => open({ src, title, description })}
+    >
+      <Globe className="size-4" aria-hidden />
+    </button>
+  );
+}
+
 interface Iso9606PdfDrawerProps {
   page?: number;
   title?: string;
@@ -205,26 +234,54 @@ export function Iso9606PdfDrawer({
   description = `Reference PDF — ${ISO_9606_1.clauses.revalidation.heading}`,
   className,
 }: Iso9606PdfDrawerProps) {
-  const { open } = useStandardPdfDrawer();
-
   return (
-    <button
-      type="button"
-      className={cn(
-        "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-steel transition-colors hover:bg-frost hover:text-onyx focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-onyx/20",
-        className,
-      )}
-      aria-label={`Open ${title} in reference panel`}
-      onClick={() =>
-        open({
-          src: iso9606PdfHref(page),
-          title,
-          description,
-        })
-      }
-    >
-      <Globe className="size-4" aria-hidden />
-    </button>
+    <StandardPdfGlobe
+      src={iso9606PdfHref(page)}
+      title={title}
+      description={description}
+      className={className}
+    />
+  );
+}
+
+/** Globe — opens an ISO 9606-1 range table. */
+export function Iso9606TablePdfGlobe({
+  table,
+  className,
+}: {
+  table: keyof typeof ISO_9606_1.tables;
+  className?: string;
+}) {
+  const t = ISO_9606_1.tables[table];
+  return (
+    <StandardPdfGlobe
+      src={iso9606PdfHref(t.page)}
+      title={`${ISO_9606_1.shortTitle} — Table ${t.number}`}
+      description={t.heading}
+      className={className}
+    />
+  );
+}
+
+export function Tr20172PdfGlobe({ className }: { className?: string }) {
+  return (
+    <StandardPdfGlobe
+      src={tr20172PdfHref(TR_20172.materialTablePage)}
+      title={TR_20172.title}
+      description="Material grouping table — ISO/TR 15608"
+      className={className}
+    />
+  );
+}
+
+export function Tr20173PdfGlobe({ className }: { className?: string }) {
+  return (
+    <StandardPdfGlobe
+      src={tr20173PdfHref(TR_20173.materialTablePage)}
+      title={TR_20173.title}
+      description="Material grouping table — ISO/TR 15608"
+      className={className}
+    />
   );
 }
 

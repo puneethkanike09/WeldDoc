@@ -119,7 +119,7 @@ export const FILLER_TYPES = [
   "Covered electrode (R/RR — rutile)",
 ] as const;
 
-export const CURRENT_POLARITY = ["AC", "DCEP", "DCEN", "Pulsed"] as const;
+export const CURRENT_POLARITY = ["AC", "DCEP", "DCEN"] as const;
 
 export const LAYER_TYPES = ["Single layer (sl)", "Multi-layer (ml)"] as const;
 
@@ -145,21 +145,17 @@ export const TRANSFER_MODE_OPTIONS = [
 export const ID_METHODS = ["Aadhar", "Passport", "ID Card", "Other"] as const;
 
 export const REVALIDATION_METHODS = [
-  { code: "9.3a", label: "9.3a — prolongation by employer (every 6 months)" },
-  { code: "9.3b", label: "9.3b — prolongation by examiner (every 2 years)" },
-  {
-    code: "9.3c",
-    label: "9.3c — ISO 3834 quality system (6-monthly, unlimited)",
-  },
+  { code: "9.3a", label: "9.3a" },
+  { code: "9.3b", label: "9.3b" },
+  { code: "9.3c", label: "9.3c" },
 ] as const;
 
 export const BW_TESTS = [
-  "Visual (Root)",
-  "Visual (Cap)",
-  "RT/UT",
+  "Visual testing",
+  "Radiographic testing",
 ] as const;
 
-export const FW_TESTS = ["Visual (Root)", "Fracture Test"] as const;
+export const FW_TESTS = ["Visual testing", "Fracture test"] as const;
 
 export const OPTIONAL_TESTS = [
   "PT",
@@ -173,6 +169,12 @@ export function processLabel(code: string): string {
   return p ? `${p.name.split(" ")[0]} (${p.code})` : code;
 }
 
-export function requiredTestsFor(joint: "BW" | "FW"): readonly string[] {
+import { mandatoryTestMethods } from "@/lib/iso9606/table-13";
+
+export function requiredTestsFor(
+  joint: "BW" | "FW",
+  process?: string,
+): readonly string[] {
+  if (process) return mandatoryTestMethods(process, joint);
   return joint === "BW" ? BW_TESTS : FW_TESTS;
 }

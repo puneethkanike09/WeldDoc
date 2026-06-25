@@ -124,6 +124,7 @@ export default async function QualifyPage({
             {step === 1 && (
               <PlanStep
                 action={savePlan.bind(null, id, wpq?.id ?? null)}
+                welderId={id}
                 wpq={wpq}
                 orgName={org.name}
                 orgLocation={org.location_code}
@@ -141,10 +142,11 @@ export default async function QualifyPage({
 
             {step === 3 && wpq && (
               <NdtStep
-                action={saveNdt.bind(null, id, wpq.id, wpq.joint_type)}
+                action={saveNdt.bind(null, id, wpq.id)}
                 welderId={id}
                 wpqId={wpq.id}
                 jointType={ndtJointCategory(wpq.joint_type)}
+                process={wpq.process}
                 existing={ndt}
               />
             )}

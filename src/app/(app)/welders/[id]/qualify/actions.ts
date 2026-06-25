@@ -16,6 +16,7 @@ import {
   validateTestPiece,
 } from "@/lib/iso9606/qualification-fields";
 import { displayJointType, resolveJointStorage } from "@/lib/iso9606/product-dimensions";
+import { formatShieldingGas } from "@/lib/iso9606/shielding-gas";
 import type {
   BranchConnection,
   JointCategory,
@@ -55,6 +56,8 @@ async function recomputeRange(wpqId: string) {
     pipeOdMm: q.pipe_od_mm,
     position: q.position,
     materialGroup: q.base_material_group,
+    supplementaryFillet: q.supplementary_fillet,
+    jointTypeExtended: q.joint_type_extended,
   });
 
   await supabase.from("ranges_of_approval").upsert(
@@ -97,7 +100,7 @@ export async function savePlan(
     joint_type_extended,
     product: (str(formData.get("product")) ?? "Plate") as ProductType,
     branch_connection:
-      str(formData.get("product")) === "Branch"
+      rawJoint === "Branch"
         ? (str(formData.get("branch_connection")) as BranchConnection)
         : null,
     position: str(formData.get("position")),
@@ -107,6 +110,7 @@ export async function savePlan(
     date_of_welding: str(formData.get("date_of_welding")),
     revalidation_method: (str(formData.get("revalidation_method")) ??
       "9.3b") as RevalidationMethod,
+    supplementary_fillet: formData.get("supplementary_fillet") === "on",
   };
 
   let id = wpqId;
@@ -154,6 +158,7 @@ export async function saveTest(
     formData,
     jointLabel,
     existing.product as ProductType,
+    existing.joint_type as JointCategory,
   );
 
   const { error } = await supabase
@@ -177,7 +182,7 @@ export async function saveTest(
       filler_group: str(formData.get("filler_group")),
       filler_designation: str(formData.get("filler_designation")),
       filler_type: str(formData.get("filler_type")),
-      shielding_gas: str(formData.get("shielding_gas")),
+      shielding_gas: formatShieldingGas(str(formData.get("shielding_gas"))),
       current_polarity: str(formData.get("current_polarity")),
       transfer_mode: str(formData.get("transfer_mode")),
       weld_details: str(formData.get("weld_details")),
@@ -185,6 +190,12 @@ export async function saveTest(
       deposited_thickness_mm: num(formData.get("deposited_thickness_mm")),
       pipe_od_mm: num(formData.get("pipe_od_mm")),
       layer_type: str(formData.get("layer_type")),
+      supplementary_fillet_position: str(
+        formData.get("supplementary_fillet_position"),
+      ),
+      supplementary_fillet_thickness_mm: num(
+        formData.get("supplementary_fillet_thickness_mm"),
+      ),
       certificate_pdf_path: null,
     })
     .eq("id", wpqId)
@@ -199,16 +210,25 @@ export async function saveTest(
 export async function saveNdt(
   welderId: string,
   wpqId: string,
-  jointType: string,
   formData: FormData,
 ) {
-  const ndtJoint = ndtJointCategory(jointType);
-  validateNdtResults(formData, ndtJoint);
   const { org } = await requireSession();
   const supabase = await createClient();
 
+  const { data: wpqRow } = await supabase
+    .from("qualification_records")
+    .select("joint_type, process")
+    .eq("id", wpqId)
+    .eq("org_id", org.id)
+    .single();
+  if (!wpqRow) throw new Error("Qualification not found.");
+
+  const ndtJoint = ndtJointCategory(wpqRow.joint_type);
+  validateNdtResults(formData, ndtJoint, wpqRow.process);
+
+  const mandatory = requiredTestsFor(ndtJoint, wpqRow.process);
   const methods = [
-    ...requiredTestsFor(ndtJoint),
+    ...mandatory,
     ...formData.getAll("optional_method").map(String).filter(Boolean),
   ];
 
@@ -231,10 +251,7 @@ export async function saveNdt(
     );
 
     if (result === "Fail") anyFail = true;
-    if (
-      requiredTestsFor(ndtJoint).includes(method) &&
-      result !== "Pass"
-    ) {
+    if (mandatory.includes(method) && result !== "Pass") {
       allRequiredPass = false;
     }
 
@@ -284,9 +301,10 @@ export async function issueCertificate(
   if (!wpq) throw new Error("Qualification not found.");
   const q = wpq as QualificationRecord;
 
-  const issueDate = str(formData.get("certificate_date")) ?? new Date()
-    .toISOString()
-    .slice(0, 10);
+  const issueDate =
+    str(formData.get("certificate_date")) ??
+    q.date_of_welding ??
+    new Date().toISOString().slice(0, 10);
   const expiry = computeExpiry(q.revalidation_method, issueDate);
 
   const { error } = await supabase
@@ -297,7 +315,6 @@ export async function issueCertificate(
       continuity_last_verified: issueDate,
       expiry_date: expiry,
       job_knowledge: str(formData.get("job_knowledge")) ?? q.job_knowledge,
-      supplementary_fillet: formData.get("supplementary_fillet") === "on",
       examiner_name:
         str(formData.get("examiner_name")) ?? q.examiner_name,
     })

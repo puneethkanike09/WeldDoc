@@ -2,7 +2,6 @@ import { NextRequest } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createClient } from "@/lib/supabase/server";
 import { resolveUrl } from "@/lib/storage";
-import { qrDataUrl, verifyUrl } from "@/lib/qr";
 import {
   CertificateDocument,
   type CertificateData,
@@ -69,7 +68,6 @@ export async function GET(
   const w = welder as Welder;
   const photoUrl = await resolveUrl("welder-photos", w.photo_path);
   const logoUrl = await resolveUrl("org-assets", (org as Organization).logo_path);
-  const qr = await qrDataUrl(verifyUrl(w.qr_token, request.nextUrl.origin));
 
   const data: CertificateData = {
     org: org as Organization,
@@ -78,7 +76,6 @@ export async function GET(
     range: (range as RangeOfApproval) ?? null,
     ndt: (ndt ?? []) as NdtDtRecord[],
     validations: (validations ?? []) as ValidationRecord[],
-    qrDataUrl: qr,
     photoUrl,
     logoUrl,
     certNo: buildCertNo(org as Organization, w, wpq as QualificationRecord),

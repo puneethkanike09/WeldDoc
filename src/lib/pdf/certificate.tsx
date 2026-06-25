@@ -34,7 +34,6 @@ export interface CertificateData {
   range: RangeOfApproval | null;
   ndt: NdtDtRecord[];
   validations: ValidationRecord[];
-  qrDataUrl: string;
   photoUrl: string | null;
   logoUrl: string | null;
   certNo: string;
@@ -230,7 +229,6 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
     range,
     ndt,
     validations,
-    qrDataUrl,
     photoUrl,
     logoUrl,
     certNo,
@@ -242,7 +240,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
   const examinerRows = examinerRevalidationRows(validations);
   const issueDate = fmt(wpq.certificate_issued_date ?? wpq.date_of_welding);
   const validUntil = initialValidUntil(wpq);
-  const jobOk = wpq.job_knowledge === "Acceptable";
+  const jobOk = wpq.job_knowledge === "Tested";
   const filletOk = wpq.supplementary_fillet;
 
   return (
@@ -407,11 +405,6 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
                   }}
                 />
               )}
-              {/* eslint-disable-next-line jsx-a11y/alt-text */}
-              <Image
-                src={qrDataUrl}
-                style={{ width: 42, height: 42, marginTop: 4 }}
-              />
             </View>
           </View>
 
@@ -501,7 +494,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
                 color: filletOk ? COLORS.steel : COLORS.onyx,
               }}
             >
-              not acceptable
+              not done
             </Text>
           </View>
 

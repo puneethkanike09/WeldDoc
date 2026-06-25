@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { BW_POSITIONS, FW_POSITIONS } from "@/lib/iso9606/constants";
+import { resolveJointTypes } from "@/lib/iso9606/joint-coverage";
 import { weldTypeCode } from "@/lib/iso9606/ped-format";
 import { normalizePlantWelderId } from "@/lib/welders/plant-id";
 import type {
@@ -135,15 +136,6 @@ function formatPositions(
   if (!list.length) return "NA";
   const ordered = POS_ORDER.filter((p) => list.includes(p));
   return ordered.join(", ");
-}
-
-function resolveJointTypes(
-  q: QualificationRecord,
-  range: RangeOfApproval | undefined,
-): string[] {
-  if (range?.approved_joint_types?.length) return range.approved_joint_types;
-  if (q.joint_type === "BW" && q.supplementary_fillet) return ["BW", "FW"];
-  return [q.joint_type];
 }
 
 function resolveSite(

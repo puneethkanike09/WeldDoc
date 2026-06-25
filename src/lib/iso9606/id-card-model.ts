@@ -1,6 +1,7 @@
 import type { QualificationRecord, RangeOfApproval, Welder } from "@/types/db";
 import { daysUntil } from "@/lib/welder-status";
 import { normalizePlantWelderId } from "@/lib/welders/plant-id";
+import { resolveJointTypes } from "@/lib/iso9606/joint-coverage";
 import { BW_POSITIONS, FW_POSITIONS, WELDING_PROCESSES } from "./constants";
 import { weldTypeCode } from "./ped-format";
 
@@ -95,15 +96,6 @@ function formatPositionsSlash(
   // Wrap long position lists onto two lines for narrow ID-card cells.
   const mid = Math.ceil(ordered.length / 2);
   return `${ordered.slice(0, mid).join("/")}\n${ordered.slice(mid).join("/")}`;
-}
-
-function resolveJointTypes(
-  q: QualificationRecord,
-  range: RangeOfApproval | undefined,
-): string[] {
-  if (range?.approved_joint_types?.length) return range.approved_joint_types;
-  if (q.joint_type === "BW" && q.supplementary_fillet) return ["BW", "FW"];
-  return [q.joint_type];
 }
 
 function fmGroupText(

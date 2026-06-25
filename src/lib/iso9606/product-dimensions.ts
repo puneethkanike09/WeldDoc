@@ -22,6 +22,9 @@ export function resolveJointStorage(raw: string): {
   if (joint === "BW" || joint === "FW") {
     return { joint_type: joint, joint_type_extended: null };
   }
+  if (joint === "Branch") {
+    return { joint_type: "BW", joint_type_extended: "Branch" };
+  }
   return { joint_type: "BW", joint_type_extended: joint };
 }
 
@@ -104,7 +107,7 @@ export function materialDimensionBlocks(
   jointType: string,
 ): MaterialDimensionBlock[] {
   if (product === "Other") return OTHER_FREE;
-  if (product === "Branch") return BRANCH_BW;
+  if (jointType === "Branch" || product === "Branch") return BRANCH_BW;
   if (product === "Pipe") {
     return jointType === "FW" ? PIPE_FW : PIPE_BW;
   }
@@ -116,11 +119,15 @@ export function usesFreeTextDimensions(product: ProductType): boolean {
 }
 
 export function jointOptionsForProduct(product: ProductType): { value: string; label: string }[] {
-  if (product === "Branch") {
-    return [{ value: "BW", label: "Butt weld (BW)" }];
-  }
   if (product === "Other") {
     return OTHER_JOINT_TYPES.map((j) => ({ value: j.value, label: j.label }));
+  }
+  if (product === "Pipe") {
+    return [
+      { value: "BW", label: "Butt weld (BW)" },
+      { value: "FW", label: "Fillet weld (FW)" },
+      { value: "Branch", label: "Branch weld" },
+    ];
   }
   return [
     { value: "BW", label: "Butt weld (BW)" },
