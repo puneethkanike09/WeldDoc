@@ -5,26 +5,29 @@ import { cn } from "@/lib/utils";
 import { Input, Field } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
 import {
+  inferMaterialLookupSource,
   listGradesForStandard,
   listMaterialStandards,
   lookupMaterialGroup,
-} from "@/lib/materials/tr20172";
+  MATERIAL_LOOKUP_OPTIONS,
+  type MaterialLookupSource,
+} from "@/lib/materials/material-lookup";
 
 type MaterialVariant = 1 | 2;
 
 const VARIANT_CONFIG = {
   1: {
-    title: "Material 1 lookup (CEN ISO/TR 20172)",
+    title: "Material 1 lookup",
     description:
-      "Select the EN standard and grade — the parent material group is set automatically from TR 20172 and cannot be changed manually.",
+      "Choose the material grouping table, then standard and grade — parent material group is set automatically from ISO/TR 15608 and cannot be changed manually.",
     standardName: "material_standard",
     gradeName: "material_grade",
     groupName: "base_material_group",
   },
   2: {
-    title: "Material 2 lookup (CEN ISO/TR 20172)",
+    title: "Material 2 lookup",
     description:
-      "Second material on the test piece — select the EN standard and grade. The parent material group is set automatically from TR 20172 and cannot be changed manually.",
+      "Second material on the test piece — choose grouping table, standard and grade. Parent group is set automatically from ISO/TR 15608.",
     standardName: "material2_specification",
     gradeName: "material2_grade",
     groupName: "material2_group",
@@ -62,24 +65,38 @@ export function MaterialGradeLookup({
   const config = VARIANT_CONFIG[variant];
   const displayTitle = title ?? config.title;
 
-  const standards = useMemo(() => listMaterialStandards(), []);
+  const [lookupSource, setLookupSource] = useState<MaterialLookupSource | "">(
+    () => inferMaterialLookupSource(defaultStandard),
+  );
   const [standard, setStandard] = useState(defaultStandard);
   const [grade, setGrade] = useState(defaultGrade);
 
+  const standards = useMemo(
+    () => (lookupSource ? listMaterialStandards(lookupSource) : []),
+    [lookupSource],
+  );
+
   const grades = useMemo(
-    () => (standard ? listGradesForStandard(standard) : []),
-    [standard],
+    () =>
+      lookupSource && standard
+        ? listGradesForStandard(lookupSource, standard)
+        : [],
+    [lookupSource, standard],
   );
 
   const lookup = useMemo(
-    () => (grade ? lookupMaterialGroup(grade, standard || undefined) : null),
-    [grade, standard],
+    () =>
+      grade && lookupSource
+        ? lookupMaterialGroup(grade, standard || undefined, lookupSource)
+        : null,
+    [grade, standard, lookupSource],
   );
 
   const parentGroup =
     lookup?.iso9606Group ??
     (grade &&
     standard &&
+    lookupSource &&
     grade === defaultGrade &&
     standard === defaultStandard
       ? defaultGroup
@@ -93,6 +110,9 @@ export function MaterialGradeLookup({
     variant === 1 ? errors?.base_material_group : errors?.material2_group;
 
   const invalidBorder = "border-ember ring-1 ring-ember/20";
+  const lookupHint = MATERIAL_LOOKUP_OPTIONS.find(
+    (o) => o.value === lookupSource,
+  )?.hint;
 
   const touch = (...keys: string[]) => {
     for (const key of keys) onFieldChange?.(key);
@@ -106,9 +126,33 @@ export function MaterialGradeLookup({
       </div>
 
       <div className="grid gap-4">
+        <Field label="Material grouping table" required>
+          <Select
+            value={lookupSource}
+            onChange={(e) => {
+              const next = e.target.value as MaterialLookupSource | "";
+              setLookupSource(next);
+              setStandard("");
+              setGrade("");
+              touch(config.standardName, config.gradeName, config.groupName);
+            }}
+          >
+            <option value="">Select table…</option>
+            {MATERIAL_LOOKUP_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </Select>
+          {lookupHint ? (
+            <p className="mt-1 text-xs text-steel">{lookupHint}</p>
+          ) : null}
+        </Field>
+
         <Field label="Material standard" required error={standardError}>
           <Select
             value={standard}
+            disabled={!lookupSource}
             onChange={(e) => {
               setStandard(e.target.value);
               setGrade("");
@@ -116,7 +160,9 @@ export function MaterialGradeLookup({
             }}
             className={cn(standardError && invalidBorder)}
           >
-            <option value="">Select standard…</option>
+            <option value="">
+              {lookupSource ? "Select standard…" : "Select grouping table first…"}
+            </option>
             {standards.map((s) => (
               <option key={s} value={s}>
                 {s}
@@ -126,7 +172,7 @@ export function MaterialGradeLookup({
         </Field>
 
         <Field label="Material grade / designation" required error={gradeError}>
-          {standard && grades.length > 0 ? (
+          {lookupSource && standard && grades.length > 0 ? (
             <Select
               value={grade}
               onChange={(e) => {
@@ -137,19 +183,28 @@ export function MaterialGradeLookup({
             >
               <option value="">Select grade…</option>
               {grades.map((g) => (
-                <option key={`${g.designation}-${g.number}`} value={g.designation}>
-                  {g.designation} ({g.number})
+                <option key={g.designation} value={g.designation}>
+                  {g.label}
                 </option>
               ))}
             </Select>
           ) : (
             <Input
               value={grade}
+              disabled={!lookupSource || !standard}
               onChange={(e) => {
                 setGrade(e.target.value);
                 touch(config.gradeName, config.groupName);
               }}
-              placeholder="S355J2, P265GH, E355…"
+              placeholder={
+                !lookupSource
+                  ? "Select grouping table first…"
+                  : !standard
+                    ? "Select standard first…"
+                    : lookupSource === "TR20172"
+                      ? "S355J2, P265GH, E355…"
+                      : "A/SA 36, API 5L X52…"
+              }
               className={cn(gradeError && invalidBorder)}
             />
           )}
@@ -173,17 +228,25 @@ export function MaterialGradeLookup({
 
       {lookup ? (
         <p className="text-xs text-graphite">
-          TR 20172 group <span className="font-medium">{lookup.trGroup}</span>
+          {lookup.source === "TR20172" ? "TR 20172" : "TR 20173"}
+          {" · ISO/TR 15608 group "}
+          <span className="font-medium">{lookup.trGroup}</span>
           {" → "}
           ISO 9606-1 parent group{" "}
           <span className="font-medium">{lookup.iso9606Group}</span>
-          {" · "}
-          {lookup.material.number}
+          {lookup.source === "TR20172" &&
+          "number" in lookup.material &&
+          lookup.material.number ? (
+            <>
+              {" · "}
+              {lookup.material.number}
+            </>
+          ) : null}
         </p>
-      ) : grade ? (
+      ) : grade && lookupSource ? (
         <p className="text-xs text-steel">
-          No TR 20172 match for this grade — choose from the list or check the
-          designation.
+          No match in {lookupSource === "TR20172" ? "TR 20172" : "TR 20173"} —
+          choose from the list or check the designation.
         </p>
       ) : null}
 
