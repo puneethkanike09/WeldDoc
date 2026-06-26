@@ -37,6 +37,19 @@ export const WELDING_STANDARDS_CATALOG: StandardCatalogEntry[] = [
     cardTone: "brand",
   },
   {
+    slug: "iso-14732",
+    dbKey: "ISO_9606_1",
+    title: "ISO 14732",
+    code: "ISO 14732:2025",
+    subtitle: "Welding operator qualification",
+    description:
+      "Qualification of welding operators for mechanised and automatic welding (distinct from manual welder qualification).",
+    status: "coming_soon",
+    pdfFileName: "ISO 14732-2025 Operator.pdf",
+    shortLabel: "ISO 14732",
+    cardTone: "danger",
+  },
+  {
     slug: "asme-ix",
     dbKey: "ASME_IX",
     title: "ASME Section IX",
@@ -61,19 +74,6 @@ export const WELDING_STANDARDS_CATALOG: StandardCatalogEntry[] = [
     pdfFileName: "AWS_D1.1_2025.pdf",
     shortLabel: "AWS D1.1",
     cardTone: "warning",
-  },
-  {
-    slug: "iso-14732",
-    dbKey: "ISO_9606_1",
-    title: "ISO 14732",
-    code: "ISO 14732:2025",
-    subtitle: "Welding operator qualification",
-    description:
-      "Qualification of welding operators for mechanised and automatic welding (distinct from manual welder qualification).",
-    status: "coming_soon",
-    pdfFileName: "ISO 14732-2025 Operator.pdf",
-    shortLabel: "ISO 14732",
-    cardTone: "danger",
   },
 ];
 

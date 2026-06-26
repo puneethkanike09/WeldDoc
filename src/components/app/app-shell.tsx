@@ -40,7 +40,7 @@ export function AppShell({
   return (
     <div
       className={cn(
-        "app-shell flex min-h-screen bg-parchment",
+        "app-shell flex h-screen overflow-hidden bg-parchment",
         resolvedTheme === "dark" && "dark",
       )}
       suppressHydrationWarning
@@ -66,9 +66,9 @@ export function AppShell({
         />
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         {/* Mobile top bar */}
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-silver bg-panel px-4 lg:hidden">
+        <header className="z-30 flex h-14 shrink-0 items-center gap-3 border-b border-silver bg-panel px-4 lg:hidden">
           <button
             type="button"
             aria-label="Open menu"
@@ -82,7 +82,7 @@ export function AppShell({
           </Link>
         </header>
 
-        <main className="min-w-0 flex-1">{children}</main>
+        <main className="sleek-scroll min-h-0 min-w-0 flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>
   );

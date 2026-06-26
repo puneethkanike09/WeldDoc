@@ -91,7 +91,7 @@ export default async function ReportDetailPage({
         </Link>
 
         <Card>
-          <CardBody className="overflow-x-auto">
+          <CardBody className="sleek-scroll overflow-x-auto">
             <table className="w-full min-w-[860px] text-left text-[13px]">
               <thead>
                 <tr className="border-b border-silver text-[11px] uppercase tracking-wide text-steel">

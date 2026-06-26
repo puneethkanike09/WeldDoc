@@ -487,22 +487,32 @@ html[data-app-theme="dark"] .welddoc-datepicker select {
 
   /* Slim, brand-themed scrollbar for inner scroll areas (e.g. sticky panels).
      Thin track, rounded thumb that darkens on hover; stays out of the way. */
-  .sleek-scroll {
+  .sleek-scroll,
+  .app-shell main,
+  .app-shell aside nav {
     scrollbar-width: thin;
     scrollbar-color: var(--theme-border) transparent;
   }
-  .sleek-scroll::-webkit-scrollbar {
+  .sleek-scroll::-webkit-scrollbar,
+  .app-shell main::-webkit-scrollbar,
+  .app-shell aside nav::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
-  .sleek-scroll::-webkit-scrollbar-track {
+  .sleek-scroll::-webkit-scrollbar-track,
+  .app-shell main::-webkit-scrollbar-track,
+  .app-shell aside nav::-webkit-scrollbar-track {
     background: transparent;
   }
-  .sleek-scroll::-webkit-scrollbar-thumb {
+  .sleek-scroll::-webkit-scrollbar-thumb,
+  .app-shell main::-webkit-scrollbar-thumb,
+  .app-shell aside nav::-webkit-scrollbar-thumb {
     background-color: var(--theme-border);
     border-radius: 9999px;
   }
-  .sleek-scroll:hover::-webkit-scrollbar-thumb {
+  .sleek-scroll:hover::-webkit-scrollbar-thumb,
+  .app-shell main:hover::-webkit-scrollbar-thumb,
+  .app-shell aside nav:hover::-webkit-scrollbar-thumb {
     background-color: var(--theme-text-muted);
   }
 }

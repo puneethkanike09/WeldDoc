@@ -19,7 +19,7 @@ export default function MasterListLoading() {
             ))}
           </div>
         </div>
-        <div className="mt-5 overflow-x-auto">
+        <div className="sleek-scroll mt-5 overflow-x-auto">
           <TableSkeleton columns={8} rows={10} minWidth={1100} />
         </div>
       </div>

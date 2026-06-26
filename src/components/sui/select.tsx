@@ -117,7 +117,7 @@ export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
               sideOffset={4}
               className="relative z-50 max-h-96 min-w-32 w-(--radix-select-trigger-width) overflow-hidden rounded-[10px] border border-border bg-popover text-popover-foreground shadow-(--shadow-lift) data-[state=open]:animate-in data-[state=open]:fade-in-0"
             >
-              <SelectPrimitive.Viewport className="max-h-[300px] overflow-y-auto p-1">
+              <SelectPrimitive.Viewport className="sleek-scroll max-h-[300px] overflow-y-auto p-1">
                 {options.map((o) => (
                   <SelectPrimitive.Item
                     key={o.value || EMPTY}

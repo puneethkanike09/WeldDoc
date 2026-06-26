@@ -13,7 +13,7 @@ export function Skeleton({ className }: { className?: string }) {
 /** Matches <PageHeader>: title + description on the left, optional action on the right. */
 export function PageHeaderSkeleton({ action = true }: { action?: boolean }) {
   return (
-    <div className="flex flex-col gap-4 border-b border-silver bg-panel/60 px-8 py-6 sm:flex-row sm:items-center sm:justify-between">
+    <div className="sticky top-0 z-20 flex flex-col gap-4 border-b border-silver bg-panel px-8 py-6 sm:flex-row sm:items-center sm:justify-between">
       <div className="space-y-2.5">
         <Skeleton className="h-7 w-44" />
         <Skeleton className="h-4 w-72 max-w-full" />
