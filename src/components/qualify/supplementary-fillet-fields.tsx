@@ -32,19 +32,22 @@ export function SupplementaryFilletFields({
 
   return (
     <div className="space-y-4 rounded-[var(--radius-card)] border border-silver bg-frost/40 p-4 sm:col-span-2">
-      <label className="flex items-start gap-3">
-        <input
-          type="checkbox"
-          name="supplementary_fillet"
-          checked={checked}
-          onChange={(e) => setChecked(e.target.checked)}
-          className="mt-0.5 h-4 w-4 accent-[#f90a08]"
-        />
-        <span className="text-[14px] text-charcoal">
-          Supplementary fillet weld test completed with this butt-weld
-          qualification (extends approval to fillet welds per ISO 9606-1).
-        </span>
-      </label>
+      <div className="flex items-start justify-between gap-2">
+        <label className="flex min-w-0 flex-1 items-start gap-3">
+          <input
+            type="checkbox"
+            name="supplementary_fillet"
+            checked={checked}
+            onChange={(e) => setChecked(e.target.checked)}
+            className="mt-0.5 h-4 w-4 accent-[#f90a08]"
+          />
+          <span className="text-[14px] text-charcoal">
+            Supplementary fillet weld test completed with this butt-weld
+            qualification (extends approval to fillet welds per ISO 9606-1).
+          </span>
+        </label>
+        <Iso9606TablePdfGlobe table="supplementaryFillet" />
+      </div>
 
       {checked ? (
         <div className="grid gap-4 sm:grid-cols-2">

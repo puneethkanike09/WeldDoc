@@ -223,7 +223,12 @@ export function PlanStep({
                   ))}
                 </Select>
               </Field>
-              <Field label="Welding process (ISO 4063)" required error={fieldErrors.process}>
+              <Field
+                label="Welding process (ISO 4063)"
+                required
+                error={fieldErrors.process}
+                labelAccessory={<Iso9606TablePdfGlobe table="process" />}
+              >
                 <Select
                   name="process"
                   defaultValue={wpq?.process ?? "135"}
@@ -443,7 +448,12 @@ export function TestStep({
                 errors={fieldErrors}
                 onFieldChange={clearError}
               />
-              <Field label="Filler material group" required error={fieldErrors.filler_group}>
+              <Field
+                label="Filler material group"
+                required
+                error={fieldErrors.filler_group}
+                labelAccessory={<Iso9606TablePdfGlobe table="fillerGroup" />}
+              >
                 <Select
                   name="filler_group"
                   defaultValue={wpq.filler_group ?? "FM1"}
@@ -492,7 +502,12 @@ export function TestStep({
                   ))}
                 </Select>
               </Field>
-              <Field label="Shielding gas (ISO 14175)" required error={fieldErrors.shielding_gas}>
+              <Field
+                label="Shielding gas (ISO 14175)"
+                required
+                error={fieldErrors.shielding_gas}
+                labelAccessory={<Iso9606TablePdfGlobe table="shieldingGas" />}
+              >
                 <Select
                   name="shielding_gas"
                   defaultValue={shieldingDefault || DEFAULT_SHIELDING_GAS}
@@ -507,7 +522,12 @@ export function TestStep({
                   ))}
                 </Select>
               </Field>
-              <Field label="Current & polarity" required error={fieldErrors.current_polarity}>
+              <Field
+                label="Current & polarity"
+                required
+                error={fieldErrors.current_polarity}
+                labelAccessory={<Iso9606TablePdfGlobe table="currentPolarity" />}
+              >
                 <Select
                   name="current_polarity"
                   defaultValue={wpq.current_polarity ?? "DCEP"}
@@ -522,7 +542,12 @@ export function TestStep({
                   ))}
                 </Select>
               </Field>
-              <Field label="Transfer mode" required error={fieldErrors.transfer_mode}>
+              <Field
+                label="Transfer mode"
+                required
+                error={fieldErrors.transfer_mode}
+                labelAccessory={<Iso9606TablePdfGlobe table="transferMode" />}
+              >
                 <Select
                   name="transfer_mode"
                   defaultValue={wpq.transfer_mode ?? "Spray"}
@@ -678,9 +703,12 @@ export function NdtStep({
             />
 
             <div className="rounded-[10px] border border-silver bg-frost/40 p-4">
-              <p className="mb-3 text-[13px] font-medium text-charcoal">
-                Tests performed
-              </p>
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <p className="text-[13px] font-medium text-charcoal">
+                  Tests performed
+                </p>
+                <Iso9606TablePdfGlobe table="testMethods" />
+              </div>
               <div className="flex flex-wrap gap-x-5 gap-y-2">
                 {ALL_NDT_TESTS.map((method) => {
                   const checked = selected.includes(method);
@@ -923,7 +951,12 @@ export function CertificateStep({
                   onChange={() => clearError("examiner_name")}
                 />
               </Field>
-              <Field label="Job knowledge" required error={fieldErrors.job_knowledge}>
+              <Field
+                label="Job knowledge"
+                required
+                error={fieldErrors.job_knowledge}
+                labelAccessory={<Iso9606TablePdfGlobe table="jobKnowledge" />}
+              >
                 <Select
                   name="job_knowledge"
                   defaultValue={wpq.job_knowledge ?? "Not tested"}

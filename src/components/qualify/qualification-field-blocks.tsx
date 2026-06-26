@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input, Field } from "@/components/ui/input";
 import type { JointCategory, ProductType } from "@/types/db";
+import { Iso9606TablePdfGlobe } from "@/components/qualify/iso9606-pdf-drawer";
 import {
   fieldName,
   materialDimensionBlocks,
@@ -59,6 +60,23 @@ function buildInitialValues(
   return { m1, m2 };
 }
 
+function dimensionFieldGlobe(
+  key: DimensionFieldKey,
+  jointType: string,
+): ReactNode {
+  if (key === "diameter") {
+    return <Iso9606TablePdfGlobe table="pipeOd" />;
+  }
+  if (key === "thickness") {
+    return (
+      <Iso9606TablePdfGlobe
+        table={jointType === "FW" ? "thicknessFw" : "dimensions"}
+      />
+    );
+  }
+  return null;
+}
+
 function DimensionBlock({
   block,
   values,
@@ -66,6 +84,7 @@ function DimensionBlock({
   invalidBorder,
   onValueChange,
   onFieldChange,
+  jointType,
 }: {
   block: MaterialDimensionBlock;
   values: Record<string, string>;
@@ -73,6 +92,7 @@ function DimensionBlock({
   invalidBorder: string;
   onValueChange: (name: string, value: string) => void;
   onFieldChange?: (key: string) => void;
+  jointType: string;
 }) {
   return (
     <div className="rounded-[var(--radius-card)] border border-silver bg-frost/40 p-4">
@@ -111,6 +131,7 @@ function DimensionBlock({
                 hint={key === "thickness" ? "Type — e.g. 12" : undefined}
                 required
                 error={errors?.[name]}
+                labelAccessory={dimensionFieldGlobe(key, jointType)}
               >
                 <Input
                   type="number"
@@ -195,10 +216,15 @@ export function ProductDimensions({
   return (
     <div className="sm:col-span-2 space-y-5">
       <div>
-        <p className="text-sm font-medium text-onyx">Product dimensions</p>
-        <p className="mt-0.5 text-xs text-steel">
-          Fields follow the selected product type and joint type from step 1.
-        </p>
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <p className="text-sm font-medium text-onyx">Product dimensions</p>
+            <p className="mt-0.5 text-xs text-steel">
+              Fields follow the selected product type and joint type from step 1.
+            </p>
+          </div>
+          <Iso9606TablePdfGlobe table="dimensions" />
+        </div>
       </div>
 
       {blocks.map((block, index) => (
@@ -221,6 +247,7 @@ export function ProductDimensions({
             values={block.material === 1 ? m1Values : m2Values}
             errors={errors}
             invalidBorder={invalidBorder}
+            jointType={jointType}
             onValueChange={(name, value) => {
               if (block.material === 1) {
                 setM1Values((prev) => ({ ...prev, [name]: value }));

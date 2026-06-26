@@ -12,7 +12,7 @@ import {
   MATERIAL_LOOKUP_OPTIONS,
   type MaterialLookupSource,
 } from "@/lib/materials/material-lookup";
-import { Tr20172PdfGlobe, Tr20173PdfGlobe } from "@/components/qualify/iso9606-pdf-drawer";
+import { Tr20172PdfGlobe, Tr20173PdfGlobe, Iso9606TablePdfGlobe } from "@/components/qualify/iso9606-pdf-drawer";
 
 type MaterialVariant = 1 | 2;
 
@@ -235,7 +235,12 @@ export function MaterialGradeLookup({
           )}
         </Field>
 
-        <Field label="Parent material group" required error={groupError}>
+        <Field
+          label="Parent material group"
+          required
+          error={groupError}
+          labelAccessory={<Iso9606TablePdfGlobe table="parentMaterial" />}
+        >
           <Input
             readOnly
             tabIndex={-1}

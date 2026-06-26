@@ -89,7 +89,12 @@ export function PlanProductJointFields({
 
   return (
     <>
-      <Field label="Product type" required error={productError}>
+      <Field
+        label="Product type"
+        required
+        error={productError}
+        labelAccessory={<Iso9606TablePdfGlobe table="productType" />}
+      >
         <Select
           name="product"
           value={product}
@@ -103,7 +108,12 @@ export function PlanProductJointFields({
         </Select>
       </Field>
 
-      <Field label="Joint type" required error={jointError}>
+      <Field
+        label="Joint type"
+        required
+        error={jointError}
+        labelAccessory={<Iso9606TablePdfGlobe table="weldType" />}
+      >
         <Select
           name="joint_type"
           value={joint}
@@ -120,7 +130,12 @@ export function PlanProductJointFields({
       </Field>
 
       {joint === "Branch" ? (
-        <Field label="Branch connection" required error={branchError}>
+        <Field
+          label="Branch connection"
+          required
+          error={branchError}
+          labelAccessory={<Iso9606TablePdfGlobe table="branchConnection" />}
+        >
           <Select
             name="branch_connection"
             value={branchConnection}
