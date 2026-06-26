@@ -1,35 +1,39 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-type StatTone = "brand" | "active" | "warning" | "danger";
+export type StatTone = "brand" | "active" | "warning" | "danger";
 
-const tones: Record<
+export const statTones: Record<
   StatTone,
-  { shell: string; label: string; value: string; hint: string }
+  { shell: string; label: string; value: string; hint: string; action: string }
 > = {
   brand: {
     shell: "bg-inverse-bg border-inverse-bg",
     label: "text-inverse-fg/50",
     value: "text-inverse-fg",
     hint: "text-inverse-fg/40",
+    action: "text-inverse-fg/70 hover:text-inverse-fg",
   },
   active: {
     shell: "bg-active border-active",
     label: "text-white/50",
     value: "text-white",
     hint: "text-white/40",
+    action: "text-white/70 hover:text-white",
   },
   warning: {
     shell: "bg-expiring border-expiring",
     label: "text-warning-ink/55",
     value: "text-warning-ink",
     hint: "text-warning-ink/45",
+    action: "text-warning-ink/70 hover:text-warning-ink",
   },
   danger: {
     shell: "bg-expired border-expired",
     label: "text-white/50",
     value: "text-white",
     hint: "text-white/40",
+    action: "text-white/70 hover:text-white",
   },
 };
 
@@ -46,7 +50,7 @@ export function DashboardStat({
   tone?: StatTone;
   href?: string;
 }) {
-  const t = tones[tone];
+  const t = statTones[tone];
   const inner = (
     <>
       <p

@@ -7,6 +7,7 @@ import { SignOutButton } from "@/components/app/sign-out-button";
 import { ThemeToggle } from "@/components/app/theme-toggle";
 import { useAppTheme } from "@/components/app/app-theme-provider";
 import { cn } from "@/lib/utils";
+import { activeStandardEntry } from "@/lib/standards/catalog";
 import {
   LayoutDashboard,
   Users,
@@ -14,9 +15,10 @@ import {
   Table2,
   Settings,
   X,
+  LayoutGrid,
 } from "lucide-react";
 
-const nav = [
+const workspaceNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/welders", label: "Welders", icon: Users },
   { href: "/reports", label: "Test reports", icon: FileStack },
@@ -35,11 +37,20 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const { resolvedTheme } = useAppTheme();
+  const isStandardsHub = pathname === "/standards";
+  const activeStandard = activeStandardEntry();
+
+  const nav = isStandardsHub
+    ? [{ href: "/standards", label: "Standards home", icon: LayoutGrid }]
+    : [
+        { href: "/standards", label: "Standards", icon: LayoutGrid },
+        ...workspaceNav,
+      ];
 
   return (
     <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-silver bg-panel">
       <div className="flex items-center justify-between px-5 py-5">
-        <Link href="/dashboard" aria-label="WeldDoc" onClick={onNavigate}>
+        <Link href="/standards" aria-label="WeldDoc" onClick={onNavigate}>
           <Logo onDark={resolvedTheme === "dark"} />
         </Link>
         <button
@@ -56,7 +67,9 @@ export function Sidebar({
         <p className="truncate font-display text-[13px] font-semibold text-onyx">
           {orgName}
         </p>
-        <p className="truncate text-xs text-steel">EN ISO 9606-1</p>
+        {!isStandardsHub ? (
+          <p className="truncate text-xs text-steel">{activeStandard.shortLabel}</p>
+        ) : null}
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-3">

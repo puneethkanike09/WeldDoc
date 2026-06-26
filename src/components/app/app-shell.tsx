@@ -77,7 +77,7 @@ export function AppShell({
           >
             <Menu className="h-5 w-5" />
           </button>
-          <Link href="/dashboard" aria-label="WeldDoc home">
+          <Link href="/standards" aria-label="WeldDoc home">
             <Logo onDark={resolvedTheme === "dark"} />
           </Link>
         </header>
