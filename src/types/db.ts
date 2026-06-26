@@ -1,3 +1,5 @@
+import type { DashboardWidgetId } from "@/lib/dashboard/widgets";
+
 export type WelderStatus = "Active" | "Inactive" | "Suspended";
 export type WeldingStandard = "ISO_9606_1" | "ASME_IX" | "AWS_D1_1";
 export type JointCategory = "BW" | "FW";
@@ -33,6 +35,7 @@ export interface Organization {
   welder_seq: number;
   alert_emails: string[];
   alert_lead_days: number[];
+  dashboard_widgets: DashboardWidgetId[] | null;
   created_at: string;
 }
 

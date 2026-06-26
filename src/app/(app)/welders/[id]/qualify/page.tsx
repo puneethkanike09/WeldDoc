@@ -13,7 +13,6 @@ import {
   saveTest,
   saveNdt,
   issueCertificate,
-  saveLegacy,
 } from "./actions";
 import {
   Stepper,
@@ -22,7 +21,6 @@ import {
   NdtStep,
   CertificateStep,
 } from "./wizard";
-import { LegacyForm } from "./legacy-form";
 import type {
   NdtDtRecord,
   QualificationRecord,
@@ -38,7 +36,7 @@ export default async function QualifyPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ wpq?: string; step?: string; mode?: string }>;
+  searchParams: Promise<{ wpq?: string; step?: string }>;
 }) {
   const { id } = await params;
   const sp = await searchParams;
@@ -53,9 +51,6 @@ export default async function QualifyPage({
     .single();
   if (!welderRow) notFound();
   const welder = welderRow as Welder;
-
-  const legacyMode =
-    sp.mode === "legacy" || (!sp.wpq && !welder.is_new_welder && sp.mode !== "new");
 
   let wpq: QualificationRecord | null = null;
   let ndt: NdtDtRecord[] = [];
@@ -84,34 +79,14 @@ export default async function QualifyPage({
   }
 
   const step = Math.min(Math.max(Number(sp.step) || 1, 1), 4);
-  const certReady = wpq
-    ? wpqReadyForCertificate(wpq, ndt)
-    : false;
+  const certReady = wpq ? wpqReadyForCertificate(wpq, ndt) : false;
 
   return (
     <>
       <PageHeader
         title="Qualification workflow"
         description={`${welder.full_name} · ${welder.uid}`}
-      >
-        {legacyMode ? (
-          <Link
-            href={`/welders/${id}/qualify?mode=new`}
-            className="text-sm font-medium text-ember hover:underline"
-          >
-            Switch to initial qualification
-          </Link>
-        ) : (
-          !sp.wpq && (
-            <Link
-              href={`/welders/${id}/qualify?mode=legacy`}
-              className="text-sm font-medium text-ember hover:underline"
-            >
-              Old data entry (upload PDFs)
-            </Link>
-          )
-        )}
-      </PageHeader>
+      />
 
       <div className="px-8 py-8">
         <Link
@@ -121,64 +96,58 @@ export default async function QualifyPage({
           <ArrowLeft className="h-4 w-4" /> Back to profile
         </Link>
 
-        {legacyMode ? (
-          <LegacyForm action={saveLegacy.bind(null, id)} welder={welder} />
-        ) : (
-          <>
-            <Stepper step={step} wpqId={wpq?.id ?? null} welderId={id} />
+        <Stepper step={step} wpqId={wpq?.id ?? null} welderId={id} />
 
-            {step === 4 && wpq && !certReady && (
-              <p className="mb-4 rounded-[10px] bg-expiring/15 px-4 py-3 text-sm text-[#8a6a00]">
-                Add NDT tests on step 3 with Pass results before issuing a
-                certificate, or go back to step 3 to update them.
-              </p>
-            )}
+        {step === 4 && wpq && !certReady && (
+          <p className="mb-4 rounded-[10px] bg-expiring/15 px-4 py-3 text-sm text-[#8a6a00]">
+            Add NDT tests on step 3 with Pass results before issuing a
+            certificate, or go back to step 3 to update them.
+          </p>
+        )}
 
-            {step === 1 && (
-              <PlanStep
-                action={savePlan.bind(null, id, wpq?.id ?? null)}
-                wpq={wpq}
-                orgName={org.name}
-                orgLocation={org.location_code}
-                welderId={id}
-              />
-            )}
+        {step === 1 && (
+          <PlanStep
+            action={savePlan.bind(null, id, wpq?.id ?? null)}
+            wpq={wpq}
+            orgName={org.name}
+            orgLocation={org.location_code}
+            welderId={id}
+          />
+        )}
 
-            {step === 2 && wpq && (
-              <TestStep
-                action={saveTest.bind(null, id, wpq.id)}
-                welderId={id}
-                wpq={wpq}
-                rangePreview={range?.summary ?? null}
-              />
-            )}
+        {step === 2 && wpq && (
+          <TestStep
+            action={saveTest.bind(null, id, wpq.id)}
+            welderId={id}
+            wpq={wpq}
+            rangePreview={range?.summary ?? null}
+          />
+        )}
 
-            {step === 3 && wpq && (
-              <NdtStep
-                action={saveNdt.bind(null, id, wpq.id, wpq.joint_type)}
-                welderId={id}
-                wpqId={wpq.id}
-                jointType={ndtJointCategory(wpq.joint_type)}
-                existing={ndt}
-              />
-            )}
+        {step === 3 && wpq && (
+          <NdtStep
+            action={saveNdt.bind(null, id, wpq.id, wpq.joint_type)}
+            welderId={id}
+            wpqId={wpq.id}
+            jointType={ndtJointCategory(wpq.joint_type)}
+            existing={ndt}
+          />
+        )}
 
-            {step === 4 && wpq && (
-              <CertificateStep
-                action={issueCertificate.bind(null, id, wpq.id)}
-                welderId={id}
-                wpq={wpq}
-                rangeSummary={range?.summary ?? null}
-                ndtReady={certReady}
-              />
-            )}
+        {step === 4 && wpq && (
+          <CertificateStep
+            action={issueCertificate.bind(null, id, wpq.id)}
+            welderId={id}
+            wpq={wpq}
+            rangeSummary={range?.summary ?? null}
+            ndtReady={certReady}
+          />
+        )}
 
-            {step > 1 && !wpq && (
-              <p className="rounded-[10px] bg-expiring/15 px-4 py-3 text-sm text-[#8a6a00]">
-                Start at step 1 to create the qualification record first.
-              </p>
-            )}
-          </>
+        {step > 1 && !wpq && (
+          <p className="rounded-[10px] bg-expiring/15 px-4 py-3 text-sm text-[#8a6a00]">
+            Start at step 1 to create the qualification record first.
+          </p>
         )}
       </div>
     </>

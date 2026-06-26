@@ -3,14 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3001",
+    "dev": "next dev --port 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "db:migrate": "node scripts/migrate.mjs",
     "db:migrate:latest": "node scripts/apply-migration.mjs 0005_qualification_excel_fields.sql",
     "verify:range": "node scripts/verify-range-engine.mjs",
-    "verify:iso9606": "node scripts/verify-all-iso9606.mjs"
+    "verify:iso9606": "node scripts/verify-all-iso9606.mjs",
+    "verify:import": "npx tsx scripts/verify-bulk-import.ts",
+    "verify:import:e2e": "npx tsx scripts/e2e-bulk-import.ts"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.17",
@@ -41,6 +43,7 @@
     "resend": "^6.14.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
+    "xlsx": "^0.18.5",
     "zod": "^4.4.3"
   },
   "devDependencies": {

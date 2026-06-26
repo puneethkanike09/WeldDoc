@@ -40,7 +40,7 @@ export function AppShell({
   return (
     <div
       className={cn(
-        "app-shell flex h-screen overflow-hidden bg-parchment",
+        "app-shell flex h-full overflow-hidden bg-parchment",
         resolvedTheme === "dark" && "dark",
       )}
       suppressHydrationWarning

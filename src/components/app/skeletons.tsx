@@ -130,7 +130,7 @@ export function PdfPreviewPageSkeleton() {
   return (
     <div role="status" aria-label="Loading document preview">
       <PageHeaderSkeleton />
-      <div className="flex min-h-[calc(100vh-10rem)] flex-col gap-4 px-8 py-8">
+      <div className="flex min-h-112 flex-col gap-4 px-8 py-8">
         <div className="flex flex-wrap items-center gap-2">
           <Skeleton className="h-9 w-36" />
           <div className="ml-auto flex gap-2">
@@ -223,6 +223,43 @@ export function ReportDetailPageSkeleton() {
         <TableSkeleton columns={8} rows={6} minWidth={860} />
       </div>
       <span className="sr-only">Loading test report…</span>
+    </div>
+  );
+}
+
+function StandardCardSkeleton() {
+  return (
+    <article className="flex h-full flex-col rounded-(--radius-card) border border-silver bg-panel p-6 sm:p-8">
+      <Skeleton className="h-3 w-24" />
+      <Skeleton className="mt-3 h-9 w-56 max-w-full" />
+      <Skeleton className="mt-2 h-4 w-48 max-w-full" />
+      <div className="mt-4 flex-1 space-y-2">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-[85%]" />
+      </div>
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-silver pt-6">
+        <div className="flex gap-2">
+          <Skeleton className="h-11 w-11 shrink-0 rounded-[10px]" />
+          <Skeleton className="h-11 w-11 shrink-0 rounded-[10px]" />
+        </div>
+        <Skeleton className="h-11 w-40 shrink-0 rounded-(--radius-button)" />
+      </div>
+    </article>
+  );
+}
+
+/** Standards hub — 2×2 catalog cards. */
+export function StandardsHubSkeleton() {
+  return (
+    <div role="status" aria-label="Loading standards">
+      <PageHeaderSkeleton action={false} />
+      <div className="grid gap-4 px-8 py-8 sm:grid-cols-2">
+        {Array.from({ length: 4 }, (_, i) => (
+          <StandardCardSkeleton key={i} />
+        ))}
+      </div>
+      <span className="sr-only">Loading standards…</span>
     </div>
   );
 }

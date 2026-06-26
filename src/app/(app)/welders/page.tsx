@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
 import { AddWelderButton } from "@/components/app/add-welder-button";
+import { ImportWeldersButton, ImportWeldersLink } from "@/components/app/import-welders-button";
 import { BulkQrPrintButton } from "@/components/app/bulk-qr-print-button";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
@@ -53,8 +54,9 @@ export default async function WeldersPage() {
         title="Welders"
         description="Your central welder registry. Search, filter and open a profile."
       >
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <BulkQrPrintButton entries={qrEntries} />
+          <ImportWeldersButton />
           <AddWelderButton />
         </div>
       </PageHeader>
@@ -77,9 +79,10 @@ function EmptyState() {
       </h3>
       <p className="mx-auto mt-2 max-w-md text-graphite">
         Add your first welder to start issuing qualifications, certificates and
-        QR-verifiable ID cards.
+        QR-verifiable ID cards — or import existing welders from Excel.
       </p>
-      <div className="mt-6 flex justify-center">
+      <div className="mt-6 flex flex-wrap justify-center gap-3">
+        <ImportWeldersLink />
         <AddWelderButton />
       </div>
     </div>

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { uploadFile } from "@/lib/storage";
+import { ALL_DASHBOARD_WIDGET_IDS } from "@/lib/dashboard/widgets";
 
 function str(v: FormDataEntryValue | null): string | null {
   const s = typeof v === "string" ? v.trim() : "";
@@ -48,4 +49,26 @@ export async function updateOrgSettings(formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePath("/settings");
+}
+
+export async function updateDashboardWidgets(formData: FormData) {
+  const { org } = await requireSession();
+  const supabase = await createClient();
+
+  const enabled = ALL_DASHBOARD_WIDGET_IDS.filter(
+    (id) => formData.get(`widget_${id}`) === "on",
+  );
+
+  if (enabled.length === 0) {
+    throw new Error("Select at least one dashboard widget.");
+  }
+
+  const { error } = await supabase
+    .from("organizations")
+    .update({ dashboard_widgets: enabled })
+    .eq("id", org.id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/settings");
+  revalidatePath("/dashboard");
 }

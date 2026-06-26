@@ -1,17 +1,14 @@
 import type { QrPrintColor } from "@/lib/qr";
 import { qrColorHex, qrImageUrl } from "@/lib/qr";
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+import {
+  escapeHtml,
+  openPrintDocument,
+  QR_LABEL_INCH,
+} from "@/lib/print-qr-shared";
 
 /**
- * Prints the welder QR code (optional dark color) with plant ID below, via a
- * hidden iframe so it never disturbs the current page. Client-only.
+ * Prints a 1-inch welder QR label with plant ID below, via a hidden iframe.
+ * Client-only.
  */
 export function printQrWithId(
   qrToken: string,
@@ -26,74 +23,41 @@ export function printQrWithId(
   <meta charset="utf-8" />
   <title>QR — ${escapeHtml(plantWelderId)}</title>
   <style>
-    @page { margin: 12mm; }
+    @page { margin: 8mm; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       display: flex;
-      align-items: center;
-      justify-content: center;
+      align-items: flex-start;
+      justify-content: flex-start;
       min-height: 100vh;
     }
     .sheet {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
+      width: ${QR_LABEL_INCH};
+      text-align: center;
+      page-break-inside: avoid;
     }
-    img { width: 280px; height: 280px; }
+    img { width: ${QR_LABEL_INCH}; height: ${QR_LABEL_INCH}; display: block; }
     .plant-id {
       font-family: system-ui, -apple-system, sans-serif;
-      font-size: 32px;
+      font-size: 6pt;
       font-weight: 700;
       letter-spacing: 0.02em;
       color: ${ink};
+      margin-top: 1mm;
+      word-break: break-all;
     }
   </style>
 </head>
 <body>
   <div class="sheet">
-    <img src="${qrSrc}" alt="QR code" width="280" height="280" />
+    <img src="${qrSrc}" alt="QR code" />
     <p class="plant-id">${escapeHtml(plantWelderId)}</p>
   </div>
 </body>
 </html>`;
 
-  const iframe = document.createElement("iframe");
-  iframe.setAttribute("aria-hidden", "true");
-  Object.assign(iframe.style, {
-    position: "fixed",
-    width: "0",
-    height: "0",
-    border: "none",
-    visibility: "hidden",
-  });
-  document.body.appendChild(iframe);
-
-  const doc = iframe.contentDocument ?? iframe.contentWindow?.document;
-  if (!doc) {
-    iframe.remove();
-    return;
-  }
-
-  doc.open();
-  doc.write(html);
-  doc.close();
-
-  const cleanup = () => {
-    window.setTimeout(() => iframe.remove(), 500);
-  };
-
-  const printFrame = () => {
-    iframe.contentWindow?.focus();
-    iframe.contentWindow?.print();
-    cleanup();
-  };
-
-  const img = doc.querySelector("img");
-  if (img && !img.complete) {
-    img.onload = printFrame;
-    img.onerror = printFrame;
-  } else {
-    window.setTimeout(printFrame, 100);
-  }
+  openPrintDocument(html, () => {});
 }

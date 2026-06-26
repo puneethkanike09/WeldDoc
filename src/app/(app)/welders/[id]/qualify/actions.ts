@@ -4,9 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
-import { uploadFile, uploadFiles } from "@/lib/storage";
-import { computeRange } from "@/lib/range-engine/iso9606";
+import { uploadFile } from "@/lib/storage";
 import { computeExpiry, extendExpiry } from "@/lib/expiry";
+import { recomputeWpqRange } from "@/lib/iso9606/recompute-wpq-range";
 import { VISUAL_TEST_METHOD } from "@/lib/iso9606/constants";
 import {
   ndtJointCategory,
@@ -16,7 +16,6 @@ import {
   validateTestPiece,
   wpqReadyForCertificate,
 } from "@/lib/iso9606/qualification-fields";
-import { branchPipeOdForRange } from "@/lib/iso9606/branch-deposited-thickness";
 import { displayJointType, resolveJointStorage } from "@/lib/iso9606/product-dimensions";
 import { formatShieldingGas } from "@/lib/iso9606/shielding-gas";
 import type {
@@ -42,50 +41,7 @@ function num(v: FormDataEntryValue | null): number | null {
 }
 
 async function recomputeRange(wpqId: string) {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("qualification_records")
-    .select("*")
-    .eq("id", wpqId)
-    .single();
-  if (!data) return;
-  const q = data as QualificationRecord;
-
-  const range = computeRange({
-    jointType: ndtJointCategory(q.joint_type),
-    product: q.product === "Branch" ? "Pipe" : q.product,
-    testThicknessMm: q.test_thickness_mm,
-    depositedThicknessMm: q.deposited_thickness_mm,
-    process: q.process,
-    layer: q.layer_type,
-    pipeOdMm: branchPipeOdForRange(q),
-    position: q.position,
-    materialGroup: q.base_material_group,
-    fillerGroup: q.filler_group,
-    fillerType: q.filler_type,
-    supplementaryFillet: q.supplementary_fillet,
-    jointTypeExtended: q.joint_type_extended,
-  });
-
-  const { error } = await supabase.from("ranges_of_approval").upsert(
-    {
-      wpq_id: wpqId,
-      thickness_min_mm: range.thicknessMin,
-      thickness_max_mm: range.thicknessMax,
-      thickness_unlimited: range.thicknessUnlimited,
-      pipe_od_min_mm: range.pipeOdMin,
-      pipe_od_max_mm: range.pipeOdMax,
-      pipe_od_unlimited: range.pipeOdUnlimited,
-      approved_positions: range.approvedPositions,
-      approved_material_groups: range.approvedMaterialGroups,
-      approved_joint_types: range.approvedJointTypes,
-      summary: range.summary,
-    },
-    { onConflict: "wpq_id" },
-  );
-  if (error) {
-    throw new Error(`Failed to save range of approval: ${error.message}`);
-  }
+  await recomputeWpqRange(wpqId);
 }
 
 export async function savePlan(
@@ -602,96 +558,6 @@ export async function saveValidation(
   // Refresh in place (no redirect) so the selected qualification stays
   // selected in the master-detail view after logging an entry.
   revalidatePath(`/welders/${welderId}`);
-}
-
-export async function saveLegacy(welderId: string, formData: FormData) {
-  const { org } = await requireSession();
-  const supabase = await createClient();
-
-  const initialDate =
-    str(formData.get("date_of_welding")) ??
-    new Date().toISOString().slice(0, 10);
-  const method = (str(formData.get("revalidation_method")) ??
-    "9.3b") as RevalidationMethod;
-  const expiryOverride = str(formData.get("expiry_date"));
-  const continuityDate = str(formData.get("continuity_last_verified"));
-
-  const legacyFiles = formData
-    .getAll("legacy_docs")
-    .filter((f): f is File => f instanceof File && f.size > 0);
-  const scanPaths = await uploadFiles(
-    "legacy-docs",
-    legacyFiles,
-    `${org.id}/${welderId}`,
-  );
-  const singleScan = formData.get("legacy_doc");
-  if (singleScan instanceof File && singleScan.size > 0) {
-    const one = await uploadFile(
-      "legacy-docs",
-      singleScan,
-      `${org.id}/${welderId}`,
-    );
-    if (one) scanPaths.push(one);
-  }
-
-  const legacyJoint = resolveJointStorage(str(formData.get("joint_type")) ?? "BW");
-
-  const { data: created, error } = await supabase
-    .from("qualification_records")
-    .insert({
-      org_id: org.id,
-      welder_id: welderId,
-      standard: "ISO_9606_1",
-      testing_standard:
-        str(formData.get("testing_standard")) ?? "EN ISO 9606-1:2017",
-      process: str(formData.get("process")) ?? "135",
-      joint_type: legacyJoint.joint_type,
-      joint_type_extended: legacyJoint.joint_type_extended,
-      product: (str(formData.get("product")) ?? "Plate") as ProductType,
-      position: str(formData.get("position")),
-      base_material_group: str(formData.get("base_material_group")),
-      filler_group: str(formData.get("filler_group")),
-      filler_type: str(formData.get("filler_type")),
-      test_thickness_mm: num(formData.get("test_thickness_mm")),
-      deposited_thickness_mm: num(formData.get("deposited_thickness_mm")),
-      pipe_od_mm: num(formData.get("pipe_od_mm")),
-      date_of_welding: initialDate,
-      revalidation_method: method,
-      is_legacy: true,
-      wpq_status: "Approved",
-      certificate_issued_date: initialDate,
-      continuity_last_verified: continuityDate ?? initialDate,
-      expiry_date: expiryOverride ?? computeExpiry(method, initialDate),
-      certificate_pdf_path: scanPaths[0] ?? null,
-      legacy_document_paths: scanPaths,
-    })
-    .select("id")
-    .single();
-  if (error) throw new Error(error.message);
-
-  const wpqId = created.id;
-  await recomputeRange(wpqId);
-
-  const legacyTests = [
-    { method: VISUAL_TEST_METHOD, field: "result_vt" },
-    { method: "RT/UT", field: "result_rt_ut" },
-    { method: "Fracture Test", field: "result_fracture" },
-  ] as const;
-
-  for (const t of legacyTests) {
-    const result = str(formData.get(t.field)) ?? "NA";
-    if (result === "NA") continue;
-    await supabase.from("ndt_dt_records").insert({
-      org_id: org.id,
-      wpq_id: wpqId,
-      test_method: t.method,
-      result: result as "Pass" | "Fail" | "NA",
-      test_date: initialDate,
-    });
-  }
-
-  revalidatePath(`/welders/${welderId}`);
-  redirect(`/welders/${welderId}`);
 }
 
 /** Upload a manually signed certificate scan (PDF or image). */

@@ -255,23 +255,6 @@ export function WelderForm({
               />
             </Field>
           </div>
-
-          {mode === "create" && (
-            <label className="flex items-start gap-3 rounded-[10px] bg-frost px-4 py-3">
-              <input
-                type="checkbox"
-                name="is_new_welder"
-                defaultChecked
-                className="mt-0.5 h-4 w-4 accent-[#f90a08]"
-              />
-              <span className="text-[14px] text-charcoal">
-                <span className="font-medium text-onyx">New welder</span> —
-                first-time qualification: after save you go to the 4-step
-                Qualify workflow. Uncheck for welders with prior qualifications
-                (opens legacy data entry instead).
-              </span>
-            </label>
-          )}
         </CardBody>
       </Card>
 

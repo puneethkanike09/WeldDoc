@@ -14,7 +14,7 @@ export function BulkQrPrintButton({ entries }: { entries: BulkQrEntry[] }) {
       onClick={() => printBulkQrLabels(entries)}
     >
       <Printer className="h-4 w-4" />
-      Print all QR (1&quot;)
+      Print all QR
     </Button>
   );
 }

@@ -69,7 +69,7 @@ export async function createWelder(formData: FormData) {
       branch_location: str(formData.get("branch_location")) ?? org.location_code,
       photo_path: photoPath,
       status: "Active",
-      is_new_welder: formData.get("is_new_welder") === "on",
+      is_new_welder: true,
       created_by: userId,
     })
     .select("id")
@@ -85,12 +85,7 @@ export async function createWelder(formData: FormData) {
   }
 
   revalidatePath("/welders");
-  const isNewWelder = formData.get("is_new_welder") === "on";
-  redirect(
-    isNewWelder
-      ? `/welders/${welder.id}/qualify?mode=new`
-      : `/welders/${welder.id}/qualify?mode=legacy`,
-  );
+  redirect(`/welders/${welder.id}/qualify?mode=new`);
 }
 
 export async function updateWelder(welderId: string, formData: FormData) {

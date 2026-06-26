@@ -21,9 +21,13 @@ export default function SettingsLoading() {
   return (
     <div role="status" aria-label="Loading settings">
       <PageHeaderSkeleton action={false} />
-      <div className="space-y-8 px-8 py-8">
+      <div className="space-y-6 px-8 py-8">
+        <div className="flex flex-wrap gap-1 rounded-button bg-frost p-1">
+          {Array.from({ length: 3 }, (_, i) => (
+            <Skeleton key={i} className="h-10 w-36 rounded-[10px]" />
+          ))}
+        </div>
         <FormCardSkeleton fields={4} />
-        <FormCardSkeleton fields={3} />
       </div>
       <span className="sr-only">Loading settings…</span>
     </div>

@@ -83,6 +83,7 @@ export function DatePicker({
   captionLayout = "dropdown",
   className,
   error,
+  withPortal,
 }: {
   name?: string;
   value?: string;
@@ -94,6 +95,7 @@ export function DatePicker({
   captionLayout?: "label" | "dropdown" | "dropdown-months" | "dropdown-years";
   className?: string;
   error?: string;
+  withPortal?: boolean;
 }) {
   const isControlled = value !== undefined;
   const [internal, setInternal] = React.useState(defaultValue ?? "");
@@ -132,6 +134,7 @@ export function DatePicker({
         calendarClassName="welddoc-datepicker"
         popperClassName="welddoc-datepicker-popper"
         popperPlacement="bottom-start"
+        withPortal={withPortal}
         customInput={
           <DatePickerInput
             className={className}

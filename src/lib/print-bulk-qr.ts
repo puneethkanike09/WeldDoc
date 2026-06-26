@@ -1,13 +1,10 @@
 import type { QrPrintColor } from "@/lib/qr";
 import { qrImageUrl } from "@/lib/qr";
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+import {
+  escapeHtml,
+  openPrintDocument,
+  QR_LABEL_INCH,
+} from "@/lib/print-qr-shared";
 
 export interface BulkQrEntry {
   qrToken: string;
@@ -21,7 +18,7 @@ export function printBulkQrLabels(entries: BulkQrEntry[]) {
   const cells = entries
     .map(
       (e) => `<div class="cell">
-        <img src="${origin}${qrImageUrl(e.qrToken, "black")}" width="96" height="96" alt="" />
+        <img src="${origin}${qrImageUrl(e.qrToken, "black")}" alt="" />
         <p class="id">${escapeHtml(e.plantWelderId)}</p>
       </div>`,
     )
@@ -32,39 +29,12 @@ export function printBulkQrLabels(entries: BulkQrEntry[]) {
   @page { margin: 8mm; }
   body { font-family: system-ui, sans-serif; margin: 0; }
   .grid { display: flex; flex-wrap: wrap; gap: 4mm; }
-  .cell { width: 25.4mm; text-align: center; page-break-inside: avoid; }
-  .cell img { width: 25.4mm; height: 25.4mm; }
+  .cell { width: ${QR_LABEL_INCH}; text-align: center; page-break-inside: avoid; }
+  .cell img { width: ${QR_LABEL_INCH}; height: ${QR_LABEL_INCH}; display: block; }
   .id { font-size: 6pt; font-weight: 700; margin: 1mm 0 0; word-break: break-all; }
 </style></head><body><div class="grid">${cells}</div></body></html>`;
 
-  const iframe = document.createElement("iframe");
-  Object.assign(iframe.style, {
-    position: "fixed",
-    width: "0",
-    height: "0",
-    border: "none",
-    visibility: "hidden",
-  });
-  document.body.appendChild(iframe);
-  const doc = iframe.contentDocument ?? iframe.contentWindow?.document;
-  if (!doc) {
-    iframe.remove();
-    return;
-  }
-  doc.open();
-  doc.write(html);
-  doc.close();
-  const print = () => {
-    iframe.contentWindow?.focus();
-    iframe.contentWindow?.print();
-    setTimeout(() => iframe.remove(), 500);
-  };
-  const img = doc.querySelector("img");
-  if (img && !img.complete) {
-    img.onload = print;
-  } else {
-    setTimeout(print, 150);
-  }
+  openPrintDocument(html, () => {});
 }
 
 /** Copy a QR PNG to the clipboard for paste into Word etc. */
