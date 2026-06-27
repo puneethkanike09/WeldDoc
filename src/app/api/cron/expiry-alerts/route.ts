@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     const { data: wpqs } = await supabase
       .from("qualification_records")
       .select(
-        "id, process, expiry_date, continuity_last_verified, wpq_status, welder_id",
+        "id, process, expiry_date, continuity_last_verified, wpq_status, welder_id, revalidation_method",
       )
       .eq("org_id", org.id)
       .eq("wpq_status", "Approved");
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     const welderIds = Array.from(new Set(wpqs.map((w) => w.welder_id)));
     const { data: welderRows } = await supabase
       .from("welders")
-      .select("id, full_name, uid")
+      .select("id, full_name, welder_id, uid")
       .in("id", welderIds);
     const welders = new Map(
       (welderRows ?? []).map((w) => [w.id, w]),
@@ -81,11 +81,11 @@ export async function GET(request: NextRequest) {
           if (bucket) {
             alerts.push({
               welderName: welder.full_name,
-              uid: welder.uid,
+              plantWelderId: welder.welder_id ?? welder.uid,
               process: processLabel(w.process),
+              validityCode: w.revalidation_method ?? "9.3b",
               expiryDate: w.expiry_date,
               daysLeft: dleft,
-              kind: "expiry",
               wpqId: w.id,
               alertType: `expiry-${bucket}`,
               keyDate: w.expiry_date,
@@ -103,11 +103,11 @@ export async function GET(request: NextRequest) {
           if (bucket) {
             alerts.push({
               welderName: welder.full_name,
-              uid: welder.uid,
+              plantWelderId: welder.welder_id ?? welder.uid,
               process: processLabel(w.process),
+              validityCode: w.revalidation_method ?? "9.3b",
               expiryDate: due,
               daysLeft: dleft,
-              kind: "continuity",
               wpqId: w.id,
               alertType: `continuity-${bucket}`,
               keyDate: due,
