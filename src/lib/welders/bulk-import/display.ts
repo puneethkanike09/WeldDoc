@@ -11,6 +11,7 @@ export function validatedRowToColumns(
   const raw: Record<ImportColumnKey, string | null> = {
     plant_welder_id: w.plantWelderId,
     full_name: w.fullName,
+    email: w.email,
     date_of_birth: w.dateOfBirth,
     place_of_birth: w.placeOfBirth,
     id_method: w.idMethod,

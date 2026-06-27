@@ -45,7 +45,9 @@ export default async function SettingsPage({
                   <p className="text-sm text-graphite">
                     A daily job checks every approved qualification. When a
                     certificate or 6-month continuity falls within your lead
-                    days, a digest email is sent to the recipients above.
+                    days, a digest email is sent to the recipients above. Welders
+                    with an email on their profile also receive a personal
+                    reminder for their own qualifications.
                   </p>
                   <ul className="space-y-1.5 text-sm text-graphite">
                     <li>· 9.3a — 3-year validity</li>

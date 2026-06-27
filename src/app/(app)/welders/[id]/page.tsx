@@ -214,6 +214,7 @@ export default async function WelderProfilePage({
               <Detail label="ID number" value={w.id_number} />
               <Detail label="Employer" value={w.employer} />
               <Detail label="Branch" value={w.branch_location} />
+              {w.email ? <Detail label="Email" value={w.email} /> : null}
             </dl>
 
             <div className="lg:w-52 lg:shrink-0">

@@ -15,6 +15,7 @@ import {
   requiredTestsFor,
   VISUAL_TEST_METHOD,
 } from "@/lib/iso9606/constants";
+import { isValidEmailFormat } from "@/lib/utils";
 
 /** BW/FW tests apply; other joint types on “Others” product use BW as default. */
 export function ndtJointCategory(jointType: string): JointCategory {
@@ -88,6 +89,11 @@ export function getWelderRegistrationFieldErrors(
     }
   }
 
+  const email = str(formData.get("email"));
+  if (email && !isValidEmailFormat(email)) {
+    errors.email = "Enter a valid email address.";
+  }
+
   return errors;
 }
 
@@ -157,6 +163,11 @@ export function validateWelderRegistration(
         "Photograph is required for certificate and ID card.",
       );
     }
+  }
+
+  const email = str(formData.get("email"));
+  if (email && !isValidEmailFormat(email)) {
+    throw new QualificationValidationError("Enter a valid email address.");
   }
 }
 

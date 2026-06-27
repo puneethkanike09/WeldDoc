@@ -13,6 +13,7 @@ import {
   normalizePlantWelderId,
   plantWelderIdFromUid,
 } from "@/lib/welders/plant-id";
+import { normalizeOptionalEmail } from "@/lib/utils";
 
 function str(v: FormDataEntryValue | null): string | null {
   const s = typeof v === "string" ? v.trim() : "";
@@ -67,6 +68,7 @@ export async function createWelder(formData: FormData) {
       id_number: str(formData.get("id_number")),
       employer: str(formData.get("employer")) ?? org.name,
       branch_location: str(formData.get("branch_location")) ?? org.location_code,
+      email: normalizeOptionalEmail(str(formData.get("email"))),
       photo_path: photoPath,
       status: "Active",
       is_new_welder: true,
@@ -119,6 +121,7 @@ export async function updateWelder(welderId: string, formData: FormData) {
     id_number: str(formData.get("id_number")),
     employer: str(formData.get("employer")),
     branch_location: str(formData.get("branch_location")),
+    email: normalizeOptionalEmail(str(formData.get("email"))),
   };
   if (photoPath) update.photo_path = photoPath;
 

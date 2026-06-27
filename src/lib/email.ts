@@ -136,6 +136,64 @@ export async function sendExpiryDigest(
   return { sent: result.sent, error: result.error };
 }
 
+function welderExpiryDigestHtml(
+  welderName: string,
+  orgName: string,
+  alerts: ExpiryAlert[],
+): string {
+  const rows = alerts
+    .map(
+      (a) => `
+      <tr>
+        <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:#4a4a4a;white-space:nowrap">${a.plantWelderId}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:#4a4a4a;white-space:nowrap">${a.process}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:#4a4a4a;white-space:nowrap">${a.validityCode}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:${a.daysLeft < 0 ? "#912e1f" : "#f90a08"};font-weight:600;white-space:nowrap">${a.expiryDate} (${a.daysLeft < 0 ? `${Math.abs(a.daysLeft)}d overdue` : `${a.daysLeft}d`})</td>
+      </tr>`,
+    )
+    .join("");
+
+  return `
+    <div style="font-family:Helvetica,Arial,sans-serif;background:#f8faf9;padding:24px">
+      <div style="max-width:640px;margin:0 auto;background:#fff;border:1px solid #e2e2e4;border-radius:16px;overflow:hidden">
+        <div style="background:#161616;padding:18px 24px">
+          <span style="font-size:18px;font-weight:700"><span style="color:#f90a08">Weld.</span><span style="color:#fff">Doc</span></span>
+        </div>
+        <div style="padding:24px">
+          <h1 style="font-size:18px;color:#161616;margin:0 0 6px">Your qualification reminders</h1>
+          <p style="color:#4a4a4a;margin:0 0 18px">Hi ${welderName}, ${alerts.length} of your qualification(s) at ${orgName} need attention.</p>
+          <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;max-width:100%">
+            <table style="min-width:480px;width:100%;border-collapse:collapse;font-size:13px">
+              <thead>
+                <tr style="text-align:left;color:#9297a0;font-size:11px;text-transform:uppercase">
+                  <th style="padding:8px 12px;white-space:nowrap">Plant ID</th>
+                  <th style="padding:8px 12px;white-space:nowrap">Process</th>
+                  <th style="padding:8px 12px;white-space:nowrap">Type</th>
+                  <th style="padding:8px 12px;white-space:nowrap">Due</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+          <p style="color:#9297a0;font-size:12px;margin-top:18px">Contact your welding coordinator to log a continuity confirmation or revalidation report.</p>
+        </div>
+      </div>
+    </div>`;
+}
+
+export async function sendWelderExpiryDigest(
+  to: string,
+  welderName: string,
+  orgName: string,
+  alerts: ExpiryAlert[],
+): Promise<{ sent: boolean; error?: string }> {
+  if (!to) return { sent: false, error: "No recipient" };
+
+  const subject = `WeldDoc — your qualification reminder(s)`;
+  const html = welderExpiryDigestHtml(welderName, orgName, alerts);
+  return sendEmail({ to: [to], subject, html });
+}
+
 export async function sendOrgWelcomeEmail(
   to: string[],
   orgName: string,

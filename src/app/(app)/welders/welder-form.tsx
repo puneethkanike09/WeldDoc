@@ -103,6 +103,20 @@ export function WelderForm({
               />
             </Field>
             <Field
+              label="Email"
+              hint="Used to send qualification expiry and continuity reminders."
+              error={fieldErrors.email}
+            >
+              <Input
+                name="email"
+                type="email"
+                defaultValue={welder?.email ?? ""}
+                placeholder="welder@example.com"
+                className={cn(fieldErrors.email && invalidBorder)}
+                onChange={() => clearError("email")}
+              />
+            </Field>
+            <Field
               label="Plant welder ID"
               hint={
                 fieldErrors.welder_id

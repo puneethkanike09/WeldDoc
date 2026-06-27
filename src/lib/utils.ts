@@ -15,3 +15,17 @@ export function formatDate(value: string | Date | null | undefined): string {
     year: "numeric",
   }).format(date);
 }
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function isValidEmailFormat(email: string): boolean {
+  return EMAIL_RE.test(email.trim());
+}
+
+/** Trim and lowercase; returns null when empty. */
+export function normalizeOptionalEmail(
+  value: string | null | undefined,
+): string | null {
+  const s = typeof value === "string" ? value.trim().toLowerCase() : "";
+  return s.length ? s : null;
+}

@@ -11,6 +11,7 @@ import {
 } from "@/lib/iso9606/constants";
 import { computeExpiry } from "@/lib/expiry";
 import { normalizePlantWelderId } from "@/lib/welders/plant-id";
+import { isValidEmailFormat, normalizeOptionalEmail } from "@/lib/utils";
 import { QUAL_COLUMN_KEYS, QUAL_REQUIRED_KEYS } from "./columns";
 import type {
   ImportValidationError,
@@ -134,6 +135,7 @@ function parseNdt(
 function welderFingerprint(w: WelderImportFields): string {
   return [
     w.fullName,
+    w.email ?? "",
     w.dateOfBirth,
     w.placeOfBirth,
     w.idMethod,
@@ -217,9 +219,24 @@ function parseWelder(
 
   if (!dateOfBirth) return null;
 
+  const emailRaw = str(raw, "email");
+  let email: string | null = null;
+  if (emailRaw) {
+    if (!isValidEmailFormat(emailRaw)) {
+      errors.push({
+        excelRow,
+        column: "email",
+        message: "email must be a valid address.",
+      });
+      return null;
+    }
+    email = normalizeOptionalEmail(emailRaw);
+  }
+
   return {
     plantWelderId,
     fullName,
+    email,
     dateOfBirth,
     placeOfBirth,
     idMethod,

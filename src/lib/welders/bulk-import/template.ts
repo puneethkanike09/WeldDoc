@@ -25,7 +25,7 @@ const INSTRUCTIONS = [
   ["• Maximum 500 data rows per file."],
   [],
   ["Welder columns (required unless noted)"],
-  ["plant_welder_id — optional (W#01 …); full_name; date_of_birth; place_of_birth; id_method; id_number"],
+  ["plant_welder_id — optional (W#01 …); full_name; email — optional; date_of_birth; place_of_birth; id_method; id_number"],
   ["welder_status — optional, default Active (Active | Inactive | Suspended)"],
   [`id_method — e.g. ${ID_METHODS.join(" | ")} or any custom label`],
   [],
@@ -47,6 +47,7 @@ const EXAMPLE_ROWS = [
   {
     plant_welder_id: "W#01",
     full_name: "Example Welder (welder only)",
+    email: "welder@example.com",
     date_of_birth: "1990-01-15",
     place_of_birth: "City, State, Country",
     id_method: "Passport",
@@ -56,6 +57,7 @@ const EXAMPLE_ROWS = [
   {
     plant_welder_id: "W#02",
     full_name: "Example Welder (with qualification)",
+    email: "welder2@example.com",
     date_of_birth: "1985-03-20",
     place_of_birth: "City, State, Country",
     id_method: "ID Card",

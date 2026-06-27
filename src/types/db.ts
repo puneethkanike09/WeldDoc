@@ -60,6 +60,7 @@ export interface Welder {
   employer: string | null;
   branch_location: string | null;
   photo_path: string | null;
+  email: string | null;
   qr_token: string;
   status: WelderStatus;
   is_new_welder: boolean;

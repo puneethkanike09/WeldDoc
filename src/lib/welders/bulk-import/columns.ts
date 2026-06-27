@@ -2,6 +2,7 @@
 export const IMPORT_COLUMNS = [
   "plant_welder_id",
   "full_name",
+  "email",
   "date_of_birth",
   "place_of_birth",
   "id_method",
@@ -31,6 +32,7 @@ export type ImportColumnKey = (typeof IMPORT_COLUMNS)[number];
 export const WELDER_COLUMN_KEYS = [
   "plant_welder_id",
   "full_name",
+  "email",
   "date_of_birth",
   "place_of_birth",
   "id_method",
