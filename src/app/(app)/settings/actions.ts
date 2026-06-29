@@ -4,7 +4,13 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { uploadFile } from "@/lib/storage";
-import { ALL_DASHBOARD_WIDGET_IDS } from "@/lib/dashboard/widgets";
+import {
+  allWidgetIdsForStandard,
+  mergeDashboardWidgetsConfig,
+} from "@/lib/dashboard/widgets";
+import { isActiveStandardSlug } from "@/lib/standards/active-standard";
+import { getActiveStandardSlug } from "@/lib/standards/active-standard.server";
+import type { StandardSlug } from "@/lib/standards/catalog";
 
 function str(v: FormDataEntryValue | null): string | null {
   const s = typeof v === "string" ? v.trim() : "";
@@ -55,7 +61,15 @@ export async function updateDashboardWidgets(formData: FormData) {
   const { org } = await requireSession();
   const supabase = await createClient();
 
-  const enabled = ALL_DASHBOARD_WIDGET_IDS.filter(
+  const standardRaw = formData.get("standard");
+  const standard: StandardSlug = isActiveStandardSlug(
+    typeof standardRaw === "string" ? standardRaw : undefined,
+  )
+    ? (standardRaw as StandardSlug)
+    : await getActiveStandardSlug();
+
+  const widgetIds = allWidgetIdsForStandard(standard);
+  const enabled = widgetIds.filter(
     (id) => formData.get(`widget_${id}`) === "on",
   );
 
@@ -63,9 +77,15 @@ export async function updateDashboardWidgets(formData: FormData) {
     throw new Error("Select at least one dashboard widget.");
   }
 
+  const dashboard_widgets = mergeDashboardWidgetsConfig(
+    org.dashboard_widgets,
+    standard,
+    enabled,
+  );
+
   const { error } = await supabase
     .from("organizations")
-    .update({ dashboard_widgets: enabled })
+    .update({ dashboard_widgets })
     .eq("id", org.id);
   if (error) throw new Error(error.message);
 

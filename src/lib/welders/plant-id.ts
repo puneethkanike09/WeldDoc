@@ -44,9 +44,44 @@ export function plantWelderIdFromUid(uid: string): string | null {
   return Number.isFinite(n) ? formatPlantWelderId(n) : null;
 }
 
-/** Preview the next plant ID before save (matches welder sequence). */
+/** Preview the next plant ID before save (sequence only — may already be taken). */
 export function suggestPlantWelderId(currentWelderSeq: number): string {
   return formatPlantWelderId(currentWelderSeq + 1);
+}
+
+function collectTakenPlantWelderIds(
+  rows: { welder_id: string | null }[],
+): { taken: Set<string>; maxNumeric: number } {
+  const taken = new Set<string>();
+  let maxNumeric = 0;
+  for (const row of rows) {
+    const normalized = normalizePlantWelderId(row.welder_id);
+    if (!normalized) continue;
+    taken.add(normalized.toUpperCase());
+    const m = /^W#(\d+)$/i.exec(normalized);
+    if (m) maxNumeric = Math.max(maxNumeric, parseInt(m[1], 10));
+  }
+  return { taken, maxNumeric };
+}
+
+/** First unused W# ID — skips IDs already assigned (e.g. after Excel import). */
+export async function nextAvailablePlantWelderId(
+  supabase: SupabaseClient,
+  orgId: string,
+  welderSeq: number,
+): Promise<string> {
+  const { data, error } = await supabase
+    .from("welders")
+    .select("welder_id")
+    .eq("org_id", orgId);
+  if (error) throw new Error(error.message);
+
+  const { taken, maxNumeric } = collectTakenPlantWelderIds(data ?? []);
+  let candidate = Math.max(welderSeq, maxNumeric) + 1;
+  while (taken.has(formatPlantWelderId(candidate).toUpperCase())) {
+    candidate++;
+  }
+  return formatPlantWelderId(candidate);
 }
 
 export async function assertPlantWelderIdAvailable(

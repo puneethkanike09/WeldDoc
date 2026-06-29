@@ -1,12 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/brand/logo";
 import { SignOutButton } from "@/components/app/sign-out-button";
 import { useAppTheme } from "@/components/app/app-theme-provider";
 import { cn } from "@/lib/utils";
-import { activeStandardEntry } from "@/lib/standards/catalog";
+import {
+  ACTIVE_STANDARD_SLUG,
+  type StandardSlug,
+} from "@/lib/standards/catalog";
+import {
+  readActiveStandardCookie,
+  workspacePersonnelHref,
+  workspacePersonnelLabel,
+} from "@/lib/standards/active-standard";
+import { SidebarStandardSelect } from "@/components/app/sidebar-standard-select";
 import {
   LayoutDashboard,
   Users,
@@ -16,14 +26,6 @@ import {
   X,
   LayoutGrid,
 } from "lucide-react";
-
-const workspaceNav = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/welders", label: "Welders", icon: Users },
-  { href: "/reports", label: "Test reports", icon: FileStack },
-  { href: "/masterlist", label: "Master list", icon: Table2 },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
 
 export function Sidebar({
   orgName,
@@ -37,14 +39,33 @@ export function Sidebar({
   const pathname = usePathname();
   const { resolvedTheme } = useAppTheme();
   const isStandardsHub = pathname === "/standards";
-  const activeStandard = activeStandardEntry();
+  const [slug, setSlug] = useState<StandardSlug>(ACTIVE_STANDARD_SLUG);
+
+  useEffect(() => {
+    setSlug(readActiveStandardCookie() ?? ACTIVE_STANDARD_SLUG);
+  }, [pathname]);
+
+  const workspaceNav = useMemo(
+    () => [
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      {
+        href: workspacePersonnelHref(slug),
+        label: workspacePersonnelLabel(slug),
+        icon: Users,
+      },
+      { href: "/reports", label: "Test reports", icon: FileStack },
+      { href: "/masterlist", label: "Master list", icon: Table2 },
+      { href: "/settings", label: "Settings", icon: Settings },
+    ],
+    [slug],
+  );
 
   const nav = isStandardsHub
-    ? [{ href: "/standards", label: "Standards home", icon: LayoutGrid }]
+    ? [{ href: "/standards", label: "Standards", icon: LayoutGrid }]
     : [
-        { href: "/standards", label: "Standards", icon: LayoutGrid },
-        ...workspaceNav,
-      ];
+      { href: "/standards", label: "Standards", icon: LayoutGrid },
+      ...workspaceNav,
+    ];
 
   return (
     <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-silver bg-panel">
@@ -66,9 +87,10 @@ export function Sidebar({
         <p className="truncate font-display text-[13px] font-semibold text-onyx">
           {orgName}
         </p>
-        {!isStandardsHub ? (
-          <p className="truncate text-xs text-steel">{activeStandard.shortLabel}</p>
-        ) : null}
+        <SidebarStandardSelect
+          value={slug}
+          className="mt-1 h-8 border-0 bg-transparent px-0 text-xs font-medium text-steel shadow-none hover:text-charcoal focus:border-0 focus:ring-0"
+        />
       </div>
 
       <nav className="sleek-scroll min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-3">

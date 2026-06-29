@@ -12,6 +12,9 @@ export interface WelderIdCardViewProps {
   expiry: string | null;
   employer: string | null;
   site: string;
+  cardHeading?: string;
+  plantIdLabel?: string;
+  standardLabel?: string;
 }
 
 function statusBadge(status: string): { bg: string; fg: string; label: string } {
@@ -66,6 +69,9 @@ export function WelderIdCardView({
   expiry,
   employer,
   site,
+  cardHeading = "Welder ID card",
+  plantIdLabel = "Welder ID",
+  standardLabel = "EN ISO 9606-1:2017",
 }: WelderIdCardViewProps) {
   const badge = statusBadge(status);
 
@@ -105,11 +111,11 @@ export function WelderIdCardView({
 
         <div className="min-w-0 flex-1 space-y-2.5">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-steel">
-            Welder ID card
+            {cardHeading}
           </p>
           <PersonalField label="Name" value={welderName} bold />
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-            <PersonalField label="Welder ID" value={welderNo} bold />
+            <PersonalField label={plantIdLabel} value={welderNo} bold />
             <PersonalField label="UID" value={uid} />
             {employer ? <PersonalField label="Employer" value={employer} /> : null}
             {site !== "—" ? <PersonalField label="Branch" value={site} /> : null}
@@ -128,7 +134,7 @@ export function WelderIdCardView({
       {/* Footer — qualifications */}
       <div className="bg-frost">
         <div className="bg-charcoal py-1.5 text-center text-[11px] font-semibold tracking-wide text-white">
-          EN ISO 9606-1:2017
+          {standardLabel}
         </div>
         <div className="overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
           <table className="w-full min-w-[520px] border-collapse text-center text-xs text-charcoal">

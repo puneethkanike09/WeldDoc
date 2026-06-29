@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Menu } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Sidebar } from "@/components/app/sidebar";
+import { StandardWorkspaceRefresh } from "@/components/app/standard-workspace-refresh";
 import { useAppTheme } from "@/components/app/app-theme-provider";
 import { cn } from "@/lib/utils";
 
@@ -45,6 +46,7 @@ export function AppShell({
       )}
       suppressHydrationWarning
     >
+      <StandardWorkspaceRefresh />
       {/* Backdrop (mobile only) */}
       {open && (
         <div

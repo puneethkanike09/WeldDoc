@@ -6,15 +6,12 @@ import { DashboardStat } from "@/components/app/dashboard-stat";
 import { DonutCard } from "@/components/app/dashboard-charts";
 import {
   chartGridClass,
-  DASHBOARD_WIDGETS,
+  widgetsForStandard,
   kpiGridClass,
   type DashboardWidgetId,
 } from "@/lib/dashboard/widgets";
+import type { StandardSlug } from "@/lib/standards/catalog";
 import { EyeOff } from "lucide-react";
-
-const WIDGET_LABEL = Object.fromEntries(
-  DASHBOARD_WIDGETS.map((w) => [w.id, w.label]),
-) as Record<DashboardWidgetId, string>;
 
 const PREVIEW_STATUS = [
   { name: "Active", value: 72 },
@@ -35,10 +32,21 @@ const PREVIEW_BY_JOINT = [
   { name: "Fillet weld", value: 26 },
 ];
 
-const PREVIEW_COVERAGE = [
+const PREVIEW_BY_WELDING_TYPE = [
+  { name: "Fusion", value: 58 },
+  { name: "Resistance", value: 36 },
+];
+
+const PREVIEW_WELDER_COVERAGE = [
   { process: "SMAW", bw: 12, fw: 8 },
   { process: "GMAW", bw: 9, fw: 5 },
   { process: "GTAW", bw: 6, fw: 0 },
+];
+
+const PREVIEW_OPERATOR_COVERAGE = [
+  { process: "131", fusion: 10, resistance: 4 },
+  { process: "135", fusion: 8, resistance: 2 },
+  { process: "211", fusion: 5, resistance: 0 },
 ];
 
 const PREVIEW_ATTENTION = [
@@ -71,19 +79,19 @@ function CoverageCell({ n }: { n: number }) {
 
 function PreviewWidget({
   id,
+  label,
   enabled,
   onToggle,
   children,
   className,
 }: {
   id: DashboardWidgetId;
+  label: string;
   enabled: boolean;
   onToggle: (id: DashboardWidgetId) => void;
   children: React.ReactNode;
   className?: string;
 }) {
-  const label = WIDGET_LABEL[id];
-
   return (
     <button
       type="button"
@@ -119,28 +127,65 @@ function PreviewWidget({
 }
 
 export function DashboardLayoutPreview({
+  standard,
   enabled,
   onToggle,
 }: {
+  standard: StandardSlug;
   enabled: Set<DashboardWidgetId>;
   onToggle: (id: DashboardWidgetId) => void;
 }) {
-  const kpiIds = [
-    "kpi_total_welders",
-    "kpi_active_qualifications",
-    "kpi_expiring_soon",
-    "kpi_overdue",
-  ] as const satisfies readonly DashboardWidgetId[];
+  const isOperator = standard === "iso-14732";
+  const catalog = widgetsForStandard(standard);
+  const widgetLabel = Object.fromEntries(
+    catalog.map((w) => [w.id, w.label]),
+  ) as Record<DashboardWidgetId, string>;
 
-  const chartIds = [
-    "chart_welder_status",
-    "chart_qual_by_process",
-    "chart_qual_by_joint",
-  ] as const satisfies readonly DashboardWidgetId[];
+  const kpiIds = catalog
+    .filter((w) => w.group === "KPI cards")
+    .map((w) => w.id);
+  const chartIds = catalog
+    .filter((w) => w.group === "Charts")
+    .map((w) => w.id);
 
   const kpiItems = kpiIds.map((id) => {
     const on = enabled.has(id);
-    const widget = (
+    const widget = isOperator ? (
+      <>
+        {id === "kpi_total_operators" ? (
+          <DashboardStat
+            tone="brand"
+            label="Total operators"
+            value={48}
+            hint="Registered in your organisation"
+          />
+        ) : null}
+        {id === "kpi_active_operator_qualifications" ? (
+          <DashboardStat
+            tone="active"
+            label="Active qualifications"
+            value={36}
+            hint="42 approved on record"
+          />
+        ) : null}
+        {id === "kpi_operator_expiring_soon" ? (
+          <DashboardStat
+            tone="warning"
+            label="Expiring soon"
+            value={5}
+            hint="Within the next 60 days"
+          />
+        ) : null}
+        {id === "kpi_operator_overdue" ? (
+          <DashboardStat
+            tone="danger"
+            label="Overdue"
+            value={1}
+            hint="Needs revalidation or continuity"
+          />
+        ) : null}
+      </>
+    ) : (
       <>
         {id === "kpi_total_welders" ? (
           <DashboardStat
@@ -178,7 +223,13 @@ export function DashboardLayoutPreview({
     );
 
     return (
-      <PreviewWidget key={id} id={id} enabled={on} onToggle={onToggle}>
+      <PreviewWidget
+        key={id}
+        id={id}
+        label={widgetLabel[id]}
+        enabled={on}
+        onToggle={onToggle}
+      >
         {widget}
       </PreviewWidget>
     );
@@ -186,7 +237,29 @@ export function DashboardLayoutPreview({
 
   const chartItems = chartIds.map((id) => {
     const on = enabled.has(id);
-    const widget = (
+    const widget = isOperator ? (
+      <>
+        {id === "chart_operator_status" ? (
+          <DonutCard
+            title="Operator status"
+            data={PREVIEW_STATUS}
+            useStatusColors
+          />
+        ) : null}
+        {id === "chart_operator_qual_by_process" ? (
+          <DonutCard
+            title="Qualifications by process"
+            data={PREVIEW_BY_PROCESS}
+          />
+        ) : null}
+        {id === "chart_operator_qual_by_welding_type" ? (
+          <DonutCard
+            title="By welding type"
+            data={PREVIEW_BY_WELDING_TYPE}
+          />
+        ) : null}
+      </>
+    ) : (
       <>
         {id === "chart_welder_status" ? (
           <DonutCard
@@ -208,14 +281,26 @@ export function DashboardLayoutPreview({
     );
 
     return (
-      <PreviewWidget key={id} id={id} enabled={on} onToggle={onToggle}>
+      <PreviewWidget
+        key={id}
+        id={id}
+        label={widgetLabel[id]}
+        enabled={on}
+        onToggle={onToggle}
+      >
         {widget}
       </PreviewWidget>
     );
   });
 
-  const showCoverage = enabled.has("section_category_coverage");
-  const showNeedsAttention = enabled.has("section_needs_attention");
+  const coverageId = isOperator
+    ? "section_operator_coverage"
+    : "section_category_coverage";
+  const attentionId = isOperator
+    ? "section_operator_needs_attention"
+    : "section_needs_attention";
+  const showCoverage = enabled.has(coverageId);
+  const showNeedsAttention = enabled.has(attentionId);
   const sectionGridClass =
     showCoverage && showNeedsAttention
       ? "grid gap-4 lg:grid-cols-[1.2fr_1fr]"
@@ -229,7 +314,8 @@ export function DashboardLayoutPreview({
 
       <div className={sectionGridClass}>
         <PreviewWidget
-          id="section_category_coverage"
+          id={coverageId}
+          label={widgetLabel[coverageId]}
           enabled={showCoverage}
           onToggle={onToggle}
         >
@@ -238,38 +324,65 @@ export function DashboardLayoutPreview({
               Category coverage
             </h3>
             <p className="mt-1 text-sm text-graphite">
-              Qualified welders per process and joint type. Zeros flag a gap.
+              {isOperator
+                ? "Qualified operators per process and welding type. Zeros flag a gap."
+                : "Qualified welders per process and joint type. Zeros flag a gap."}
             </p>
             <table className="mt-4 w-full text-left text-[14px]">
               <thead>
                 <tr className="border-b border-silver text-[12px] uppercase tracking-wide text-steel">
                   <th className="py-2 font-medium">Process</th>
-                  <th className="py-2 font-medium">Butt weld</th>
-                  <th className="py-2 font-medium">Fillet weld</th>
+                  {isOperator ? (
+                    <>
+                      <th className="py-2 font-medium">Fusion</th>
+                      <th className="py-2 font-medium">Resistance</th>
+                    </>
+                  ) : (
+                    <>
+                      <th className="py-2 font-medium">Butt weld</th>
+                      <th className="py-2 font-medium">Fillet weld</th>
+                    </>
+                  )}
                 </tr>
               </thead>
               <tbody>
-                {PREVIEW_COVERAGE.map((c) => (
-                  <tr
-                    key={c.process}
-                    className="border-b border-silver/60 last:border-0"
-                  >
-                    <td className="py-2.5 text-charcoal">{c.process}</td>
-                    <td className="py-2.5">
-                      <CoverageCell n={c.bw} />
-                    </td>
-                    <td className="py-2.5">
-                      <CoverageCell n={c.fw} />
-                    </td>
-                  </tr>
-                ))}
+                {isOperator
+                  ? PREVIEW_OPERATOR_COVERAGE.map((c) => (
+                      <tr
+                        key={c.process}
+                        className="border-b border-silver/60 last:border-0"
+                      >
+                        <td className="py-2.5 text-charcoal">{c.process}</td>
+                        <td className="py-2.5">
+                          <CoverageCell n={c.fusion} />
+                        </td>
+                        <td className="py-2.5">
+                          <CoverageCell n={c.resistance} />
+                        </td>
+                      </tr>
+                    ))
+                  : PREVIEW_WELDER_COVERAGE.map((c) => (
+                      <tr
+                        key={c.process}
+                        className="border-b border-silver/60 last:border-0"
+                      >
+                        <td className="py-2.5 text-charcoal">{c.process}</td>
+                        <td className="py-2.5">
+                          <CoverageCell n={c.bw} />
+                        </td>
+                        <td className="py-2.5">
+                          <CoverageCell n={c.fw} />
+                        </td>
+                      </tr>
+                    ))}
               </tbody>
             </table>
           </div>
         </PreviewWidget>
 
         <PreviewWidget
-          id="section_needs_attention"
+          id={attentionId}
+          label={widgetLabel[attentionId]}
           enabled={showNeedsAttention}
           onToggle={onToggle}
         >
@@ -278,7 +391,9 @@ export function DashboardLayoutPreview({
               Needs attention
             </h3>
             <p className="mt-1 text-sm text-graphite">
-              Qualifications expiring within 60 days or overdue.
+              {isOperator
+                ? "Operator qualifications expiring within 60 days or overdue."
+                : "Qualifications expiring within 60 days or overdue."}
             </p>
             <div className="mt-4 space-y-2">
               {PREVIEW_ATTENTION.map((row) => (

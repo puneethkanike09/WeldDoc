@@ -6,7 +6,7 @@ import {
   assertPlantWelderIdAvailable,
   isUniqueViolation,
   normalizePlantWelderId,
-  plantWelderIdFromUid,
+  nextAvailablePlantWelderId,
 } from "@/lib/welders/plant-id";
 import type { ValidatedImportRow, WelderImportFields } from "./types";
 
@@ -81,11 +81,13 @@ export async function commitValidatedImport(
         throw new Error(uidErr?.message ?? "Could not allocate welder UID.");
       }
 
-      const plantWelderId =
-        normalizePlantWelderId(welder.plantWelderId) ||
-        plantWelderIdFromUid(uid as string);
+      let plantWelderId = normalizePlantWelderId(welder.plantWelderId);
       if (!plantWelderId) {
-        throw new Error(`Could not assign plant ID for row group ${groupKey}.`);
+        plantWelderId = await nextAvailablePlantWelderId(
+          supabase,
+          ctx.orgId,
+          0,
+        );
       }
 
       await assertPlantWelderIdAvailable(supabase, ctx.orgId, plantWelderId);

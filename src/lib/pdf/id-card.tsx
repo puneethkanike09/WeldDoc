@@ -14,6 +14,12 @@ export interface IdCardData {
   rows: IdCardQualRow[];
   status: string;
   expiry: string | null;
+  /** Defaults to "WELDER ID CARD". */
+  cardHeading?: string;
+  /** Defaults to "WELDER ID". */
+  plantIdLabel?: string;
+  /** Defaults to `Welder ID {welderNo}`. */
+  documentTitle?: string;
 }
 
 /** Landscape badge — header, body (photo + info), qualification footer. */
@@ -218,13 +224,17 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
     rows,
     status,
     expiry,
+    cardHeading = "WELDER ID CARD",
+    plantIdLabel = "WELDER ID",
+    documentTitle,
   } = data;
 
   const badge = statusStyle(status);
   const site = welder.branch_location ?? org.location_code ?? "—";
+  const title = documentTitle ?? `Welder ID ${welderNo}`;
 
   return (
-    <Document title={`Welder ID ${welderNo}`}>
+    <Document title={title}>
       <Page size={CARD} style={{ padding: 4, fontFamily: "Helvetica", backgroundColor: COLORS.frost }}>
         <View
           style={{
@@ -328,12 +338,12 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
                   marginBottom: 4,
                 }}
               >
-                WELDER ID CARD
+                {cardHeading}
               </Text>
               <PersonalField label="NAME" value={welderName} bold />
               <View style={{ flexDirection: "row", gap: 14 }}>
                 <View style={{ flex: 1 }}>
-                  <PersonalField label="WELDER ID" value={welderNo} bold />
+                  <PersonalField label={plantIdLabel} value={welderNo} bold />
                 </View>
                 <View style={{ flex: 1 }}>
                   <PersonalField label="UID" value={welder.uid} />

@@ -1,7 +1,7 @@
-import type { DashboardWidgetId } from "@/lib/dashboard/widgets";
+import type { DashboardWidgetsConfig } from "@/lib/dashboard/widgets";
 
 export type WelderStatus = "Active" | "Inactive" | "Suspended";
-export type WeldingStandard = "ISO_9606_1" | "ASME_IX" | "AWS_D1_1";
+export type WeldingStandard = "ISO_9606_1" | "ASME_IX" | "AWS_D1_1" | "ISO_14732";
 export type JointCategory = "BW" | "FW";
 /** Extended joint types when product is Other (client registry). */
 export type ExtendedJointType =
@@ -33,9 +33,10 @@ export interface Organization {
   report_prefix: string;
   wpq_seq: number;
   welder_seq: number;
+  operator_seq: number;
   alert_emails: string[];
   alert_lead_days: number[];
-  dashboard_widgets: DashboardWidgetId[] | null;
+  dashboard_widgets: DashboardWidgetsConfig | null;
   created_at: string;
 }
 
@@ -187,9 +188,121 @@ export interface NotificationLog {
   org_id: string;
   wpq_id: string | null;
   welder_id: string | null;
+  operator_qualification_id: string | null;
+  operator_id: string | null;
   alert_type: string;
   expiry_date: string | null;
   channel: string;
   status: string;
   sent_at: string;
+}
+
+export type OperatorWeldingType = "Fusion" | "Resistance";
+export type OperatorWeldingMode = "Mechanized" | "Automatic";
+export type OperatorRevalidationMethod = "6.3a" | "6.3b" | "6.3c";
+export type OperatorQualificationTestMethod =
+  | "Method_1"
+  | "Method_2"
+  | "Method_3"
+  | "Method_4";
+export type OperatorTechnologyKnowledge = "Acceptable" | "Not_Acceptable";
+export type OqStatus = WpqStatus;
+
+export interface Operator {
+  id: string;
+  org_id: string;
+  uid: string;
+  operator_id: string | null;
+  full_name: string;
+  date_of_birth: string | null;
+  place_of_birth: string | null;
+  id_method: string | null;
+  id_number: string | null;
+  employer: string | null;
+  branch_location: string | null;
+  photo_path: string | null;
+  email: string | null;
+  qr_token: string;
+  status: WelderStatus;
+  is_new_operator: boolean;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface OperatorQualification {
+  id: string;
+  org_id: string;
+  operator_id: string;
+  standard: WeldingStandard;
+  testing_standard: string;
+  date_of_welding: string | null;
+  welding_type: OperatorWeldingType | null;
+  process: string | null;
+  product_type: string | null;
+  joint_type: string | null;
+  welding_mode: OperatorWeldingMode | null;
+  wps_reference: string | null;
+  employer_branch: string | null;
+  functional_knowledge_ref: string | null;
+  welding_technology_knowledge: OperatorTechnologyKnowledge | null;
+  examiner_ref: string | null;
+  examiner_name: string | null;
+  revalidation_method: OperatorRevalidationMethod;
+  equipment_power_source: string | null;
+  equipment_unit_details: string | null;
+  visual_or_remote_control: string | null;
+  automatic_joint_tracking: string | null;
+  automatic_arc_length_control: string | null;
+  single_multi_run: string | null;
+  orbital_position: string | null;
+  material_backing: string | null;
+  material_backing_type: string | null;
+  consumable_insert: string | null;
+  material_spec_info: string | null;
+  test_piece_dimensions_info: string | null;
+  filler_designation_info: string | null;
+  qualification_test_method: OperatorQualificationTestMethod | null;
+  method1_standard: string | null;
+  oq_status: OqStatus;
+  cloned_from: string | null;
+  is_legacy: boolean;
+  certificate_issued_date: string | null;
+  certificate_pdf_path: string | null;
+  signed_certificate_pdf_path: string | null;
+  continuity_last_verified: string | null;
+  expiry_date: string | null;
+  created_at: string;
+}
+
+export interface OperatorRange {
+  id: string;
+  oq_id: string;
+  summary: string | null;
+  range_lines: string[];
+  created_at: string;
+}
+
+export interface OperatorNdtRecord {
+  id: string;
+  org_id: string;
+  oq_id: string;
+  test_method: string;
+  result: TestResult;
+  report_pdf_path: string | null;
+  conducted_by: string | null;
+  test_date: string | null;
+  created_at: string;
+}
+
+export interface OperatorValidation {
+  id: string;
+  org_id: string;
+  oq_id: string;
+  validated_on: string;
+  supporting_doc_path: string | null;
+  new_expiry_date: string | null;
+  validator_name: string | null;
+  note: string | null;
+  kind: ValidationKind;
+  created_at: string;
 }

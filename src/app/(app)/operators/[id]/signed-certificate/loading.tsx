@@ -1,5 +1,5 @@
 import { PdfPreviewPageSkeleton } from "@/components/app/skeletons";
 
-export default function IdCardLoading() {
+export default function OperatorSignedCertificateLoading() {
   return <PdfPreviewPageSkeleton />;
 }

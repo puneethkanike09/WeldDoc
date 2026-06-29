@@ -4,13 +4,20 @@ import { PageHeader } from "@/components/app/page-header";
 import { WelderForm } from "../welder-form";
 import { createWelder } from "../actions";
 import { requireSession } from "@/lib/auth";
-import { suggestPlantWelderId } from "@/lib/welders/plant-id";
+import { createClient } from "@/lib/supabase/server";
+import { nextAvailablePlantWelderId } from "@/lib/welders/plant-id";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata: Metadata = { title: "Add welder" };
 
 export default async function NewWelderPage() {
   const { org } = await requireSession();
+  const supabase = await createClient();
+  const suggestedPlantWelderId = await nextAvailablePlantWelderId(
+    supabase,
+    org.id,
+    org.welder_seq,
+  );
 
   return (
     <>
@@ -31,7 +38,7 @@ export default async function NewWelderPage() {
           orgDefaults={{
             employer: org.name,
             branchLocation: org.location_code,
-            suggestedPlantWelderId: suggestPlantWelderId(org.welder_seq),
+            suggestedPlantWelderId,
           }}
         />
       </div>

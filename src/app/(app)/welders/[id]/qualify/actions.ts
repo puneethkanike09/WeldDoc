@@ -311,7 +311,7 @@ export async function issueCertificate(
 
   await recomputeRange(wpqId);
   revalidatePath(`/welders/${welderId}`);
-  redirect(`/welders/${welderId}?issued=${wpqId}`);
+  redirect(`/welders/${welderId}?wpq=${wpqId}`);
 }
 
 export async function discardWpq(welderId: string, wpqId: string) {

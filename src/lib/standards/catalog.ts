@@ -38,13 +38,13 @@ export const WELDING_STANDARDS_CATALOG: StandardCatalogEntry[] = [
   },
   {
     slug: "iso-14732",
-    dbKey: "ISO_9606_1",
+    dbKey: "ISO_14732",
     title: "ISO 14732",
     code: "ISO 14732:2025",
     subtitle: "Welding operator qualification",
     description:
-      "Qualification of welding operators for mechanised and automatic welding (distinct from manual welder qualification).",
-    status: "coming_soon",
+      "Qualify welding operators for mechanised and automatic welding. Full workspace: operator registry, qualification wizard, certificates, and alerts.",
+    status: "active",
     pdfFileName: "ISO 14732-2025 Operator.pdf",
     shortLabel: "ISO 14732",
     cardTone: "danger",
@@ -93,5 +93,10 @@ export const ACTIVE_STANDARD_COOKIE = "welddoc_active_standard";
 export const ACTIVE_STANDARD_SLUG: StandardSlug = "iso9606-1";
 
 export function activeStandardEntry(): StandardCatalogEntry {
+  return SLUG_MAP.get(ACTIVE_STANDARD_SLUG)!;
+}
+
+/** @deprecated Use getActiveStandardSlug / activeStandardEntry from active-standard.server.ts on server */
+export function activeStandardEntrySync(): StandardCatalogEntry {
   return SLUG_MAP.get(ACTIVE_STANDARD_SLUG)!;
 }

@@ -13,46 +13,20 @@ import {
 } from "@/lib/welders/plant-id";
 import { resolveUrl } from "@/lib/storage";
 import { formatDate } from "@/lib/utils";
-import { processLabel, POSITION_LABELS } from "@/lib/iso9606/constants";
-import { summarizeWelder, STATUS_TONE, daysUntil } from "@/lib/welder-status";
+import { summarizeWelder, STATUS_TONE } from "@/lib/welder-status";
 import { QrDialog } from "@/components/app/qr-dialog";
 import { StatusControl } from "./status-control";
-import {
-  WelderQualifications,
-  type QualView,
-  type ValidationView,
-} from "./welder-qualifications";
-import type {
-  QualificationRecord,
-  RangeOfApproval,
-  ValidationRecord,
-  Welder,
-} from "@/types/db";
+import type { QualificationRecord, Welder } from "@/types/db";
 import { ArrowLeft, IdCard, Pencil } from "lucide-react";
 
 export const metadata: Metadata = { title: "Welder profile" };
 
-const WPQ_TONE: Record<
-  string,
-  "active" | "expiring" | "expired" | "neutral" | "sapphire"
-> = {
-  Approved: "active",
-  Draft: "neutral",
-  Pending_NDT: "sapphire",
-  Failed: "expired",
-  Expired: "expired",
-  Superseded: "neutral",
-};
-
 export default async function WelderProfilePage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ wpq?: string }>;
 }) {
   const { id } = await params;
-  const { wpq: selectedWpq } = await searchParams;
   const { org } = await requireSession();
   const supabase = await createClient();
 
@@ -68,50 +42,9 @@ export default async function WelderProfilePage({
 
   const { data: wpqRows } = await supabase
     .from("qualification_records")
-    .select("*")
-    .eq("welder_id", id)
-    .order("created_at", { ascending: false });
+    .select("id, process, wpq_status, expiry_date")
+    .eq("welder_id", id);
   const wpqs = (wpqRows ?? []) as QualificationRecord[];
-
-  const { data: rangeRows } = await supabase
-    .from("ranges_of_approval")
-    .select("*")
-    .in(
-      "wpq_id",
-      wpqs.length ? wpqs.map((q) => q.id) : ["00000000-0000-0000-0000-000000000000"],
-    );
-  const ranges = new Map(
-    ((rangeRows ?? []) as RangeOfApproval[]).map((r) => [r.wpq_id, r]),
-  );
-
-  const { data: validationRows } = await supabase
-    .from("validation_records")
-    .select("*")
-    .in(
-      "wpq_id",
-      wpqs.length ? wpqs.map((q) => q.id) : ["00000000-0000-0000-0000-000000000000"],
-    )
-    .order("validated_on", { ascending: false });
-  const validations = (validationRows ?? []) as ValidationRecord[];
-
-  const validationsByWpq = new Map<string, ValidationRecord[]>();
-  for (const v of validations) {
-    const arr = validationsByWpq.get(v.wpq_id) ?? [];
-    arr.push(v);
-    validationsByWpq.set(v.wpq_id, arr);
-  }
-
-  // Supporting docs live in the private "ndt-reports" bucket — resolve a
-  // time-limited signed URL per entry so they can be viewed from the profile.
-  const docUrlEntries = await Promise.all(
-    validations
-      .filter((v) => v.supporting_doc_path)
-      .map(
-        async (v) =>
-          [v.id, await resolveUrl("ndt-reports", v.supporting_doc_path)] as const,
-      ),
-  );
-  const docUrlById = new Map(docUrlEntries);
 
   const summary = summarizeWelder(w, wpqs);
   const photoUrl = await resolveUrl("welder-photos", w.photo_path);
@@ -120,42 +53,6 @@ export default async function WelderProfilePage({
     w.welder_id?.trim() ??
     plantWelderIdFromUid(w.uid) ??
     w.uid;
-
-  const qualViews: QualView[] = wpqs.map((q) => {
-    const position = q.position
-      ? POSITION_LABELS[q.position] ?? q.position
-      : "—";
-    const entries: ValidationView[] = (validationsByWpq.get(q.id) ?? []).map(
-      (v) => ({
-        id: v.id,
-        kind: v.kind,
-        validatedOn: formatDate(v.validated_on),
-        validatorName: v.validator_name,
-        note: v.note,
-        newExpiry: v.new_expiry_date ? formatDate(v.new_expiry_date) : null,
-        docUrl: docUrlById.get(v.id) ?? null,
-      }),
-    );
-    return {
-      id: q.id,
-      title: `${processLabel(q.process)} · ${
-        q.joint_type === "BW" ? "Butt" : "Fillet"
-      } · ${q.product}`,
-      subtitle: `ISO 9606-1 · Position ${position} · Method ${q.revalidation_method}`,
-      status: q.wpq_status,
-      statusLabel: q.wpq_status.replace("_", " "),
-      statusTone: WPQ_TONE[q.wpq_status] ?? "neutral",
-      expiry: formatDate(q.expiry_date),
-      daysToExpiry: daysUntil(q.expiry_date),
-      isLegacy: q.is_legacy,
-      isApproved: q.wpq_status === "Approved",
-      hasSignedCertificate: Boolean(q.signed_certificate_pdf_path),
-      canLogValidation:
-        q.wpq_status === "Approved" || q.wpq_status === "Expired",
-      rangeSummary: ranges.get(q.id)?.summary ?? null,
-      validations: entries,
-    };
-  });
 
   return (
     <>
@@ -177,7 +74,6 @@ export default async function WelderProfilePage({
           <ArrowLeft className="h-4 w-4" /> Back to welders
         </Link>
 
-        {/* Identity band */}
         <Card className="mb-6">
           <CardBody className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-4">
@@ -225,12 +121,6 @@ export default async function WelderProfilePage({
             </div>
           </CardBody>
         </Card>
-
-        <WelderQualifications
-          welderId={id}
-          quals={qualViews}
-          defaultSelectedId={selectedWpq}
-        />
       </div>
     </>
   );

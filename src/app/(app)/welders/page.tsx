@@ -6,12 +6,31 @@ import { BulkQrPrintButton } from "@/components/app/bulk-qr-print-button";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { summarizeWelder } from "@/lib/welder-status";
+import { filterWelderRows } from "@/lib/welders/filter-rows";
+import {
+  parseRegistryListPage,
+  registryListRange,
+} from "@/lib/registry/list-pagination";
 import { WeldersTable, type WelderRow } from "./welders-table";
 import type { QualificationRecord, Welder } from "@/types/db";
 
 export const metadata: Metadata = { title: "Welders" };
 
-export default async function WeldersPage() {
+type SearchParams = {
+  page?: string;
+  q?: string;
+  status?: string;
+  process?: string;
+};
+
+export default async function WeldersPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const { page: pageParam, q = "", status = "all", process: processFilter = "all" } =
+    await searchParams;
+  const requestedPage = parseRegistryListPage(pageParam);
   const { org } = await requireSession();
   const supabase = await createClient();
 
@@ -32,7 +51,7 @@ export default async function WeldersPage() {
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const rows: WelderRow[] = ((welders ?? []) as Welder[]).map((w) => ({
+  const allRows: WelderRow[] = ((welders ?? []) as Welder[]).map((w) => ({
     id: w.id,
     uid: w.uid,
     welder_id: w.welder_id,
@@ -42,6 +61,17 @@ export default async function WeldersPage() {
       : null,
     summary: summarizeWelder(w, wpqByWelder.get(w.id) ?? []),
   }));
+
+  const processOptions = Array.from(
+    new Set(allRows.flatMap((r) => r.summary.processes)),
+  ).sort();
+
+  const filtered = filterWelderRows(allRows, { q, status, process: processFilter });
+  const { safePage, from, to } = registryListRange(
+    requestedPage,
+    filtered.length,
+  );
+  const pageRows = filtered.slice(from, to);
 
   const qrEntries = ((welders ?? []) as Welder[]).map((w) => ({
     qrToken: w.qr_token,
@@ -61,10 +91,18 @@ export default async function WeldersPage() {
         </div>
       </PageHeader>
       <div className="px-8 py-8">
-        {rows.length === 0 ? (
+        {allRows.length === 0 ? (
           <EmptyState />
         ) : (
-          <WeldersTable rows={rows} />
+          <WeldersTable
+            rows={pageRows}
+            page={safePage}
+            filteredCount={filtered.length}
+            q={q}
+            status={status}
+            process={processFilter}
+            processOptions={processOptions}
+          />
         )}
       </div>
     </>

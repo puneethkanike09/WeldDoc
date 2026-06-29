@@ -1,9 +1,11 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { PageHeader } from "@/components/app/page-header";
-import { PdfPreview } from "@/components/app/pdf-preview";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
+import { loadWelderIdCardView } from "@/lib/id-card/view-data";
+import { IdCardPrintShell } from "@/components/verify/id-card-print-shell";
+import { WelderIdCardView } from "@/components/verify/welder-id-card-view";
+import { formatDate } from "@/lib/utils";
 import type { Welder } from "@/types/db";
 
 export async function generateMetadata({
@@ -20,10 +22,10 @@ export async function generateMetadata({
     .eq("id", id)
     .eq("org_id", org.id)
     .single();
-  return { title: data ? `ID card — ${data.full_name}` : "ID card preview" };
+  return { title: data ? `ID card — ${data.full_name}` : "ID card" };
 }
 
-export default async function WelderIdCardPreviewPage({
+export default async function WelderIdCardPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -34,31 +36,25 @@ export default async function WelderIdCardPreviewPage({
 
   const { data: welder } = await supabase
     .from("welders")
-    .select("full_name, uid")
+    .select("*")
     .eq("id", id)
     .eq("org_id", org.id)
     .single();
 
   if (!welder) notFound();
-  const w = welder as Pick<Welder, "full_name" | "uid">;
 
-  const previewSrc = `/api/welders/${id}/id-card`;
-  const downloadSrc = `/api/welders/${id}/id-card?download=1`;
+  const view = await loadWelderIdCardView(supabase, welder as Welder);
 
   return (
-    <>
-      <PageHeader
-        title="Welder ID card"
-        description={`${w.full_name} · ${w.uid}`}
-      />
-      <div className="px-8 py-8">
-        <PdfPreview
-          src={previewSrc}
-          backHref={`/welders/${id}`}
-          downloadHref={downloadSrc}
-          title={`ID card — ${w.full_name}`}
-        />
-      </div>
-    </>
+    <IdCardPrintShell
+      backHref={`/welders/${id}`}
+      backLabel="Back to profile"
+      badge="Welder ID card"
+    >
+      <WelderIdCardView {...view} />
+      <p className="mt-6 text-center text-xs text-steel print:mt-4">
+        WeldDoc · {formatDate(new Date())}
+      </p>
+    </IdCardPrintShell>
   );
 }

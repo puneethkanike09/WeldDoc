@@ -8,6 +8,14 @@ export function qualifyDraftKey(
   return `welddoc:qualify:${welderId}:${wpqId}:step${step}`;
 }
 
+export function operatorQualifyDraftKey(
+  operatorId: string,
+  oqId: string,
+  step: number,
+): string {
+  return `welddoc:qualify:operator:${operatorId}:${oqId}:step${step}`;
+}
+
 export function loadQualifyDraft(key: string): Record<string, string> | null {
   if (typeof window === "undefined") return null;
   try {

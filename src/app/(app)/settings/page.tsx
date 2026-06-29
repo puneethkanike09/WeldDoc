@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
 import { Card, CardBody, CardTitle } from "@/components/ui/card";
 import { requireSession } from "@/lib/auth";
+import { getActiveStandardSlug } from "@/lib/standards/active-standard.server";
 import { updateOrgSettings, updateDashboardWidgets } from "./actions";
 import { OrgSettingsForm } from "./settings-forms";
 import { SettingsAppearance } from "./settings-appearance";
@@ -20,6 +21,7 @@ export default async function SettingsPage({
 }) {
   const { org } = await requireSession();
   const { tab } = await searchParams;
+  const activeStandard = await getActiveStandardSlug();
 
   return (
     <>
@@ -65,6 +67,7 @@ export default async function SettingsPage({
                 <DashboardWidgetsForm
                   org={org}
                   action={updateDashboardWidgets}
+                  initialStandard={activeStandard}
                 />
               </CardBody>
             </Card>

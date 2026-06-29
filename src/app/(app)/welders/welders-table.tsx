@@ -1,91 +1,46 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/sui/select";
+import { RegistryListFilters } from "@/components/app/registry-list-filters";
+import { RegistryListPagination } from "@/components/app/registry-list-pagination";
 import { formatDate } from "@/lib/utils";
-import { STATUS_TONE, type WelderSummary } from "@/lib/welder-status";
-import { Eye, Search } from "lucide-react";
+import { STATUS_TONE } from "@/lib/welder-status";
+import type { WelderRow } from "@/lib/welders/registry-row";
+import { Eye } from "lucide-react";
 
-export interface WelderRow {
-  id: string;
-  uid: string;
-  welder_id: string | null;
-  full_name: string;
-  photoUrl: string | null;
-  summary: WelderSummary;
-}
+export type { WelderRow };
 
-export function WeldersTable({ rows }: { rows: WelderRow[] }) {
-  const [q, setQ] = useState("");
-  const [status, setStatus] = useState("all");
-  const [process, setProcess] = useState("all");
-
-  const processes = useMemo(
-    () =>
-      Array.from(new Set(rows.flatMap((r) => r.summary.processes))).sort(),
-    [rows],
-  );
-
-  const filtered = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    return rows.filter((r) => {
-      if (
-        term &&
-        !r.full_name.toLowerCase().includes(term) &&
-        !r.uid.toLowerCase().includes(term) &&
-        !(r.welder_id ?? "").toLowerCase().includes(term)
-      )
-        return false;
-      if (status !== "all" && r.summary.overall !== status) return false;
-      if (process !== "all" && !r.summary.processes.includes(process))
-        return false;
-      return true;
-    });
-  }, [rows, q, status, process]);
-
+export function WeldersTable({
+  rows,
+  page,
+  filteredCount,
+  q,
+  status,
+  process,
+  processOptions,
+}: {
+  rows: WelderRow[];
+  page: number;
+  filteredCount: number;
+  q: string;
+  status: string;
+  process: string;
+  processOptions: string[];
+}) {
   return (
     <div>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel" />
-          <Input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search by name, UID or welder ID"
-            className="pl-9"
-          />
-        </div>
-        <Select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="sm:w-44"
-        >
-          <option value="all">All statuses</option>
-          <option value="Active">Active</option>
-          <option value="Expiring">Expiring soon</option>
-          <option value="Expired">Expired</option>
-          <option value="Pending">Pending</option>
-          <option value="None">No qualification</option>
-          <option value="Inactive">Inactive</option>
-          <option value="Suspended">Suspended</option>
-        </Select>
-        <Select
-          value={process}
-          onChange={(e) => setProcess(e.target.value)}
-          className="sm:w-44"
-        >
-          <option value="all">All processes</option>
-          {processes.map((p) => (
-            <option key={p} value={p}>
-              {p}
-            </option>
-          ))}
-        </Select>
-      </div>
+      <RegistryListFilters
+        basePath="/welders"
+        q={q}
+        status={status}
+        process={process}
+        processOptions={processOptions}
+        searchPlaceholder="Search by name, UID or welder ID"
+        pendingClassName="opacity-60"
+      />
 
       <div className="mt-5 overflow-hidden rounded-[var(--radius-card)] border border-silver bg-panel">
         <table className="w-full text-left text-[14px]">
@@ -100,7 +55,7 @@ export function WeldersTable({ rows }: { rows: WelderRow[] }) {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((r) => (
+            {rows.map((r) => (
               <tr
                 key={r.id}
                 className="border-b border-silver/70 last:border-0 hover:bg-frost/50"
@@ -154,7 +109,7 @@ export function WeldersTable({ rows }: { rows: WelderRow[] }) {
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && (
+            {rows.length === 0 && (
               <tr>
                 <td
                   colSpan={6}
@@ -167,9 +122,15 @@ export function WeldersTable({ rows }: { rows: WelderRow[] }) {
           </tbody>
         </table>
       </div>
-      <p className="mt-3 text-sm text-steel">
-        {filtered.length} of {rows.length} welders
-      </p>
+
+      <Suspense fallback={null}>
+        <RegistryListPagination
+          basePath="/welders"
+          page={page}
+          totalCount={filteredCount}
+          entityLabel="welders"
+        />
+      </Suspense>
     </div>
   );
 }

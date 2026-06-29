@@ -11,7 +11,7 @@ import {
   assertPlantWelderIdAvailable,
   isUniqueViolation,
   normalizePlantWelderId,
-  plantWelderIdFromUid,
+  nextAvailablePlantWelderId,
 } from "@/lib/welders/plant-id";
 import { normalizeOptionalEmail } from "@/lib/utils";
 
@@ -40,7 +40,11 @@ export async function createWelder(formData: FormData) {
 
   let plantWelderId = normalizePlantWelderId(str(formData.get("welder_id")));
   if (!plantWelderId) {
-    plantWelderId = plantWelderIdFromUid(uid as string);
+    plantWelderId = await nextAvailablePlantWelderId(
+      supabase,
+      org.id,
+      org.welder_seq,
+    );
   }
   if (!plantWelderId) {
     throw new Error("Could not assign a plant welder ID.");
