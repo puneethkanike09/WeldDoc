@@ -31,13 +31,10 @@ export const WELDING_MODES = ["Mechanized", "Automatic"] as const;
 export const WELDING_TYPES = ["Fusion", "Resistance"] as const;
 
 export const REVALIDATION_METHODS = [
-  { code: "6.3a" as const, label: "6.3(a) — Requalification after 6 years" },
-  { code: "6.3b" as const, label: "6.3(b) — 3+3 years" },
-  {
-    code: "6.3c" as const,
-    label: "6.3(c) — Valid while confirmed per 6.2",
-  },
-];
+  { code: "6.3a" as const, label: "6.3a" },
+  { code: "6.3b" as const, label: "6.3b" },
+  { code: "6.3c" as const, label: "6.3c" },
+] as const;
 
 export const TECHNOLOGY_KNOWLEDGE = ["Acceptable", "Not_Acceptable"] as const;
 
