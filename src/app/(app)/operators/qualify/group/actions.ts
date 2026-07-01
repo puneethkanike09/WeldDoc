@@ -12,7 +12,7 @@ import { requiredNdtTests } from "@/lib/iso14732/constants";
 import {
   operatorNdtReady,
   validateOperatorCertificateIssue,
-  validateOperatorNdt,
+  validateOperatorNdtFields,
   validateOperatorPlan,
   validateOperatorTestPiece,
 } from "@/lib/iso14732/qualification-fields";
@@ -232,7 +232,7 @@ async function saveOperatorMemberNdt(
     );
     if (ref) probe.set(`conducted_by__${t.method}`, ref);
   }
-  validateOperatorNdt(probe, {
+  validateOperatorNdtFields(probe, {
     ...oq,
     qualification_test_method:
       method as OperatorQualification["qualification_test_method"],

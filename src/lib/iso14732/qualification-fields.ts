@@ -189,9 +189,7 @@ export function validateOperatorNdt(
     | "process"
   >,
 ) {
-  const errors = getOperatorNdtFieldErrors(formData, oq);
-  const first = Object.values(errors)[0];
-  if (first) throw new OperatorValidationError(first);
+  validateOperatorNdtFields(formData, oq);
 
   const method = str(formData.get("qualification_test_method"))!;
   const tests = requiredNdtTests({
@@ -206,6 +204,24 @@ export function validateOperatorNdt(
   if (!ndtResultsPass(results)) {
     throw new OperatorValidationError("All required tests must pass to proceed.");
   }
+}
+
+/** Field presence only — used when group sessions may record Fail per member. */
+export function validateOperatorNdtFields(
+  formData: FormData,
+  oq: Pick<
+    OperatorQualification,
+    | "qualification_test_method"
+    | "method1_standard"
+    | "welding_type"
+    | "product_type"
+    | "joint_type"
+    | "process"
+  >,
+) {
+  const errors = getOperatorNdtFieldErrors(formData, oq);
+  const first = Object.values(errors)[0];
+  if (first) throw new OperatorValidationError(first);
 }
 
 export function oqReadyForCertificate(oq: OperatorQualification): boolean {

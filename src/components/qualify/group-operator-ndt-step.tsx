@@ -17,7 +17,7 @@ import {
   QUALIFICATION_TEST_METHODS,
   requiredNdtTests,
 } from "@/lib/iso14732/constants";
-import { getOperatorNdtFieldErrors, ndtRecordForMethod } from "@/lib/iso14732/qualification-fields";
+import { ndtRecordForMethod } from "@/lib/iso14732/qualification-fields";
 import type { OperatorNdtRecord, OperatorQualification } from "@/types/db";
 import { ValidatedForm } from "@/lib/form-toast";
 import type { FieldErrors } from "@/lib/field-errors";
@@ -79,21 +79,24 @@ export function GroupOperatorNdtStep({
 
   const validate = useCallback(
     (formData: FormData) => {
-      const sharedErrors = getOperatorNdtFieldErrors(formData, {
-        ...planContext,
-        qualification_test_method: formData.get(
-          "qualification_test_method",
-        ) as OperatorQualification["qualification_test_method"],
-        method1_standard: String(formData.get("method1_standard") ?? ""),
-      });
-      const errors: FieldErrors = { ...sharedErrors };
+      const errors: FieldErrors = {};
+      const method = String(formData.get("qualification_test_method") ?? "").trim();
+      if (!method) {
+        errors.qualification_test_method = "Select qualification test method.";
+        return errors;
+      }
+      const method1Standard = String(formData.get("method1_standard") ?? "").trim();
+      if (method === "Method_1" && !method1Standard) {
+        errors.method1_standard = "Select ISO 9606-1 or ISO 9606-2 for Method 1.";
+      }
+
       const tests = requiredNdtTests({
         ...planContext,
-        qualification_test_method: formData.get(
-          "qualification_test_method",
-        ) as OperatorQualification["qualification_test_method"],
-        method1_standard: String(formData.get("method1_standard") ?? ""),
+        qualification_test_method:
+          method as OperatorQualification["qualification_test_method"],
+        method1_standard: method1Standard,
       });
+
       for (const member of members) {
         if (!member.qualificationId) continue;
         const scope = `member_${member.memberId}_`;
