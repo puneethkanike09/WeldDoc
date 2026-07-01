@@ -16,6 +16,7 @@ import type {
   ValidatedImportRow,
 } from "@/lib/welders/bulk-import/types";
 import { toast } from "sonner";
+import type { WelderImportContext } from "@/app/(app)/welders/import/actions";
 
 type PreviewState = {
   rows: ValidatedImportRow[];
@@ -40,10 +41,10 @@ type CommitResult = {
 
 export function BulkImportPanel({
   commitAction,
-  existingPlantIds,
+  importContext,
 }: {
   commitAction: (rows: ValidatedImportRow[]) => Promise<CommitResult>;
-  existingPlantIds: string[];
+  importContext: WelderImportContext;
 }) {
   const router = useRouter();
   const [preview, setPreview] = useState<PreviewState | null>(null);
@@ -111,7 +112,10 @@ export function BulkImportPanel({
       if (!target) return prev;
       target.raw[column] = value;
 
-      const result = validateParsedImport(draft, existingPlantIds);
+      const result = validateParsedImport(draft, importContext.existingPlantIds, {
+        existingIdNumbers: importContext.existingIdNumbers,
+        welderSeq: importContext.welderSeq,
+      });
 
       return {
         ...prev,
@@ -151,9 +155,10 @@ export function BulkImportPanel({
             <p className="mt-1 text-sm text-graphite">
               Download the template, fill welder rows (with or without
               qualifications), then upload for validation before importing.
-              Plant IDs use the same W#01 format as Add welder; employer and
-              branch are filled from your organisation settings. Photos and PDFs
-              can be added on each welder profile afterwards.
+              Leave plant_welder_id blank to auto-assign — assigned IDs appear
+              in the preview. Employer and branch are filled from your
+              organisation settings. Photos and PDFs can be added on each welder
+              profile afterwards. Maximum 1,000 rows per file.
             </p>
           </div>
 

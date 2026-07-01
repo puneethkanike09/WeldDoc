@@ -173,6 +173,7 @@ async function main() {
       userId: profile.id,
       orgName: org.name,
       orgLocation: org.location_code,
+      welderSeq: org.welder_seq,
     },
     validation.rows,
   );

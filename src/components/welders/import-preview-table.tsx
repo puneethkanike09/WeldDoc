@@ -34,7 +34,8 @@ export function ImportPreviewTable({
     <div>
       <h4 className="text-sm font-medium text-charcoal">Data preview</h4>
       <p className="mt-1 text-xs text-steel">
-        Review and edit rows before importing. Employer and branch/site are
+        Review and edit rows before importing. Blank plant_welder_id cells show
+        auto-assigned IDs for your organisation. Employer and branch/site are
         applied from your organisation settings on import.
       </p>
       <div className="sleek-scroll mt-3 max-h-128 overflow-auto rounded-[10px] border border-silver">

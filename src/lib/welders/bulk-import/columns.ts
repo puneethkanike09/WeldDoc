@@ -72,6 +72,6 @@ export const QUAL_REQUIRED_KEYS = [
   "revalidation_method",
 ] as const satisfies readonly ImportColumnKey[];
 
-export const MAX_IMPORT_ROWS = 500;
+export const MAX_IMPORT_ROWS = 1000;
 
 export const IMPORT_SHEET_NAME = "Import";

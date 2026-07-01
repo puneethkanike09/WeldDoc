@@ -55,14 +55,27 @@ export async function validateWelderImportUpload(
 
   const { data: existing } = await supabase
     .from("welders")
-    .select("welder_id")
+    .select("welder_id, id_number")
     .eq("org_id", orgId);
 
   const existingPlantIds = (existing ?? [])
     .map((w) => normalizePlantWelderId(w.welder_id))
     .filter((id): id is string => Boolean(id));
 
-  const result = validateParsedImport(parsed, existingPlantIds);
+  const existingIdNumbers = (existing ?? [])
+    .map((w) => w.id_number)
+    .filter((id): id is string => Boolean(id?.trim()));
+
+  const { data: org } = await supabase
+    .from("organizations")
+    .select("welder_seq")
+    .eq("id", orgId)
+    .single();
+
+  const result = validateParsedImport(parsed, existingPlantIds, {
+    existingIdNumbers,
+    welderSeq: org?.welder_seq ?? 0,
+  });
 
   return {
     ok: result.ok,

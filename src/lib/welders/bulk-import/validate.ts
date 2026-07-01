@@ -9,6 +9,7 @@ import {
   BW_POSITIONS,
   FW_POSITIONS,
 } from "@/lib/iso9606/constants";
+import { assignImportPlantIds } from "./assign-plant-ids";
 import { computeExpiry } from "@/lib/expiry";
 import { normalizePlantWelderId } from "@/lib/welders/plant-id";
 import { isValidEmailFormat, normalizeOptionalEmail } from "@/lib/utils";
@@ -45,6 +46,16 @@ const WELDER_STATUS_SET = new Set<WelderStatus>([
   "Suspended",
 ]);
 const NDT_RESULTS = new Set<TestResult>(["Pass", "Fail", "NA"]);
+
+export type ImportValidationOptions = {
+  existingIdNumbers?: Iterable<string>;
+  welderSeq?: number;
+};
+
+export function normalizeImportIdNumber(raw: string | null | undefined): string | null {
+  if (!raw?.trim()) return null;
+  return raw.trim().toUpperCase();
+}
 
 function str(raw: RawImportRow, key: string): string | null {
   const v = raw[key];
@@ -415,12 +426,19 @@ function parseQualification(
 export function validateImportRows(
   parsed: Array<{ excelRow: number; raw: RawImportRow }>,
   existingPlantIds: Set<string>,
+  options: ImportValidationOptions = {},
 ): ImportValidationResult {
   const errors: ImportValidationError[] = [];
   const rows: ValidatedImportRow[] = [];
 
   const seenGroups = new Map<string, number>();
   const fingerprintByGroup = new Map<string, string>();
+  const existingIdNumbers = new Set(
+    [...(options.existingIdNumbers ?? [])]
+      .map((id) => normalizeImportIdNumber(id))
+      .filter((id): id is string => Boolean(id)),
+  );
+  const idNumberFingerprints = new Map<string, string>();
 
   for (const { excelRow, raw } of parsed) {
     const welder = parseWelder(raw, excelRow, errors);
@@ -434,6 +452,29 @@ export function validateImportRows(
         column: "plant_welder_id",
         message: `Plant welder ID "${welder.plantWelderId}" already exists in your organisation.`,
       });
+    }
+
+    const normalizedIdNumber = normalizeImportIdNumber(welder.idNumber);
+    if (normalizedIdNumber) {
+      if (existingIdNumbers.has(normalizedIdNumber)) {
+        errors.push({
+          excelRow,
+          column: "id_number",
+          message: `ID number "${welder.idNumber}" is already registered in your organisation.`,
+        });
+      }
+
+      const fp = welderFingerprint(welder);
+      const priorFp = idNumberFingerprints.get(normalizedIdNumber);
+      if (priorFp && priorFp !== fp) {
+        errors.push({
+          excelRow,
+          column: "id_number",
+          message: `ID number "${welder.idNumber}" is used for a different welder on another row.`,
+        });
+      } else {
+        idNumberFingerprints.set(normalizedIdNumber, fp);
+      }
     }
 
     const prevRow = seenGroups.get(groupKey);
@@ -456,7 +497,11 @@ export function validateImportRows(
     rows.push({ excelRow, welder, qualification });
   }
 
-  const uniqueWelders = new Set(rows.map((r) => welderGroupKey(r.welder)));
+  assignImportPlantIds(rows, existingPlantIds, options.welderSeq ?? 0);
+
+  const uniqueWelders = new Set(
+    rows.map((r) => r.welder.plantWelderId || welderGroupKey(r.welder)),
+  );
   const qualCount = rows.filter((r) => r.qualification).length;
 
   return {
@@ -475,6 +520,7 @@ export function validateImportRows(
 export function validateParsedImport(
   parsed: Array<{ excelRow: number; raw: RawImportRow }>,
   existingPlantIds: Iterable<string>,
+  options: ImportValidationOptions = {},
 ): ImportValidationResult {
-  return validateImportRows(parsed, new Set(existingPlantIds));
+  return validateImportRows(parsed, new Set(existingPlantIds), options);
 }

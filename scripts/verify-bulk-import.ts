@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
 import { validateImportRows } from "../src/lib/welders/bulk-import/validate";
+import {
+  TEMPLATE_EXAMPLE_ROW_COUNT,
+  verifyBuiltImportTemplate,
+} from "../src/lib/welders/bulk-import/template";
 
 function test(name: string, fn: () => void) {
   try {
@@ -45,6 +49,12 @@ function qualRaw(overrides: Record<string, string> = {}) {
 
 console.log("Bulk welder import validation\n");
 
+test("built template parses with all example rows", () => {
+  const r = verifyBuiltImportTemplate();
+  assert.equal(r.ok, true, r.fileError ?? `row count ${r.rowCount}`);
+  assert.equal(r.rowCount, TEMPLATE_EXAMPLE_ROW_COUNT);
+});
+
 test("welder-only row validates", () => {
   const r = validateImportRows(
     [{ excelRow: 2, raw: baseWelderRaw() }],
@@ -84,13 +94,65 @@ test("normalizes plant ID formats for duplicate checks", () => {
   assert.equal(r.ok, false);
 });
 
-test("allows blank plant ID for auto-assign on import", () => {
+test("auto-assigns plant ID when blank", () => {
   const r = validateImportRows(
     [{ excelRow: 2, raw: baseWelderRaw({ plant_welder_id: "" }) }],
     new Set(),
+    { welderSeq: 10 },
   );
   assert.equal(r.ok, true);
-  assert.equal(r.rows[0].welder.plantWelderId, "");
+  assert.equal(r.rows[0].welder.plantWelderId, "W#11");
+});
+
+test("auto-assigns sequential IDs for multiple blank welders", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: baseWelderRaw({ plant_welder_id: "", id_number: "A1" }),
+      },
+      {
+        excelRow: 3,
+        raw: baseWelderRaw({
+          plant_welder_id: "",
+          full_name: "Second Welder",
+          id_number: "A2",
+        }),
+      },
+    ],
+    new Set(["W#01"]),
+    { welderSeq: 1 },
+  );
+  assert.equal(r.ok, true);
+  assert.equal(r.summary.welderCount, 2);
+  assert.equal(r.rows[0].welder.plantWelderId, "W#02");
+  assert.equal(r.rows[1].welder.plantWelderId, "W#03");
+});
+
+test("same auto plant ID on multiple qualification rows", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          ...baseWelderRaw({ plant_welder_id: "", id_number: "MULTI-1" }),
+          ...qualRaw(),
+        },
+      },
+      {
+        excelRow: 3,
+        raw: {
+          ...baseWelderRaw({ plant_welder_id: "", id_number: "MULTI-1" }),
+          ...qualRaw({ process: "141", position: "PA" }),
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true);
+  assert.equal(r.summary.welderCount, 1);
+  assert.equal(r.rows[0].welder.plantWelderId, r.rows[1].welder.plantWelderId);
+  assert.match(r.rows[0].welder.plantWelderId, /^W#\d+$/);
 });
 
 test("rejects conflicting welder details for same plant ID", () => {
@@ -128,6 +190,35 @@ test("allows multiple qualifications for same welder", () => {
   assert.equal(r.ok, true);
   assert.equal(r.summary.welderCount, 1);
   assert.equal(r.summary.qualificationCount, 2);
+});
+
+test("rejects duplicate id_number within file", () => {
+  const r = validateImportRows(
+    [
+      { excelRow: 2, raw: baseWelderRaw({ plant_welder_id: "W#10", id_number: "DUP-1" }) },
+      {
+        excelRow: 3,
+        raw: baseWelderRaw({
+          plant_welder_id: "W#11",
+          full_name: "Other Person",
+          id_number: "DUP-1",
+        }),
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.column === "id_number"));
+});
+
+test("rejects id_number already in organisation", () => {
+  const r = validateImportRows(
+    [{ excelRow: 2, raw: baseWelderRaw({ id_number: "EXIST-99" }) }],
+    new Set(),
+    { existingIdNumbers: ["exist-99"] },
+  );
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.message.includes("already registered")));
 });
 
 test("rejects partial qualification columns", () => {

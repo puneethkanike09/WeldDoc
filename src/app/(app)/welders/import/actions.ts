@@ -21,6 +21,12 @@ export async function validateWelderImport(formData: FormData) {
   );
 }
 
+export type WelderImportContext = {
+  existingPlantIds: string[];
+  existingIdNumbers: string[];
+  welderSeq: number;
+};
+
 export async function commitWelderImport(rows: ValidatedImportRow[]) {
   if (!rows.length) {
     throw new Error("Nothing to import.");
@@ -31,7 +37,7 @@ export async function commitWelderImport(rows: ValidatedImportRow[]) {
 
   const { data: existing } = await supabase
     .from("welders")
-    .select("welder_id")
+    .select("welder_id, id_number")
     .eq("org_id", org.id);
 
   const existingPlantIds = new Set(
@@ -40,10 +46,14 @@ export async function commitWelderImport(rows: ValidatedImportRow[]) {
       .filter((id): id is string => Boolean(id)),
   );
 
-  const revalidation = validateParsedImport(
-    rowsToRawImport(rows),
-    existingPlantIds,
-  );
+  const existingIdNumbers = (existing ?? [])
+    .map((w) => w.id_number)
+    .filter((id): id is string => Boolean(id?.trim()));
+
+  const revalidation = validateParsedImport(rowsToRawImport(rows), existingPlantIds, {
+    existingIdNumbers,
+    welderSeq: org.welder_seq,
+  });
 
   if (!revalidation.ok) {
     throw new Error(
@@ -59,6 +69,7 @@ export async function commitWelderImport(rows: ValidatedImportRow[]) {
       userId,
       orgName: org.name,
       orgLocation: org.location_code,
+      welderSeq: org.welder_seq,
     },
     revalidation.rows,
   );

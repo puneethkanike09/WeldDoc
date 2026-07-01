@@ -15,6 +15,7 @@ export interface CommitImportContext {
   userId: string;
   orgName: string;
   orgLocation: string | null;
+  welderSeq: number;
 }
 
 export interface CommitImportResult {
@@ -86,7 +87,7 @@ export async function commitValidatedImport(
         plantWelderId = await nextAvailablePlantWelderId(
           supabase,
           ctx.orgId,
-          0,
+          ctx.welderSeq,
         );
       }
 
