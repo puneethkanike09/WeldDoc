@@ -13,6 +13,7 @@
     "verify:iso9606": "node scripts/verify-all-iso9606.mjs",
     "verify:import": "npx tsx scripts/verify-bulk-import.ts",
     "verify:import:e2e": "npx tsx scripts/e2e-bulk-import.ts",
+    "verify:cron": "npx tsx scripts/verify-expiry-cron.ts --live",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report"

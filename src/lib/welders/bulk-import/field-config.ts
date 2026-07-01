@@ -33,12 +33,14 @@ const WELDER_STATUS_OPTIONS: SelectOption[] = [
 ];
 
 function codeOptions(
-  items: readonly { code: string; label?: string }[] | readonly string[],
+  items:
+    | readonly { code: string; label?: string; name?: string }[]
+    | readonly string[],
 ): SelectOption[] {
   return items.map((item) =>
     typeof item === "string"
       ? { value: item, label: item }
-      : { value: item.code, label: item.label ?? item.code },
+      : { value: item.code, label: item.label ?? item.name ?? item.code },
   );
 }
 

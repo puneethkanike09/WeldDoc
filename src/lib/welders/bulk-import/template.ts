@@ -60,7 +60,7 @@ function buildReferenceSheet(): string[][] {
   for (const block of [
     referenceRows(
       "process",
-      WELDING_PROCESSES.map((p) => `${p.code} — ${p.label}`),
+      WELDING_PROCESSES.map((p) => `${p.code} — ${p.name}`),
     ),
     referenceRows("joint_type", JOINT_TYPES.map((j) => j.code)),
     referenceRows("position (BW sample)", BW_POSITIONS.slice(0, 12)),
@@ -173,9 +173,11 @@ export function verifyBuiltImportTemplate(): {
   fileError?: string;
 } {
   const buffer = buildImportTemplateBuffer();
-  const { rows, fileError } = parseImportWorkbook(
-    buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),
-  );
+  const arrayBuffer = buffer.buffer.slice(
+    buffer.byteOffset,
+    buffer.byteOffset + buffer.byteLength,
+  ) as ArrayBuffer;
+  const { rows, fileError } = parseImportWorkbook(arrayBuffer);
   return {
     ok: !fileError && rows.length === TEMPLATE_EXAMPLE_ROW_COUNT,
     rowCount: rows.length,

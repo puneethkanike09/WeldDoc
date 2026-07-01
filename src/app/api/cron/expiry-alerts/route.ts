@@ -7,12 +7,16 @@ import {
 } from "@/lib/email";
 import { continuityDue } from "@/lib/expiry";
 import { operatorContinuityDue } from "@/lib/iso14732/expiry";
-import { processLabel } from "@/lib/iso9606/constants";
+import { processLabel as welderProcessLabel } from "@/lib/iso9606/constants";
+import { processLabel as operatorProcessLabel } from "@/lib/iso14732/constants";
+import {
+  bucketFor,
+  daysUntil,
+  orgDigestKind,
+} from "@/lib/expiry-alerts/cron-logic";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const DAY = 1000 * 60 * 60 * 24;
 
 type BuiltAlert = ExpiryAlert & {
   welderId: string;
@@ -21,20 +25,14 @@ type BuiltAlert = ExpiryAlert & {
   keyDate: string;
 };
 
-function daysUntil(date: string): number {
-  return Math.ceil((new Date(date).getTime() - Date.now()) / DAY);
-}
+type OpAlert = ExpiryAlert & {
+  operatorId: string;
+  oqId: string;
+  alertType: string;
+  keyDate: string;
+};
 
-function bucketFor(daysLeft: number, leadDays: number[]): string | null {
-  if (daysLeft < 0) return "overdue";
-  const sorted = [...leadDays].sort((a, b) => a - b);
-  for (const lead of sorted) {
-    if (daysLeft <= lead) return `d${lead}`;
-  }
-  return null;
-}
-
-async function filterFreshAlerts(
+async function filterFreshWelderAlerts(
   supabase: ReturnType<typeof createAdminClient>,
   alerts: BuiltAlert[],
   welderId: string | null,
@@ -46,7 +44,8 @@ async function filterFreshAlerts(
       .select("id")
       .eq("wpq_id", a.wpqId)
       .eq("alert_type", a.alertType)
-      .eq("expiry_date", a.keyDate);
+      .eq("expiry_date", a.keyDate)
+      .eq("status", "sent");
 
     if (welderId) {
       query = query.eq("welder_id", welderId);
@@ -60,8 +59,38 @@ async function filterFreshAlerts(
   return fresh;
 }
 
+async function filterFreshOperatorAlerts(
+  supabase: ReturnType<typeof createAdminClient>,
+  alerts: OpAlert[],
+  operatorId: string | null,
+): Promise<OpAlert[]> {
+  const fresh: OpAlert[] = [];
+  for (const a of alerts) {
+    let query = supabase
+      .from("notification_log")
+      .select("id")
+      .eq("operator_qualification_id", a.oqId)
+      .eq("alert_type", a.alertType)
+      .eq("expiry_date", a.keyDate)
+      .eq("status", "sent");
+
+    if (operatorId) {
+      query = query.eq("operator_id", operatorId);
+    } else {
+      query = query.is("operator_id", null);
+    }
+
+    const { data: existing } = await query.maybeSingle();
+    if (!existing) fresh.push(a);
+  }
+  return fresh;
+}
+
 export async function GET(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
+  if (process.env.VERCEL === "1" && !secret) {
+    return new NextResponse("CRON_SECRET not configured", { status: 503 });
+  }
   if (secret) {
     const auth = request.headers.get("authorization");
     if (auth !== `Bearer ${secret}`) {
@@ -73,7 +102,7 @@ export async function GET(request: NextRequest) {
   const { data: orgs } = await supabase.from("organizations").select("*");
 
   let totalSent = 0;
-  let welderEmailsSent = 0;
+  let individualEmailsSent = 0;
   const summary: Record<string, number> = {};
 
   for (const org of orgs ?? []) {
@@ -83,6 +112,12 @@ export async function GET(request: NextRequest) {
     const maxLead = Math.max(...leadDays);
     const recipients: string[] = org.alert_emails ?? [];
 
+    const welderAlerts: BuiltAlert[] = [];
+    const welders = new Map<
+      string,
+      { id: string; full_name: string; welder_id: string | null; uid: string; email: string | null }
+    >();
+
     const { data: wpqs } = await supabase
       .from("qualification_records")
       .select(
@@ -91,129 +126,71 @@ export async function GET(request: NextRequest) {
       .eq("org_id", org.id)
       .eq("wpq_status", "Approved");
 
-    if (!wpqs || wpqs.length === 0) {
-      // still process operator qualifications below
-    } else {
-    const welderIds = Array.from(new Set(wpqs.map((w) => w.welder_id)));
-    const { data: welderRows } = await supabase
-      .from("welders")
-      .select("id, full_name, welder_id, uid, email")
-      .in("id", welderIds);
-    const welders = new Map((welderRows ?? []).map((w) => [w.id, w]));
+    if (wpqs && wpqs.length > 0) {
+      const welderIds = Array.from(new Set(wpqs.map((w) => w.welder_id)));
+      const { data: welderRows } = await supabase
+        .from("welders")
+        .select("id, full_name, welder_id, uid, email")
+        .in("id", welderIds);
+      for (const w of welderRows ?? []) {
+        welders.set(w.id, w);
+      }
 
-    const alerts: BuiltAlert[] = [];
+      for (const w of wpqs) {
+        const welder = welders.get(w.welder_id);
+        if (!welder) continue;
 
-    for (const w of wpqs) {
-      const welder = welders.get(w.welder_id);
-      if (!welder) continue;
+        if (w.expiry_date) {
+          const dleft = daysUntil(w.expiry_date);
+          if (dleft <= maxLead) {
+            const bucket = bucketFor(dleft, leadDays);
+            if (bucket) {
+              welderAlerts.push({
+                welderId: welder.id,
+                welderName: welder.full_name,
+                plantWelderId: welder.welder_id ?? welder.uid,
+                process: welderProcessLabel(w.process),
+                validityCode: w.revalidation_method ?? "9.3b",
+                expiryDate: w.expiry_date,
+                daysLeft: dleft,
+                wpqId: w.id,
+                alertType: `expiry-${bucket}`,
+                keyDate: w.expiry_date,
+              });
+            }
+          }
+        }
 
-      if (w.expiry_date) {
-        const dleft = daysUntil(w.expiry_date);
-        if (dleft <= maxLead) {
-          const bucket = bucketFor(dleft, leadDays);
-          if (bucket) {
-            alerts.push({
-              welderId: welder.id,
-              welderName: welder.full_name,
-              plantWelderId: welder.welder_id ?? welder.uid,
-              process: processLabel(w.process),
-              validityCode: w.revalidation_method ?? "9.3b",
-              expiryDate: w.expiry_date,
-              daysLeft: dleft,
-              wpqId: w.id,
-              alertType: `expiry-${bucket}`,
-              keyDate: w.expiry_date,
-            });
+        const due = continuityDue(w.continuity_last_verified);
+        if (due) {
+          const dleft = daysUntil(due);
+          if (dleft <= maxLead) {
+            const bucket = bucketFor(dleft, leadDays);
+            if (bucket) {
+              welderAlerts.push({
+                welderId: welder.id,
+                welderName: welder.full_name,
+                plantWelderId: welder.welder_id ?? welder.uid,
+                process: welderProcessLabel(w.process),
+                validityCode: w.revalidation_method ?? "9.3b",
+                expiryDate: due,
+                daysLeft: dleft,
+                wpqId: w.id,
+                alertType: `continuity-${bucket}`,
+                keyDate: due,
+              });
+            }
           }
         }
       }
-
-      const due = continuityDue(w.continuity_last_verified);
-      if (due) {
-        const dleft = daysUntil(due);
-        if (dleft <= maxLead) {
-          const bucket = bucketFor(dleft, leadDays);
-          if (bucket) {
-            alerts.push({
-              welderId: welder.id,
-              welderName: welder.full_name,
-              plantWelderId: welder.welder_id ?? welder.uid,
-              process: processLabel(w.process),
-              validityCode: w.revalidation_method ?? "9.3b",
-              expiryDate: due,
-              daysLeft: dleft,
-              wpqId: w.id,
-              alertType: `continuity-${bucket}`,
-              keyDate: due,
-            });
-          }
-        }
-      }
     }
 
-    if (alerts.length > 0) {
-    const freshOrg = await filterFreshAlerts(supabase, alerts, null);
+    const opAlerts: OpAlert[] = [];
+    const operators = new Map<
+      string,
+      { id: string; full_name: string; operator_id: string | null; uid: string; email: string | null }
+    >();
 
-    if (freshOrg.length > 0 && recipients.length > 0) {
-      const result = await sendExpiryDigest(recipients, org.name, freshOrg);
-
-      for (const a of freshOrg) {
-        await supabase.from("notification_log").insert({
-          org_id: org.id,
-          wpq_id: a.wpqId,
-          alert_type: a.alertType,
-          expiry_date: a.keyDate,
-          channel: "email",
-          status: result.sent ? "sent" : "skipped",
-        });
-      }
-
-      if (result.sent) {
-        totalSent += freshOrg.length;
-        summary[org.name] = freshOrg.length;
-      }
-    }
-
-    const alertsByWelder = new Map<string, BuiltAlert[]>();
-    for (const a of alerts) {
-      const list = alertsByWelder.get(a.welderId) ?? [];
-      list.push(a);
-      alertsByWelder.set(a.welderId, list);
-    }
-
-    for (const [welderId, welderAlerts] of alertsByWelder) {
-      const welder = welders.get(welderId);
-      const email = welder?.email?.trim();
-      if (!email) continue;
-
-      const freshWelder = await filterFreshAlerts(supabase, welderAlerts, welderId);
-      if (freshWelder.length === 0) continue;
-
-      const result = await sendWelderExpiryDigest(
-        email,
-        welder!.full_name,
-        org.name,
-        freshWelder,
-      );
-
-      for (const a of freshWelder) {
-        await supabase.from("notification_log").insert({
-          org_id: org.id,
-          wpq_id: a.wpqId,
-          welder_id: welderId,
-          alert_type: a.alertType,
-          expiry_date: a.keyDate,
-          channel: "email",
-          status: result.sent ? "sent" : "skipped",
-        });
-      }
-
-      if (result.sent) welderEmailsSent += 1;
-    }
-    }
-    }
-
-    // ISO 14732 operator qualifications
     const { data: oqs } = await supabase
       .from("operator_qualifications")
       .select(
@@ -228,15 +205,9 @@ export async function GET(request: NextRequest) {
         .from("operators")
         .select("id, full_name, operator_id, uid, email")
         .in("id", operatorIds);
-      const operators = new Map((operatorRows ?? []).map((o) => [o.id, o]));
-
-      type OpAlert = ExpiryAlert & {
-        operatorId: string;
-        oqId: string;
-        alertType: string;
-        keyDate: string;
-      };
-      const opAlerts: OpAlert[] = [];
+      for (const o of operatorRows ?? []) {
+        operators.set(o.id, o);
+      }
 
       for (const o of oqs) {
         const operator = operators.get(o.operator_id);
@@ -251,7 +222,7 @@ export async function GET(request: NextRequest) {
                 operatorId: operator.id,
                 welderName: operator.full_name,
                 plantWelderId: operator.operator_id ?? operator.uid,
-                process: processLabel(o.process),
+                process: operatorProcessLabel(o.process),
                 validityCode: o.revalidation_method ?? "6.3b",
                 expiryDate: o.expiry_date,
                 daysLeft: dleft,
@@ -273,7 +244,7 @@ export async function GET(request: NextRequest) {
                 operatorId: operator.id,
                 welderName: operator.full_name,
                 plantWelderId: operator.operator_id ?? operator.uid,
-                process: processLabel(o.process),
+                process: operatorProcessLabel(o.process),
                 validityCode: o.revalidation_method ?? "6.3b",
                 expiryDate: due,
                 daysLeft: dleft,
@@ -285,38 +256,103 @@ export async function GET(request: NextRequest) {
           }
         }
       }
+    }
 
-      const freshOpOrg: OpAlert[] = [];
-      for (const a of opAlerts) {
-        const { data: existing } = await supabase
-          .from("notification_log")
-          .select("id")
-          .eq("operator_qualification_id", a.oqId)
-          .eq("alert_type", a.alertType)
-          .eq("expiry_date", a.keyDate)
-          .is("operator_id", null)
-          .maybeSingle();
-        if (!existing) freshOpOrg.push(a);
-      }
+    const freshWelderOrg =
+      welderAlerts.length > 0
+        ? await filterFreshWelderAlerts(supabase, welderAlerts, null)
+        : [];
+    const freshOperatorOrg =
+      opAlerts.length > 0
+        ? await filterFreshOperatorAlerts(supabase, opAlerts, null)
+        : [];
 
-      if (freshOpOrg.length > 0 && recipients.length > 0) {
-        const result = await sendExpiryDigest(recipients, org.name, freshOpOrg);
-        for (const a of freshOpOrg) {
+    const combinedOrgAlerts: ExpiryAlert[] = [
+      ...freshWelderOrg,
+      ...freshOperatorOrg,
+    ];
+
+    if (combinedOrgAlerts.length > 0 && recipients.length > 0) {
+      const kind = orgDigestKind(freshWelderOrg.length, freshOperatorOrg.length);
+      const result = await sendExpiryDigest(
+        recipients,
+        org.name,
+        combinedOrgAlerts,
+        kind,
+      );
+
+      if (result.sent) {
+        for (const a of freshWelderOrg) {
+          await supabase.from("notification_log").insert({
+            org_id: org.id,
+            wpq_id: a.wpqId,
+            alert_type: a.alertType,
+            expiry_date: a.keyDate,
+            channel: "email",
+            status: "sent",
+          });
+        }
+        for (const a of freshOperatorOrg) {
           await supabase.from("notification_log").insert({
             org_id: org.id,
             operator_qualification_id: a.oqId,
             alert_type: a.alertType,
             expiry_date: a.keyDate,
             channel: "email",
-            status: result.sent ? "sent" : "skipped",
+            status: "sent",
           });
         }
-        if (result.sent) {
-          totalSent += freshOpOrg.length;
-          summary[`${org.name} (operators)`] = freshOpOrg.length;
-        }
+        totalSent += combinedOrgAlerts.length;
+        summary[org.name] = combinedOrgAlerts.length;
+      }
+    }
+
+    if (welderAlerts.length > 0) {
+      const alertsByWelder = new Map<string, BuiltAlert[]>();
+      for (const a of welderAlerts) {
+        const list = alertsByWelder.get(a.welderId) ?? [];
+        list.push(a);
+        alertsByWelder.set(a.welderId, list);
       }
 
+      for (const [welderId, items] of alertsByWelder) {
+        const welder = welders.get(welderId);
+        const email = welder?.email?.trim();
+        if (!email) continue;
+
+        const freshWelder = await filterFreshWelderAlerts(
+          supabase,
+          items,
+          welderId,
+        );
+        if (freshWelder.length === 0) continue;
+
+        const result = await sendWelderExpiryDigest(
+          email,
+          welder!.full_name,
+          org.name,
+          freshWelder,
+          "welder",
+        );
+
+        if (result.sent) {
+          for (const a of freshWelder) {
+            await supabase.from("notification_log").insert({
+              org_id: org.id,
+              wpq_id: a.wpqId,
+              welder_id: welderId,
+              alert_type: a.alertType,
+              expiry_date: a.keyDate,
+              channel: "email",
+              status: "sent",
+            });
+          }
+          individualEmailsSent += 1;
+        }
+      }
+    }
+
+    if (opAlerts.length > 0) {
       const opByOperator = new Map<string, OpAlert[]>();
       for (const a of opAlerts) {
         const list = opByOperator.get(a.operatorId) ?? [];
@@ -329,18 +365,11 @@ export async function GET(request: NextRequest) {
         const email = operator?.email?.trim();
         if (!email) continue;
 
-        const freshOp: OpAlert[] = [];
-        for (const a of items) {
-          const { data: existing } = await supabase
-            .from("notification_log")
-            .select("id")
-            .eq("operator_qualification_id", a.oqId)
-            .eq("alert_type", a.alertType)
-            .eq("expiry_date", a.keyDate)
-            .eq("operator_id", operatorId)
-            .maybeSingle();
-          if (!existing) freshOp.push(a);
-        }
+        const freshOp = await filterFreshOperatorAlerts(
+          supabase,
+          items,
+          operatorId,
+        );
         if (freshOp.length === 0) continue;
 
         const result = await sendWelderExpiryDigest(
@@ -348,22 +377,31 @@ export async function GET(request: NextRequest) {
           operator!.full_name,
           org.name,
           freshOp,
+          "operator",
         );
-        for (const a of freshOp) {
-          await supabase.from("notification_log").insert({
-            org_id: org.id,
-            operator_qualification_id: a.oqId,
-            operator_id: operatorId,
-            alert_type: a.alertType,
-            expiry_date: a.keyDate,
-            channel: "email",
-            status: result.sent ? "sent" : "skipped",
-          });
+
+        if (result.sent) {
+          for (const a of freshOp) {
+            await supabase.from("notification_log").insert({
+              org_id: org.id,
+              operator_qualification_id: a.oqId,
+              operator_id: operatorId,
+              alert_type: a.alertType,
+              expiry_date: a.keyDate,
+              channel: "email",
+              status: "sent",
+            });
+          }
+          individualEmailsSent += 1;
         }
-        if (result.sent) welderEmailsSent += 1;
       }
     }
   }
 
-  return NextResponse.json({ ok: true, totalSent, welderEmailsSent, summary });
+  return NextResponse.json({
+    ok: true,
+    totalSent,
+    individualEmailsSent,
+    summary,
+  });
 }

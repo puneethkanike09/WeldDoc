@@ -45,16 +45,27 @@ export default async function SettingsPage({
                 <CardBody className="space-y-3">
                   <CardTitle>How expiry alerts work</CardTitle>
                   <p className="text-sm text-graphite">
-                    A daily job checks every approved qualification. When a
-                    certificate or 6-month continuity falls within your lead
-                    days, a digest email is sent to the recipients above. Welders
-                    with an email on their profile also receive a personal
-                    reminder for their own qualifications.
+                    A daily job checks every approved welder and operator
+                    qualification. When a certificate or 6-month continuity falls
+                    within your lead days, a digest email is sent to the
+                    recipients above. People with an email on their profile also
+                    receive a personal reminder for their own qualifications.
+                  </p>
+                  <p className="text-sm font-medium text-graphite">
+                    Welders (ISO 9606-1)
                   </p>
                   <ul className="space-y-1.5 text-sm text-graphite">
                     <li>· 9.3a — 3-year validity</li>
                     <li>· 9.3b — 2-year validity, renewable</li>
                     <li>· 9.3c — 6-month validity, renewable</li>
+                  </ul>
+                  <p className="text-sm font-medium text-graphite">
+                    Operators (ISO 14732)
+                  </p>
+                  <ul className="space-y-1.5 text-sm text-graphite">
+                    <li>· 6.3a — 6-year validity</li>
+                    <li>· 6.3b — 3-year validity, renewable</li>
+                    <li>· 6.3c — continuity only (no certificate expiry)</li>
                   </ul>
                 </CardBody>
               </Card>

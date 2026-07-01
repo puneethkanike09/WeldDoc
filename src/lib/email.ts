@@ -73,7 +73,42 @@ export interface ExpiryAlert {
   daysLeft: number;
 }
 
-function expiryDigestHtml(orgName: string, alerts: ExpiryAlert[]): string {
+/** Org digest scope — welder-only, operator-only, or combined. */
+export type ExpiryDigestKind = "welder" | "operator" | "mixed";
+
+function digestCopy(kind: ExpiryDigestKind): {
+  heading: string;
+  nameColumn: string;
+  subject: (count: number) => string;
+} {
+  switch (kind) {
+    case "operator":
+      return {
+        heading: "Operator qualification reminders",
+        nameColumn: "Operator",
+        subject: (n) => `WeldDoc — ${n} operator qualification reminder(s)`,
+      };
+    case "mixed":
+      return {
+        heading: "Qualification reminders",
+        nameColumn: "Person",
+        subject: (n) => `WeldDoc — ${n} qualification reminder(s)`,
+      };
+    default:
+      return {
+        heading: "Welder qualification reminders",
+        nameColumn: "Welder",
+        subject: (n) => `WeldDoc — ${n} welder qualification reminder(s)`,
+      };
+  }
+}
+
+function expiryDigestHtml(
+  orgName: string,
+  alerts: ExpiryAlert[],
+  kind: ExpiryDigestKind,
+): string {
+  const copy = digestCopy(kind);
   const rows = alerts
     .map(
       (a) => `
@@ -94,13 +129,13 @@ function expiryDigestHtml(orgName: string, alerts: ExpiryAlert[]): string {
           <span style="font-size:18px;font-weight:700"><span style="color:#f90a08">Weld.</span><span style="color:#fff">Doc</span></span>
         </div>
         <div style="padding:24px">
-          <h1 style="font-size:18px;color:#161616;margin:0 0 6px">Welder qualification reminders</h1>
+          <h1 style="font-size:18px;color:#161616;margin:0 0 6px">${copy.heading}</h1>
           <p style="color:#4a4a4a;margin:0 0 18px">${orgName} — ${alerts.length} qualification(s) need attention.</p>
           <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;max-width:100%">
             <table style="min-width:560px;width:100%;border-collapse:collapse;font-size:13px">
               <thead>
                 <tr style="text-align:left;color:#9297a0;font-size:11px;text-transform:uppercase">
-                  <th style="padding:8px 12px;white-space:nowrap">Welder</th>
+                  <th style="padding:8px 12px;white-space:nowrap">${copy.nameColumn}</th>
                   <th style="padding:8px 12px;white-space:nowrap">Plant ID</th>
                   <th style="padding:8px 12px;white-space:nowrap">Process</th>
                   <th style="padding:8px 12px;white-space:nowrap">Type</th>
@@ -120,11 +155,12 @@ export async function sendExpiryDigest(
   to: string[],
   orgName: string,
   alerts: ExpiryAlert[],
+  kind: ExpiryDigestKind = "welder",
 ): Promise<{ sent: boolean; error?: string }> {
   if (to.length === 0) return { sent: false, error: "No recipients" };
 
-  const subject = `WeldDoc — ${alerts.length} welder qualification reminder(s)`;
-  const html = expiryDigestHtml(orgName, alerts);
+  const subject = digestCopy(kind).subject(alerts.length);
+  const html = expiryDigestHtml(orgName, alerts, kind);
 
   if (to.length === 1) {
     return sendEmail({ to, subject, html });
@@ -181,15 +217,21 @@ function welderExpiryDigestHtml(
     </div>`;
 }
 
+export type PersonalExpiryDigestKind = "welder" | "operator";
+
 export async function sendWelderExpiryDigest(
   to: string,
   welderName: string,
   orgName: string,
   alerts: ExpiryAlert[],
+  kind: PersonalExpiryDigestKind = "welder",
 ): Promise<{ sent: boolean; error?: string }> {
   if (!to) return { sent: false, error: "No recipient" };
 
-  const subject = `WeldDoc — your qualification reminder(s)`;
+  const subject =
+    kind === "operator"
+      ? "WeldDoc — your operator qualification reminder(s)"
+      : "WeldDoc — your qualification reminder(s)";
   const html = welderExpiryDigestHtml(welderName, orgName, alerts);
   return sendEmail({ to: [to], subject, html });
 }
