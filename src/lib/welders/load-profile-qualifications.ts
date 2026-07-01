@@ -9,6 +9,7 @@ import {
 import { daysUntil } from "@/lib/welder-status";
 import { resolveUrl } from "@/lib/storage";
 import { formatDate } from "@/lib/utils";
+import { findSessionForQualification } from "@/lib/qualify/group-session";
 import type {
   QualificationRecord,
   RangeOfApproval,
@@ -186,7 +187,7 @@ export async function loadWelderProfileQualifications(
   const docUrlById = new Map(docUrlEntries);
 
   const listItems = pageWpqs.map((q) => welderQualListItem(q));
-  const selected = selectedWpqRecord
+  let selected = selectedWpqRecord
     ? welderQualDetailView(
         selectedWpqRecord,
         ranges,
@@ -195,6 +196,20 @@ export async function loadWelderProfileQualifications(
         ndtViewsFor,
       )
     : null;
+
+  if (selected && selectedWpqId) {
+    const groupSession = await findSessionForQualification(
+      supabase,
+      selectedWpqId,
+    );
+    if (groupSession) {
+      selected = {
+        ...selected,
+        groupSessionHref: `/welders/qualify/group/${groupSession.sessionId}`,
+        groupSessionLabel: groupSession.label ?? "Group session",
+      };
+    }
+  }
 
   return {
     listItems,

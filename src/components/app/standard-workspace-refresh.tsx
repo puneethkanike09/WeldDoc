@@ -8,7 +8,6 @@ const WORKSPACE_PATHS = [
   "/dashboard",
   "/welders",
   "/operators",
-  "/reports",
   "/masterlist",
   "/settings",
 ];

@@ -70,12 +70,14 @@ export function OperatorPlanStep({
   operator,
   orgName,
   orgLocation,
+  draftStorageKeyOverride,
 }: {
   action: (fd: FormData) => void;
   oq: OperatorQualification | null;
   operator: Operator;
   orgName: string;
   orgLocation: string | null;
+  draftStorageKeyOverride?: string;
 }) {
   const [weldingType, setWeldingType] = useState<OperatorWeldingType | "">(
     oq?.welding_type ?? "",
@@ -98,9 +100,9 @@ export function OperatorPlanStep({
     [],
   );
 
-  const draftKey = oq?.id
-    ? operatorQualifyDraftKey(operator.id, oq.id, 1)
-    : null;
+  const draftKey =
+    draftStorageKeyOverride ??
+    (oq?.id ? operatorQualifyDraftKey(operator.id, oq.id, 1) : null);
 
   return (
     <ValidatedForm
@@ -393,11 +395,13 @@ export function OperatorTestStep({
   operatorId,
   oq,
   rangePreview,
+  draftStorageKeyOverride,
 }: {
   action: (fd: FormData) => void;
   operatorId: string;
   oq: OperatorQualification;
   rangePreview: string | null;
+  draftStorageKeyOverride?: string;
 }) {
   const [backing, setBacking] = useState(oq.material_backing ?? "");
   const weldingMode = oq.welding_mode;
@@ -409,7 +413,8 @@ export function OperatorTestStep({
   );
 
   const qualifyHref = `/operators/${operatorId}/qualify`;
-  const draftKey = operatorQualifyDraftKey(operatorId, oq.id, 2);
+  const draftKey =
+    draftStorageKeyOverride ?? operatorQualifyDraftKey(operatorId, oq.id, 2);
 
   return (
     <ValidatedForm
@@ -714,13 +719,18 @@ export function OperatorTestStep({
   );
 }
 
-function OperatorNdtRow({
+function scopedNdtFieldName(scope: string, key: string) {
+  return scope ? `${scope}${key}` : key;
+}
+
+export function OperatorNdtRow({
   label,
   method,
   operatorId,
   existing,
   fieldErrors,
   clearError,
+  nameScope = "",
 }: {
   label: string;
   method: string;
@@ -728,8 +738,12 @@ function OperatorNdtRow({
   existing?: OperatorNdtRecord;
   fieldErrors: FieldErrors;
   clearError: (key: string) => void;
+  nameScope?: string;
 }) {
-  const resultKey = `ndt_${method}`;
+  const resultKey = scopedNdtFieldName(nameScope, `ndt_${method}`);
+  const dateKey = scopedNdtFieldName(nameScope, `test_date__${method}`);
+  const refKey = scopedNdtFieldName(nameScope, `conducted_by__${method}`);
+  const reportKey = scopedNdtFieldName(nameScope, `report__${method}`);
 
   return (
     <div className="grid items-start gap-3 rounded-[10px] border border-silver bg-frost/50 p-3 sm:grid-cols-[1.1fr_0.7fr_0.9fr_1fr_1fr]">
@@ -759,31 +773,31 @@ function OperatorNdtRow({
       <Field
         label="Test date"
         required
-        error={fieldErrors[`test_date__${method}`]}
+        error={fieldErrors[dateKey]}
         reserveMessageSpace
       >
         <DatePicker
-          name={`test_date__${method}`}
+          name={dateKey}
           defaultValue={existing?.test_date ?? ""}
           required
-          error={fieldErrors[`test_date__${method}`]}
+          error={fieldErrors[dateKey]}
         />
       </Field>
       <Field
         label="Report / ref no."
         required
-        error={fieldErrors[`conducted_by__${method}`]}
+        error={fieldErrors[refKey]}
         reserveMessageSpace
       >
         <Input
-          name={`conducted_by__${method}`}
+          name={refKey}
           defaultValue={existing?.conducted_by ?? ""}
           placeholder="NDT report no."
           required
           className={cn(
-            fieldErrors[`conducted_by__${method}`] && invalidBorder,
+            fieldErrors[refKey] && invalidBorder,
           )}
-          onChange={() => clearError(`conducted_by__${method}`)}
+          onChange={() => clearError(refKey)}
         />
       </Field>
       <Field label="Report PDF" reserveMessageSpace>
@@ -795,7 +809,7 @@ function OperatorNdtRow({
             />
           ) : null}
           <FileDropzone
-            name={`report__${method}`}
+            name={reportKey}
             accept="application/pdf,image/*"
             compact
             defaultLabel={

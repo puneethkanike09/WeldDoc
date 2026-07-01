@@ -16,6 +16,10 @@ export function operatorQualifyDraftKey(
   return `welddoc:qualify:operator:${operatorId}:${oqId}:step${step}`;
 }
 
+export function groupSessionDraftKey(sessionId: string, step: number): string {
+  return `welddoc:group-session:${sessionId}:step${step}`;
+}
+
 export function loadQualifyDraft(key: string): Record<string, string> | null {
   if (typeof window === "undefined") return null;
   try {

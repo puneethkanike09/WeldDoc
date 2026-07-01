@@ -225,12 +225,12 @@ export function ndtRecordForMethod(
 
 export function operatorNdtReady(
   oq: OperatorQualification,
-  ndt: OperatorNdtRecord[],
+  ndt: Pick<OperatorNdtRecord, "test_method" | "result">[],
 ): boolean {
   const tests = requiredNdtTests(oq);
   if (tests.length === 0) return false;
   const results = tests.map(
-    (t) => ndtRecordForMethod(ndt, t.method)?.result ?? null,
+    (t) => ndt.find((r) => r.test_method === t.method)?.result ?? null,
   );
   return ndtResultsPass(
     results.filter((r): r is TestResult => r !== null),

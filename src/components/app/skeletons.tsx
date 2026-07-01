@@ -311,50 +311,6 @@ export function QualifyWorkflowSkeleton() {
   );
 }
 
-/** New batch test report builder. */
-export function ReportBuilderPageSkeleton() {
-  return (
-    <div role="status" aria-label="Loading report builder">
-      <PageHeaderSkeleton action={false} />
-      <div className="space-y-6 px-8 py-8">
-        <BackLinkSkeleton />
-        <div className="rounded-(--radius-card) border border-silver bg-panel p-6">
-          <Skeleton className="h-5 w-28" />
-          <div className="mt-5 grid gap-5 sm:grid-cols-3">
-            {Array.from({ length: 6 }, (_, i) => (
-              <div key={i} className="space-y-2">
-                <Skeleton className="h-3.5 w-24" />
-                <Skeleton className="h-10 w-full" />
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="rounded-(--radius-card) border border-silver bg-panel p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <Skeleton className="h-5 w-32" />
-            <Skeleton className="h-8 w-24" />
-          </div>
-          <Skeleton className="h-40 w-full rounded-button" />
-        </div>
-      </div>
-      <span className="sr-only">Loading report builder…</span>
-    </div>
-  );
-}
-
-/** Single test report detail (wide table). */
-export function ReportDetailPageSkeleton() {
-  return (
-    <div role="status" aria-label="Loading test report">
-      <PageHeaderSkeleton />
-      <div className="px-8 py-8">
-        <BackLinkSkeleton />
-        <TableSkeleton columns={8} rows={6} minWidth={860} />
-      </div>
-      <span className="sr-only">Loading test report…</span>
-    </div>
-  );
-}
 
 function StandardCardSkeleton() {
   return (

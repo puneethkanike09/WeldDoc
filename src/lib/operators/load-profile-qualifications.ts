@@ -9,6 +9,7 @@ import {
 import { daysUntil } from "@/lib/operator-status";
 import { resolveUrl } from "@/lib/storage";
 import { formatDate } from "@/lib/utils";
+import { findSessionForQualification } from "@/lib/qualify/group-session";
 import type {
   OperatorQualification,
   OperatorRange,
@@ -192,7 +193,7 @@ export async function loadOperatorProfileQualifications(
   const docUrlById = new Map(docUrlEntries);
 
   const listItems = pageOqs.map((q) => operatorQualListItem(q));
-  const selected = selectedOqRecord
+  let selected = selectedOqRecord
     ? operatorQualDetailView(
         selectedOqRecord,
         ranges,
@@ -201,6 +202,20 @@ export async function loadOperatorProfileQualifications(
         ndtViewsFor,
       )
     : null;
+
+  if (selected && selectedOqId) {
+    const groupSession = await findSessionForQualification(
+      supabase,
+      selectedOqId,
+    );
+    if (groupSession) {
+      selected = {
+        ...selected,
+        groupSessionHref: `/operators/qualify/group/${groupSession.sessionId}`,
+        groupSessionLabel: groupSession.label ?? "Group session",
+      };
+    }
+  }
 
   return {
     listItems,

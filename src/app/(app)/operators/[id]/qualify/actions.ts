@@ -387,6 +387,7 @@ export async function discardOq(operatorId: string, oqId: string) {
 
   revalidatePath(`/operators/${operatorId}`);
   revalidatePath("/operators");
+  revalidatePath("/operators/masterlist");
   redirect(`/operators/${operatorId}`);
 }
 
@@ -440,6 +441,7 @@ export async function deleteOq(operatorId: string, oqId: string) {
 
   revalidatePath(`/operators/${operatorId}`);
   revalidatePath("/operators");
+  revalidatePath("/operators/masterlist");
   redirect(`/operators/${operatorId}`);
 }
 

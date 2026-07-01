@@ -383,7 +383,7 @@ export async function discardWpq(welderId: string, wpqId: string) {
   if (error) throw new Error(error.message);
 
   revalidatePath(`/welders/${welderId}`);
-  revalidatePath("/masterlist");
+  revalidatePath("/welders/masterlist");
   revalidatePath("/welders");
   redirect(`/welders/${welderId}`);
 }
@@ -445,7 +445,7 @@ export async function deleteWpq(welderId: string, wpqId: string) {
   if (error) throw new Error(error.message);
 
   revalidatePath(`/welders/${welderId}`);
-  revalidatePath("/masterlist");
+  revalidatePath("/welders/masterlist");
   revalidatePath("/welders");
   redirect(`/welders/${welderId}`);
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
 import { AddOperatorButton } from "@/components/app/add-operator-button";
+import { GroupQualifyButton } from "@/components/app/group-qualify-button";
 import {
   ImportOperatorsButton,
   ImportOperatorsLink,
@@ -89,6 +90,7 @@ export default async function OperatorsPage({
       >
         <div className="flex flex-wrap items-center gap-2">
           <BulkQrPrintButton entries={qrEntries} />
+          <GroupQualifyButton href="/operators/qualify/group/new" />
           <ImportOperatorsButton />
           <AddOperatorButton />
         </div>

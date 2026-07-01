@@ -24,6 +24,40 @@ export type RevalidationMethod = "9.3a" | "9.3b" | "9.3c";
 export type ValidationKind = "continuity" | "revalidation";
 export type TestResult = "Pass" | "Fail" | "NA";
 
+export type QualificationSessionStatus = "Draft" | "Pending_NDT" | "Closed";
+export type QualificationSessionMemberStatus =
+  | "Draft"
+  | "Pending_NDT"
+  | "Approved"
+  | "Failed"
+  | "Removed";
+
+export interface QualificationSession {
+  id: string;
+  org_id: string;
+  standard: WeldingStandard;
+  session_status: QualificationSessionStatus;
+  label: string | null;
+  shared_plan: Record<string, unknown>;
+  shared_test_piece: Record<string, unknown>;
+  shared_ndt: Record<string, unknown>;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QualificationSessionMember {
+  id: string;
+  session_id: string;
+  org_id: string;
+  welder_id: string | null;
+  operator_id: string | null;
+  qualification_id: string | null;
+  member_status: QualificationSessionMemberStatus;
+  ndt_results: Record<string, unknown>;
+  created_at: string;
+}
+
 export interface Organization {
   id: string;
   name: string;

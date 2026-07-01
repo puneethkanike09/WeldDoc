@@ -78,6 +78,25 @@ export async function nextAvailablePlantOperatorId(
   return formatPlantOperatorId(candidate);
 }
 
+/** Next unused plant ID given existing IDs (registry + in-form rows). */
+export function nextPlantOperatorIdSkipping(
+  taken: Iterable<string>,
+  startFrom: string,
+): string {
+  const takenSet = new Set<string>();
+  for (const raw of taken) {
+    const normalized = normalizePlantOperatorId(raw);
+    if (normalized) takenSet.add(normalized.toUpperCase());
+  }
+  const seed = normalizePlantOperatorId(startFrom);
+  const seedMatch = seed ? /^O#(\d+)$/i.exec(seed) : null;
+  let candidate = seedMatch ? parseInt(seedMatch[1], 10) : 1;
+  while (takenSet.has(formatPlantOperatorId(candidate).toUpperCase())) {
+    candidate++;
+  }
+  return formatPlantOperatorId(candidate);
+}
+
 export async function assertPlantOperatorIdAvailable(
   supabase: SupabaseClient,
   orgId: string,

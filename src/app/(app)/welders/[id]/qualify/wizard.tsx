@@ -171,12 +171,14 @@ export function PlanStep({
   orgName,
   orgLocation,
   welderId,
+  draftStorageKeyOverride,
 }: {
   action: (fd: FormData) => void;
   wpq: QualificationRecord | null;
   orgName: string;
   orgLocation: string | null;
   welderId: string;
+  draftStorageKeyOverride?: string;
 }) {
   const defaultJoint = displayJointType(
     wpq ?? { joint_type: "BW", joint_type_extended: null },
@@ -186,7 +188,9 @@ export function PlanStep({
     (formData: FormData) => getQualificationPlanFieldErrors(formData),
     [],
   );
-  const draftKey = wpq?.id ? qualifyDraftKey(welderId, wpq.id, 1) : null;
+  const draftKey =
+    draftStorageKeyOverride ??
+    (wpq?.id ? qualifyDraftKey(welderId, wpq.id, 1) : null);
 
   return (
     <ValidatedForm
@@ -375,11 +379,13 @@ export function TestStep({
   welderId,
   wpq,
   rangePreview,
+  draftStorageKeyOverride,
 }: {
   action: (fd: FormData) => void;
   welderId: string;
   wpq: QualificationRecord;
   rangePreview: string | null;
+  draftStorageKeyOverride?: string;
 }) {
   const jointLabel = displayJointType(wpq);
   const shieldingDefault = normalizeShieldingGas(wpq.shielding_gas);
@@ -407,7 +413,8 @@ export function TestStep({
     [jointLabel, wpq.product],
   );
 
-  const draftKey = qualifyDraftKey(welderId, wpq.id, 2);
+  const draftKey =
+    draftStorageKeyOverride ?? qualifyDraftKey(welderId, wpq.id, 2);
 
   return (
     <ValidatedForm
@@ -750,7 +757,7 @@ export function NdtStep({
                   <span>Report PDF</span>
                 </div>
                 {selectedOrdered.map((method) => (
-                  <TestRow
+                  <NdtTestRow
                     key={method}
                     method={method}
                     required
@@ -778,7 +785,11 @@ export function NdtStep({
   );
 }
 
-function TestRow({
+function scopedNdtFieldName(scope: string, key: string) {
+  return scope ? `${scope}${key}` : key;
+}
+
+export function NdtTestRow({
   method,
   required,
   welderId,
@@ -786,6 +797,7 @@ function TestRow({
   compact,
   fieldErrors,
   clearError,
+  nameScope = "",
 }: {
   method: string;
   required?: boolean;
@@ -794,10 +806,12 @@ function TestRow({
   compact?: boolean;
   fieldErrors: FieldErrors;
   clearError: (key: string) => void;
+  nameScope?: string;
 }) {
-  const resultKey = `result__${method}`;
-  const dateKey = `test_date__${method}`;
-  const refKey = `conducted_by__${method}`;
+  const resultKey = scopedNdtFieldName(nameScope, `result__${method}`);
+  const dateKey = scopedNdtFieldName(nameScope, `test_date__${method}`);
+  const refKey = scopedNdtFieldName(nameScope, `conducted_by__${method}`);
+  const reportKey = scopedNdtFieldName(nameScope, `report__${method}`);
 
   return (
     <div
@@ -873,7 +887,7 @@ function TestRow({
             />
           ) : null}
           <FileDropzone
-            name={`report__${method}`}
+            name={reportKey}
             accept="application/pdf,image/*"
             compact
             defaultLabel={

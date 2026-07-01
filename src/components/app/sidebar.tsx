@@ -15,6 +15,7 @@ import {
   readActiveStandardCookie,
   workspacePersonnelHref,
   workspacePersonnelLabel,
+  workspaceMasterlistHref,
 } from "@/lib/standards/active-standard";
 import { SidebarStandardSelect } from "@/components/app/sidebar-standard-select";
 import {
@@ -53,8 +54,12 @@ export function Sidebar({
         label: workspacePersonnelLabel(slug),
         icon: Users,
       },
-      { href: "/reports", label: "Test reports", icon: FileStack },
-      { href: "/masterlist", label: "Master list", icon: Table2 },
+      {
+        href: `${workspacePersonnelHref(slug)}/qualify/group`,
+        label: "Group qualify",
+        icon: FileStack,
+      },
+      { href: workspaceMasterlistHref(slug), label: "Master list", icon: Table2 },
       { href: "/settings", label: "Settings", icon: Settings },
     ],
     [slug],
@@ -66,6 +71,15 @@ export function Sidebar({
       { href: "/standards", label: "Standards", icon: LayoutGrid },
       ...workspaceNav,
     ];
+
+  const activeHref = useMemo(() => {
+    const matches = nav.filter(
+      (item) =>
+        pathname === item.href || pathname.startsWith(`${item.href}/`),
+    );
+    matches.sort((a, b) => b.href.length - a.href.length);
+    return matches[0]?.href ?? null;
+  }, [nav, pathname]);
 
   return (
     <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-silver bg-panel">
@@ -95,8 +109,7 @@ export function Sidebar({
 
       <nav className="sleek-scroll min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-3">
         {nav.map((item) => {
-          const active =
-            pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const active = item.href === activeHref;
           return (
             <Link
               key={item.href}

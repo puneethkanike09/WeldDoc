@@ -5,7 +5,7 @@ const PROTECTED_PREFIXES = [
   "/standards",
   "/dashboard",
   "/welders",
-  "/reports",
+  "/operators",
   "/masterlist",
   "/settings",
 ];

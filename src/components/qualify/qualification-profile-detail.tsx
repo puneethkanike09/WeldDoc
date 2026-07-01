@@ -47,6 +47,8 @@ export interface QualProfileDetail {
   rangeSummary: string | null;
   ndtRecords: NdtRecordView[];
   validations: ValidationView[];
+  groupSessionHref?: string | null;
+  groupSessionLabel?: string | null;
 }
 
 function DocumentViewButton({
@@ -131,6 +133,17 @@ export function QualificationProfileDetail({
             {selected.isLegacy && <Badge tone="outline">Legacy</Badge>}
           </div>
           <p className="mt-1 text-[13px] text-steel">{selected.subtitle}</p>
+          {selected.groupSessionHref && (
+            <p className="mt-2 text-[13px] text-steel">
+              Part of group session{" "}
+              <Link
+                href={selected.groupSessionHref}
+                className="font-medium text-ember hover:underline"
+              >
+                {selected.groupSessionLabel ?? "View session"}
+              </Link>
+            </p>
+          )}
         </div>
         <div className="text-right text-[13px]">
           <p className="text-steel">Expires</p>

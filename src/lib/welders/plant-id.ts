@@ -84,6 +84,25 @@ export async function nextAvailablePlantWelderId(
   return formatPlantWelderId(candidate);
 }
 
+/** Next unused plant ID given existing IDs (registry + in-form rows). */
+export function nextPlantWelderIdSkipping(
+  taken: Iterable<string>,
+  startFrom: string,
+): string {
+  const takenSet = new Set<string>();
+  for (const raw of taken) {
+    const normalized = normalizePlantWelderId(raw);
+    if (normalized) takenSet.add(normalized.toUpperCase());
+  }
+  const seed = normalizePlantWelderId(startFrom);
+  const seedMatch = seed ? /^W#(\d+)$/i.exec(seed) : null;
+  let candidate = seedMatch ? parseInt(seedMatch[1], 10) : 1;
+  while (takenSet.has(formatPlantWelderId(candidate).toUpperCase())) {
+    candidate++;
+  }
+  return formatPlantWelderId(candidate);
+}
+
 export async function assertPlantWelderIdAvailable(
   supabase: SupabaseClient,
   orgId: string,

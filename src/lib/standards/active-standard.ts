@@ -66,3 +66,7 @@ export function workspacePersonnelHref(slug: StandardSlug): string {
 export function workspacePersonnelLabel(slug: StandardSlug): string {
   return slug === "iso-14732" ? "Operators" : "Welders";
 }
+
+export function workspaceMasterlistHref(slug: StandardSlug): string {
+  return `${workspacePersonnelHref(slug)}/masterlist`;
+}

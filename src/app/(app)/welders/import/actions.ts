@@ -65,7 +65,7 @@ export async function commitWelderImport(rows: ValidatedImportRow[]) {
 
   revalidatePath("/welders");
   revalidatePath("/dashboard");
-  revalidatePath("/masterlist");
+  revalidatePath("/welders/masterlist");
 
   return result;
 }

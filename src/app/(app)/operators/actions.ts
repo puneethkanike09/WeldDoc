@@ -11,9 +11,12 @@ import {
   assertPlantOperatorIdAvailable,
   isUniqueViolation,
   normalizePlantOperatorId,
-  nextAvailablePlantOperatorId,
 } from "@/lib/operators/plant-id";
 import { normalizeOptionalEmail } from "@/lib/utils";
+import {
+  createOperatorRecord,
+  type CreateOperatorRecordContext,
+} from "@/lib/operators/create-record";
 
 function str(v: FormDataEntryValue | null): string | null {
   const s = typeof v === "string" ? v.trim() : "";
@@ -28,77 +31,14 @@ function syncRegistrationFields(formData: FormData) {
 
 export async function createOperator(formData: FormData) {
   syncRegistrationFields(formData);
-  validateWelderRegistration(formData, "create");
   const { org, userId } = await requireSession();
   const supabase = await createClient();
+  const ctx: CreateOperatorRecordContext = { org, userId };
 
-  const fullName = str(formData.get("full_name"));
-  if (!fullName) throw new Error("Operator name is required.");
-
-  const idMethodRaw = str(formData.get("id_method"));
-  const idMethodOther = str(formData.get("id_method_other"));
-  const idMethod =
-    idMethodRaw === "Other" ? idMethodOther ?? "Other" : idMethodRaw;
-
-  const { data: uid, error: uidErr } = await supabase.rpc("next_operator_uid", {
-    p_org: org.id,
-  });
-  if (uidErr || !uid) throw new Error(uidErr?.message ?? "Could not allocate UID.");
-
-  let plantOperatorId = normalizePlantOperatorId(str(formData.get("operator_id")));
-  if (!plantOperatorId) {
-    plantOperatorId = await nextAvailablePlantOperatorId(
-      supabase,
-      org.id,
-      org.operator_seq,
-    );
-  }
-  if (!plantOperatorId) {
-    throw new Error("Could not assign a plant operator ID.");
-  }
-
-  await assertPlantOperatorIdAvailable(supabase, org.id, plantOperatorId);
-
-  const photo = formData.get("photo");
-  const photoPath = await uploadFile(
-    "welder-photos",
-    photo instanceof File ? photo : null,
-    `${org.id}`,
-  );
-
-  const { data: operator, error } = await supabase
-    .from("operators")
-    .insert({
-      org_id: org.id,
-      uid,
-      operator_id: plantOperatorId,
-      full_name: fullName,
-      date_of_birth: str(formData.get("date_of_birth")),
-      place_of_birth: str(formData.get("place_of_birth")),
-      id_method: idMethod,
-      id_number: str(formData.get("id_number")),
-      employer: str(formData.get("employer")) ?? org.name,
-      branch_location: str(formData.get("branch_location")) ?? org.location_code,
-      email: normalizeOptionalEmail(str(formData.get("email"))),
-      photo_path: photoPath,
-      status: "Active",
-      is_new_operator: true,
-      created_by: userId,
-    })
-    .select("id")
-    .single();
-
-  if (error) {
-    if (isUniqueViolation(error)) {
-      throw new Error(
-        `Plant operator ID "${plantOperatorId}" is already in use. Choose a different ID.`,
-      );
-    }
-    throw new Error(error.message);
-  }
+  const operatorId = await createOperatorRecord(supabase, ctx, formData);
 
   revalidatePath("/operators");
-  redirect(`/operators/${operator.id}/qualify`);
+  redirect(`/operators/${operatorId}/qualify`);
 }
 
 export async function updateOperator(operatorId: string, formData: FormData) {
