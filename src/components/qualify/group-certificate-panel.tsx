@@ -27,6 +27,7 @@ export interface GroupCertificateMember {
   personName: string;
   plantId: string | null;
   memberStatus: string;
+  qualificationId: string | null;
   rangeSummary: string | null;
   profileHref: string;
   ndtReady: boolean;
@@ -104,6 +105,8 @@ function WelderMemberCertificateCard({
               View profile <ExternalLink className="h-3.5 w-3.5" />
             </Link>
           </div>
+        ) : !member.qualificationId ? (
+          <Badge tone="expiring">Qualification missing — re-save steps 1–2</Badge>
         ) : member.memberStatus === "Failed" || !member.ndtReady ? (
           <Badge tone="expiring">
             {member.memberStatus === "Failed" ? "NDT failed" : "NDT incomplete"}
@@ -274,6 +277,8 @@ function OperatorMemberCertificateCard({
               View profile <ExternalLink className="h-3.5 w-3.5" />
             </Link>
           </div>
+        ) : !member.qualificationId ? (
+          <Badge tone="expiring">Qualification missing — re-save steps 1–2</Badge>
         ) : member.memberStatus === "Failed" || !member.ndtReady ? (
           <Badge tone="expiring">
             {member.memberStatus === "Failed" ? "NDT failed" : "NDT incomplete"}

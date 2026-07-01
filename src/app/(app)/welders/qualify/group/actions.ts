@@ -2,10 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { uploadFile } from "@/lib/storage";
 import { computeExpiry } from "@/lib/expiry";
+import { VISUAL_TEST_METHOD } from "@/lib/iso9606/constants";
 import { recomputeWpqRange } from "@/lib/iso9606/recompute-wpq-range";
 import {
   ndtJointCategory,
@@ -25,6 +27,7 @@ import {
 import {
   loadSession,
   materializeSessionMembers,
+  reloadSessionMembers,
   sessionHasApprovedMember,
 } from "@/lib/qualify/group-session";
 import { welderJointLabelFromPlan } from "@/lib/qualify/group-session/welder";
@@ -67,8 +70,13 @@ export async function createWelderGroupSession(formData: FormData) {
   const existingIds = parseIds(formData, "existing_ids");
   const prefixes = parseNewPersonPrefixes(formData);
   const label = formStr(formData.get("label"));
+  const expectedCount = Number.parseInt(
+    formStr(formData.get("participant_count")) ?? "",
+    10,
+  );
   const createdWelderIds: string[] = [];
   const allPersonIds = [...existingIds];
+  let sessionId: string | null = null;
 
   try {
     for (const prefix of prefixes) {
@@ -82,6 +90,16 @@ export async function createWelderGroupSession(formData: FormData) {
       throw new Error("Select or add at least one welder.");
     }
 
+    if (
+      Number.isFinite(expectedCount) &&
+      expectedCount > 0 &&
+      allPersonIds.length !== expectedCount
+    ) {
+      throw new Error(
+        `Could not register all ${expectedCount} participants. Only ${allPersonIds.length} were saved — check new welder details and try again.`,
+      );
+    }
+
     const { data: session, error: sessionErr } = await supabase
       .from("qualification_sessions")
       .insert({
@@ -93,6 +111,7 @@ export async function createWelderGroupSession(formData: FormData) {
       .select("id")
       .single();
     if (sessionErr) throw new Error(sessionErr.message);
+    sessionId = session.id;
 
     const memberRows = allPersonIds.map((welderId) => ({
       session_id: session.id,
@@ -109,6 +128,10 @@ export async function createWelderGroupSession(formData: FormData) {
     revalidatePath("/welders/qualify/group");
     redirect(`/welders/qualify/group/${session.id}?step=1`);
   } catch (err) {
+    if (isRedirectError(err)) throw err;
+    if (sessionId) {
+      await supabase.from("qualification_sessions").delete().eq("id", sessionId);
+    }
     for (const id of createdWelderIds) {
       await supabase.from("welders").delete().eq("id", id);
     }
@@ -132,10 +155,11 @@ export async function saveWelderGroupPlan(sessionId: string, formData: FormData)
     .eq("id", sessionId)
     .eq("org_id", org.id);
 
+  const freshMembers = await reloadSessionMembers(supabase, org.id, sessionId);
   await materializeSessionMembers(supabase, org.id, {
     ...session,
     shared_plan: sharedPlan,
-  }, members);
+  }, freshMembers);
 
   revalidatePath(`/welders/qualify/group/${sessionId}`);
   redirect(`/welders/qualify/group/${sessionId}?step=2`);
@@ -168,11 +192,12 @@ export async function saveWelderGroupTestPiece(
     .eq("id", sessionId)
     .eq("org_id", org.id);
 
+  const freshMembers = await reloadSessionMembers(supabase, org.id, sessionId);
   await materializeSessionMembers(
     supabase,
     org.id,
     { ...session, shared_test_piece: sharedTestPiece },
-    members,
+    freshMembers,
   );
 
   revalidatePath(`/welders/qualify/group/${sessionId}`);
@@ -215,9 +240,34 @@ async function saveWelderMemberNdt(
   }
   validateNdtResults(probe, ndtJointCategory(jointLabel));
 
+  const { data: existingNdt } = await supabase
+    .from("ndt_dt_records")
+    .select("test_method, report_pdf_path")
+    .eq("wpq_id", qualId);
+  const existingByMethod = new Map(
+    (existingNdt ?? []).map((r) => [
+      r.test_method,
+      r.report_pdf_path as string | null,
+    ]),
+  );
+
+  function existingReportPath(method: string): string | null {
+    const direct = existingByMethod.get(method);
+    if (direct) return direct;
+    if (method === VISUAL_TEST_METHOD) {
+      return (
+        existingByMethod.get("Visual (Root)") ??
+        existingByMethod.get("Visual (Cap)") ??
+        null
+      );
+    }
+    return null;
+  }
+
   await supabase.from("ndt_dt_records").delete().eq("wpq_id", qualId);
 
   let anyFail = false;
+  let allSelectedPass = methods.length > 0;
   const ndtSnapshot: Record<string, string> = {};
 
   for (const method of methods) {
@@ -236,11 +286,13 @@ async function saveWelderMemberNdt(
       file instanceof File && file.size > 0 ? file : null,
       `${orgId}/wpq-${qualId}`,
     );
+    const reportPath = uploaded ?? existingReportPath(method) ?? null;
 
     ndtSnapshot[`result__${method}`] = result;
     if (conductedBy) ndtSnapshot[`conducted_by__${method}`] = conductedBy;
     if (testDate) ndtSnapshot[`test_date__${method}`] = testDate;
     if (result === "Fail") anyFail = true;
+    if (result !== "Pass") allSelectedPass = false;
 
     await supabase.from("ndt_dt_records").insert({
       org_id: orgId,
@@ -249,21 +301,15 @@ async function saveWelderMemberNdt(
       result,
       conducted_by: conductedBy,
       test_date: testDate,
-      report_pdf_path: uploaded,
+      report_pdf_path: reportPath,
     });
   }
 
-  const ndtRows = methods.map((method) => ({
-    test_method: method,
-    result: (formStr(
-      formData.get(`member_${member.id}_result__${method}`),
-    ) ?? "Pass") as TestResult,
-  }));
-
-  const ready =
-    !anyFail &&
-    wpqReadyForCertificate(wpq as QualificationRecord, ndtRows);
-  const memberStatus = anyFail ? "Failed" : ready ? "Pending_NDT" : "Draft";
+  const memberStatus = anyFail
+    ? "Failed"
+    : methods.length > 0 && allSelectedPass
+      ? "Pending_NDT"
+      : "Draft";
 
   await supabase
     .from("qualification_session_members")

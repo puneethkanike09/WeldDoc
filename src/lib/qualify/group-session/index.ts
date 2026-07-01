@@ -40,6 +40,45 @@ export async function loadSession(
   };
 }
 
+export async function reloadSessionMembers(
+  supabase: SupabaseClient,
+  orgId: string,
+  sessionId: string,
+): Promise<QualificationSessionMember[]> {
+  const { data } = await supabase
+    .from("qualification_session_members")
+    .select("*")
+    .eq("session_id", sessionId)
+    .eq("org_id", orgId)
+    .order("created_at");
+
+  return (data ?? []) as QualificationSessionMember[];
+}
+
+/** Create draft WPQ rows for any participant missing qualification_id. */
+export async function ensureMembersMaterialized(
+  supabase: SupabaseClient,
+  orgId: string,
+  session: QualificationSession,
+  members: QualificationSessionMember[],
+): Promise<QualificationSessionMember[]> {
+  const active = members.filter((m) => m.member_status !== "Removed");
+  const missingQual = active.filter(
+    (m) =>
+      (m.welder_id || m.operator_id) &&
+      !m.qualification_id &&
+      m.member_status !== "Approved",
+  );
+
+  if (missingQual.length === 0) return members;
+  if (!session.shared_plan || Object.keys(session.shared_plan).length === 0) {
+    return members;
+  }
+
+  await materializeSessionMembers(supabase, orgId, session, members);
+  return reloadSessionMembers(supabase, orgId, session.id);
+}
+
 export function sessionHasApprovedMember(
   members: QualificationSessionMember[],
 ): boolean {

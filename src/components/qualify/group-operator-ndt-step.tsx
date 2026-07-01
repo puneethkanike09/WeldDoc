@@ -29,6 +29,7 @@ export interface GroupOperatorNdtMember {
   personName: string;
   plantId: string | null;
   operatorId: string;
+  qualificationId: string | null;
   existingNdt: OperatorNdtRecord[];
 }
 
@@ -94,6 +95,7 @@ export function GroupOperatorNdtStep({
         method1_standard: String(formData.get("method1_standard") ?? ""),
       });
       for (const member of members) {
+        if (!member.qualificationId) continue;
         const scope = `member_${member.memberId}_`;
         for (const t of tests) {
           const resultKey = `${scope}ndt_${t.method}`;
@@ -207,18 +209,26 @@ export function GroupOperatorNdtStep({
                         </span>
                       ) : null}
                     </p>
-                    {ndtTests.map((t) => (
-                      <OperatorNdtRow
-                        key={`${member.memberId}-${t.method}`}
-                        label={t.label}
-                        method={t.method}
-                        operatorId={member.operatorId}
-                        existing={ndtRecordForMethod(member.existingNdt, t.method)}
-                        fieldErrors={fieldErrors}
-                        clearError={clearError}
-                        nameScope={`member_${member.memberId}_`}
-                      />
-                    ))}
+                    {!member.qualificationId ? (
+                      <p className="mx-3 rounded-[10px] bg-expiring/15 px-4 py-3 text-sm text-[#8a6a00]">
+                        Qualification record missing for this operator. Go back to
+                        step 1, save the plan again, then complete step 2 before
+                        entering NDT results.
+                      </p>
+                    ) : (
+                      ndtTests.map((t) => (
+                        <OperatorNdtRow
+                          key={`${member.memberId}-${t.method}`}
+                          label={t.label}
+                          method={t.method}
+                          operatorId={member.operatorId}
+                          existing={ndtRecordForMethod(member.existingNdt, t.method)}
+                          fieldErrors={fieldErrors}
+                          clearError={clearError}
+                          nameScope={`member_${member.memberId}_`}
+                        />
+                      ))
+                    )}
                   </div>
                 ))}
               </div>

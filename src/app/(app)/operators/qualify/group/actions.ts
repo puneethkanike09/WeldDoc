@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { uploadFile } from "@/lib/storage";
@@ -24,6 +25,7 @@ import {
 import {
   loadSession,
   materializeSessionMembers,
+  reloadSessionMembers,
   sessionHasApprovedMember,
 } from "@/lib/qualify/group-session";
 import { createOperatorRecord } from "@/lib/operators/create-record";
@@ -63,8 +65,13 @@ export async function createOperatorGroupSession(formData: FormData) {
   const existingIds = parseIds(formData, "existing_ids");
   const prefixes = parseNewPersonPrefixes(formData);
   const label = formStr(formData.get("label"));
+  const expectedCount = Number.parseInt(
+    formStr(formData.get("participant_count")) ?? "",
+    10,
+  );
   const createdOperatorIds: string[] = [];
   const allPersonIds = [...existingIds];
+  let sessionId: string | null = null;
 
   try {
     for (const prefix of prefixes) {
@@ -78,6 +85,16 @@ export async function createOperatorGroupSession(formData: FormData) {
       throw new Error("Select or add at least one operator.");
     }
 
+    if (
+      Number.isFinite(expectedCount) &&
+      expectedCount > 0 &&
+      allPersonIds.length !== expectedCount
+    ) {
+      throw new Error(
+        `Could not register all ${expectedCount} participants. Only ${allPersonIds.length} were saved — check new operator details and try again.`,
+      );
+    }
+
     const { data: session, error: sessionErr } = await supabase
       .from("qualification_sessions")
       .insert({
@@ -89,6 +106,7 @@ export async function createOperatorGroupSession(formData: FormData) {
       .select("id")
       .single();
     if (sessionErr) throw new Error(sessionErr.message);
+    sessionId = session.id;
 
     const memberRows = allPersonIds.map((operatorId) => ({
       session_id: session.id,
@@ -105,6 +123,10 @@ export async function createOperatorGroupSession(formData: FormData) {
     revalidatePath("/operators/qualify/group");
     redirect(`/operators/qualify/group/${session.id}?step=1`);
   } catch (err) {
+    if (isRedirectError(err)) throw err;
+    if (sessionId) {
+      await supabase.from("qualification_sessions").delete().eq("id", sessionId);
+    }
     for (const id of createdOperatorIds) {
       await supabase.from("operators").delete().eq("id", id);
     }
@@ -128,10 +150,11 @@ export async function saveOperatorGroupPlan(sessionId: string, formData: FormDat
     .eq("id", sessionId)
     .eq("org_id", org.id);
 
+  const freshMembers = await reloadSessionMembers(supabase, org.id, sessionId);
   await materializeSessionMembers(supabase, org.id, {
     ...session,
     shared_plan: sharedPlan,
-  }, members);
+  }, freshMembers);
 
   revalidatePath(`/operators/qualify/group/${sessionId}`);
   redirect(`/operators/qualify/group/${sessionId}?step=2`);
@@ -163,11 +186,12 @@ export async function saveOperatorGroupTestPiece(
     .eq("id", sessionId)
     .eq("org_id", org.id);
 
+  const freshMembers = await reloadSessionMembers(supabase, org.id, sessionId);
   await materializeSessionMembers(
     supabase,
     org.id,
     { ...session, shared_test_piece: sharedTestPiece },
-    members,
+    freshMembers,
   );
 
   revalidatePath(`/operators/qualify/group/${sessionId}`);
@@ -215,9 +239,21 @@ async function saveOperatorMemberNdt(
     method1_standard: method1Standard,
   });
 
+  const { data: existingNdt } = await supabase
+    .from("operator_ndt_records")
+    .select("test_method, report_pdf_path")
+    .eq("oq_id", qualId);
+  const existingByMethod = new Map(
+    (existingNdt ?? []).map((r) => [
+      r.test_method,
+      r.report_pdf_path as string | null,
+    ]),
+  );
+
   await supabase.from("operator_ndt_records").delete().eq("oq_id", qualId);
 
   let anyFail = false;
+  let allRequiredPass = tests.length > 0;
   const ndtSnapshot: Record<string, string> = {};
 
   for (const t of tests) {
@@ -236,11 +272,13 @@ async function saveOperatorMemberNdt(
       file instanceof File && file.size > 0 ? file : null,
       `${orgId}/oq-${qualId}`,
     );
+    const reportPath = uploaded ?? existingByMethod.get(t.method) ?? null;
 
     ndtSnapshot[`ndt_${t.method}`] = result;
     if (conductedBy) ndtSnapshot[`conducted_by__${t.method}`] = conductedBy;
     if (testDate) ndtSnapshot[`test_date__${t.method}`] = testDate;
     if (result === "Fail") anyFail = true;
+    if (result !== "Pass") allRequiredPass = false;
 
     await supabase.from("operator_ndt_records").insert({
       org_id: orgId,
@@ -249,7 +287,7 @@ async function saveOperatorMemberNdt(
       result,
       conducted_by: conductedBy,
       test_date: testDate,
-      report_pdf_path: uploaded,
+      report_pdf_path: reportPath,
     });
   }
 
@@ -262,24 +300,11 @@ async function saveOperatorMemberNdt(
     })
     .eq("id", qualId);
 
-  const ready =
-    !anyFail &&
-    operatorNdtReady(
-      {
-        ...oq,
-        qualification_test_method:
-          method as OperatorQualification["qualification_test_method"],
-        method1_standard: method1Standard,
-      },
-      tests.map((t) => ({
-        test_method: t.method,
-        result: (formStr(
-          formData.get(`member_${member.id}_ndt_${t.method}`),
-        ) ?? "Pass") as TestResult,
-      })),
-    );
-
-  const memberStatus = anyFail ? "Failed" : ready ? "Pending_NDT" : "Draft";
+  const memberStatus = anyFail
+    ? "Failed"
+    : allRequiredPass
+      ? "Pending_NDT"
+      : "Draft";
 
   await supabase
     .from("qualification_session_members")

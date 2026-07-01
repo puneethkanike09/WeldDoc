@@ -5,10 +5,14 @@ import { PageHeader } from "@/components/app/page-header";
 import { GroupSessionStepper } from "@/components/qualify/wizard-chrome";
 import { GroupWelderCertificateStep } from "@/components/qualify/group-certificate-panel";
 import { GroupWelderNdtStep } from "@/components/qualify/group-welder-ndt-step";
+import { GroupSessionParticipants } from "@/components/qualify/group-session-participants";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { requireWelderWorkspace } from "@/lib/standards/active-standard.server";
-import { loadSession } from "@/lib/qualify/group-session";
+import {
+  ensureMembersMaterialized,
+  loadSession,
+} from "@/lib/qualify/group-session";
 import {
   welderJointLabelFromPlan,
   welderRecordFromSession,
@@ -50,7 +54,16 @@ export default async function WelderGroupSessionPage({
   const loaded = await loadSession(supabase, org.id, sessionId, "ISO_9606_1");
   if (!loaded) notFound();
 
-  const { session, members } = loaded;
+  let { session, members } = loaded;
+  members = await ensureMembersMaterialized(supabase, org.id, session, members);
+
+  const { data: sessionRow } = await supabase
+    .from("qualification_sessions")
+    .select("*")
+    .eq("id", sessionId)
+    .eq("org_id", org.id)
+    .single();
+  if (sessionRow) session = sessionRow as QualificationSession;
   const step = Math.min(4, Math.max(1, parseInt(stepParam ?? "1", 10) || 1));
   const baseHref = `/welders/qualify/group/${sessionId}`;
   const activeMembers = members.filter((m) => m.member_status !== "Removed");
@@ -133,7 +146,7 @@ export default async function WelderGroupSessionPage({
   }
 
   const ndtMembers = activeMembers
-    .filter((m) => m.welder_id && m.qualification_id)
+    .filter((m) => m.welder_id)
     .map((m) => {
       const w = welders.get(m.welder_id!);
       return {
@@ -141,23 +154,27 @@ export default async function WelderGroupSessionPage({
         personName: w?.full_name ?? "—",
         plantId: w?.welder_id ?? null,
         welderId: m.welder_id!,
-        existingNdt: ndtByWpq.get(m.qualification_id!) ?? [],
+        qualificationId: m.qualification_id,
+        existingNdt: m.qualification_id
+          ? (ndtByWpq.get(m.qualification_id) ?? [])
+          : [],
       };
     });
 
   const certMembers = activeMembers
-    .filter((m) => m.welder_id && m.qualification_id)
+    .filter((m) => m.welder_id)
     .map((m) => {
       const w = welders.get(m.welder_id!);
-      const q = wpqMap.get(m.qualification_id!);
-      const range = rangeMap.get(m.qualification_id!);
-      const ndt = ndtByWpq.get(m.qualification_id!) ?? [];
+      const q = m.qualification_id ? wpqMap.get(m.qualification_id) : null;
+      const range = m.qualification_id ? rangeMap.get(m.qualification_id) : null;
+      const ndt = m.qualification_id ? (ndtByWpq.get(m.qualification_id) ?? []) : [];
       return {
         memberId: m.id,
         personId: m.welder_id!,
         personName: w?.full_name ?? "—",
         plantId: w?.welder_id ?? null,
         memberStatus: m.member_status,
+        qualificationId: m.qualification_id,
         rangeSummary: range?.summary ?? null,
         profileHref: `/welders/${m.welder_id}`,
         ndtReady: q
@@ -176,6 +193,19 @@ export default async function WelderGroupSessionPage({
       };
     });
 
+  const participantStrip = activeMembers
+    .filter((m) => m.welder_id)
+    .map((m) => {
+      const w = welders.get(m.welder_id!);
+      return {
+        id: m.id,
+        name: w?.full_name ?? "—",
+        plantId: w?.welder_id ?? null,
+        hasQualification: Boolean(m.qualification_id),
+        status: m.member_status,
+      };
+    });
+
   return (
     <>
       <PageHeader
@@ -191,6 +221,8 @@ export default async function WelderGroupSessionPage({
         </Link>
 
         <GroupSessionStepper step={step} baseHref={baseHref} />
+
+        <GroupSessionParticipants participants={participantStrip} />
 
         {step === 1 && (
           <PlanStep

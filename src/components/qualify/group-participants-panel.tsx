@@ -152,15 +152,28 @@ export function GroupParticipantsPanel({
 
   const prepare = useCallback(
     (formData: FormData) => {
+      formData.set("participant_count", String(selected.size + newRows.length));
+
       for (const row of newRows) {
         formData.set(`${row.key}_date_of_birth`, row.dob);
+        formData.set(`${row.key}_${plantField}`, row.plantId);
+        formData.set(`${row.key}_id_method`, row.idMethod);
         if (row.location.combined) {
           formData.set(`${row.key}_place_of_birth`, row.location.combined);
+        }
+        if (row.location.country) {
+          formData.set(`${row.key}_country`, row.location.country);
+        }
+        if (row.location.state) {
+          formData.set(`${row.key}_state`, row.location.state);
+        }
+        if (row.location.district) {
+          formData.set(`${row.key}_district`, row.location.district);
         }
       }
       setFieldErrors({});
     },
-    [newRows],
+    [newRows, selected.size, plantField],
   );
 
   const [pending, startTransition] = useTransition();
@@ -183,7 +196,12 @@ export function GroupParticipantsPanel({
   const totalCount = selected.size + newRows.length;
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6" noValidate>
+    <form
+      onSubmit={onSubmit}
+      className="space-y-6"
+      noValidate
+      encType="multipart/form-data"
+    >
       {[...selected].map((id) => (
         <input key={id} type="hidden" name="existing_ids" value={id} />
       ))}

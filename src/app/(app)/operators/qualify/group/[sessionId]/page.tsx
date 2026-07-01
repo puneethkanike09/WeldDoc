@@ -5,16 +5,21 @@ import { PageHeader } from "@/components/app/page-header";
 import { GroupSessionStepper } from "@/components/qualify/wizard-chrome";
 import { GroupOperatorCertificateStep } from "@/components/qualify/group-certificate-panel";
 import { GroupOperatorNdtStep } from "@/components/qualify/group-operator-ndt-step";
+import { GroupSessionParticipants } from "@/components/qualify/group-session-participants";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { requireOperatorWorkspace } from "@/lib/standards/active-standard.server";
-import { loadSession } from "@/lib/qualify/group-session";
+import {
+  ensureMembersMaterialized,
+  loadSession,
+} from "@/lib/qualify/group-session";
 import { operatorRecordFromSession } from "@/lib/qualify/group-session/operator";
 import { operatorNdtReady } from "@/lib/iso14732/qualification-fields";
 import type {
   Operator,
   OperatorNdtRecord,
   OperatorQualification,
+  QualificationSession,
 } from "@/types/db";
 import { ArrowLeft } from "lucide-react";
 import {
@@ -47,7 +52,16 @@ export default async function OperatorGroupSessionPage({
   const loaded = await loadSession(supabase, org.id, sessionId, "ISO_14732");
   if (!loaded) notFound();
 
-  const { session, members } = loaded;
+  let { session, members } = loaded;
+  members = await ensureMembersMaterialized(supabase, org.id, session, members);
+
+  const { data: sessionRow } = await supabase
+    .from("qualification_sessions")
+    .select("*")
+    .eq("id", sessionId)
+    .eq("org_id", org.id)
+    .single();
+  if (sessionRow) session = sessionRow as QualificationSession;
   const step = Math.min(4, Math.max(1, parseInt(stepParam ?? "1", 10) || 1));
   const baseHref = `/operators/qualify/group/${sessionId}`;
   const activeMembers = members.filter((m) => m.member_status !== "Removed");
@@ -138,7 +152,7 @@ export default async function OperatorGroupSessionPage({
   }
 
   const ndtMembers = activeMembers
-    .filter((m) => m.operator_id && m.qualification_id)
+    .filter((m) => m.operator_id)
     .map((m) => {
       const o = operators.get(m.operator_id!);
       return {
@@ -146,28 +160,45 @@ export default async function OperatorGroupSessionPage({
         personName: o?.full_name ?? "—",
         plantId: o?.operator_id ?? null,
         operatorId: m.operator_id!,
-        existingNdt: ndtByOq.get(m.qualification_id!) ?? [],
+        qualificationId: m.qualification_id,
+        existingNdt: m.qualification_id
+          ? (ndtByOq.get(m.qualification_id) ?? [])
+          : [],
       };
     });
 
   const certMembers = activeMembers
-    .filter((m) => m.operator_id && m.qualification_id)
+    .filter((m) => m.operator_id)
     .map((m) => {
       const o = operators.get(m.operator_id!);
-      const q = oqMap.get(m.qualification_id!);
-      const range = rangeMap.get(m.qualification_id!);
-      const ndt = ndtByOq.get(m.qualification_id!) ?? [];
+      const q = m.qualification_id ? oqMap.get(m.qualification_id) : null;
+      const range = m.qualification_id ? rangeMap.get(m.qualification_id) : null;
+      const ndt = m.qualification_id ? (ndtByOq.get(m.qualification_id) ?? []) : [];
       return {
         memberId: m.id,
         personId: m.operator_id!,
         personName: o?.full_name ?? "—",
         plantId: o?.operator_id ?? null,
         memberStatus: m.member_status,
+        qualificationId: m.qualification_id,
         rangeSummary: range?.summary ?? null,
         profileHref: `/operators/${m.operator_id}`,
         ndtReady: q ? operatorNdtReady(q, ndt) : false,
         defaultExaminerName: q?.examiner_name ?? null,
         defaultCertDate: q?.date_of_welding ?? null,
+      };
+    });
+
+  const participantStrip = activeMembers
+    .filter((m) => m.operator_id)
+    .map((m) => {
+      const o = operators.get(m.operator_id!);
+      return {
+        id: m.id,
+        name: o?.full_name ?? "—",
+        plantId: o?.operator_id ?? null,
+        hasQualification: Boolean(m.qualification_id),
+        status: m.member_status,
       };
     });
 
@@ -186,6 +217,8 @@ export default async function OperatorGroupSessionPage({
         </Link>
 
         <GroupSessionStepper step={step} baseHref={baseHref} />
+
+        <GroupSessionParticipants participants={participantStrip} />
 
         {step === 1 && firstOperator && (
           <OperatorPlanStep

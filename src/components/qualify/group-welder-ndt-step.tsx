@@ -25,6 +25,7 @@ export interface GroupNdtMember {
   personName: string;
   plantId: string | null;
   welderId: string;
+  qualificationId: string | null;
   existingNdt: NdtDtRecord[];
 }
 
@@ -78,6 +79,7 @@ export function GroupWelderNdtStep({
         return errors;
       }
       for (const member of members) {
+        if (!member.qualificationId) continue;
         const scope = `member_${member.memberId}_`;
         for (const method of methods) {
           const resultKey = `${scope}result__${method}`;
@@ -163,18 +165,26 @@ export function GroupWelderNdtStep({
                         </span>
                       ) : null}
                     </p>
-                    {selectedOrdered.map((method) => (
-                      <NdtTestRow
-                        key={`${member.memberId}-${method}`}
-                        method={method}
-                        required
-                        welderId={member.welderId}
-                        existing={ndtRecordForMethod(member.existingNdt, method)}
-                        fieldErrors={fieldErrors}
-                        clearError={clearError}
-                        nameScope={`member_${member.memberId}_`}
-                      />
-                    ))}
+                    {!member.qualificationId ? (
+                      <p className="mx-3 rounded-[10px] bg-expiring/15 px-4 py-3 text-sm text-[#8a6a00]">
+                        Qualification record missing for this welder. Go back to
+                        step 1, save the plan again, then complete step 2 before
+                        entering NDT results.
+                      </p>
+                    ) : (
+                      selectedOrdered.map((method) => (
+                        <NdtTestRow
+                          key={`${member.memberId}-${method}`}
+                          method={method}
+                          required
+                          welderId={member.welderId}
+                          existing={ndtRecordForMethod(member.existingNdt, method)}
+                          fieldErrors={fieldErrors}
+                          clearError={clearError}
+                          nameScope={`member_${member.memberId}_`}
+                        />
+                      ))
+                    )}
                   </div>
                 ))}
               </div>
