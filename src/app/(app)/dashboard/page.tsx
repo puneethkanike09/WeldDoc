@@ -9,6 +9,7 @@ import type {
   Operator,
   OperatorQualification,
   QualificationRecord,
+  RangeOfApproval,
   Welder,
 } from "@/types/db";
 import { OperatorDashboard } from "./operator-dashboard";
@@ -52,6 +53,18 @@ export default async function DashboardPage() {
     supabase.from("qualification_records").select("*").eq("org_id", org.id),
   ]);
 
+  const wpqs = (wpqRows ?? []) as QualificationRecord[];
+  const { data: rangeRows } = await supabase
+    .from("ranges_of_approval")
+    .select("*")
+    .in(
+      "wpq_id",
+      wpqs.length ? wpqs.map((w) => w.id) : ["00000000-0000-0000-0000-000000000000"],
+    );
+  const ranges = new Map(
+    ((rangeRows ?? []) as RangeOfApproval[]).map((r) => [r.wpq_id, r]),
+  );
+
   return (
     <>
       <PageHeader title="Dashboard" description={`Welcome back, ${name}.`}>
@@ -60,7 +73,8 @@ export default async function DashboardPage() {
       <WelderDashboard
         widgets={widgets}
         welders={(welderRows ?? []) as Welder[]}
-        wpqs={(wpqRows ?? []) as QualificationRecord[]}
+        wpqs={wpqs}
+        ranges={ranges}
       />
     </>
   );

@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { DashboardStat } from "@/components/app/dashboard-stat";
-import { DonutCard } from "@/components/app/dashboard-charts";
+import { DonutCard, BarCard } from "@/components/app/dashboard-charts";
 import {
   chartGridClass,
   widgetsForStandard,
@@ -28,13 +28,59 @@ const PREVIEW_BY_PROCESS = [
 ];
 
 const PREVIEW_BY_JOINT = [
-  { name: "Butt weld", value: 68 },
-  { name: "Fillet weld", value: 26 },
+  { name: "Butt weld (BW)", value: 68 },
+  { name: "Fillet weld (FW)", value: 26 },
+];
+
+const PREVIEW_BY_POSITION = [
+  { name: "PA", value: 22 },
+  { name: "PB", value: 18 },
+  { name: "PC", value: 14 },
+  { name: "PF", value: 9 },
+];
+
+const PREVIEW_BY_FM_GROUP = [
+  { name: "FM1", value: 24 },
+  { name: "FM2", value: 20 },
+  { name: "Group 1.1", value: 16 },
+  { name: "Group 8", value: 8 },
+];
+
+const PREVIEW_BY_PRODUCT = [
+  { name: "Plate", value: 42 },
+  { name: "Pipe", value: 36 },
+  { name: "Branch", value: 12 },
+];
+
+const PREVIEW_BY_THICKNESS = [
+  { name: "3–12 mm", value: 28 },
+  { name: "12–40 mm", value: 22 },
+  { name: "< 3 mm", value: 14 },
+  { name: "≥ 40 mm", value: 8 },
+];
+
+const PREVIEW_BY_DIAMETER = [
+  { name: "25–150 mm OD", value: 24 },
+  { name: "150–400 mm OD", value: 16 },
+  { name: "< 25 mm OD", value: 10 },
+  { name: "Plate (N/A)", value: 42 },
 ];
 
 const PREVIEW_BY_WELDING_TYPE = [
   { name: "Fusion", value: 58 },
   { name: "Resistance", value: 36 },
+];
+
+const PREVIEW_OPERATOR_BY_PRODUCT = [
+  { name: "Plate", value: 30 },
+  { name: "Pipe", value: 22 },
+  { name: "Hollow section", value: 8 },
+];
+
+const PREVIEW_OPERATOR_BY_JOINT = [
+  { name: "Butt", value: 26 },
+  { name: "Fillet", value: 18 },
+  { name: "Edge", value: 6 },
 ];
 
 const PREVIEW_WELDER_COVERAGE = [
@@ -258,6 +304,15 @@ export function DashboardLayoutPreview({
             data={PREVIEW_BY_WELDING_TYPE}
           />
         ) : null}
+        {id === "chart_operator_qual_by_product" ? (
+          <DonutCard
+            title="By product type"
+            data={PREVIEW_OPERATOR_BY_PRODUCT}
+          />
+        ) : null}
+        {id === "chart_operator_qual_by_joint" ? (
+          <DonutCard title="By joint type" data={PREVIEW_OPERATOR_BY_JOINT} />
+        ) : null}
       </>
     ) : (
       <>
@@ -276,6 +331,21 @@ export function DashboardLayoutPreview({
         ) : null}
         {id === "chart_qual_by_joint" ? (
           <DonutCard title="By joint type" data={PREVIEW_BY_JOINT} />
+        ) : null}
+        {id === "chart_qual_by_position" ? (
+          <DonutCard title="By position" data={PREVIEW_BY_POSITION} />
+        ) : null}
+        {id === "chart_qual_by_fm_group" ? (
+          <DonutCard title="By FM group" data={PREVIEW_BY_FM_GROUP} />
+        ) : null}
+        {id === "chart_qual_by_product" ? (
+          <DonutCard title="By product type" data={PREVIEW_BY_PRODUCT} />
+        ) : null}
+        {id === "chart_qual_by_thickness" ? (
+          <BarCard title="By thickness" data={PREVIEW_BY_THICKNESS} />
+        ) : null}
+        {id === "chart_qual_by_diameter" ? (
+          <BarCard title="By pipe OD" data={PREVIEW_BY_DIAMETER} />
         ) : null}
       </>
     );

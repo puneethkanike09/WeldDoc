@@ -48,7 +48,37 @@ export const WELDER_DASHBOARD_WIDGETS = [
   {
     id: "chart_qual_by_joint",
     label: "By joint type",
-    description: "Butt vs fillet weld split",
+    description: "Butt vs fillet and extended joint types",
+    group: "Charts" as const,
+  },
+  {
+    id: "chart_qual_by_position",
+    label: "By position",
+    description: "Welding positions on approved qualifications",
+    group: "Charts" as const,
+  },
+  {
+    id: "chart_qual_by_fm_group",
+    label: "By FM group",
+    description: "Filler material / material group split",
+    group: "Charts" as const,
+  },
+  {
+    id: "chart_qual_by_product",
+    label: "By product type",
+    description: "Plate, pipe, branch and other product forms",
+    group: "Charts" as const,
+  },
+  {
+    id: "chart_qual_by_thickness",
+    label: "By thickness",
+    description: "Test-piece thickness bands (approved quals)",
+    group: "Charts" as const,
+  },
+  {
+    id: "chart_qual_by_diameter",
+    label: "By pipe OD",
+    description: "Pipe outside-diameter bands (approved quals)",
     group: "Charts" as const,
   },
   {
@@ -106,6 +136,18 @@ export const OPERATOR_DASHBOARD_WIDGETS = [
     id: "chart_operator_qual_by_welding_type",
     label: "By welding type",
     description: "Fusion vs resistance split",
+    group: "Charts" as const,
+  },
+  {
+    id: "chart_operator_qual_by_product",
+    label: "By product type",
+    description: "Product forms on approved operator qualifications",
+    group: "Charts" as const,
+  },
+  {
+    id: "chart_operator_qual_by_joint",
+    label: "By joint type",
+    description: "Joint types on approved operator qualifications",
     group: "Charts" as const,
   },
   {
@@ -258,5 +300,5 @@ export function kpiGridClass(count: number): string {
 export function chartGridClass(count: number): string {
   if (count <= 1) return "grid gap-4 grid-cols-1";
   if (count === 2) return "grid gap-4 sm:grid-cols-2";
-  return "grid gap-4 lg:grid-cols-3";
+  return "grid gap-4 sm:grid-cols-2 xl:grid-cols-3";
 }

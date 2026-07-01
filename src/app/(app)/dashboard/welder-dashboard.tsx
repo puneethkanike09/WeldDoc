@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { DonutCard, type Slice } from "@/components/app/dashboard-charts";
+import {
+  BarCard,
+  DonutCard,
+  type Slice,
+} from "@/components/app/dashboard-charts";
 import { DashboardStat } from "@/components/app/dashboard-stat";
+import { aggregateWelderMasterCharts } from "@/lib/dashboard/aggregate-charts";
 import {
   chartGridClass,
   kpiGridClass,
@@ -15,16 +20,18 @@ import {
   type OverallStatus,
 } from "@/lib/welder-status";
 import { formatDate } from "@/lib/utils";
-import type { QualificationRecord, Welder } from "@/types/db";
+import type { QualificationRecord, RangeOfApproval, Welder } from "@/types/db";
 
 export function WelderDashboard({
   widgets,
   welders,
   wpqs,
+  ranges,
 }: {
   widgets: Set<DashboardWidgetId>;
   welders: Welder[];
   wpqs: QualificationRecord[];
+  ranges: Map<string, RangeOfApproval>;
 }) {
   const wpqByWelder = new Map<string, QualificationRecord[]>();
   for (const w of wpqs) {
@@ -43,25 +50,7 @@ export function WelderDashboard({
   );
 
   const approved = wpqs.filter((w) => w.wpq_status === "Approved");
-
-  const processCounts: Record<string, number> = {};
-  for (const w of approved) {
-    const p = processLabel(w.process);
-    processCounts[p] = (processCounts[p] ?? 0) + 1;
-  }
-  const byProcess: Slice[] = Object.entries(processCounts).map(
-    ([name, value]) => ({ name, value }),
-  );
-
-  const jointCounts = { Butt: 0, Fillet: 0 };
-  for (const w of approved) {
-    if (w.joint_type === "BW") jointCounts.Butt += 1;
-    else jointCounts.Fillet += 1;
-  }
-  const byJoint: Slice[] = [
-    { name: "Butt weld", value: jointCounts.Butt },
-    { name: "Fillet weld", value: jointCounts.Fillet },
-  ].filter((s) => s.value > 0);
+  const masterCharts = aggregateWelderMasterCharts(approved, ranges);
 
   const processesSeen = Array.from(
     new Set(approved.map((w) => processLabel(w.process))),
@@ -147,11 +136,50 @@ export function WelderDashboard({
       <DonutCard
         key="chart_qual_by_process"
         title="Qualifications by process"
-        data={byProcess}
+        data={masterCharts.byProcess}
+      />
+    ) : null,
+    widgets.has("chart_qual_by_position") ? (
+      <DonutCard
+        key="chart_qual_by_position"
+        title="By position"
+        data={masterCharts.byPosition}
+      />
+    ) : null,
+    widgets.has("chart_qual_by_fm_group") ? (
+      <DonutCard
+        key="chart_qual_by_fm_group"
+        title="By FM group"
+        data={masterCharts.byFmGroup}
+      />
+    ) : null,
+    widgets.has("chart_qual_by_product") ? (
+      <DonutCard
+        key="chart_qual_by_product"
+        title="By product type"
+        data={masterCharts.byProduct}
       />
     ) : null,
     widgets.has("chart_qual_by_joint") ? (
-      <DonutCard key="chart_qual_by_joint" title="By joint type" data={byJoint} />
+      <DonutCard
+        key="chart_qual_by_joint"
+        title="By joint type"
+        data={masterCharts.byJoint}
+      />
+    ) : null,
+    widgets.has("chart_qual_by_thickness") ? (
+      <BarCard
+        key="chart_qual_by_thickness"
+        title="By thickness"
+        data={masterCharts.byThickness}
+      />
+    ) : null,
+    widgets.has("chart_qual_by_diameter") ? (
+      <BarCard
+        key="chart_qual_by_diameter"
+        title="By pipe OD"
+        data={masterCharts.byDiameter}
+      />
     ) : null,
   ].filter(Boolean);
 

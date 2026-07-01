@@ -118,8 +118,9 @@ export function DashboardWidgetsForm({
       <p className="text-sm text-graphite">
         Configure the dashboard for the{" "}
         <span className="font-medium text-onyx">{standardMeta.title}</span>{" "}
-        workspace. Preview matches the layout — click any block to show or hide
-        it. Settings apply to everyone in your organisation.
+        workspace. Charts mirror master list dimensions — process, position, FM
+        group, product, joint, thickness and pipe OD. Click any block to show or
+        hide it. Settings apply to everyone in your organisation.
       </p>
 
       {widgetIds.map((id) =>

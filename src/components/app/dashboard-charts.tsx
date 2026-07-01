@@ -1,12 +1,16 @@
 "use client";
 
 import {
+  Bar,
+  BarChart,
   PieChart,
   Pie,
   Cell,
   ResponsiveContainer,
   Tooltip,
   Legend,
+  XAxis,
+  YAxis,
 } from "recharts";
 import { useAppTheme } from "@/components/app/app-theme-provider";
 
@@ -133,6 +137,78 @@ export function DonutCard({
                 }}
               />
             </PieChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function chartTooltipStyle(isDark: boolean) {
+  const tooltipFg = isDark ? "#ededed" : "#161616";
+  return {
+    contentStyle: {
+      borderRadius: 10,
+      border: isDark ? "1px solid #2e2e2e" : "1px solid #e0e2e6",
+      backgroundColor: isDark ? "#1a1a1a" : "#ffffff",
+      color: tooltipFg,
+      fontSize: 13,
+      fontFamily: "var(--font-inter)",
+    },
+    itemStyle: { color: tooltipFg },
+    labelStyle: { color: tooltipFg },
+  } as const;
+}
+
+export function BarCard({
+  title,
+  data,
+}: {
+  title: string;
+  data: Slice[];
+}) {
+  const total = data.reduce((s, d) => s + d.value, 0);
+  const { resolvedTheme } = useAppTheme();
+  const isDark = resolvedTheme === "dark";
+  const chartColors = isDark ? CHART_COLORS_DARK : CHART_COLORS_LIGHT;
+  const axisFg = isDark ? "#a3a3a3" : "#64748b";
+  const tooltip = chartTooltipStyle(isDark);
+  const chartHeight = Math.max(220, data.length * 36);
+
+  return (
+    <div className="rounded-[var(--radius-card)] border border-silver bg-panel p-6">
+      <h3 className="font-display text-base font-semibold tracking-tight text-onyx">
+        {title}
+      </h3>
+      {total === 0 ? (
+        <div className="grid h-[220px] place-items-center text-sm text-steel">
+          No data yet
+        </div>
+      ) : (
+        <div className="mt-2" style={{ height: chartHeight }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={data}
+              layout="vertical"
+              margin={{ top: 4, right: 12, left: 4, bottom: 4 }}
+            >
+              <XAxis type="number" allowDecimals={false} tick={{ fill: axisFg, fontSize: 11 }} />
+              <YAxis
+                type="category"
+                dataKey="name"
+                width={108}
+                tick={{ fill: axisFg, fontSize: 11 }}
+              />
+              <Tooltip {...tooltip} />
+              <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                {data.map((entry, i) => (
+                  <Cell
+                    key={entry.name}
+                    fill={chartColors[i % chartColors.length]}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       )}

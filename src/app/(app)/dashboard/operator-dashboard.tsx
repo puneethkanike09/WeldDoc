@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { DonutCard, type Slice } from "@/components/app/dashboard-charts";
 import { DashboardStat } from "@/components/app/dashboard-stat";
+import { aggregateOperatorMasterCharts } from "@/lib/dashboard/aggregate-charts";
 import {
   chartGridClass,
   kpiGridClass,
@@ -43,25 +44,7 @@ export function OperatorDashboard({
   );
 
   const approved = oqs.filter((o) => o.oq_status === "Approved");
-
-  const processCounts: Record<string, number> = {};
-  for (const o of approved) {
-    const p = processLabel(o.process);
-    processCounts[p] = (processCounts[p] ?? 0) + 1;
-  }
-  const byProcess: Slice[] = Object.entries(processCounts).map(
-    ([name, value]) => ({ name, value }),
-  );
-
-  const typeCounts = { Fusion: 0, Resistance: 0 };
-  for (const o of approved) {
-    if (o.welding_type === "Fusion") typeCounts.Fusion += 1;
-    else if (o.welding_type === "Resistance") typeCounts.Resistance += 1;
-  }
-  const byWeldingType: Slice[] = [
-    { name: "Fusion", value: typeCounts.Fusion },
-    { name: "Resistance", value: typeCounts.Resistance },
-  ].filter((s) => s.value > 0);
+  const masterCharts = aggregateOperatorMasterCharts(approved);
 
   const processesSeen = Array.from(
     new Set(approved.map((o) => processLabel(o.process))),
@@ -147,14 +130,28 @@ export function OperatorDashboard({
       <DonutCard
         key="chart_operator_qual_by_process"
         title="Qualifications by process"
-        data={byProcess}
+        data={masterCharts.byProcess}
       />
     ) : null,
     widgets.has("chart_operator_qual_by_welding_type") ? (
       <DonutCard
         key="chart_operator_qual_by_welding_type"
         title="By welding type"
-        data={byWeldingType}
+        data={masterCharts.byWeldingType}
+      />
+    ) : null,
+    widgets.has("chart_operator_qual_by_product") ? (
+      <DonutCard
+        key="chart_operator_qual_by_product"
+        title="By product type"
+        data={masterCharts.byProduct}
+      />
+    ) : null,
+    widgets.has("chart_operator_qual_by_joint") ? (
+      <DonutCard
+        key="chart_operator_qual_by_joint"
+        title="By joint type"
+        data={masterCharts.byJoint}
       />
     ) : null,
   ].filter(Boolean);
