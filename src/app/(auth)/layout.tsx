@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
+import { LegalNavLinks } from "@/components/marketing/legal-nav-links";
 
 export default function AuthLayout({
   children,
@@ -15,6 +16,7 @@ export default function AuthLayout({
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-sm">{children}</div>
         </div>
+        <LegalNavLinks className="mt-8 justify-center sm:justify-start" />
       </div>
 
       {/* Editorial right panel */}
