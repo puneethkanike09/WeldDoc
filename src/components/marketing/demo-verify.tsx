@@ -40,6 +40,7 @@ export function DemoVerifyPage() {
           expiry="20 Jun 2028"
           employer="SMS group"
           site="PLT-A"
+          showUid={false}
         />
 
         <p className="mt-6 text-center text-xs text-steel">

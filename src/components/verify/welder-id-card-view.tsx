@@ -15,6 +15,8 @@ export interface WelderIdCardViewProps {
   cardHeading?: string;
   plantIdLabel?: string;
   standardLabel?: string;
+  /** Public QR verify page hides the internal WeldDoc UID. */
+  showUid?: boolean;
 }
 
 function statusBadge(status: string): { bg: string; fg: string; label: string } {
@@ -72,6 +74,7 @@ export function WelderIdCardView({
   cardHeading = "Welder ID card",
   plantIdLabel = "Welder ID",
   standardLabel = "EN ISO 9606-1:2017",
+  showUid = true,
 }: WelderIdCardViewProps) {
   const badge = statusBadge(status);
 
@@ -116,7 +119,7 @@ export function WelderIdCardView({
           <PersonalField label="Name" value={welderName} bold />
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
             <PersonalField label={plantIdLabel} value={welderNo} bold />
-            <PersonalField label="UID" value={uid} />
+            {showUid ? <PersonalField label="UID" value={uid} /> : null}
             {employer ? <PersonalField label="Employer" value={employer} /> : null}
             {site !== "—" ? <PersonalField label="Branch" value={site} /> : null}
           </div>
