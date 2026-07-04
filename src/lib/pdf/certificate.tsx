@@ -262,18 +262,6 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
             padding: 10,
           }}
         >
-          <Text
-            style={{
-              fontSize: 6.5,
-              textAlign: "center",
-              color: COLORS.steel,
-              marginBottom: 3,
-            }}
-          >
-            EN ISO 9606-1:2017 — Annex A (informative) · Welder&apos;s
-            qualification test certificate
-          </Text>
-
           {logoUrl ? (
             // eslint-disable-next-line jsx-a11y/alt-text
             <Image
