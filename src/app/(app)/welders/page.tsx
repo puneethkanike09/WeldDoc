@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
 import { AddWelderButton } from "@/components/app/add-welder-button";
-import { ImportWeldersButton, ImportWeldersLink } from "@/components/app/import-welders-button";
+import { ImportWeldersButton } from "@/components/app/import-welders-button";
 import { GroupQualifyButton } from "@/components/app/group-qualify-button";
 import { BulkQrPrintButton } from "@/components/app/bulk-qr-print-button";
 import { createClient } from "@/lib/supabase/server";
@@ -119,12 +119,9 @@ function EmptyState() {
       </h3>
       <p className="mx-auto mt-2 max-w-md text-graphite">
         Add your first welder to start issuing qualifications, certificates and
-        QR-verifiable ID cards — or import existing welders from Excel.
+        QR-verifiable ID cards — or import existing welders from Excel using
+        the actions above.
       </p>
-      <div className="mt-6 flex flex-wrap justify-center gap-3">
-        <ImportWeldersLink />
-        <AddWelderButton />
-      </div>
     </div>
   );
 }

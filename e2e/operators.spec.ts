@@ -18,7 +18,7 @@ test.describe("Operator registry", () => {
     await expectPageHeader(page, "Operators");
     await expect(mainLink(page, /Add operator/i)).toBeVisible();
     await expect(mainLink(page, /Group qualify/i)).toBeVisible();
-    await expect(mainLink(page, /Import from Excel/i)).toBeVisible();
+    await expect(mainLink(page, /Existing Operator-Import Data/i)).toBeVisible();
   });
 
   test("operators list search and filters", async ({ page }) => {
@@ -37,7 +37,7 @@ test.describe("Operator registry", () => {
   });
 
   test("bulk import page", async ({ page }) => {
-    await mainLink(page, /Import from Excel/i).click();
+    await mainLink(page, /Existing Operator-Import Data/i).click();
     await expectPageHeader(page, /Import operators/i);
     await expect(page.getByRole("link", { name: /Download template/i })).toBeVisible();
   });

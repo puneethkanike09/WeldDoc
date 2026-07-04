@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
 import { AddOperatorButton } from "@/components/app/add-operator-button";
 import { GroupQualifyButton } from "@/components/app/group-qualify-button";
-import {
-  ImportOperatorsButton,
-  ImportOperatorsLink,
-} from "@/components/app/import-operators-button";
+import { ImportOperatorsButton } from "@/components/app/import-operators-button";
 import { BulkQrPrintButton } from "@/components/app/bulk-qr-print-button";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
@@ -123,12 +120,8 @@ function EmptyState() {
       <p className="mx-auto mt-2 max-w-md text-graphite">
         Add your first operator to start issuing ISO 14732 qualifications,
         certificates and QR-verifiable ID cards — or import existing operators
-        from Excel.
+        from Excel using the actions above.
       </p>
-      <div className="mt-6 flex flex-wrap justify-center gap-3">
-        <ImportOperatorsLink />
-        <AddOperatorButton />
-      </div>
     </div>
   );
 }

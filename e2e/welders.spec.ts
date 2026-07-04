@@ -17,7 +17,7 @@ test.describe("Welder registry", () => {
     await expectPageHeader(page, "Welders");
     await expect(mainLink(page, /Add welder/i)).toBeVisible();
     await expect(mainLink(page, /Group qualify/i)).toBeVisible();
-    await expect(mainLink(page, /Import from Excel/i)).toBeVisible();
+    await expect(mainLink(page, /Existing Welder-Import Data/i)).toBeVisible();
   });
 
   test("welders list search and filters", async ({ page }) => {
@@ -36,7 +36,7 @@ test.describe("Welder registry", () => {
   });
 
   test("bulk import page", async ({ page }) => {
-    await mainLink(page, /Import from Excel/i).click();
+    await mainLink(page, /Existing Welder-Import Data/i).click();
     await expectPageHeader(page, /Import welders/i);
     await expect(page.getByRole("link", { name: /Download template/i })).toBeVisible();
   });
