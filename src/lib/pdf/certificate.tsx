@@ -649,11 +649,15 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
           </View>
 
           <View style={{ flexDirection: "row", gap: 6, marginTop: 5 }}>
-            <AnnexTable
-              title={revalidationTitle(wpq.revalidation_method)}
-              rows={examinerRows}
-              minRows={3}
-            />
+            {/* Examiner revalidation box is only required for 9.3b — for 9.3a
+                and 9.3c revalidation is via the 6-month coordinator prolongation. */}
+            {wpq.revalidation_method === "9.3b" ? (
+              <AnnexTable
+                title={revalidationTitle(wpq.revalidation_method)}
+                rows={examinerRows}
+                minRows={1}
+              />
+            ) : null}
             <AnnexTable
               title="Prolongation for approval by the welding coordinator for the following 6 months (according to 9.2)"
               rows={continuity}
