@@ -78,14 +78,14 @@ test.describe("Operator registry", () => {
   });
 
   test("sidebar navigation highlights operators workspace", async ({ page }) => {
-    await expect(page.getByRole("navigation").getByRole("link", { name: "Operators" })).toBeVisible();
-    await page.getByRole("navigation").getByRole("link", { name: "Master list" }).click();
+    await expect(page.getByRole("navigation").getByRole("link", { name: "Operator qualification", exact: true })).toBeVisible();
+    await page.getByRole("navigation").getByRole("link", { name: "Operator master list" }).click();
     await expect(page).toHaveURL(/\/operators\/masterlist/);
   });
 
-  test("legacy masterlist redirect goes to operator list", async ({ page }) => {
+  test("legacy masterlist redirect goes to welder list", async ({ page }) => {
     await page.goto("/masterlist");
-    await expect(page).toHaveURL(/\/operators\/masterlist/);
+    await expect(page).toHaveURL(/\/welders\/masterlist/);
   });
 });
 

@@ -1,9 +1,6 @@
 import { redirect } from "next/navigation";
-import { getActiveStandardSlug } from "@/lib/standards/active-standard.server";
 
+/** Legacy URL — welder and operator master lists have dedicated routes in the sidebar. */
 export default async function MasterListRedirectPage() {
-  const slug = await getActiveStandardSlug();
-  redirect(
-    slug === "iso-14732" ? "/operators/masterlist" : "/welders/masterlist",
-  );
+  redirect("/welders/masterlist");
 }

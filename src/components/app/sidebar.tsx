@@ -1,23 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/brand/logo";
 import { SignOutButton } from "@/components/app/sign-out-button";
 import { useAppTheme } from "@/components/app/app-theme-provider";
 import { cn } from "@/lib/utils";
-import {
-  ACTIVE_STANDARD_SLUG,
-  type StandardSlug,
-} from "@/lib/standards/catalog";
-import {
-  readActiveStandardCookie,
-  workspacePersonnelHref,
-  workspacePersonnelLabel,
-  workspaceMasterlistHref,
-} from "@/lib/standards/active-standard";
-import { SidebarStandardSelect } from "@/components/app/sidebar-standard-select";
 import {
   LayoutDashboard,
   Users,
@@ -26,7 +15,29 @@ import {
   Settings,
   X,
   LayoutGrid,
+  UserCog,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+const NAV_ITEMS: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: "/standards", label: "Standards", icon: LayoutGrid },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/welders", label: "Welder qualification", icon: Users },
+  {
+    href: "/welders/qualify/group",
+    label: "Welder group qualify",
+    icon: FileStack,
+  },
+  { href: "/welders/masterlist", label: "Welder master list", icon: Table2 },
+  { href: "/operators", label: "Operator qualification", icon: UserCog },
+  {
+    href: "/operators/qualify/group",
+    label: "Operator group qualify",
+    icon: FileStack,
+  },
+  { href: "/operators/masterlist", label: "Operator master list", icon: Table2 },
+  { href: "/settings", label: "Settings", icon: Settings },
+];
 
 export function Sidebar({
   orgName,
@@ -39,52 +50,20 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const { resolvedTheme } = useAppTheme();
-  const isStandardsHub = pathname === "/standards";
-  const [slug, setSlug] = useState<StandardSlug>(ACTIVE_STANDARD_SLUG);
-
-  useEffect(() => {
-    setSlug(readActiveStandardCookie() ?? ACTIVE_STANDARD_SLUG);
-  }, [pathname]);
-
-  const workspaceNav = useMemo(
-    () => [
-      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-      {
-        href: workspacePersonnelHref(slug),
-        label: workspacePersonnelLabel(slug),
-        icon: Users,
-      },
-      {
-        href: `${workspacePersonnelHref(slug)}/qualify/group`,
-        label: "Group qualify",
-        icon: FileStack,
-      },
-      { href: workspaceMasterlistHref(slug), label: "Master list", icon: Table2 },
-      { href: "/settings", label: "Settings", icon: Settings },
-    ],
-    [slug],
-  );
-
-  const nav = isStandardsHub
-    ? [{ href: "/standards", label: "Standards", icon: LayoutGrid }]
-    : [
-      { href: "/standards", label: "Standards", icon: LayoutGrid },
-      ...workspaceNav,
-    ];
 
   const activeHref = useMemo(() => {
-    const matches = nav.filter(
+    const matches = NAV_ITEMS.filter(
       (item) =>
         pathname === item.href || pathname.startsWith(`${item.href}/`),
     );
     matches.sort((a, b) => b.href.length - a.href.length);
     return matches[0]?.href ?? null;
-  }, [nav, pathname]);
+  }, [pathname]);
 
   return (
     <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-silver bg-panel">
       <div className="flex items-center justify-between px-5 py-5">
-        <Link href="/standards" aria-label="WeldDoc" onClick={onNavigate}>
+        <Link href="/dashboard" aria-label="WeldDoc" onClick={onNavigate}>
           <Logo onDark={resolvedTheme === "dark"} />
         </Link>
         <button
@@ -101,14 +80,10 @@ export function Sidebar({
         <p className="truncate font-display text-[13px] font-semibold text-onyx">
           {orgName}
         </p>
-        <SidebarStandardSelect
-          value={slug}
-          className="mt-1 h-8 border-0 bg-transparent px-0 text-xs font-medium text-steel shadow-none hover:text-charcoal focus:border-0 focus:ring-0"
-        />
       </div>
 
       <nav className="sleek-scroll min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-3">
-        {nav.map((item) => {
+        {NAV_ITEMS.map((item) => {
           const active = item.href === activeHref;
           return (
             <Link

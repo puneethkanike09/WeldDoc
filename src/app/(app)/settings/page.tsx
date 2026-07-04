@@ -2,11 +2,9 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
 import { Card, CardBody, CardTitle } from "@/components/ui/card";
 import { requireSession } from "@/lib/auth";
-import { getActiveStandardSlug } from "@/lib/standards/active-standard.server";
-import { updateOrgSettings, updateDashboardWidgets } from "./actions";
+import { updateOrgSettings } from "./actions";
 import { OrgSettingsForm } from "./settings-forms";
 import { SettingsAppearance } from "./settings-appearance";
-import { DashboardWidgetsForm } from "./dashboard-widgets-form";
 import {
   SettingsTabs,
 } from "./settings-tabs";
@@ -21,13 +19,12 @@ export default async function SettingsPage({
 }) {
   const { org } = await requireSession();
   const { tab } = await searchParams;
-  const activeStandard = await getActiveStandardSlug();
 
   return (
     <>
       <PageHeader
         title="Settings"
-        description="Organisation details, dashboard layout, and appearance."
+        description="Organisation details and appearance."
       />
       <div className="px-8 py-8">
         <SettingsTabs
@@ -70,18 +67,6 @@ export default async function SettingsPage({
                 </CardBody>
               </Card>
             </div>
-          }
-          dashboard={
-            <Card className="h-fit">
-              <CardBody className="space-y-4">
-                <CardTitle>Dashboard layout</CardTitle>
-                <DashboardWidgetsForm
-                  org={org}
-                  action={updateDashboardWidgets}
-                  initialStandard={activeStandard}
-                />
-              </CardBody>
-            </Card>
           }
           appearance={
             <Card className="h-fit max-w-3xl">

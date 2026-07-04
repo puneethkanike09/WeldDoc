@@ -77,8 +77,8 @@ test.describe("Welder registry", () => {
   });
 
   test("sidebar navigation highlights welders workspace", async ({ page }) => {
-    await expect(page.getByRole("navigation").getByRole("link", { name: "Welders" })).toBeVisible();
-    await page.getByRole("navigation").getByRole("link", { name: "Master list" }).click();
+    await expect(page.getByRole("navigation").getByRole("link", { name: "Welder qualification", exact: true })).toBeVisible();
+    await page.getByRole("navigation").getByRole("link", { name: "Welder master list" }).click();
     await expect(page).toHaveURL(/\/welders\/masterlist/);
   });
 });

@@ -3,7 +3,6 @@ import type { StandardSlug } from "@/lib/standards/catalog";
 export const DASHBOARD_WIDGET_GROUPS = [
   "KPI cards",
   "Charts",
-  "Sections",
 ] as const;
 
 export type DashboardWidgetGroup = (typeof DASHBOARD_WIDGET_GROUPS)[number];
@@ -81,18 +80,6 @@ export const WELDER_DASHBOARD_WIDGETS = [
     description: "Pipe outside-diameter bands (approved quals)",
     group: "Charts" as const,
   },
-  {
-    id: "section_category_coverage",
-    label: "Category coverage",
-    description: "Process × joint type matrix",
-    group: "Sections" as const,
-  },
-  {
-    id: "section_needs_attention",
-    label: "Needs attention",
-    description: "Expiring or overdue qualifications",
-    group: "Sections" as const,
-  },
 ] as const;
 
 export const OPERATOR_DASHBOARD_WIDGETS = [
@@ -149,18 +136,6 @@ export const OPERATOR_DASHBOARD_WIDGETS = [
     label: "By joint type",
     description: "Joint types on approved operator qualifications",
     group: "Charts" as const,
-  },
-  {
-    id: "section_operator_coverage",
-    label: "Category coverage",
-    description: "Process × welding type matrix",
-    group: "Sections" as const,
-  },
-  {
-    id: "section_operator_needs_attention",
-    label: "Needs attention",
-    description: "Expiring or overdue operator qualifications",
-    group: "Sections" as const,
   },
 ] as const;
 
@@ -270,6 +245,25 @@ export function dashboardWidgetSet(
   slug: StandardSlug,
 ): Set<DashboardWidgetId> {
   return new Set(normalizeDashboardWidgets(raw, slug));
+}
+
+/** Ordered enabled widget ids for a standard (stored order = display order). */
+export function orderedDashboardWidgets(
+  raw: unknown,
+  slug: StandardSlug,
+): DashboardWidgetId[] {
+  return normalizeDashboardWidgets(raw, slug);
+}
+
+/** Sort widget elements by the stored layout order. */
+export function sortByWidgetOrder<T extends { id: DashboardWidgetId }>(
+  items: T[],
+  order: DashboardWidgetId[],
+): T[] {
+  const index = new Map(order.map((id, i) => [id, i]));
+  return [...items].sort(
+    (a, b) => (index.get(a.id) ?? 999) - (index.get(b.id) ?? 999),
+  );
 }
 
 export function mergeDashboardWidgetsConfig(

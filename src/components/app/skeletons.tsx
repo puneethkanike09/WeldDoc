@@ -314,25 +314,21 @@ export function QualifyWorkflowSkeleton() {
 
 function StandardCardSkeleton() {
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-(--radius-card) border border-silver bg-panel">
-      <div className="space-y-3 bg-inverse-bg px-6 py-5 sm:px-7 sm:py-6">
-        <Skeleton className="h-3 w-24 bg-inverse-fg/10" />
-        <Skeleton className="h-8 w-56 max-w-full bg-inverse-fg/10" />
-        <Skeleton className="h-4 w-48 max-w-full bg-inverse-fg/10" />
+    <article className="flex h-full flex-col rounded-(--radius-card) border border-silver bg-panel p-6 sm:p-8">
+      <Skeleton className="h-3 w-24" />
+      <Skeleton className="mt-3 h-9 w-56 max-w-full" />
+      <Skeleton className="mt-2 h-4 w-48 max-w-full" />
+      <div className="mt-5 flex-1 space-y-2">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-[85%]" />
       </div>
-      <div className="flex flex-1 flex-col px-6 py-5 sm:px-7 sm:pb-6">
-        <div className="flex-1 space-y-2">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-[85%]" />
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-silver pt-5">
+        <div className="flex gap-2">
+          <Skeleton className="h-10 w-10 shrink-0 rounded-[10px]" />
+          <Skeleton className="h-10 w-10 shrink-0 rounded-[10px]" />
         </div>
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-silver pt-5">
-          <div className="flex gap-2">
-            <Skeleton className="h-10 w-10 shrink-0 rounded-[10px]" />
-            <Skeleton className="h-10 w-10 shrink-0 rounded-[10px]" />
-          </div>
-          <Skeleton className="h-10 w-40 shrink-0 rounded-(--radius-button)" />
-        </div>
+        <Skeleton className="h-7 w-36 shrink-0 rounded-full" />
       </div>
     </article>
   );

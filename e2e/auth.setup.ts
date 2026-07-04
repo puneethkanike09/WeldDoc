@@ -20,7 +20,7 @@ setup("authenticate", async ({ page }) => {
   await fillLoginForm(page, email, password);
   await submitLogin(page);
 
-  await expect(page).toHaveURL(/\/standards/, { timeout: 30_000 });
+  await expect(page).toHaveURL(/\/dashboard/, { timeout: 30_000 });
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
   await page.context().storageState({ path: authFile });

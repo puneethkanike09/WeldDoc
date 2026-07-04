@@ -7,9 +7,8 @@ import { uploadFile } from "@/lib/storage";
 import {
   allWidgetIdsForStandard,
   mergeDashboardWidgetsConfig,
+  type DashboardWidgetId,
 } from "@/lib/dashboard/widgets";
-import { isActiveStandardSlug } from "@/lib/standards/active-standard";
-import { getActiveStandardSlug } from "@/lib/standards/active-standard.server";
 import type { StandardSlug } from "@/lib/standards/catalog";
 
 function str(v: FormDataEntryValue | null): string | null {
@@ -57,31 +56,32 @@ export async function updateOrgSettings(formData: FormData) {
   revalidatePath("/settings");
 }
 
+const LAYOUT_STANDARD_SLUGS: StandardSlug[] = ["iso9606-1", "iso-14732"];
+
+/** Saves both standards' layouts in one call. Order of ids = display order. */
 export async function updateDashboardWidgets(formData: FormData) {
   const { org } = await requireSession();
   const supabase = await createClient();
 
-  const standardRaw = formData.get("standard");
-  const standard: StandardSlug = isActiveStandardSlug(
-    typeof standardRaw === "string" ? standardRaw : undefined,
-  )
-    ? (standardRaw as StandardSlug)
-    : await getActiveStandardSlug();
+  let dashboard_widgets = org.dashboard_widgets as unknown;
 
-  const widgetIds = allWidgetIdsForStandard(standard);
-  const enabled = widgetIds.filter(
-    (id) => formData.get(`widget_${id}`) === "on",
-  );
+  for (const slug of LAYOUT_STANDARD_SLUGS) {
+    const allowed = new Set<string>(allWidgetIdsForStandard(slug));
+    const ordered = formData
+      .getAll(`widgets_${slug}`)
+      .map(String)
+      .filter((id): id is DashboardWidgetId => allowed.has(id));
 
-  if (enabled.length === 0) {
-    throw new Error("Select at least one dashboard widget.");
+    if (ordered.length === 0) {
+      throw new Error("Keep at least one dashboard block visible.");
+    }
+
+    dashboard_widgets = mergeDashboardWidgetsConfig(
+      dashboard_widgets,
+      slug,
+      ordered,
+    );
   }
-
-  const dashboard_widgets = mergeDashboardWidgetsConfig(
-    org.dashboard_widgets,
-    standard,
-    enabled,
-  );
 
   const { error } = await supabase
     .from("organizations")
@@ -89,6 +89,5 @@ export async function updateDashboardWidgets(formData: FormData) {
     .eq("id", org.id);
   if (error) throw new Error(error.message);
 
-  revalidatePath("/settings");
   revalidatePath("/dashboard");
 }

@@ -15,7 +15,7 @@ const invalidBorder = "border-ember ring-1 ring-ember/20";
 export function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const redirectTo = params.get("redirectTo") || "/standards";
+  const redirectTo = params.get("redirectTo") || "/dashboard";
 
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [fullName, setFullName] = useState("");

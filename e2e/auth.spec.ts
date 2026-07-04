@@ -22,7 +22,13 @@ test.describe("Authentication", () => {
 });
 
 test.describe("Authenticated shell", () => {
-  test("standards hub loads after login", async ({ page }) => {
+  test("dashboard loads after login", async ({ page }) => {
+    await page.goto("/dashboard");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page.getByRole("navigation")).toBeVisible();
+  });
+
+  test("standards reference page loads", async ({ page }) => {
     await page.goto("/standards");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.getByRole("navigation")).toBeVisible();
