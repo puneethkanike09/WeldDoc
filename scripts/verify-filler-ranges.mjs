@@ -64,11 +64,23 @@ test("Table 4: cellulosic C qualifies C only", () => {
 });
 
 /** Table 5 — other processes */
-test("Table 5: solid S qualifies S, M, nm", () => {
+test("Table 5: solid S (135) qualifies S, M — no nm for wire processes", () => {
   const r = fillerTypeQualificationRange("Solid wire/rod (S)", "135");
   assert.match(r, /\bS\b/);
   assert.match(r, /\bM\b/);
+  assert.doesNotMatch(r, /\bnm\b/);
+});
+
+test("§5.6: solid S with 311 also qualifies without filler (nm)", () => {
+  const r = fillerTypeQualificationRange("Solid wire/rod (S)", "311");
+  assert.match(r, /\bS\b/);
+  assert.match(r, /\bM\b/);
   assert.match(r, /\bnm\b/);
+});
+
+test("Table 4: 111 covered electrode never adds nm", () => {
+  const r = fillerTypeQualificationRange("B — basic", "111");
+  assert.doesNotMatch(r, /\bnm\b/);
 });
 
 test("Table 5: flux B qualifies all flux types", () => {

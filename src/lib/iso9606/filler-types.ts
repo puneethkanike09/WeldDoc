@@ -94,7 +94,10 @@ export function fillerTypeQualificationRange(
       ? table4QualifiedCodes(testCode)
       : table5QualifiedCodes(testCode);
 
-  // §5.6 — welding with filler qualifies for welding without filler, not vice versa.
-  const withNoFiller = [...codes, "nm"];
-  return withNoFiller.join(", ");
+  // §5.6 — welding with filler also qualifies for welding without filler, but
+  // "without filler" only exists for processes that can run without a
+  // consumable (see NOTE: 142, 311). Wire/electrode processes (111, 135, …)
+  // cannot be welded without filler, so "nm" must not be added there.
+  const qualified = NO_FILLER_PROCESSES.has(process) ? [...codes, "nm"] : codes;
+  return qualified.join(", ");
 }

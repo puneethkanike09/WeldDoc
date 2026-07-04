@@ -137,7 +137,7 @@ export function WelderIdCardView({
           {standardLabel}
         </div>
         <div className="overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
-          <table className="w-full min-w-[520px] border-collapse text-center text-xs text-charcoal">
+          <table className="w-full min-w-[680px] border-collapse text-center text-xs text-charcoal">
             <thead className="bg-frost text-graphite">
               <tr className="border-b border-silver">
                 <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
@@ -155,8 +155,14 @@ export function WelderIdCardView({
                 <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
                   Joint type
                 </th>
-                <th className="px-2 py-2 font-semibold" rowSpan={2}>
+                <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
                   FM GROUP
+                </th>
+                <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
+                  Test date
+                </th>
+                <th className="px-2 py-2 font-semibold" rowSpan={2}>
+                  Valid upto
                 </th>
               </tr>
               <tr className="border-b border-silver">
@@ -193,7 +199,13 @@ export function WelderIdCardView({
                   <td className="whitespace-nowrap border-r border-silver px-2 py-2">
                     {row.jointType}
                   </td>
-                  <td className="whitespace-pre-line px-2 py-2">{row.fmGroup}</td>
+                  <td className="whitespace-pre-line border-r border-silver px-2 py-2">
+                    {row.fmGroup}
+                  </td>
+                  <td className="whitespace-nowrap border-r border-silver px-2 py-2">
+                    {row.testDate}
+                  </td>
+                  <td className="whitespace-nowrap px-2 py-2">{row.validUpto}</td>
                 </tr>
               ))}
             </tbody>

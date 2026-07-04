@@ -13,6 +13,8 @@ const DEMO_ROWS: IdCardQualRow[] = [
     od: "≥ 500mm",
     jointType: "BW/FW",
     fmGroup: "FM1, FM2",
+    testDate: "21 Jun 2024",
+    validUpto: "20 Jun 2028",
   },
 ];
 
