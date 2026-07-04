@@ -137,11 +137,11 @@ export function buildCertRows(
       : "NA";
 
   const positionTest = hasSuppFillet
-    ? `${wpq.position ?? "—"} / FW: ${wpq.supplementary_fillet_position ?? "PB"}`
+    ? `BW: ${wpq.position ?? "—"} & FW: ${wpq.supplementary_fillet_position ?? "PB"}`
     : (wpq.position ?? "—");
 
   const positionRange = hasSuppFillet
-    ? `${positionsRangeText(positions)}; FW: ${positionsRangeText(
+    ? `BW: ${positionsRangeText(positions)} & FW: ${positionsRangeText(
         wpq.supplementary_fillet_position
           ? ((rules as { positionMapFw: Record<string, string[]> }).positionMapFw[
               wpq.supplementary_fillet_position
