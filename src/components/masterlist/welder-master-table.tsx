@@ -1,13 +1,23 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
-import { ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { MasterListExportButton } from "@/components/masterlist/masterlist-export-button";
 import { formatDate } from "@/lib/utils";
 import { MASTER_COLUMNS, type MasterRow } from "@/lib/masterlist";
-import { Search, FileSpreadsheet } from "lucide-react";
+import { Search } from "lucide-react";
+
+function formatWelderExportCell(key: keyof MasterRow, row: MasterRow): string {
+  if (key === "issued" || key === "expiry") {
+    return formatDate(row[key] === "—" ? null : row[key]);
+  }
+  if (key === "status") {
+    return row.status.replace("_", " ");
+  }
+  return String(row[key] ?? "");
+}
 
 const STATUS_TONE: Record<
   string,
@@ -25,6 +35,8 @@ export function WelderMasterTable({ rows }: { rows: MasterRow[] }) {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
   const [joint, setJoint] = useState("all");
+
+  const formatCell = useCallback(formatWelderExportCell, []);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -77,9 +89,14 @@ export function WelderMasterTable({ rows }: { rows: MasterRow[] }) {
           <option value="FW">Fillet weld</option>
         </Select>
         <div className="flex flex-wrap gap-2">
-          <ButtonLink href="/api/welders/masterlist/export?format=csv">
-            <FileSpreadsheet className="h-4 w-4" /> Excel
-          </ButtonLink>
+          <MasterListExportButton
+            columns={MASTER_COLUMNS}
+            rows={filtered}
+            filteredCount={filtered.length}
+            totalCount={rows.length}
+            filenamePrefix="welder-master-list"
+            formatCell={formatCell}
+          />
         </div>
       </div>
 
