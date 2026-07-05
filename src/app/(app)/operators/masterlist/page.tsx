@@ -18,7 +18,7 @@ export default async function OperatorMasterListPage() {
     <>
       <PageHeader
         title="Master list"
-        description="Every operator qualification with its computed range of qualification. Export to Excel or PDF."
+        description="Every operator qualification with its computed range of qualification. Export to Excel."
       />
       <div className="px-8 py-8">
         {rows.length === 0 ? (

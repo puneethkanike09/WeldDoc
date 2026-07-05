@@ -7,7 +7,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import { MASTER_COLUMNS, type MasterRow } from "@/lib/masterlist";
-import { Search, FileSpreadsheet, FileDown } from "lucide-react";
+import { Search, FileSpreadsheet } from "lucide-react";
 
 const STATUS_TONE: Record<
   string,
@@ -79,9 +79,6 @@ export function WelderMasterTable({ rows }: { rows: MasterRow[] }) {
         <div className="flex flex-wrap gap-2">
           <ButtonLink href="/api/welders/masterlist/export?format=csv">
             <FileSpreadsheet className="h-4 w-4" /> Excel
-          </ButtonLink>
-          <ButtonLink href="/api/welders/masterlist/export?format=pdf">
-            <FileDown className="h-4 w-4" /> PDF
           </ButtonLink>
         </div>
       </div>

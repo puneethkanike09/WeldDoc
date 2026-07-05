@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
-import { NewGroupSessionButton } from "@/components/app/group-qualify-button";
 import { formatDate } from "@/lib/utils";
 import { Eye } from "lucide-react";
 import type {
@@ -26,14 +25,12 @@ export function GroupSessionsList({
   sessions,
   countBySession,
   baseHref,
-  newHref,
   participantLabel,
   emptyDescription,
 }: {
   sessions: QualificationSession[];
   countBySession: Map<string, number>;
   baseHref: string;
-  newHref: string;
   participantLabel: string;
   emptyDescription: string;
 }) {
@@ -44,9 +41,6 @@ export function GroupSessionsList({
           No group sessions yet
         </h3>
         <p className="mx-auto mt-2 max-w-md text-graphite">{emptyDescription}</p>
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <NewGroupSessionButton href={newHref} />
-        </div>
       </div>
     );
   }

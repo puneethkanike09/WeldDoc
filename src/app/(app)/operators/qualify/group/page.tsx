@@ -50,7 +50,6 @@ export default async function OperatorGroupSessionsPage() {
           sessions={(sessions ?? []) as QualificationSession[]}
           countBySession={countBySession}
           baseHref={baseHref}
-          newHref={`${baseHref}/new`}
           participantLabel="Operators"
           emptyDescription="Start a group session when several operators take the same test together."
         />

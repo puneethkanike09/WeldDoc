@@ -11,7 +11,7 @@ import {
   type OperatorMasterRow,
 } from "@/lib/operator-masterlist";
 import { WELDING_TYPES } from "@/lib/iso14732/constants";
-import { Search, FileSpreadsheet, FileDown } from "lucide-react";
+import { Search, FileSpreadsheet } from "lucide-react";
 
 const STATUS_TONE: Record<
   string,
@@ -86,9 +86,6 @@ export function OperatorMasterTable({ rows }: { rows: OperatorMasterRow[] }) {
         <div className="flex flex-wrap gap-2">
           <ButtonLink href="/api/operators/masterlist/export?format=csv">
             <FileSpreadsheet className="h-4 w-4" /> Excel
-          </ButtonLink>
-          <ButtonLink href="/api/operators/masterlist/export?format=pdf">
-            <FileDown className="h-4 w-4" /> PDF
           </ButtonLink>
         </div>
       </div>

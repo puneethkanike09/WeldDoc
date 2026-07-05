@@ -50,7 +50,6 @@ export default async function WelderGroupSessionsPage() {
           sessions={(sessions ?? []) as QualificationSession[]}
           countBySession={countBySession}
           baseHref={baseHref}
-          newHref={`${baseHref}/new`}
           participantLabel="Welders"
           emptyDescription="Start a group session when several welders take the same test together."
         />
