@@ -193,4 +193,22 @@ test("Plate test → pipe OD ≥ 500 mm", () => {
   assert.equal(r.pipeOdMin, 500);
 });
 
+test("Table 1 multi-process: union of s1=8 (111) and s2=3 (141)", () => {
+  const r = computeRange({
+    jointType: "BW",
+    product: "Pipe",
+    depositedThicknessMm: 8,
+    process: "111",
+    layer: "Multi-layer (ml)",
+    secondProcess: {
+      process: "141",
+      depositedThicknessMm: 3,
+      layer: "Multi-layer (ml)",
+    },
+  });
+  assert.equal(r.thicknessMin, 3);
+  assert.equal(r.thicknessMax, 16);
+  assert.equal(r.thicknessUnlimited, false);
+});
+
 console.log("\nAll ISO range checks passed.");

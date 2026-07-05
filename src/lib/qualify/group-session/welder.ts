@@ -33,6 +33,7 @@ export function welderPlanPayload(
     testing_standard:
       snapshotStr(plan, "testing_standard") ?? "EN ISO 9606-1:2017",
     process: snapshotStr(plan, "process") ?? "135",
+    process_2: snapshotStr(plan, "process_2"),
     joint_type,
     joint_type_extended,
     product,
@@ -54,6 +55,24 @@ export function welderPlanPayload(
     supplementary_fillet_thickness_mm: snapshotBool(plan, "supplementary_fillet")
       ? snapshotNum(plan, "supplementary_fillet_thickness_mm")
       : null,
+    supplementary_fillet_process:
+      snapshotBool(plan, "supplementary_fillet") &&
+      snapshotStr(plan, "process_2")
+        ? snapshotStr(plan, "supplementary_fillet_process")
+        : null,
+    ...(snapshotStr(plan, "process_2")
+      ? {}
+      : {
+          process2_filler_group: null,
+          process2_filler_designation: null,
+          process2_filler_type: null,
+          process2_shielding_gas: null,
+          process2_current_polarity: null,
+          process2_transfer_mode: null,
+          process2_weld_details: null,
+          process2_layer_type: null,
+          process2_deposited_thickness_mm: null,
+        }),
   };
 }
 
@@ -85,6 +104,20 @@ export function welderTestPiecePayload(testPiece: Record<string, unknown>) {
     deposited_thickness_mm: snapshotNum(testPiece, "deposited_thickness_mm"),
     pipe_od_mm: snapshotNum(testPiece, "pipe_od_mm"),
     layer_type: snapshotStr(testPiece, "layer_type"),
+    process2_filler_group: snapshotStr(testPiece, "process2_filler_group"),
+    process2_filler_designation: snapshotStr(testPiece, "process2_filler_designation"),
+    process2_filler_type: snapshotStr(testPiece, "process2_filler_type"),
+    process2_shielding_gas: formatShieldingGas(
+      snapshotStr(testPiece, "process2_shielding_gas"),
+    ),
+    process2_current_polarity: snapshotStr(testPiece, "process2_current_polarity"),
+    process2_transfer_mode: snapshotStr(testPiece, "process2_transfer_mode"),
+    process2_weld_details: snapshotStr(testPiece, "process2_weld_details"),
+    process2_layer_type: snapshotStr(testPiece, "process2_layer_type"),
+    process2_deposited_thickness_mm: snapshotNum(
+      testPiece,
+      "process2_deposited_thickness_mm",
+    ),
     certificate_pdf_path: null,
   };
 }
@@ -142,10 +175,21 @@ export function welderRecordFromSession(
     layer_type: null,
     transfer_mode: null,
     weld_details: null,
+    process_2: null,
+    process2_filler_group: null,
+    process2_filler_designation: null,
+    process2_filler_type: null,
+    process2_shielding_gas: null,
+    process2_current_polarity: null,
+    process2_transfer_mode: null,
+    process2_weld_details: null,
+    process2_layer_type: null,
+    process2_deposited_thickness_mm: null,
     job_knowledge: "",
     supplementary_fillet: false,
     supplementary_fillet_position: null,
     supplementary_fillet_thickness_mm: null,
+    supplementary_fillet_process: null,
     wps_reference: null,
     examiner_ref: null,
     examiner_name: null,

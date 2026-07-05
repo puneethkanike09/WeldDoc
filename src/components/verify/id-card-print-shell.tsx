@@ -9,11 +9,13 @@ export function IdCardPrintShell({
   backHref,
   backLabel,
   badge,
+  showPrint = true,
   children,
 }: {
   backHref: string;
   backLabel: string;
   badge: string;
+  showPrint?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -27,10 +29,12 @@ export function IdCardPrintShell({
             <ArrowLeft className="h-4 w-4" />
             {backLabel}
           </Link>
-          <Button type="button" variant="ghost" size="sm" onClick={() => window.print()}>
-            <Printer className="h-4 w-4" />
-            Print
-          </Button>
+          {showPrint ? (
+            <Button type="button" variant="ghost" size="sm" onClick={() => window.print()}>
+              <Printer className="h-4 w-4" />
+              Print
+            </Button>
+          ) : null}
         </div>
 
         <div className="mb-6 flex items-center justify-between print:mb-4">

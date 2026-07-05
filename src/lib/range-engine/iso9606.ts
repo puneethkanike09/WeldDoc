@@ -21,6 +21,16 @@ export interface RangeInput {
   fillerType?: string | null;
   supplementaryFillet?: boolean;
   jointTypeExtended?: string | null;
+  /**
+   * Optional second welding process on the same butt test piece (ISO 9606-1
+   * Table 1). Each process qualifies its own deposited-thickness range; the
+   * stored range is the union of both. Ignored for fillet joints.
+   */
+  secondProcess?: {
+    process?: string | null;
+    depositedThicknessMm?: number | null;
+    layer?: string | null;
+  } | null;
 }
 
 export interface RangeResult {
@@ -210,6 +220,26 @@ export function computeRange(input: RangeInput): RangeResult {
         thicknessMin = res.min;
         thicknessMax = res.max;
         thicknessUnlimited = res.unlimited;
+      }
+
+      // Multi-process (Table 1): union process 1's range with process 2's.
+      const s2 = input.secondProcess?.depositedThicknessMm ?? 0;
+      if (input.secondProcess?.process && s2 > 0) {
+        const res2 = computeTable6DepositedRange(s2, {
+          process: input.secondProcess.process,
+          layer: input.secondProcess.layer,
+        });
+        if (thicknessMin == null) {
+          thicknessMin = res2.min;
+          thicknessMax = res2.max;
+          thicknessUnlimited = res2.unlimited;
+        } else {
+          thicknessMin = Math.min(thicknessMin, res2.min);
+          thicknessUnlimited = thicknessUnlimited || res2.unlimited;
+          thicknessMax = thicknessUnlimited
+            ? null
+            : Math.max(thicknessMax ?? 0, res2.max ?? 0);
+        }
       }
     }
   }

@@ -10,16 +10,23 @@ import rules from "@/lib/range-engine/iso9606.rules.json";
 import {
   fillerGroupRangeText,
   fillerTypeRangeText,
+  formatPerProcessDepositedRange,
+  formatPerProcessPrefixed,
+  formatPerProcessTestValues,
   formatPipeOdRange,
   formatPipeOdTest,
   formatThicknessRange,
+  getProcessSlices,
+  isMultiProcessQualification,
   jointTypeRangeText,
   layerCode,
   layerRangeText,
   materialGroupRangeText,
   positionsRangeText,
-  processRangeText,
+  processDisplayText,
+  processRangeDisplayText,
   productRangeText,
+  shieldingGasDisplay,
   transferModeRangeText,
   weldDetailsRangeText,
 } from "@/lib/iso9606/certificate-ranges";
@@ -59,38 +66,127 @@ function weldTypeCode(jointTypes: string[]): string {
   return hasBW ? "BW" : "FW";
 }
 
-export function buildDesignation(
+function designationLine(
   wpq: QualificationRecord,
   range: RangeOfApproval | null,
+  opts: {
+    process: string;
+    jointTypes: string[];
+    fillerGroup: string | null;
+    fillerType: string | null;
+    dimension: string;
+    weldDetails: string | null;
+    layer: string | null;
+  },
 ): string {
-  const jointTypes = resolveJointTypes(wpq, range);
   const positions = range?.approved_positions?.length
     ? range.approved_positions.join("/")
     : wpq.position ?? "";
-  const ft = fillerTypeCode(wpq.filler_type);
-  const isFillet = wpq.joint_type === "FW";
-  const dimension = isFillet
-    ? wpq.test_thickness_mm != null
-      ? `t${wpq.test_thickness_mm}`
-      : ""
-    : wpq.deposited_thickness_mm != null
-      ? `s${wpq.deposited_thickness_mm}`
-      : "";
 
   return [
     "EN ISO 9606-1",
-    wpq.process,
+    opts.process,
     productCode(wpq.product),
-    weldTypeCode(jointTypes),
-    wpq.filler_group ?? "FM1",
-    ft,
-    dimension,
+    weldTypeCode(opts.jointTypes),
+    opts.fillerGroup ?? "FM1",
+    fillerTypeCode(opts.fillerType),
+    opts.dimension,
     positions.replace(/\//g, "&"),
-    wpq.weld_details ?? "ss nb",
-    layerCode(wpq.layer_type),
+    opts.weldDetails ?? "ss nb",
+    layerCode(opts.layer),
   ]
     .filter(Boolean)
     .join(" ");
+}
+
+/**
+ * ISO 9606-1 designation line(s). Multi-process butt tests use one line with
+ * p1/p2 and s1/s2; supplementary fillet adds a second FW line for the fillet
+ * process.
+ */
+export function buildDesignation(
+  wpq: QualificationRecord,
+  range: RangeOfApproval | null,
+): string[] {
+  const jointTypes = resolveJointTypes(wpq, range);
+  const hasSuppFillet = wpq.supplementary_fillet && wpq.joint_type === "BW";
+  const isFillet = wpq.joint_type === "FW";
+  const multi = isMultiProcessQualification(wpq);
+  const lines: string[] = [];
+
+  if (isFillet && !multi) {
+    const dimension =
+      wpq.test_thickness_mm != null ? `t${wpq.test_thickness_mm}` : "";
+    lines.push(
+      designationLine(wpq, range, {
+        process: wpq.process,
+        jointTypes,
+        fillerGroup: wpq.filler_group,
+        fillerType: wpq.filler_type,
+        dimension,
+        weldDetails: wpq.weld_details,
+        layer: wpq.layer_type,
+      }),
+    );
+    return lines;
+  }
+
+  const processPart = multi
+    ? `${wpq.process}/${wpq.process_2}`
+    : wpq.process;
+
+  let dimension = "";
+  if (multi) {
+    const s1 = wpq.deposited_thickness_mm;
+    const s2 = wpq.process2_deposited_thickness_mm;
+    if (s1 != null && s2 != null) dimension = `s${s1}/${s2}`;
+    else if (s1 != null) dimension = `s${s1}`;
+    else if (s2 != null) dimension = `s${s2}`;
+  } else if (wpq.deposited_thickness_mm != null) {
+    dimension = `s${wpq.deposited_thickness_mm}`;
+  }
+
+  lines.push(
+    designationLine(wpq, range, {
+      process: processPart,
+      jointTypes: hasSuppFillet ? ["BW"] : jointTypes,
+      fillerGroup: wpq.filler_group,
+      fillerType: wpq.filler_type,
+      dimension,
+      weldDetails: wpq.weld_details,
+      layer: wpq.layer_type,
+    }),
+  );
+
+  if (hasSuppFillet) {
+    const filletProcess =
+      wpq.supplementary_fillet_process ?? wpq.process;
+    const filletSlice = getProcessSlices(wpq).find(
+      (s) => s.process === filletProcess,
+    );
+    const t = wpq.supplementary_fillet_thickness_mm;
+    const filletPos =
+      wpq.supplementary_fillet_position?.replace(/\//g, "&") ?? "PB";
+
+    lines.push(
+      [
+        "EN ISO 9606-1",
+        filletProcess,
+        productCode(wpq.product),
+        "FW",
+        (filletSlice?.filler_group ?? wpq.filler_group) ?? "FM1",
+        fillerTypeCode(filletSlice?.filler_type ?? wpq.filler_type),
+        t != null ? `t${t}` : "",
+        filletPos,
+        filletSlice?.weld_details ?? wpq.weld_details ?? "ss nb",
+        layerCode(filletSlice?.layer_type ?? wpq.layer_type),
+      ]
+        .filter(Boolean)
+        .join(" "),
+    );
+  }
+
+  return lines;
 }
 
 export function buildCertNo(
@@ -104,7 +200,10 @@ export function buildCertNo(
   const ref = welder.welder_id || welder.uid;
   const pos = wpq.position ?? "PA";
   const mat = materialCode(wpq.base_material_group);
-  return `${base}/${wpq.process}/${pos}(${mat})-${ref}`;
+  const proc = wpq.process_2
+    ? `${wpq.process}+${wpq.process_2}`
+    : wpq.process;
+  return `${base}/${proc}/${pos}(${mat})-${ref}`;
 }
 
 /** Annex A — test piece vs range of qualification (EN ISO 9606-1). */
@@ -116,6 +215,9 @@ export function buildCertRows(
   const isFillet = wpq.joint_type === "FW";
   const hasSuppFillet = wpq.supplementary_fillet && wpq.joint_type === "BW";
   const thickRange = formatThicknessRange(range);
+  const slices = getProcessSlices(wpq);
+  const multi = slices.length > 1;
+
   const positions = range?.approved_positions?.length
     ? range.approved_positions
     : wpq.position
@@ -150,8 +252,19 @@ export function buildCertRows(
       )}`
     : positionsRangeText(positions);
 
-  const depositedTest = branchDepositedThicknessTest(wpq);
-  const depositedRange = isFillet ? "NA" : thickRange;
+  const depositedTest = multi
+    ? formatPerProcessTestValues(slices, (s) =>
+        s.deposited_thickness_mm != null
+          ? String(s.deposited_thickness_mm)
+          : null,
+      )
+    : branchDepositedThicknessTest(wpq);
+
+  const depositedRange = isFillet
+    ? "NA"
+    : multi
+      ? formatPerProcessDepositedRange(slices)
+      : thickRange;
 
   const weldTypeTest = isBranchQualification(wpq)
     ? "Branch (BW)"
@@ -165,13 +278,19 @@ export function buildCertRows(
   return [
     {
       label: "Welding process(es)",
-      test: wpq.process,
-      range: processRangeText(wpq.process),
+      test: processDisplayText(wpq),
+      range: processRangeDisplayText(wpq),
     },
     {
       label: "Transfer mode",
-      test: wpq.transfer_mode ?? "NA",
-      range: transferModeRangeText(wpq.transfer_mode, wpq.process),
+      test: multi
+        ? formatPerProcessTestValues(slices, (s) => s.transfer_mode ?? "NA")
+        : (wpq.transfer_mode ?? "NA"),
+      range: multi
+        ? formatPerProcessPrefixed(slices, (s) =>
+            transferModeRangeText(s.transfer_mode, s.process),
+          )
+        : transferModeRangeText(wpq.transfer_mode, wpq.process),
     },
     {
       label: "Product type (plate or pipe)",
@@ -190,29 +309,60 @@ export function buildCertRows(
     },
     {
       label: "Filler material group(s)",
-      test: wpq.filler_group ?? "—",
-      range: fillerGroupRangeText(wpq.filler_group),
+      test: multi
+        ? formatPerProcessTestValues(slices, (s) => s.filler_group)
+        : (wpq.filler_group ?? "—"),
+      range: multi
+        ? formatPerProcessPrefixed(slices, (s) =>
+            fillerGroupRangeText(s.filler_group),
+          )
+        : fillerGroupRangeText(wpq.filler_group),
     },
     {
       label: "Filler material (designation)",
-      test: wpq.filler_designation ?? "—",
+      test: multi
+        ? formatPerProcessPrefixed(
+            slices,
+            (s) => s.filler_designation ?? "—",
+          )
+        : (wpq.filler_designation ?? "—"),
       range: "Any filler within qualified FM group",
     },
     {
       label: "Filler material (type)",
-      test: wpq.filler_type ?? "—",
-      range: fillerTypeRangeText(wpq.filler_type, wpq.process),
+      test: multi
+        ? formatPerProcessPrefixed(slices, (s) => s.filler_type ?? "—")
+        : (wpq.filler_type ?? "—"),
+      range: multi
+        ? formatPerProcessPrefixed(slices, (s) =>
+            fillerTypeRangeText(s.filler_type, s.process),
+          )
+        : fillerTypeRangeText(wpq.filler_type, wpq.process),
     },
     {
       label: "Shielding gas",
-      test: wpq.shielding_gas ?? "—",
+      test: multi
+        ? formatPerProcessPrefixed(slices, (s) =>
+            shieldingGasDisplay(s.shielding_gas),
+          )
+        : shieldingGasDisplay(wpq.shielding_gas),
       range: "As per qualified WPS",
     },
     { label: "Auxiliaries", test: "NA", range: "As required" },
     {
       label: "Type of current and polarity",
-      test: wpq.current_polarity ?? "—",
-      range: wpq.current_polarity ?? "—",
+      test: multi
+        ? formatPerProcessPrefixed(
+            slices,
+            (s) => s.current_polarity ?? "—",
+          )
+        : (wpq.current_polarity ?? "—"),
+      range: multi
+        ? formatPerProcessPrefixed(
+            slices,
+            (s) => s.current_polarity ?? "—",
+          )
+        : (wpq.current_polarity ?? "—"),
     },
     {
       label: "Material thickness (mm)",
@@ -236,13 +386,25 @@ export function buildCertRows(
     },
     {
       label: "Weld details",
-      test: wpq.weld_details ?? "—",
-      range: weldDetailsRangeText(wpq.weld_details),
+      test: multi
+        ? formatPerProcessTestValues(slices, (s) => s.weld_details)
+        : (wpq.weld_details ?? "—"),
+      range: multi
+        ? formatPerProcessPrefixed(slices, (s) =>
+            weldDetailsRangeText(s.weld_details),
+          )
+        : weldDetailsRangeText(wpq.weld_details),
     },
     {
       label: "Multi-layer / single layer",
-      test: layerCode(wpq.layer_type),
-      range: layerRangeText(wpq.layer_type),
+      test: multi
+        ? formatPerProcessTestValues(slices, (s) => layerCode(s.layer_type))
+        : layerCode(wpq.layer_type),
+      range: multi
+        ? formatPerProcessPrefixed(slices, (s) =>
+            layerRangeText(s.layer_type),
+          )
+        : layerRangeText(wpq.layer_type),
     },
   ];
 }

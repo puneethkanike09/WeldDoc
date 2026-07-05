@@ -56,6 +56,9 @@ export async function savePlan(
   const rawJoint = str(formData.get("joint_type")) ?? "BW";
   const { joint_type, joint_type_extended } = resolveJointStorage(rawJoint);
 
+  const process2 = str(formData.get("process_2"));
+  const hasFillet = formData.get("supplementary_fillet") === "on";
+
   const payload = {
     org_id: org.id,
     welder_id: welderId,
@@ -63,6 +66,7 @@ export async function savePlan(
     testing_standard:
       str(formData.get("testing_standard")) ?? "EN ISO 9606-1:2017",
     process: str(formData.get("process")) ?? "135",
+    process_2: process2,
     joint_type,
     joint_type_extended,
     product: (str(formData.get("product")) ?? "Plate") as ProductType,
@@ -78,15 +82,29 @@ export async function savePlan(
     revalidation_method: str(
       formData.get("revalidation_method"),
     ) as RevalidationMethod,
-    supplementary_fillet: formData.get("supplementary_fillet") === "on",
-    supplementary_fillet_position:
-      formData.get("supplementary_fillet") === "on"
-        ? str(formData.get("supplementary_fillet_position"))
-        : null,
-    supplementary_fillet_thickness_mm:
-      formData.get("supplementary_fillet") === "on"
-        ? num(formData.get("supplementary_fillet_thickness_mm"))
-        : null,
+    supplementary_fillet: hasFillet,
+    supplementary_fillet_position: hasFillet
+      ? str(formData.get("supplementary_fillet_position"))
+      : null,
+    supplementary_fillet_thickness_mm: hasFillet
+      ? num(formData.get("supplementary_fillet_thickness_mm"))
+      : null,
+    supplementary_fillet_process:
+      hasFillet && process2 ? str(formData.get("supplementary_fillet_process")) : null,
+    // Downgrading to single process clears any stale second-process detail.
+    ...(process2
+      ? {}
+      : {
+          process2_filler_group: null,
+          process2_filler_designation: null,
+          process2_filler_type: null,
+          process2_shielding_gas: null,
+          process2_current_polarity: null,
+          process2_transfer_mode: null,
+          process2_weld_details: null,
+          process2_layer_type: null,
+          process2_deposited_thickness_mm: null,
+        }),
   };
 
   let id = wpqId;
@@ -122,19 +140,18 @@ export async function saveTest(
 
   const { data: existing } = await supabase
     .from("qualification_records")
-    .select("joint_type, joint_type_extended, product")
+    .select("joint_type, joint_type_extended, product, process_2")
     .eq("id", wpqId)
     .eq("org_id", org.id)
     .single();
   if (!existing) throw new Error("Qualification not found.");
 
   const jointLabel = displayJointType(existing as QualificationRecord);
+  const hasSecondProcess = Boolean(existing.process_2);
 
-  validateTestPiece(
-    formData,
-    jointLabel,
-    existing.product as ProductType,
-  );
+  validateTestPiece(formData, jointLabel, existing.product as ProductType, {
+    hasSecondProcess,
+  });
 
   const { error } = await supabase
     .from("qualification_records")
@@ -165,6 +182,34 @@ export async function saveTest(
       deposited_thickness_mm: num(formData.get("deposited_thickness_mm")),
       pipe_od_mm: num(formData.get("pipe_od_mm")),
       layer_type: str(formData.get("layer_type")),
+      // Second process (null when single-process).
+      process2_filler_group: hasSecondProcess
+        ? str(formData.get("process2_filler_group"))
+        : null,
+      process2_filler_designation: hasSecondProcess
+        ? str(formData.get("process2_filler_designation"))
+        : null,
+      process2_filler_type: hasSecondProcess
+        ? str(formData.get("process2_filler_type"))
+        : null,
+      process2_shielding_gas: hasSecondProcess
+        ? formatShieldingGas(str(formData.get("process2_shielding_gas")))
+        : null,
+      process2_current_polarity: hasSecondProcess
+        ? str(formData.get("process2_current_polarity"))
+        : null,
+      process2_transfer_mode: hasSecondProcess
+        ? str(formData.get("process2_transfer_mode"))
+        : null,
+      process2_weld_details: hasSecondProcess
+        ? str(formData.get("process2_weld_details"))
+        : null,
+      process2_layer_type: hasSecondProcess
+        ? str(formData.get("process2_layer_type"))
+        : null,
+      process2_deposited_thickness_mm: hasSecondProcess
+        ? num(formData.get("process2_deposited_thickness_mm"))
+        : null,
       certificate_pdf_path: null,
     })
     .eq("id", wpqId)

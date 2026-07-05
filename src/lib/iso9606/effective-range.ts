@@ -49,6 +49,13 @@ export function effectiveRangeForWpq(
     fillerType: wpq.filler_type,
     supplementaryFillet: wpq.supplementary_fillet,
     jointTypeExtended: wpq.joint_type_extended,
+    secondProcess: wpq.process_2
+      ? {
+          process: wpq.process_2,
+          depositedThicknessMm: wpq.process2_deposited_thickness_mm,
+          layer: wpq.process2_layer_type,
+        }
+      : null,
   });
   return rangeFromComputed(wpq.id, stored, computed);
 }

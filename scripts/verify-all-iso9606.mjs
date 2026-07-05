@@ -14,15 +14,24 @@ const scripts = [
   "verify-range-engine.mjs",
   "verify-position-maps.mjs",
   "verify-filler-ranges.mjs",
+  { file: "verify-multi-process.ts", runner: "tsx" },
 ];
 
 let failed = false;
-for (const script of scripts) {
+for (const entry of scripts) {
+  const script = typeof entry === "string" ? entry : entry.file;
+  const useTsx = typeof entry === "object" && entry.runner === "tsx";
   console.log(`\n=== ${script} ===\n`);
-  const result = spawnSync(process.execPath, [path.join(root, "scripts", script)], {
-    stdio: "inherit",
-    cwd: root,
-  });
+  const result = useTsx
+    ? spawnSync("npx tsx scripts/" + script, {
+        stdio: "inherit",
+        cwd: root,
+        shell: true,
+      })
+    : spawnSync(process.execPath, [path.join(root, "scripts", script)], {
+        stdio: "inherit",
+        cwd: root,
+      });
   if (result.status !== 0) failed = true;
 }
 
