@@ -180,6 +180,22 @@ export function processLabel(code: string): string {
   return p ? `${p.name.split(" ")[0]} (${p.code})` : code;
 }
 
+/** Profile / list title — shows both processes when `process2` is set. */
+export function qualificationProcessLabel(
+  process: string,
+  process2?: string | null,
+): string {
+  const primary = processLabel(process);
+  if (!process2?.trim()) return primary;
+  return `${primary} + ${processLabel(process2)}`;
+}
+
+export function isMultiProcessQualification(
+  q: Pick<{ process_2?: string | null }, "process_2">,
+): boolean {
+  return Boolean(q.process_2?.trim());
+}
+
 export function requiredTestsFor(joint: "BW" | "FW"): readonly string[] {
   return joint === "BW" ? BW_TESTS : FW_TESTS;
 }

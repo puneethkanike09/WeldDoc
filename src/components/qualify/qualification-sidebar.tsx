@@ -16,6 +16,7 @@ export type QualListItem = Pick<
   | "statusTone"
   | "expiry"
   | "daysToExpiry"
+  | "isMultiProcess"
 >;
 
 const DOT_COLOR: Record<QualListItem["statusTone"], string> = {
@@ -124,11 +125,18 @@ export function QualificationSidebar({
                     <span className="truncate font-display text-[13.5px] font-semibold text-onyx">
                       {q.title}
                     </span>
-                    <span
-                      title={q.statusLabel}
-                      aria-label={`Status: ${q.statusLabel}`}
-                      className={`h-2 w-2 shrink-0 rounded-full ${DOT_COLOR[q.statusTone]}`}
-                    />
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      {q.isMultiProcess ? (
+                        <span className="rounded-md bg-sapphire/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sapphire">
+                          Multi
+                        </span>
+                      ) : null}
+                      <span
+                        title={q.statusLabel}
+                        aria-label={`Status: ${q.statusLabel}`}
+                        className={`h-2 w-2 rounded-full ${DOT_COLOR[q.statusTone]}`}
+                      />
+                    </div>
                   </div>
                   <p className="mt-0.5 truncate text-xs text-steel">{q.subtitle}</p>
                   <p className="mt-1 text-xs text-graphite">

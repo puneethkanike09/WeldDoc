@@ -40,6 +40,7 @@ export interface QualProfileDetail {
   statusTone: BadgeTone;
   expiry: string;
   daysToExpiry: number | null;
+  isMultiProcess?: boolean;
   isLegacy: boolean;
   isApproved: boolean;
   hasSignedCertificate: boolean;
@@ -130,6 +131,9 @@ export function QualificationProfileDetail({
               {selected.title}
             </h3>
             <Badge tone={selected.statusTone}>{selected.statusLabel}</Badge>
+            {selected.isMultiProcess && (
+              <Badge tone="sapphire">Multi-process</Badge>
+            )}
             {selected.isLegacy && <Badge tone="outline">Legacy</Badge>}
           </div>
           <p className="mt-1 text-[13px] text-steel">{selected.subtitle}</p>

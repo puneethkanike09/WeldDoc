@@ -4,6 +4,7 @@
  */
 
 import type { QualificationRecord, RangeOfApproval } from "@/types/db";
+import { isMultiProcessQualification } from "@/lib/iso9606/constants";
 import { branchPipeOdTestMm, isBranchQualification } from "@/lib/iso9606/branch-deposited-thickness";
 import { fillerTypeQualificationRange } from "@/lib/iso9606/filler-types";
 import { displayJointType } from "@/lib/iso9606/product-dimensions";
@@ -164,11 +165,8 @@ export interface ProcessSlice {
   deposited_thickness_mm: number | null;
 }
 
-export function isMultiProcessQualification(
-  wpq: Pick<QualificationRecord, "process_2">,
-): boolean {
-  return Boolean(wpq.process_2?.trim());
-}
+
+export { isMultiProcessQualification } from "@/lib/iso9606/constants";
 
 /** Primary + optional second process slices from a WPQ row. */
 export function getProcessSlices(wpq: QualificationRecord): ProcessSlice[] {
