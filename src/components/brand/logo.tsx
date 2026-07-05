@@ -18,8 +18,8 @@ export function Logo({
         className,
       )}
     >
-      <span className="text-brand-red">Weld.</span>
-      <span className={onDark ? "text-white" : "text-brand-black"}>Doc</span>
+      <span className={onDark ? "text-white" : "text-midnight"}>Weld</span>
+      <span className="text-ember">.Doc</span>
     </span>
   );
 }
