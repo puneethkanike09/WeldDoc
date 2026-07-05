@@ -54,12 +54,7 @@ export function StandardPdfDrawerProvider({ children }: { children: ReactNode })
   const [hostReady, setHostReady] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const targetSrcRef = useRef<string | null>(null);
-  const iframeSrcRef = useRef<string | null>(null);
   const [iframeSrc, setIframeSrc] = useState<string | null>(null);
-
-  useEffect(() => {
-    iframeSrcRef.current = iframeSrc;
-  }, [iframeSrc]);
 
   useEffect(() => setHostReady(true), []);
 
@@ -90,19 +85,10 @@ export function StandardPdfDrawerProvider({ children }: { children: ReactNode })
   }, []);
 
   const openDrawer = useCallback((payload: StandardPdfDrawerPayload) => {
-    const sameTarget = targetSrcRef.current === payload.src;
     targetSrcRef.current = payload.src;
     setMeta(payload);
-
-    const prev = iframeSrcRef.current;
-    if (!prev) {
-      setPdfLoading(true);
-      setIframeSrc(payload.src);
-    } else if (!sameTarget) {
-      setPdfLoading(true);
-      setIframeSrc(pdfSrcWithReloadToken(payload.src));
-    }
-
+    setPdfLoading(true);
+    setIframeSrc(pdfSrcWithReloadToken(payload.src));
     setOpen(true);
   }, []);
 
