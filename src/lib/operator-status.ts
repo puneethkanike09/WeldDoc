@@ -1,5 +1,10 @@
 import type { Operator, OperatorQualification, OqStatus } from "@/types/db";
 import { processLabel } from "@/lib/iso14732/constants";
+import type {
+  ProcessStatus,
+  QualCounts,
+  QualState,
+} from "@/lib/welder-status";
 
 export type OverallStatus =
   | "Active"
@@ -16,6 +21,8 @@ export interface OperatorSummary {
   daysToExpiry: number | null;
   processes: string[];
   approvedCount: number;
+  qualCounts: QualCounts;
+  processStatuses: ProcessStatus[];
 }
 
 const DAY = 1000 * 60 * 60 * 24;
@@ -27,6 +34,53 @@ export function daysUntil(date: string | null): number | null {
   return Math.ceil((target - Date.now()) / DAY);
 }
 
+function classifyOq(
+  o: Pick<OperatorQualification, "oq_status" | "expiry_date">,
+  expiringWindowDays: number,
+): QualState | null {
+  if (o.oq_status !== "Approved" && o.oq_status !== "Expired") return null;
+  const d = daysUntil(o.expiry_date);
+  if (o.oq_status === "Expired" || (d !== null && d < 0)) return "expired";
+  if (d !== null && d <= expiringWindowDays) return "expiring";
+  return "current";
+}
+
+const STATE_PRIORITY: Record<QualState, number> = {
+  current: 3,
+  expiring: 2,
+  expired: 1,
+};
+
+function buildOperatorQualBreakdown(
+  oqs: OperatorQualification[],
+  expiringWindowDays: number,
+): { qualCounts: QualCounts; processStatuses: ProcessStatus[] } {
+  const qualCounts: QualCounts = { current: 0, expiring: 0, expired: 0 };
+  const bestByProcess = new Map<string, QualState>();
+
+  for (const o of oqs) {
+    const state = classifyOq(o, expiringWindowDays);
+    if (!state) continue;
+    qualCounts[state] += 1;
+
+    const label = processLabel(o.process);
+    const prev = bestByProcess.get(label);
+    if (!prev || STATE_PRIORITY[state] > STATE_PRIORITY[prev]) {
+      bestByProcess.set(label, state);
+    }
+  }
+
+  const processStatuses = Array.from(bestByProcess.entries())
+    .map(([label, state]) => ({ label, state }))
+    .sort(
+      (a, b) =>
+        STATE_PRIORITY[b.state] - STATE_PRIORITY[a.state] ||
+        a.label.localeCompare(b.label),
+    );
+
+  return { qualCounts, processStatuses };
+}
+
 export function summarizeOperator(
   operator: Pick<Operator, "status">,
   oqs: OperatorQualification[],
@@ -35,6 +89,7 @@ export function summarizeOperator(
   const processes = Array.from(
     new Set(oqs.map((o) => processLabel(o.process))),
   );
+  const breakdown = buildOperatorQualBreakdown(oqs, expiringWindowDays);
 
   if (operator.status === "Inactive" || operator.status === "Suspended") {
     return {
@@ -43,6 +98,7 @@ export function summarizeOperator(
       daysToExpiry: null,
       processes,
       approvedCount: 0,
+      ...breakdown,
     };
   }
 
@@ -60,6 +116,7 @@ export function summarizeOperator(
       daysToExpiry: null,
       processes,
       approvedCount: 0,
+      ...breakdown,
     };
   }
 
@@ -91,6 +148,7 @@ export function summarizeOperator(
     daysToExpiry: dte,
     processes,
     approvedCount: liveCount,
+    ...breakdown,
   };
 }
 

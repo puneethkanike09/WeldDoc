@@ -10,12 +10,29 @@ export type OverallStatus =
   | "Suspended"
   | "None";
 
+export type QualState = "current" | "expiring" | "expired";
+
+export interface QualCounts {
+  current: number;
+  expiring: number;
+  expired: number;
+}
+
+export interface ProcessStatus {
+  label: string;
+  state: QualState;
+}
+
 export interface WelderSummary {
   overall: OverallStatus;
   nearestExpiry: string | null;
   daysToExpiry: number | null;
   processes: string[];
   approvedCount: number;
+  /** Traffic-light counts across the welder's issued qualifications. */
+  qualCounts: QualCounts;
+  /** One chip per distinct process, coloured by its best live qualification. */
+  processStatuses: ProcessStatus[];
 }
 
 const DAY = 1000 * 60 * 60 * 24;
@@ -27,6 +44,55 @@ export function daysUntil(date: string | null): number | null {
   return Math.ceil((target - Date.now()) / DAY);
 }
 
+/** Classify a single WPQ into a traffic-light state, or null if not issued. */
+function classifyWpq(
+  w: Pick<QualificationRecord, "wpq_status" | "expiry_date">,
+  expiringWindowDays: number,
+): QualState | null {
+  if (w.wpq_status !== "Approved" && w.wpq_status !== "Expired") return null;
+  const d = daysUntil(w.expiry_date);
+  if (w.wpq_status === "Expired" || (d !== null && d < 0)) return "expired";
+  if (d !== null && d <= expiringWindowDays) return "expiring";
+  return "current";
+}
+
+const STATE_PRIORITY: Record<QualState, number> = {
+  current: 3,
+  expiring: 2,
+  expired: 1,
+};
+
+/** Traffic-light counts + per-process best state from a welder's WPQs. */
+export function buildQualBreakdown(
+  wpqs: QualificationRecord[],
+  expiringWindowDays: number,
+): { qualCounts: QualCounts; processStatuses: ProcessStatus[] } {
+  const qualCounts: QualCounts = { current: 0, expiring: 0, expired: 0 };
+  const bestByProcess = new Map<string, QualState>();
+
+  for (const w of wpqs) {
+    const state = classifyWpq(w, expiringWindowDays);
+    if (!state) continue;
+    qualCounts[state] += 1;
+
+    const label = processLabel(w.process);
+    const prev = bestByProcess.get(label);
+    if (!prev || STATE_PRIORITY[state] > STATE_PRIORITY[prev]) {
+      bestByProcess.set(label, state);
+    }
+  }
+
+  const processStatuses = Array.from(bestByProcess.entries())
+    .map(([label, state]) => ({ label, state }))
+    .sort(
+      (a, b) =>
+        STATE_PRIORITY[b.state] - STATE_PRIORITY[a.state] ||
+        a.label.localeCompare(b.label),
+    );
+
+  return { qualCounts, processStatuses };
+}
+
 export function summarizeWelder(
   welder: Pick<Welder, "status">,
   wpqs: QualificationRecord[],
@@ -35,6 +101,7 @@ export function summarizeWelder(
   const processes = Array.from(
     new Set(wpqs.map((w) => processLabel(w.process))),
   );
+  const breakdown = buildQualBreakdown(wpqs, expiringWindowDays);
 
   if (welder.status === "Inactive" || welder.status === "Suspended") {
     return {
@@ -43,6 +110,7 @@ export function summarizeWelder(
       daysToExpiry: null,
       processes,
       approvedCount: 0,
+      ...breakdown,
     };
   }
 
@@ -60,6 +128,7 @@ export function summarizeWelder(
       daysToExpiry: null,
       processes,
       approvedCount: 0,
+      ...breakdown,
     };
   }
 
@@ -92,6 +161,7 @@ export function summarizeWelder(
     daysToExpiry: dte,
     processes,
     approvedCount: liveCount,
+    ...breakdown,
   };
 }
 

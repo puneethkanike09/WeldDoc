@@ -9,6 +9,10 @@ import { RegistryListPagination } from "@/components/app/registry-list-paginatio
 import { formatDate } from "@/lib/utils";
 import { STATUS_TONE } from "@/lib/operator-status";
 import type { OperatorRow } from "@/lib/operators/registry-row";
+import {
+  ProcessStatusChips,
+  QualCountLights,
+} from "@/components/app/qual-traffic-lights";
 import { Eye } from "lucide-react";
 
 export type { OperatorRow };
@@ -48,7 +52,8 @@ export function OperatorsTable({
             <tr className="border-b border-silver bg-frost text-[12px] uppercase tracking-wide text-steel">
               <th className="px-5 py-3 font-medium">Operator</th>
               <th className="px-5 py-3 font-medium">UID</th>
-              <th className="px-5 py-3 font-medium">Processes</th>
+              <th className="px-5 py-3 font-medium">Qualifications</th>
+              <th className="px-5 py-3 font-medium">By process</th>
               <th className="px-5 py-3 font-medium">Status</th>
               <th className="px-5 py-3 font-medium">Nearest expiry</th>
               <th className="px-5 py-3 text-right font-medium">Actions</th>
@@ -77,10 +82,11 @@ export function OperatorsTable({
                 <td className="px-5 py-3 font-mono text-[13px] text-charcoal">
                   {r.uid}
                 </td>
-                <td className="px-5 py-3 text-graphite">
-                  {r.summary.processes.length
-                    ? r.summary.processes.join(", ")
-                    : "—"}
+                <td className="px-5 py-3">
+                  <QualCountLights counts={r.summary.qualCounts} />
+                </td>
+                <td className="px-5 py-3">
+                  <ProcessStatusChips statuses={r.summary.processStatuses} />
                 </td>
                 <td className="px-5 py-3">
                   <Badge tone={STATUS_TONE[r.summary.overall]}>
@@ -112,7 +118,7 @@ export function OperatorsTable({
             {rows.length === 0 && (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   className="px-5 py-12 text-center text-graphite"
                 >
                   No operators match your filters.
