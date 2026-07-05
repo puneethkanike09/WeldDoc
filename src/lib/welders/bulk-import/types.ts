@@ -12,10 +12,10 @@ export interface WelderImportFields {
   plantWelderId: string;
   fullName: string;
   email: string | null;
-  dateOfBirth: string;
-  placeOfBirth: string;
-  idMethod: string;
-  idNumber: string;
+  dateOfBirth: string | null;
+  placeOfBirth: string | null;
+  idMethod: string | null;
+  idNumber: string | null;
   welderStatus: WelderStatus;
 }
 
@@ -44,6 +44,12 @@ export interface ValidatedImportRow {
   excelRow: number;
   welder: WelderImportFields;
   qualification: QualificationImportFields | null;
+  /**
+   * Normalized copy of the original Excel cells for this row. The preview grid
+   * renders from this so the user's data never disappears when a single field
+   * fails validation.
+   */
+  raw: Record<string, string>;
 }
 
 export interface ImportValidationError {
@@ -55,6 +61,10 @@ export interface ImportValidationError {
 export interface ImportValidationSummary {
   totalRows: number;
   welderCount: number;
+  /** Welders that already exist in the org (qualifications will be attached). */
+  existingWelderCount: number;
+  /** Welders that will be newly created. */
+  newWelderCount: number;
   qualificationCount: number;
   errorCount: number;
 }

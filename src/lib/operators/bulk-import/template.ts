@@ -12,18 +12,22 @@ import {
   WELDING_TYPES,
 } from "@/lib/iso14732/constants";
 import {
-  OPERATOR_IMPORT_COLUMNS,
   OPERATOR_IMPORT_SHEET_NAME,
+  OPERATOR_TEMPLATE_COLUMNS,
 } from "./columns";
 
 const INSTRUCTIONS = [
   ["WeldDoc — bulk operator import template"],
   [],
+  ["Only two columns are required: plant_operator_id (O# No) and full_name."],
+  ["Everything else is optional. WeldDoc computes qualified ranges and expiry automatically."],
+  [],
   ["Rules"],
-  ["• Dates must be YYYY-MM-DD (e.g. 2024-06-15)."],
-  ["• One row = one record. Leave qualification columns blank for operator-only rows."],
-  ["• Multiple rows with the same plant_operator_id are allowed if operator details match."],
-  ["• plant_operator_id uses O#01 format. Leave blank to auto-assign on import."],
+  ["• plant_operator_id (O# No) is required (O#01 / O#1 / 1). If it already exists in WeldDoc, the qualification is attached to that operator; otherwise a new operator is created."],
+  ["• One row = one qualification. Repeat the operator name and O# on every row for that operator."],
+  ["• Leave qualification columns blank to just register an operator (no prior qualification)."],
+  ["• Dates are flexible: 2024-06-15, 15/06/2024, 15-06-2024 or 10 May 2023 all work (day-first)."],
+  ["• Values are forgiving: paste codes or labels (process \"135\" or \"MAG (135)\"), case does not matter, \"Method 1\" = \"Method_1\", and welder 9.3x maps to operator 6.3x. Extra columns are ignored."],
   ["• Employer and branch are taken from organisation settings."],
   ["• Maximum 500 data rows per file."],
   [],
@@ -39,26 +43,12 @@ const INSTRUCTIONS = [
   ["result_* columns — Pass | Fail | NA (result_vt defaults Pass)"],
 ];
 
+// One operator (O#02) with two qualifications — the same name and O# repeat on
+// every row, matching how legacy sheets are laid out.
 const EXAMPLE_ROWS = [
   {
-    plant_operator_id: "O#01",
-    full_name: "Example Operator (profile only)",
-    email: "operator@example.com",
-    date_of_birth: "1990-01-15",
-    place_of_birth: "City, State, Country",
-    id_method: "Passport",
-    id_number: "AB123456",
-    operator_status: "Active",
-  },
-  {
     plant_operator_id: "O#02",
-    full_name: "Example Operator (with qualification)",
-    email: "operator2@example.com",
-    date_of_birth: "1985-03-20",
-    place_of_birth: "City, Country",
-    id_method: "Passport",
-    id_number: "CD789012",
-    operator_status: "Active",
+    full_name: "Ramesh Kumar",
     welding_type: "Fusion",
     welding_mode: "Mechanized",
     process: "135",
@@ -68,14 +58,24 @@ const EXAMPLE_ROWS = [
     method1_standard: "ISO 9606-1",
     date_of_welding: "2024-06-15",
     revalidation_method: "6.3b",
-    examiner_name: "Imported Examiner",
-    result_vt: "Pass",
-    result_rt_ut_bend: "Pass",
+  },
+  {
+    plant_operator_id: "O#02",
+    full_name: "Ramesh Kumar",
+    welding_type: "Fusion",
+    welding_mode: "Automatic",
+    process: "141",
+    product_type: "Pipe",
+    joint_type: "BW",
+    qualification_test_method: "Method_1",
+    method1_standard: "ISO 9606-1",
+    date_of_welding: "2024-07-20",
+    revalidation_method: "6.3b",
   },
 ];
 
 export function buildOperatorImportTemplateBuffer(): ArrayBuffer {
-  const header = [...OPERATOR_IMPORT_COLUMNS];
+  const header = [...OPERATOR_TEMPLATE_COLUMNS];
   const importData = [
     header,
     ...EXAMPLE_ROWS.map((row) =>

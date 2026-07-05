@@ -12,6 +12,7 @@
     "verify:range": "node scripts/verify-range-engine.mjs",
     "verify:iso9606": "node scripts/verify-all-iso9606.mjs",
     "verify:import": "npx tsx scripts/verify-bulk-import.ts",
+    "verify:import:operators": "npx tsx scripts/verify-operator-import.ts",
     "verify:import:e2e": "npx tsx scripts/e2e-bulk-import.ts",
     "verify:cron": "npx tsx scripts/verify-expiry-cron.ts --live",
     "test:e2e": "playwright test",

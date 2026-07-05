@@ -6,7 +6,6 @@ import {
   assertPlantWelderIdAvailable,
   isUniqueViolation,
   normalizePlantWelderId,
-  nextAvailablePlantWelderId,
 } from "@/lib/welders/plant-id";
 import type { ValidatedImportRow, WelderImportFields } from "./types";
 
@@ -74,21 +73,39 @@ export async function commitValidatedImport(
       }
     }
 
+    // Map existing welders in this org by their (normalized) plant/welder ID so
+    // imported qualifications attach to the right person instead of failing.
+    const { data: existingWelders, error: existingErr } = await supabase
+      .from("welders")
+      .select("id, welder_id")
+      .eq("org_id", ctx.orgId);
+    if (existingErr) {
+      throw new Error(`Could not load existing welders: ${existingErr.message}`);
+    }
+    const existingIdByPlant = new Map<string, string>();
+    for (const w of existingWelders ?? []) {
+      const norm = normalizePlantWelderId(w.welder_id);
+      if (norm) existingIdByPlant.set(norm, w.id);
+    }
+
+    let weldersCreated = 0;
+
     for (const [groupKey, welder] of uniqueWelders) {
+      const plantWelderId =
+        normalizePlantWelderId(welder.plantWelderId) ?? welder.plantWelderId;
+
+      // Attach to an existing welder with this plant ID.
+      const existingId = existingIdByPlant.get(plantWelderId);
+      if (existingId) {
+        welderIdByGroup.set(groupKey, existingId);
+        continue;
+      }
+
       const { data: uid, error: uidErr } = await supabase.rpc("next_welder_uid", {
         p_org: ctx.orgId,
       });
       if (uidErr || !uid) {
         throw new Error(uidErr?.message ?? "Could not allocate welder UID.");
-      }
-
-      let plantWelderId = normalizePlantWelderId(welder.plantWelderId);
-      if (!plantWelderId) {
-        plantWelderId = await nextAvailablePlantWelderId(
-          supabase,
-          ctx.orgId,
-          ctx.welderSeq,
-        );
       }
 
       await assertPlantWelderIdAvailable(supabase, ctx.orgId, plantWelderId);
@@ -118,7 +135,7 @@ export async function commitValidatedImport(
       if (error) {
         if (isUniqueViolation(error)) {
           throw new Error(
-            `Plant welder ID "${plantWelderId}" is already in use. Remove duplicates or edit IDs in the preview table.`,
+            `Plant welder ID "${plantWelderId}" is already in use. Remove duplicates in the file.`,
           );
         }
         throw new Error(
@@ -127,7 +144,9 @@ export async function commitValidatedImport(
       }
 
       createdWelderIds.push(created.id);
+      existingIdByPlant.set(plantWelderId, created.id);
       welderIdByGroup.set(groupKey, created.id);
+      weldersCreated += 1;
     }
 
     let qualificationsCreated = 0;
@@ -210,7 +229,7 @@ export async function commitValidatedImport(
     }
 
     return {
-      weldersCreated: uniqueWelders.size,
+      weldersCreated,
       qualificationsCreated,
     };
   } catch (err) {

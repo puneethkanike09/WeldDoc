@@ -38,6 +38,31 @@ export const OPERATOR_IMPORT_COLUMNS = [
 
 export type OperatorImportColumnKey = (typeof OPERATOR_IMPORT_COLUMNS)[number];
 
+/**
+ * Slim column set for the downloadable template and the read-only preview.
+ * Personal-detail columns are still accepted if present but are not part of the
+ * default template.
+ */
+export const OPERATOR_TEMPLATE_COLUMNS = [
+  "plant_operator_id",
+  "full_name",
+  "welding_type",
+  "welding_mode",
+  "process",
+  "product_type",
+  "joint_type",
+  "qualification_test_method",
+  "method1_standard",
+  "date_of_welding",
+  "revalidation_method",
+] as const satisfies readonly OperatorImportColumnKey[];
+
+/** Columns that must be present/valid on every row. */
+export const OPERATOR_REQUIRED_KEYS = [
+  "plant_operator_id",
+  "full_name",
+] as const satisfies readonly OperatorImportColumnKey[];
+
 export const OPERATOR_QUAL_REQUIRED_KEYS = [
   "welding_type",
   "welding_mode",

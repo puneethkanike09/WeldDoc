@@ -13,10 +13,10 @@ export interface OperatorImportFields {
   plantOperatorId: string;
   fullName: string;
   email: string | null;
-  dateOfBirth: string;
-  placeOfBirth: string;
-  idMethod: string;
-  idNumber: string;
+  dateOfBirth: string | null;
+  placeOfBirth: string | null;
+  idMethod: string | null;
+  idNumber: string | null;
   operatorStatus: "Active" | "Inactive" | "Suspended";
 }
 
@@ -41,6 +41,11 @@ export interface ValidatedOperatorImportRow {
   excelRow: number;
   operator: OperatorImportFields;
   qualification: OperatorQualImportFields | null;
+  /**
+   * Normalized copy of the original Excel cells. The preview grid renders from
+   * this so the user's data never disappears when a single field is invalid.
+   */
+  raw: Record<string, string>;
 }
 
 export interface OperatorImportValidationError {
@@ -52,6 +57,8 @@ export interface OperatorImportValidationError {
 export interface OperatorImportValidationSummary {
   totalRows: number;
   operatorCount: number;
+  existingOperatorCount: number;
+  newOperatorCount: number;
   qualificationCount: number;
   errorCount: number;
 }

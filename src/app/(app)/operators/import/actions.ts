@@ -14,6 +14,8 @@ const MAX_FILE_BYTES = 5 * 1024 * 1024;
 const emptySummary = {
   totalRows: 0,
   operatorCount: 0,
+  existingOperatorCount: 0,
+  newOperatorCount: 0,
   qualificationCount: 0,
   errorCount: 0,
 };

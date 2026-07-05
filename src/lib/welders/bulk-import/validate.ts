@@ -9,11 +9,11 @@ import {
   BW_POSITIONS,
   FW_POSITIONS,
 } from "@/lib/iso9606/constants";
-import { assignImportPlantIds } from "./assign-plant-ids";
 import { computeExpiry } from "@/lib/expiry";
 import { normalizePlantWelderId } from "@/lib/welders/plant-id";
 import { isValidEmailFormat, normalizeOptionalEmail } from "@/lib/utils";
-import { QUAL_COLUMN_KEYS, QUAL_REQUIRED_KEYS } from "./columns";
+import { QUAL_REQUIRED_KEYS } from "./columns";
+import { normalizeRawRow } from "./normalize";
 import type {
   ImportValidationError,
   ImportValidationResult,
@@ -64,7 +64,10 @@ function str(raw: RawImportRow, key: string): string | null {
 }
 
 function hasAnyQualField(raw: RawImportRow): boolean {
-  return QUAL_COLUMN_KEYS.some((k) => str(raw, k) != null);
+  // Only the core qualification fields trigger the qualification block. A stray
+  // value in an optional column (e.g. "NA" in result_vt, a leftover filler
+  // group) should not force the user to fill in a whole qualification.
+  return QUAL_REQUIRED_KEYS.some((k) => str(raw, k) != null);
 }
 
 function parseDate(
@@ -173,14 +176,23 @@ function parseWelder(
   excelRow: number,
   errors: ImportValidationError[],
 ): WelderImportFields | null {
+  // Plant/Welder ID (W# No) is required — it is how we match an imported
+  // qualification to an existing welder, or create a new one.
   const plantRaw = str(raw, "plant_welder_id");
   const plantWelderId = plantRaw ? (normalizePlantWelderId(plantRaw) ?? "") : "";
-  if (plantRaw && !plantWelderId) {
+  if (!plantRaw) {
     errors.push({
       excelRow,
       column: "plant_welder_id",
-      message:
-        "plant_welder_id is invalid. Use W#01 format or leave blank to auto-assign.",
+      message: "plant_welder_id (W# No) is required.",
+    });
+    return null;
+  }
+  if (!plantWelderId) {
+    errors.push({
+      excelRow,
+      column: "plant_welder_id",
+      message: "plant_welder_id is invalid. Use W#01 / W#1 / 1 format.",
     });
     return null;
   }
@@ -191,32 +203,11 @@ function parseWelder(
     return null;
   }
 
-  const dateOfBirth = parseDate(raw, "date_of_birth", excelRow, errors, true);
+  // Personal details are optional (legacy sheets rarely include them).
+  const dateOfBirth = parseDate(raw, "date_of_birth", excelRow, errors);
   const placeOfBirth = str(raw, "place_of_birth");
-  if (!placeOfBirth) {
-    errors.push({
-      excelRow,
-      column: "place_of_birth",
-      message: "place_of_birth is required.",
-    });
-    return null;
-  }
-
   const idMethod = str(raw, "id_method");
-  if (!idMethod) {
-    errors.push({
-      excelRow,
-      column: "id_method",
-      message: "id_method is required.",
-    });
-    return null;
-  }
-
   const idNumber = str(raw, "id_number");
-  if (!idNumber) {
-    errors.push({ excelRow, column: "id_number", message: "id_number is required." });
-    return null;
-  }
 
   const statusRaw = str(raw, "welder_status") ?? "Active";
   if (!WELDER_STATUS_SET.has(statusRaw as WelderStatus)) {
@@ -227,8 +218,6 @@ function parseWelder(
     });
     return null;
   }
-
-  if (!dateOfBirth) return null;
 
   const emailRaw = str(raw, "email");
   let email: string | null = null;
@@ -433,50 +422,27 @@ export function validateImportRows(
 
   const seenGroups = new Map<string, number>();
   const fingerprintByGroup = new Map<string, string>();
-  const existingIdNumbers = new Set(
-    [...(options.existingIdNumbers ?? [])]
-      .map((id) => normalizeImportIdNumber(id))
-      .filter((id): id is string => Boolean(id)),
-  );
-  const idNumberFingerprints = new Map<string, string>();
 
-  for (const { excelRow, raw } of parsed) {
+  for (const { excelRow, raw: rawInput } of parsed) {
+    // Coerce common real-world encodings (labels, casing, date formats, units)
+    // to the canonical codes the validator + dropdowns expect. The normalized
+    // map is also what the preview grid renders, so nothing disappears.
+    const normalized = normalizeRawRow(rawInput);
+    const raw: RawImportRow = normalized;
+
     const welder = parseWelder(raw, excelRow, errors);
     if (!welder) continue;
 
+    // Reflect the canonical plant ID back into the display cells.
+    if (welder.plantWelderId) {
+      normalized.plant_welder_id = welder.plantWelderId;
+    }
+
     const groupKey = welderGroupKey(welder);
 
-    if (welder.plantWelderId && existingPlantIds.has(welder.plantWelderId)) {
-      errors.push({
-        excelRow,
-        column: "plant_welder_id",
-        message: `Plant welder ID "${welder.plantWelderId}" already exists in your organisation.`,
-      });
-    }
-
-    const normalizedIdNumber = normalizeImportIdNumber(welder.idNumber);
-    if (normalizedIdNumber) {
-      if (existingIdNumbers.has(normalizedIdNumber)) {
-        errors.push({
-          excelRow,
-          column: "id_number",
-          message: `ID number "${welder.idNumber}" is already registered in your organisation.`,
-        });
-      }
-
-      const fp = welderFingerprint(welder);
-      const priorFp = idNumberFingerprints.get(normalizedIdNumber);
-      if (priorFp && priorFp !== fp) {
-        errors.push({
-          excelRow,
-          column: "id_number",
-          message: `ID number "${welder.idNumber}" is used for a different welder on another row.`,
-        });
-      } else {
-        idNumberFingerprints.set(normalizedIdNumber, fp);
-      }
-    }
-
+    // A welder already in the org is fine — the qualification(s) on this row
+    // will be attached to that welder at commit time. Only flag rows in this
+    // same file that reuse a plant ID with conflicting welder details.
     const prevRow = seenGroups.get(groupKey);
     if (prevRow != null) {
       const fp = welderFingerprint(welder);
@@ -494,14 +460,16 @@ export function validateImportRows(
     }
 
     const qualification = parseQualification(raw, excelRow, errors);
-    rows.push({ excelRow, welder, qualification });
+    rows.push({ excelRow, welder, qualification, raw: normalized });
   }
 
-  assignImportPlantIds(rows, existingPlantIds, options.welderSeq ?? 0);
-
-  const uniqueWelders = new Set(
-    rows.map((r) => r.welder.plantWelderId || welderGroupKey(r.welder)),
-  );
+  const uniqueWelders = new Set(rows.map((r) => r.welder.plantWelderId));
+  let existingWelderCount = 0;
+  let newWelderCount = 0;
+  for (const plantId of uniqueWelders) {
+    if (existingPlantIds.has(plantId)) existingWelderCount += 1;
+    else newWelderCount += 1;
+  }
   const qualCount = rows.filter((r) => r.qualification).length;
 
   return {
@@ -511,6 +479,8 @@ export function validateImportRows(
     summary: {
       totalRows: rows.length,
       welderCount: uniqueWelders.size,
+      existingWelderCount,
+      newWelderCount,
       qualificationCount: qualCount,
       errorCount: errors.length,
     },

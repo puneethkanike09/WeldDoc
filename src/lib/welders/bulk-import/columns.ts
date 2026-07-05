@@ -60,6 +60,33 @@ export const QUAL_COLUMN_KEYS = [
   "result_fracture",
 ] as const satisfies readonly ImportColumnKey[];
 
+/**
+ * The slim set of columns shown in the downloadable template and the read-only
+ * preview. Everything else (expiry dates, qualified ranges, positions) is
+ * computed by WeldDoc, and personal-detail columns are still accepted if
+ * present but are not part of the default template.
+ */
+export const TEMPLATE_COLUMNS = [
+  "plant_welder_id",
+  "full_name",
+  "process",
+  "joint_type",
+  "position",
+  "base_material_group",
+  "filler_group",
+  "test_thickness_mm",
+  "pipe_od_mm",
+  "product",
+  "date_of_welding",
+  "revalidation_method",
+] as const satisfies readonly ImportColumnKey[];
+
+/** Columns that must be present/valid on every row. */
+export const WELDER_REQUIRED_KEYS = [
+  "plant_welder_id",
+  "full_name",
+] as const satisfies readonly ImportColumnKey[];
+
 /** Required when any qualification column is filled. */
 export const QUAL_REQUIRED_KEYS = [
   "process",
