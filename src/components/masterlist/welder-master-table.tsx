@@ -86,7 +86,7 @@ export function WelderMasterTable({ rows }: { rows: MasterRow[] }) {
         </div>
       </div>
 
-      <div className="sleek-scroll mt-5 overflow-x-auto rounded-[var(--radius-card)] border border-silver bg-panel">
+      <div className="mt-5 overflow-x-auto overflow-y-clip overscroll-y-auto rounded-[var(--radius-card)] border border-silver bg-panel">
         <table className="w-full min-w-[1100px] text-left text-[13px]">
           <thead>
             <tr className="border-b border-silver bg-frost text-[11px] uppercase tracking-wide text-steel">
