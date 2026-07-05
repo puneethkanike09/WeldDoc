@@ -1181,11 +1181,6 @@ export function CertificateStep({
               </p>
             ) : null}
 
-            <p className="rounded-[10px] bg-frost px-3 py-2 text-sm text-graphite">
-              The certificate leaves a blank examining-body area so it can be
-              signed and stamped by hand after printing.
-            </p>
-
             <div className="flex flex-wrap items-center justify-between gap-3">
               <StepPreviousLink welderId={welderId} wpqId={wpq.id} step={4} />
               <div className="flex flex-wrap items-center gap-3">
