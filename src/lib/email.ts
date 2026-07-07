@@ -64,6 +64,8 @@ export async function sendBatchEmails(
   }
 }
 
+export type ExpiryReminderKind = "certificate" | "continuity";
+
 export interface ExpiryAlert {
   welderName: string;
   plantWelderId: string;
@@ -71,6 +73,20 @@ export interface ExpiryAlert {
   validityCode: string;
   expiryDate: string;
   daysLeft: number;
+  reminderKind: ExpiryReminderKind;
+}
+
+function reminderKindLabel(kind: ExpiryReminderKind): string {
+  return kind === "continuity" ? "Continuity check" : "Certificate expiry";
+}
+
+function dueCell(daysLeft: number, expiryDate: string): string {
+  const label =
+    daysLeft < 0
+      ? `${Math.abs(daysLeft)}d overdue`
+      : `${daysLeft}d`;
+  const color = daysLeft < 0 ? "#912e1f" : "#f90a08";
+  return `<td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:${color};font-weight:600;white-space:nowrap">${expiryDate} (${label})</td>`;
 }
 
 /** Org digest scope — welder-only, operator-only, or combined. */
@@ -116,8 +132,9 @@ function expiryDigestHtml(
         <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;font-weight:600;color:#161616;white-space:nowrap">${a.welderName}</td>
         <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:#4a4a4a;white-space:nowrap">${a.plantWelderId}</td>
         <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:#4a4a4a;white-space:nowrap">${a.process}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:#4a4a4a;white-space:nowrap">${reminderKindLabel(a.reminderKind)}</td>
         <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:#4a4a4a;white-space:nowrap">${a.validityCode}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:${a.daysLeft < 0 ? "#912e1f" : "#f90a08"};font-weight:600;white-space:nowrap">${a.expiryDate} (${a.daysLeft < 0 ? `${Math.abs(a.daysLeft)}d overdue` : `${a.daysLeft}d`})</td>
+        ${dueCell(a.daysLeft, a.expiryDate)}
       </tr>`,
     )
     .join("");
@@ -132,13 +149,14 @@ function expiryDigestHtml(
           <h1 style="font-size:18px;color:#161616;margin:0 0 6px">${copy.heading}</h1>
           <p style="color:#4a4a4a;margin:0 0 18px">${orgName} — ${alerts.length} qualification(s) need attention.</p>
           <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;max-width:100%">
-            <table style="min-width:560px;width:100%;border-collapse:collapse;font-size:13px">
+            <table style="min-width:640px;width:100%;border-collapse:collapse;font-size:13px">
               <thead>
                 <tr style="text-align:left;color:#9297a0;font-size:11px;text-transform:uppercase">
                   <th style="padding:8px 12px;white-space:nowrap">${copy.nameColumn}</th>
                   <th style="padding:8px 12px;white-space:nowrap">Plant ID</th>
                   <th style="padding:8px 12px;white-space:nowrap">Process</th>
-                  <th style="padding:8px 12px;white-space:nowrap">Type</th>
+                  <th style="padding:8px 12px;white-space:nowrap">Reminder</th>
+                  <th style="padding:8px 12px;white-space:nowrap">Method</th>
                   <th style="padding:8px 12px;white-space:nowrap">Due</th>
                 </tr>
               </thead>
@@ -183,8 +201,9 @@ function welderExpiryDigestHtml(
       <tr>
         <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:#4a4a4a;white-space:nowrap">${a.plantWelderId}</td>
         <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:#4a4a4a;white-space:nowrap">${a.process}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:#4a4a4a;white-space:nowrap">${reminderKindLabel(a.reminderKind)}</td>
         <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:#4a4a4a;white-space:nowrap">${a.validityCode}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:${a.daysLeft < 0 ? "#912e1f" : "#f90a08"};font-weight:600;white-space:nowrap">${a.expiryDate} (${a.daysLeft < 0 ? `${Math.abs(a.daysLeft)}d overdue` : `${a.daysLeft}d`})</td>
+        ${dueCell(a.daysLeft, a.expiryDate)}
       </tr>`,
     )
     .join("");
@@ -199,12 +218,13 @@ function welderExpiryDigestHtml(
           <h1 style="font-size:18px;color:#161616;margin:0 0 6px">Your qualification reminders</h1>
           <p style="color:#4a4a4a;margin:0 0 18px">Hi ${welderName}, ${alerts.length} of your qualification(s) at ${orgName} need attention.</p>
           <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;max-width:100%">
-            <table style="min-width:480px;width:100%;border-collapse:collapse;font-size:13px">
+            <table style="min-width:520px;width:100%;border-collapse:collapse;font-size:13px">
               <thead>
                 <tr style="text-align:left;color:#9297a0;font-size:11px;text-transform:uppercase">
                   <th style="padding:8px 12px;white-space:nowrap">Plant ID</th>
                   <th style="padding:8px 12px;white-space:nowrap">Process</th>
-                  <th style="padding:8px 12px;white-space:nowrap">Type</th>
+                  <th style="padding:8px 12px;white-space:nowrap">Reminder</th>
+                  <th style="padding:8px 12px;white-space:nowrap">Method</th>
                   <th style="padding:8px 12px;white-space:nowrap">Due</th>
                 </tr>
               </thead>

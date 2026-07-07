@@ -29,6 +29,7 @@ export interface ValidationView {
   validatorName: string | null;
   note: string | null;
   newExpiry: string | null;
+  nextContinuityDue: string | null;
   docUrl: string | null;
 }
 
@@ -239,11 +240,18 @@ export function QualificationProfileDetail({
                       {v.note && (
                         <p className="mt-0.5 text-graphite">{v.note}</p>
                       )}
-                      {v.newExpiry && (
-                        <p className="mt-0.5 text-steel">
-                          New expiry: {v.newExpiry}
-                        </p>
-                      )}
+                      {v.kind === "continuity"
+                        ? v.nextContinuityDue && (
+                            <p className="mt-0.5 text-steel">
+                              Continuity confirmed · next due{" "}
+                              {v.nextContinuityDue}
+                            </p>
+                          )
+                        : v.newExpiry && (
+                            <p className="mt-0.5 text-steel">
+                              New expiry: {v.newExpiry}
+                            </p>
+                          )}
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       {v.docUrl ? (
