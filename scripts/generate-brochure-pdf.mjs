@@ -4,7 +4,9 @@
  *
  * Usage:
  *   npm run brochure:pdf
- *   BROCHURE_URL=http://127.0.0.1:3000/brochure npm run brochure:pdf
+ *   npm run brochure:pdf:eur
+ *   BROCHURE_REGION=eur npm run brochure:pdf
+ *   BROCHURE_URL=http://127.0.0.1:3000/brochure/eur npm run brochure:pdf
  *   BROCHURE_SCALE=3 npm run brochure:pdf   # device pixel ratio (default 3)
  */
 
@@ -17,9 +19,15 @@ import puppeteer from "puppeteer";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 const outDir = path.join(root, "public", "brochure");
-const outFile = path.join(outDir, "welddoc-brochure.pdf");
 const defaultPort = process.env.BROCHURE_PORT ?? "3099";
-const baseUrl = process.env.BROCHURE_URL ?? `http://127.0.0.1:${defaultPort}/brochure`;
+const region = process.env.BROCHURE_REGION ?? "inr";
+const pathSuffix = region === "eur" ? "/eur" : "";
+const baseUrl =
+  process.env.BROCHURE_URL ?? `http://127.0.0.1:${defaultPort}/brochure${pathSuffix}`;
+const outFile = path.join(
+  outDir,
+  region === "eur" ? "welddoc-brochure-eur.pdf" : "welddoc-brochure.pdf",
+);
 const deviceScaleFactor = Number(process.env.BROCHURE_SCALE ?? "3");
 
 function wait(ms) {
@@ -127,7 +135,7 @@ async function main() {
   }
 
   const executablePath = await resolveChromePath();
-  console.log(`Rendering brochure PDF (scale ${deviceScaleFactor}x)…`);
+  console.log(`Rendering ${region.toUpperCase()} brochure PDF (scale ${deviceScaleFactor}x)…`);
 
   const browser = await puppeteer.launch({
     headless: true,

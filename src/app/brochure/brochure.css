@@ -6,671 +6,739 @@
 }
 
 @media print {
-  html,
-  body {
+  html, body {
     margin: 0 !important;
     padding: 0 !important;
-    background: #fff !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-
-  .brochure-screen-toolbar {
-    display: none !important;
-  }
+  .brochure-screen-toolbar { display: none !important; }
 }
 
-/* ── Root ── */
+/* ═════════════════════════════════════════
+   FORGE STEEL — design tokens
+   Navy #1C2B3A · Surface #2E4A63
+   Amber #E8A030 · Warm white #F5F0E8
+═════════════════════════════════════════ */
 .brochure-root {
-  --red: #f90a08;
-  --ink: #161616;
-  --muted: #5a5a5e;
-  --line: #e4e4e8;
-  --soft: #f5f6f7;
-  --yes: #1a6b38;
-  --partial: #9a7200;
-  background: #e8e8ec;
+  --navy:     #1C2B3A;
+  --surface:  #2E4A63;
+  --amber:    #E8A030;
+  --warm:     #F5F0E8;
+  --ink:      #1C2B3A;
+  --muted:    #556070;
+  --line:     #DDD8CF;
+  --soft:     #EDE8E0;
+  --yes:      #2DC47A;
+  --expired:  #E85A30;
+  --warning:  #F0B820;
+  --inactive: #B0BEC5;
+
+  background: #C8C4BC;
   color: var(--ink);
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
+/* ── Screen toolbar ── */
 .brochure-screen-toolbar {
   width: 210mm;
-  margin: 12px auto 8px;
+  margin: 14px auto 8px;
   padding: 0 4px;
   font-size: 12px;
-  color: #666;
+  color: #555;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
-
-.brochure-screen-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.brochure-screen-hint {
-  font-size: 11px;
-  color: #888;
-}
-
+.brochure-screen-actions { display: flex; align-items: center; gap: 10px; }
+.brochure-screen-hint    { font-size: 11px; color: #888; }
 .brochure-btn {
   display: inline-flex;
   align-items: center;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
   text-decoration: none;
 }
-
-.brochure-btn-primary {
-  background: var(--red);
-  color: #fff;
-}
-
+.brochure-btn-primary { background: var(--navy); color: var(--amber); }
 .brochure-screen-toolbar code {
-  font-size: 11px;
-  background: #fff;
-  padding: 1px 5px;
-  border-radius: 4px;
+  font-size: 11px; background: #fff; padding: 1px 5px; border-radius: 4px;
 }
 
-/* ── Page shell ── */
+/* ═════════════════════════════════════════
+   PAGE SHELL — warm parchment background
+═════════════════════════════════════════ */
 .brochure-page {
   width: 210mm;
   height: 297mm;
-  margin: 0 auto 20px;
-  padding: 9mm 10mm 8mm;
-  background: #fff;
+  margin: 0 auto 24px;
+  padding: 0;
+  background: var(--warm);
   box-sizing: border-box;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 12px 40px rgb(0 0 0 / 0.1);
+  box-shadow: 0 16px 48px rgb(0 0 0 / 0.2);
 }
 
 @media print {
-  .brochure-root {
-    background: #fff;
-  }
-
+  .brochure-root { background: var(--warm); }
   .brochure-page {
-    margin: 0;
-    box-shadow: none;
-    page-break-after: always;
-    break-after: page;
+    margin: 0; box-shadow: none;
+    page-break-after: always; break-after: page;
   }
-
-  .brochure-page:last-child {
-    page-break-after: auto;
-    break-after: auto;
-  }
+  .brochure-page:last-child { page-break-after: auto; break-after: auto; }
 }
 
-/* ── Typography ── */
-.brochure-kicker {
-  margin: 0 0 5px;
-  font-size: 8.5px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--red);
+/* ═════════════════════════════════════════
+   PHOTO HERO — 80mm, leaves more body space
+═════════════════════════════════════════ */
+.brochure-hero-photo {
+  position: relative;
+  width: 100%;
+  height: 80mm;
+  flex-shrink: 0;
+  background-image: url('/images/welding-hero.jpg');
+  background-size: cover;
+  background-position: center 38%;
+  overflow: hidden;
 }
 
-.brochure-kicker-inline {
-  margin-bottom: 4px;
+.brochure-hero-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgb(28 43 58 / 0.60) 0%,
+    rgb(28 43 58 / 0.22) 35%,
+    rgb(28 43 58 / 0.80) 68%,
+    rgb(28 43 58 / 0.97) 100%
+  );
 }
 
-.brochure-headline {
-  margin: 0 0 5px;
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+.brochure-hero-content {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px 11mm 14px;
 }
 
-.brochure-headline-sm {
-  font-size: 14px;
+.brochure-hero-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-.brochure-lead {
-  margin: 0;
-  font-size: 9.2px;
-  line-height: 1.45;
-  color: var(--muted);
-}
-
-.brochure-lead-sm {
-  font-size: 8.8px;
-}
-
-.brochure-mt {
-  margin-top: 8px;
-}
-
-.brochure-mt-tight {
-  margin-top: 6px;
-}
-
-/* ── Cover ── */
-.brochure-cover {
-  background: var(--ink);
-  border-radius: 10px;
-  padding: 11px 14px 10px;
-  color: #fff;
-}
-
-.brochure-cover-top {
+.brochure-hero-bottom {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
-.brochure-logo {
-  font-size: 26px;
-  font-weight: 700;
-  line-height: 1;
+.brochure-hero-headline {
+  margin: 0 0 6px;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.12;
   letter-spacing: -0.03em;
-}
-
-.brochure-logo .weld {
-  color: var(--red);
-}
-
-.brochure-logo .doc {
   color: #fff;
+  max-width: 330px;
 }
 
-.brochure-cover-tagline {
+.brochure-hero-sub {
   margin: 0;
-  max-width: 280px;
-  font-size: 10px;
-  line-height: 1.35;
-  color: rgb(255 255 255 / 0.82);
-  text-align: right;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--amber);
 }
 
+/* Logo */
+.brochure-logo-img {
+  height: 34px;
+  width: auto;
+  display: block;
+}
+
+/* Industry pills */
 .brochure-cover-pills {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin-top: 10px;
-}
-
-.brochure-pill {
-  font-size: 7.5px;
-  font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: var(--soft);
-  color: var(--ink);
-}
-
-.brochure-pill-on-dark {
-  background: rgb(255 255 255 / 0.1);
-  color: rgb(255 255 255 / 0.9);
-  border: 1px solid rgb(255 255 255 / 0.12);
-}
-
-/* ── About + problem/solution ── */
-.brochure-split {
-  display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
-  gap: 10px;
-  align-items: start;
-}
-
-.brochure-problem-solution {
-  display: grid;
-  grid-template-rows: 1fr 1fr;
-  gap: 6px;
-}
-
-.brochure-card {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 8px 9px;
-  background: #fff;
-}
-
-.brochure-card-accent {
-  background: rgb(249 10 8 / 0.04);
-  border-color: rgb(249 10 8 / 0.18);
-}
-
-.brochure-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.brochure-list li {
-  position: relative;
-  padding-left: 11px;
-  margin-bottom: 3px;
-  font-size: 8.6px;
-  line-height: 1.35;
-  color: var(--muted);
-}
-
-.brochure-list li:last-child {
-  margin-bottom: 0;
-}
-
-.brochure-list li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 5px;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--red);
-}
-
-/* ── Hero screenshot (full UI, no crop) ── */
-.brochure-hero-stage {
-  position: relative;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  overflow: hidden;
-  background: #0d0d0d;
-  height: 62mm;
-  display: flex;
+  flex: 1;
   align-items: center;
-  justify-content: center;
-  line-height: 0;
+}
+.brochure-pill-on-dark {
+  font-size: 7px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgb(232 160 48 / 0.18);
+  color: var(--amber);
+  border: 1px solid rgb(232 160 48 / 0.38);
+  letter-spacing: 0.02em;
 }
 
-.brochure-hero-img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: contain;
-  object-position: center center;
-}
-
+/* QR product inset */
 .brochure-hero-inset {
-  position: absolute;
-  right: 7px;
-  bottom: 7px;
-  width: 34%;
-  margin: 0;
-  border: 2px solid #fff;
+  position: relative;
+  width: 100px;
+  flex-shrink: 0;
+  border: 2px solid var(--amber);
   border-radius: 6px;
   overflow: hidden;
-  background: #0d0d0d;
-  box-shadow: 0 4px 16px rgb(0 0 0 / 0.45);
+  background: var(--navy);
   line-height: 0;
+  box-shadow: 0 4px 22px rgb(0 0 0 / 0.65);
 }
-
 .brochure-hero-inset-img {
   width: 100%;
   height: auto;
   display: block;
   object-fit: contain;
-  object-position: top left;
 }
-
+.brochure-hero-inset-qr {
+  background: #fff;
+  padding: 4px;
+  box-sizing: border-box;
+}
 .brochure-hero-inset-label {
   margin: 0;
-  padding: 3px 5px;
-  font-size: 6.8px;
+  padding: 3px 6px;
+  font-size: 6.5px;
   font-weight: 700;
-  line-height: 1.2;
   text-align: center;
-  color: #fff;
-  background: rgb(22 22 22 / 0.88);
+  color: var(--amber);
+  background: var(--navy);
+  letter-spacing: 0.04em;
+  line-height: 1.3;
 }
 
+/* ═════════════════════════════════════════
+   PAGE BODY PADDING WRAPPER
+═════════════════════════════════════════ */
+.brochure-body-pad {
+  padding: 0 11mm;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ── Typography ── */
+.brochure-kicker {
+  margin: 0 0 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+.brochure-kicker-inline { margin-bottom: 4px; }
+
+.brochure-headline {
+  margin: 0 0 6px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -0.025em;
+  color: var(--navy);
+}
+.brochure-headline-sm { font-size: 17px; }
+
+.brochure-lead {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.brochure-lead-sm { font-size: 12px; }
+
+.brochure-mt       { margin-top: 10px; }
+.brochure-mt-tight { margin-top: 7px; }
+
+/* ── About + Challenge/Solution — 2-col ── */
+.brochure-split {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 10px;
+  align-items: start;
+}
+.brochure-problem-solution {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 6px;
+}
+
+/* Cards */
+.brochure-card {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 9px 11px;
+  background: #fff;
+}
+.brochure-card-challenge {
+  border-left: 3px solid var(--expired);
+  background: rgb(232 90 48 / 0.03);
+}
+.brochure-card-solution {
+  background: var(--navy);
+  border-color: var(--navy);
+}
+.brochure-card-solution .brochure-kicker { color: var(--amber); }
+.brochure-card-solution .brochure-list li { color: rgb(255 255 255 / 0.84); }
+.brochure-card-solution .brochure-list li::before { background: var(--amber); }
+
+/* Lists */
+.brochure-list { margin: 0; padding: 0; list-style: none; }
+.brochure-list li {
+  position: relative;
+  padding-left: 14px;
+  margin-bottom: 5px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.brochure-list li:last-child { margin-bottom: 0; }
+.brochure-list li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 6px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--amber);
+}
+
+/* Callouts */
 .brochure-callouts {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 3px 10px;
-  margin: 5px 0 0;
-  padding: 0;
-  list-style: none;
+  gap: 5px 12px;
+  margin: 0; padding: 0; list-style: none;
 }
-
 .brochure-callout {
   display: flex;
   align-items: flex-start;
-  gap: 5px;
-  font-size: 7.6px;
-  line-height: 1.3;
+  gap: 7px;
+  font-size: 12px;
+  line-height: 1.4;
   color: var(--ink);
   font-weight: 500;
 }
-
 .brochure-callout-dot {
   flex-shrink: 0;
-  width: 5px;
-  height: 5px;
-  margin-top: 3px;
+  width: 6px; height: 6px;
+  margin-top: 4px;
   border-radius: 50%;
-  background: var(--red);
+  background: var(--amber);
 }
 
-/* ── Features ── */
+/* ═════════════════════════════════════════
+   SCREENSHOTS STRIP — fills available space
+═════════════════════════════════════════ */
+.brochure-screenshots {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.brochure-screenshots-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.brochure-screenshot-item {
+  border: 1.5px solid var(--surface);
+  border-radius: 7px;
+  overflow: hidden;
+  background: var(--navy);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.brochure-screenshot-img {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  display: block;
+  object-fit: contain;
+  object-position: top center;
+  background: var(--navy);
+}
+.brochure-screenshot-label {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--amber);
+  background: var(--navy);
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+/* ── Feature grid ── */
 .brochure-feature-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 5px;
 }
-
 .brochure-feature {
   border: 1px solid var(--line);
-  border-radius: 7px;
-  padding: 5px 6px;
-  min-height: 38px;
+  border-left: 3px solid var(--surface);
+  border-radius: 6px;
+  padding: 8px 8px 7px;
+  background: #fff;
 }
-
 .brochure-feature-title {
-  margin: 0 0 2px;
-  font-size: 8.2px;
+  margin: 0 0 3px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1.2;
+  color: var(--navy);
 }
-
 .brochure-feature-detail {
   margin: 0;
-  font-size: 7.4px;
-  line-height: 1.3;
+  font-size: 10.5px;
+  line-height: 1.4;
   color: var(--muted);
 }
 
-/* ── Workflow ── */
+/* ── Workflow strip ── */
 .brochure-workflow {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 4px;
 }
-
 .brochure-workflow-step {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 6px 6px 5px;
-  border-radius: 7px;
-  background: var(--soft);
-  min-height: 40px;
+  gap: 4px;
+  padding: 9px 8px 8px;
+  border-radius: 6px;
+  background: var(--navy);
 }
-
 .brochure-workflow-n {
-  font-size: 7.5px;
-  font-weight: 700;
-  color: var(--red);
+  font-size: 14px; font-weight: 700;
+  color: var(--amber); line-height: 1;
 }
-
 .brochure-workflow-text {
-  font-size: 7.6px;
-  line-height: 1.28;
-  color: var(--ink);
+  font-size: 11.5px; line-height: 1.38;
+  color: rgb(255 255 255 / 0.88);
 }
 
-/* ── Page 2 header ── */
+/* Page 1 footer */
+.brochure-page-footer {
+  margin-top: 8px;
+  padding: 6px 0 0;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+.brochure-footnote { font-size: 9.5px; color: var(--muted); }
+.brochure-page-num { font-size: 9.5px; color: var(--muted); font-weight: 600; }
+
+/* ═════════════════════════════════════════
+   PROOF BAR — page 2, full-width navy band
+═════════════════════════════════════════ */
+.brochure-proof-bar {
+  background: var(--navy);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  flex-shrink: 0;
+}
+.brochure-proof-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 8px;
+  border-right: 1px solid rgb(255 255 255 / 0.08);
+  text-align: center;
+}
+.brochure-proof-stat:last-child { border-right: none; }
+.brochure-proof-value {
+  font-size: 24px; font-weight: 800;
+  color: var(--amber); letter-spacing: -0.02em;
+  line-height: 1; margin: 0 0 4px;
+}
+.brochure-proof-label {
+  font-size: 9px;
+  color: rgb(255 255 255 / 0.72);
+  font-weight: 500; line-height: 1.3; margin: 0;
+}
+
+/* ═════════════════════════════════════════
+   PAGE 2 HEADER BAND
+═════════════════════════════════════════ */
 .brochure-page-header {
-  padding-bottom: 2px;
-  border-bottom: 2px solid var(--ink);
+  background: var(--navy);
+  padding: 10px 11mm 9px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.brochure-page-header::before {
+  content: "";
+  position: absolute;
+  top: 0; right: 0;
+  width: 5px; height: 100%;
+  background: var(--amber);
+}
+.brochure-page-header .brochure-headline { color: #fff; }
+.brochure-page-header .brochure-lead    { color: rgb(255 255 255 / 0.70); }
+
+/* ═════════════════════════════════════════
+   PERSONA CARDS — who uses WeldDoc
+═════════════════════════════════════════ */
+.brochure-personas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.brochure-persona {
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--amber);
+  border-radius: 6px;
+  padding: 7px 9px;
+  background: #fff;
+}
+.brochure-persona-role {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.2;
+}
+.brochure-persona-desc {
+  margin: 0 0 6px;
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: var(--muted);
+  font-style: italic;
+}
+.brochure-persona .brochure-list li {
+  font-size: 11px;
+  margin-bottom: 5px;
 }
 
-/* ── Comparison table ── */
+/* ═════════════════════════════════════════
+   COMPARISON TABLE
+═════════════════════════════════════════ */
 .brochure-compare {
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 7px;
   overflow: hidden;
 }
-
 .brochure-compare-table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
 }
-
 .brochure-compare-table th,
 .brochure-compare-table td {
   border-bottom: 1px solid var(--line);
   border-right: 1px solid var(--line);
-  padding: 4px 3px;
+  padding: 4.5px 4px;
   text-align: center;
   vertical-align: middle;
-  font-size: 7.6px;
+  font-size: 10px;
 }
-
 .brochure-compare-table th:last-child,
-.brochure-compare-table td:last-child {
-  border-right: none;
-}
+.brochure-compare-table td:last-child { border-right: none; }
+.brochure-compare-table tr:last-child td { border-bottom: none; }
 
-.brochure-compare-table tr:last-child td {
-  border-bottom: none;
+.brochure-compare-table thead th {
+  background: var(--surface);
+  color: rgb(255 255 255 / 0.85);
+  font-weight: 700; font-size: 9px;
 }
-
-.brochure-compare-table th {
-  background: var(--soft);
-  font-weight: 700;
-  font-size: 7.4px;
+.brochure-compare-table thead th.col-welddoc {
+  background: var(--amber);
+  color: var(--navy);
+  font-weight: 800;
 }
-
+.brochure-compare-table td.col-welddoc {
+  background: rgb(232 160 48 / 0.10);
+}
 .brochure-compare-table .col-feature {
-  width: 27%;
+  width: 26%;
   text-align: left;
-  padding-left: 7px;
+  padding-left: 8px;
   font-weight: 500;
   color: var(--ink);
-}
-
-.brochure-compare-table .col-welddoc {
-  background: rgb(249 10 8 / 0.07);
-}
-
-.brochure-icon {
-  width: 12px;
-  height: 12px;
-  display: inline-block;
-  vertical-align: middle;
-}
-
-.brochure-icon-yes {
-  color: var(--yes);
-}
-
-.brochure-icon-partial {
-  color: var(--partial);
-}
-
-.brochure-icon-no {
-  color: #b0b0b4;
+  background: var(--soft);
   font-size: 10px;
-  font-weight: 500;
-  line-height: 1;
 }
+.brochure-compare-table thead th.col-feature {
+  background: var(--navy);
+  color: rgb(255 255 255 / 0.55);
+}
+.brochure-compare-table tbody tr:nth-child(even) td            { background: rgb(245 240 232 / 0.50); }
+.brochure-compare-table tbody tr:nth-child(even) td.col-welddoc { background: rgb(232 160 48 / 0.15); }
+.brochure-compare-table tbody tr:nth-child(even) td.col-feature  { background: var(--soft); }
+
+.brochure-icon { width: 12px; height: 12px; display: inline-block; vertical-align: middle; }
+.brochure-icon-yes     { color: var(--yes); }
+.brochure-icon-partial { color: var(--warning); }
+.brochure-icon-no      { color: var(--inactive); font-size: 11px; font-weight: 400; line-height: 1; }
 
 .brochure-legend {
-  display: flex;
-  gap: 12px;
-  padding: 4px 8px;
-  background: #fafafa;
+  display: flex; gap: 14px;
+  padding: 5px 9px;
+  background: var(--soft);
   border-top: 1px solid var(--line);
 }
-
 .brochure-legend-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 7.2px;
-  color: var(--muted);
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; color: var(--muted);
 }
 
-/* ── Benefits ── */
+/* ═════════════════════════════════════════
+   BENEFITS CHIPS
+═════════════════════════════════════════ */
 .brochure-benefits-row {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 5px;
 }
-
 .brochure-benefit-chip {
-  padding: 7px 5px;
-  border-radius: 7px;
-  border: 1px solid var(--line);
-  font-size: 7.8px;
-  font-weight: 600;
-  line-height: 1.25;
-  text-align: center;
-  color: var(--ink);
+  padding: 9px 6px;
+  border-radius: 6px;
+  background: var(--navy);
+  font-size: 11px; font-weight: 600;
+  line-height: 1.35; text-align: center;
+  color: rgb(255 255 255 / 0.9);
 }
 
-/* ── Bottom grid ── */
+/* ═════════════════════════════════════════
+   SECURITY + PRICING
+═════════════════════════════════════════ */
 .brochure-bottom-grid {
   display: grid;
-  grid-template-columns: 0.85fr 1.15fr;
-  gap: 8px;
+  grid-template-columns: 0.80fr 1.20fr;
+  gap: 7px;
   flex: 1;
   min-height: 0;
 }
+.brochure-card-navy {
+  background: var(--surface);
+  border-radius: 7px;
+  padding: 10px 11px;
+}
+.brochure-card-navy .brochure-kicker { color: var(--amber); }
+.brochure-card-navy .brochure-list li { color: rgb(255 255 255 / 0.84); font-size: 12px; }
+.brochure-card-navy .brochure-list li::before { background: var(--amber); }
 
 .brochure-pricing-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
 }
-
 .brochure-price {
   position: relative;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 8px 8px 7px;
-  min-height: 88px;
+  border-radius: 7px;
+  padding: 10px 9px 8px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
 }
-
 .brochure-price-featured {
-  border-color: var(--red);
-  background: rgb(249 10 8 / 0.03);
+  background: var(--navy);
+  border-color: var(--navy);
 }
+.brochure-price-featured .brochure-price-name    { color: #fff; }
+.brochure-price-featured .brochure-price-welders,
+.brochure-price-featured .brochure-price-period,
+.brochure-price-featured .brochure-price-note    { color: rgb(255 255 255 / 0.68); }
+.brochure-price-featured .brochure-price-features li { color: rgb(255 255 255 / 0.75); }
 
 .brochure-price-badge {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  font-size: 6.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #fff;
-  background: var(--red);
-  padding: 2px 5px;
-  border-radius: 4px;
+  position: absolute; top: 7px; right: 7px;
+  font-size: 6.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--navy); background: var(--amber);
+  padding: 2px 6px; border-radius: 3px;
 }
-
-.brochure-price-name {
-  margin: 0;
-  font-size: 9.5px;
-  font-weight: 700;
-}
-
+.brochure-price-name   { margin: 0; font-size: 13px; font-weight: 700; color: var(--navy); }
 .brochure-price-amount {
-  margin: 4px 0 0;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--red);
-  letter-spacing: -0.02em;
-}
-
-.brochure-price-welders {
   margin: 5px 0 0;
-  font-size: 8px;
-  font-weight: 600;
-  line-height: 1.3;
+  font-size: 24px; font-weight: 700; line-height: 1;
+  color: var(--amber); letter-spacing: -0.02em;
 }
+.brochure-price-welders { margin: 5px 0 0; font-size: 11px; font-weight: 600; line-height: 1.3; color: var(--ink); }
+.brochure-price-period  { margin: 1px 0 0; font-size: 10px; color: var(--muted); }
+.brochure-price-note    { margin: 3px 0 0; font-size: 9.5px; line-height: 1.38; color: var(--muted); }
 
-.brochure-price-period {
-  margin: 1px 0 0;
-  font-size: 7.6px;
-  color: var(--muted);
-}
-
-.brochure-price-note {
-  margin: 3px 0 0;
-  font-size: 7.2px;
-  line-height: 1.3;
-  color: var(--muted);
-}
-
-/* ── Footers ── */
-.brochure-page-footer {
-  margin-top: auto;
-  padding-top: 6px;
+.brochure-price-features {
+  margin: 7px 0 0;
+  padding: 0;
+  list-style: none;
   border-top: 1px solid var(--line);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  padding-top: 7px;
 }
-
-.brochure-footnote {
-  font-size: 7.8px;
+.brochure-price-featured .brochure-price-features {
+  border-top-color: rgb(255 255 255 / 0.15);
+}
+.brochure-price-features li {
+  position: relative;
+  padding-left: 14px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  line-height: 1.4;
   color: var(--muted);
 }
-
-.brochure-page-num {
-  font-size: 7.5px;
-  color: var(--muted);
-  font-weight: 600;
+.brochure-price-features li:last-child { margin-bottom: 0; }
+.brochure-price-features li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--yes);
+  font-size: 8px;
+  font-weight: 700;
 }
 
+/* ═════════════════════════════════════════
+   CONTACT FOOTER BAND
+═════════════════════════════════════════ */
 .brochure-contact-bar {
   margin-top: auto;
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   gap: 12px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: var(--ink);
+  padding: 10px 11mm;
+  background: var(--navy);
   color: #fff;
+  flex-shrink: 0;
 }
-
-.brochure-contact-brand {
-  margin: 0 0 3px;
-  font-size: 12px;
-  font-weight: 700;
+.brochure-footer-logo {
+  height: 28px;
+  width: auto;
+  display: block;
+  margin-bottom: 5px;
 }
-
-.brochure-contact-brand::before {
-  content: "";
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--red);
-  margin-right: 6px;
-  vertical-align: middle;
-}
-
-.brochure-contact-line {
-  margin: 0;
-  font-size: 8.2px;
-  line-height: 1.5;
-  color: rgb(255 255 255 / 0.78);
-}
-
-.brochure-contact-cta {
-  text-align: right;
-}
-
+.brochure-contact-line { margin: 0; font-size: 11.5px; line-height: 1.6; color: rgb(255 255 255 / 0.70); }
+.brochure-contact-cta  { text-align: right; }
 .brochure-contact-cta-text {
-  margin: 0 0 4px;
-  font-size: 9px;
-  font-weight: 700;
-  color: #fff;
+  margin: 0 0 5px;
+  font-size: 13px; font-weight: 700; color: var(--amber);
 }
-
-.brochure-contact-bar .brochure-page-num {
-  color: rgb(255 255 255 / 0.5);
+.brochure-contact-bar .brochure-page-num { color: rgb(255 255 255 / 0.40); }
+.brochure-footer-qr {
+  width: 72px;
+  box-shadow: none;
 }

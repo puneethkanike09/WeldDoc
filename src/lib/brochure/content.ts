@@ -1,14 +1,36 @@
 export type CompareCell = "yes" | "partial" | "no";
 
-export const BROCHURE_CONTACT = {
-  website: "https://welddoc.in",
-  email: "hello@welddoc.in",
-  phone: "+91 — contact sales",
-  company: "WeldDoc",
-} as const;
+export {
+  type BrochurePricingPlan,
+  type BrochureRegion,
+  type BrochureRegionalConfig,
+  BROCHURE_REGIONS,
+  getBrochureRegion,
+  brochureWhatsAppUrl,
+} from "@/lib/brochure/regions";
+
+import { getBrochureRegion } from "@/lib/brochure/regions";
+
+const inr = getBrochureRegion("inr");
+
+export const BROCHURE_CONTACT = inr.contact;
+export const BROCHURE_WHATSAPP = inr.whatsapp;
+export const BROCHURE_PRICING = inr.pricing;
+export const BROCHURE_PDF_PATH = inr.pdfPath;
 
 export const BROCHURE_TAGLINE =
   "Digital Welding Qualification & Compliance Management";
+
+export const BROCHURE_HEADLINE =
+  "Are you ready to digitalize your welding qualification?";
+
+export const BROCHURE_HERO_PHOTO = "/images/welding-hero.jpg";
+
+export const BROCHURE_PROOF_STATS = [
+  { value: "3 min",   label: "Certificate generated"  },
+  { value: "30 sec",  label: "QR audit verify"        },
+  { value: "0 paper", label: "Complete digital trail" },
+] as const;
 
 export const BROCHURE_INDUSTRIES = [
   "Oil & Gas",
@@ -20,25 +42,25 @@ export const BROCHURE_INDUSTRIES = [
 ] as const;
 
 export const BROCHURE_ABOUT =
-  "WeldDoc digitises welder and operator qualification — registry, certificates, ID cards, QR verification and expiry alerts. ISO-standard compliance without enterprise ERP complexity.";
+  "Most welding shops run on a mix of spreadsheets, paper folders and memory. That works until the inspection  arrives. WeldDoc replaces that chaos with one simple system: every welder registered, every certificate generated, every expiry tracked. No folders. No last-minute panic. Just clean records, ready when you need them.";
 
 export const BROCHURE_CHALLENGES = [
-  "Manual records in spreadsheets and paper folders",
-  "Missed continuity and revalidation deadlines",
-  "Slow audits — lost or outdated certificates",
+  "Paper certificates that go missing before an audit",
+  "Revalidation deadlines discovered only after they pass",
+  "No way to prove qualification without being in the office",
 ] as const;
 
 export const BROCHURE_SOLUTIONS = [
-  "One registry for welders and operators",
-  "Certificates and ID cards in minutes",
-  "Expiry alerts and QR auditor verification",
+  "One registry — every welder, every document, always current",
+  "Certificates in 3 minutes, not 3 days — ISO-compliant PDFs",
+  "QR link lets auditors verify on the spot. No account needed.",
 ] as const;
 
 export const BROCHURE_FEATURES = [
   { title: "Welder & operator registry", detail: "UID, photo, plant ID, QR profile" },
   { title: "Qualification wizard", detail: "ISO 9606-1 & ISO 14732 guided entry" },
   { title: "Certificate generation", detail: "Auto range of approval, stamped PDF" },
-  { title: "ID cards", detail: "Wallet-sized, print-ready with QR" },
+  { title: "ID cards", detail: "Wallet-sized, print-ready with QR code" },
   { title: "Test result management", detail: "NDT reports, pass/fail, attachments" },
   { title: "Document storage", detail: "Signed certs, legacy uploads, reports" },
   { title: "Expiry tracking", detail: "6-month, 2-year & revalidation rules" },
@@ -48,42 +70,71 @@ export const BROCHURE_FEATURES = [
 ] as const;
 
 export const BROCHURE_WORKFLOW = [
-  "Register welder",
-  "Enter test details",
-  "Upload reports",
-  "Auto approval range",
-  "Generate certificate",
-  "Track renewals",
+  "Add the welder once",
+  "Log the test results",
+  "Attach test reports",
+  "Range auto-calculated",
+  "Certificate is ready",
+  "Expiry tracked for you",
 ] as const;
-
-/** Hero + inset screenshots — edit paths here, then run `npm run brochure:pdf` */
-export const BROCHURE_HERO = {
-  src: "/images/2.png",
-  alt: "WeldDoc dashboard with welder KPIs, expiry status and qualification charts",
-  label: "Dashboard & analytics",
-} as const;
-
-export const BROCHURE_INSET = {
-  src: "/images/4.png",
-  alt: "Welder profile with qualification range, documents and QR code",
-  label: "Drill down to each welder",
-} as const;
 
 export const BROCHURE_CALLOUTS = [
-  { text: "See compliance status at a glance", audience: "Owner" },
-  { text: "Flag overdue before your next audit", audience: "Owner" },
-  { text: "Full profile, approval range & documents", audience: "Coordinator" },
-  { text: "QR verify · certificate · ID card · ISO 9606-1", audience: "Both" },
+  { text: "Know who's expiring before the auditor does" },
+  { text: "Full history — qualifications, docs, approval range" },
+  { text: "Scan the QR code. Qualification confirmed in seconds." },
+  { text: "Works on phone, tablet or desktop — no installation" },
 ] as const;
 
-export const BROCHURE_PDF_PATH = "/brochure/welddoc-brochure.pdf";
+/** App screenshots shown in the strip on page 1 */
+export const BROCHURE_SCREENSHOTS = [
+  {
+    src: "/images/1.png",
+    alt: "WeldDoc welder master list with status filters",
+    label: "Master list & search",
+  },
+  {
+    src: "/images/3.png",
+    alt: "WeldDoc qualification entry form with range-of-approval",
+    label: "Qualification entry",
+  },
+] as const;
+
+export const BROCHURE_PERSONAS = [
+  {
+    role: "Welding Coordinator",
+    description: "You do the real work — and most of it is paperwork. WeldDoc cuts that in half.",
+    points: [
+      "Add a welder and log test results in under 5 minutes",
+      "Certificate is generated automatically — no typing, no formatting",
+      "Get reminded before a qualification expires, not after",
+    ],
+  },
+  {
+    role: "Quality Manager",
+    description: "You're responsible when the auditor shows up. WeldDoc means you're always ready.",
+    points: [
+      "Full qualification records with supporting documents, one click",
+      "Export master lists for client or third-party audits instantly",
+      "Every change logged — complete audit trail, always",
+    ],
+  },
+  {
+    role: "Plant Owner / Director",
+    description: "You need to know compliance status — not read a 50-page spreadsheet to find it.",
+    points: [
+      "Dashboard shows active, expiring and expired at a glance",
+      "No audit surprises — team is always working from live data",
+      "Manage multiple sites from one login",
+    ],
+  },
+] as const;
 
 export const BROCHURE_BENEFITS = [
-  "Save hours on every qualification",
-  "Eliminate paper chasing",
-  "Stay audit-ready year-round",
-  "Centralise records across branches",
-  "Faster client & third-party audits",
+  "Hours saved per qualification",
+  "No more paper chasing",
+  "Audit-ready every day",
+  "All branches, one login",
+  "Audits that finish fast",
 ] as const;
 
 export const BROCHURE_SECURITY = [
@@ -91,39 +142,8 @@ export const BROCHURE_SECURITY = [
   "Organisation-scoped data isolation",
   "Role-based permissions per team member",
   "Automatic backups via cloud infrastructure",
+  "Full audit log of every data change",
 ] as const;
-
-export const BROCHURE_PRICING: readonly {
-  name: string;
-  welders: string;
-  period: string;
-  price: string;
-  note: string;
-  featured?: boolean;
-}[] = [
-  {
-    name: "Starter",
-    welders: "Up to 3 welders / operators",
-    period: "Free for 1 month",
-    price: "₹0",
-    note: "Full features · no credit card",
-  },
-  {
-    name: "Growth",
-    welders: "Up to 20 welders / operators",
-    period: "Per year",
-    price: "₹24,999",
-    note: "Best for fabrication shops",
-    featured: true,
-  },
-  {
-    name: "Enterprise",
-    welders: "Unlimited welders / operators",
-    period: "Per year",
-    price: "Custom",
-    note: "Multi-site · bulk import · priority support",
-  },
-];
 
 export const COMPETITOR_COLUMNS = [
   "WeldDoc",

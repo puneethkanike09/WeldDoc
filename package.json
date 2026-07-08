@@ -17,7 +17,9 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report",
-    "brochure:pdf": "node scripts/generate-brochure-pdf.mjs"
+    "brochure:pdf": "node scripts/generate-brochure-pdf.mjs",
+    "brochure:pdf:eur": "BROCHURE_REGION=eur node scripts/generate-brochure-pdf.mjs",
+    "brochure:pdf:all": "npm run brochure:pdf && npm run brochure:pdf:eur"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.17",
