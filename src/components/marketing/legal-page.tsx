@@ -46,7 +46,7 @@ export function LegalPage({
 
         <div className="mt-16 flex flex-col gap-6 border-t border-black/8 pt-8 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-micro text-muted-slate">
-            WeldDoc © {new Date().getFullYear()}
+            Weld.Doc © {new Date().getFullYear()}
           </p>
           <DsButtonLink href="/" variant="secondary">
             ← Back to home

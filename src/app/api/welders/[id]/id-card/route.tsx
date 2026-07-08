@@ -6,6 +6,7 @@ import { qrDataUrl, verifyUrl } from "@/lib/qr";
 import { buildIdCardPayload } from "@/lib/iso9606/id-card-model";
 import { IdCardDocument, type IdCardData } from "@/lib/pdf/id-card";
 import { summarizeWelder } from "@/lib/welder-status";
+import { idCardRegistryNotice } from "@/lib/registry-status";
 import { formatDate } from "@/lib/utils";
 import type {
   Organization,
@@ -61,6 +62,7 @@ export async function GET(
 
   const card = buildIdCardPayload(w, qualifications, ranges);
   const summary = summarizeWelder(w, qualifications);
+  const statusNotice = idCardRegistryNotice(w.status, "welder");
   const photoUrl = await resolveUrl("welder-photos", w.photo_path);
   const logoUrl = await resolveUrl("org-assets", (org as Organization).logo_path);
   const qr = await qrDataUrl(verifyUrl(w.qr_token, request.nextUrl.origin));
@@ -73,9 +75,14 @@ export async function GET(
     qrDataUrl: qr,
     welderName: card.welderName,
     welderNo: card.welderNo,
-    rows: card.rows,
+    rows: statusNotice ? [] : card.rows,
     status: summary.overall,
-    expiry: summary.nearestExpiry ? formatDate(summary.nearestExpiry) : null,
+    statusNotice,
+    expiry: statusNotice
+      ? null
+      : summary.nearestExpiry
+        ? formatDate(summary.nearestExpiry)
+        : null,
   };
 
   const buffer = await renderToBuffer(<IdCardDocument data={data} />);

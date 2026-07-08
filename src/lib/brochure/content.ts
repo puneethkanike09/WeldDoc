@@ -42,7 +42,7 @@ export const BROCHURE_INDUSTRIES = [
 ] as const;
 
 export const BROCHURE_ABOUT =
-  "Most welding shops run on a mix of spreadsheets, paper folders and memory. That works until the inspection  arrives. WeldDoc replaces that chaos with one simple system: every welder registered, every certificate generated, every expiry tracked. No folders. No last-minute panic. Just clean records, ready when you need them.";
+  "Most welding shops run on a mix of spreadsheets, paper folders and memory. That works until the inspection  arrives. Weld.Doc replaces that chaos with one simple system: every welder registered, every certificate generated, every expiry tracked. No folders. No last-minute panic. Just clean records, ready when you need them.";
 
 export const BROCHURE_CHALLENGES = [
   "Paper certificates that go missing before an audit",
@@ -89,12 +89,12 @@ export const BROCHURE_CALLOUTS = [
 export const BROCHURE_SCREENSHOTS = [
   {
     src: "/images/1.png",
-    alt: "WeldDoc welder master list with status filters",
+    alt: "Weld.Doc welder master list with status filters",
     label: "Master list & search",
   },
   {
     src: "/images/3.png",
-    alt: "WeldDoc qualification entry form with range-of-approval",
+    alt: "Weld.Doc qualification entry form with range-of-approval",
     label: "Qualification entry",
   },
 ] as const;
@@ -102,7 +102,7 @@ export const BROCHURE_SCREENSHOTS = [
 export const BROCHURE_PERSONAS = [
   {
     role: "Welding Coordinator",
-    description: "You do the real work — and most of it is paperwork. WeldDoc cuts that in half.",
+    description: "You do the real work — and most of it is paperwork. Weld.Doc cuts that in half.",
     points: [
       "Add a welder and log test results in under 5 minutes",
       "Certificate is generated automatically — no typing, no formatting",
@@ -111,7 +111,7 @@ export const BROCHURE_PERSONAS = [
   },
   {
     role: "Quality Manager",
-    description: "You're responsible when the auditor shows up. WeldDoc means you're always ready.",
+    description: "You're responsible when the auditor shows up. Weld.Doc means you're always ready.",
     points: [
       "Full qualification records with supporting documents, one click",
       "Export master lists for client or third-party audits instantly",
@@ -146,7 +146,7 @@ export const BROCHURE_SECURITY = [
 ] as const;
 
 export const COMPETITOR_COLUMNS = [
-  "WeldDoc",
+  "Weld.Doc",
   "WeldTrace",
   "WeldNote",
   "WeldEye",

@@ -4,6 +4,7 @@ import { buildOperatorIdCardRows } from "@/lib/iso14732/id-card-model";
 import { summarizeWelder } from "@/lib/welder-status";
 import { summarizeOperator } from "@/lib/operator-status";
 import { normalizePlantOperatorId } from "@/lib/operators/plant-id";
+import { idCardRegistryNotice } from "@/lib/registry-status";
 import { formatDate } from "@/lib/utils";
 import type {
   Operator,
@@ -50,16 +51,22 @@ export async function loadWelderIdCardView(
   const card = buildIdCardPayload(welder, wpqs, ranges);
   const summary = summarizeWelder(welder, wpqs);
   const orgRow = org as Organization | null;
+  const statusNotice = idCardRegistryNotice(welder.status, "welder");
 
   return {
-    orgName: orgRow?.name ?? "WeldDoc",
+    orgName: orgRow?.name ?? "Organisation",
     welderName: card.welderName,
     welderNo: card.welderNo,
     photoUrl: publicStorageUrl("welder-photos", welder.photo_path),
     logoUrl: publicStorageUrl("org-assets", orgRow?.logo_path ?? null),
-    rows: card.rows,
+    rows: statusNotice ? [] : card.rows,
     status: summary.overall,
-    expiry: summary.nearestExpiry ? formatDate(summary.nearestExpiry) : null,
+    statusNotice,
+    expiry: statusNotice
+      ? null
+      : summary.nearestExpiry
+        ? formatDate(summary.nearestExpiry)
+        : null,
     employer: welder.employer,
     site: welder.branch_location ?? orgRow?.location_code ?? "—",
     cardHeading: "Welder ID card",
@@ -83,20 +90,26 @@ export async function loadOperatorIdCardView(
   const oqs = (oqRows ?? []) as OperatorQualification[];
   const summary = summarizeOperator(operator, oqs);
   const orgRow = org as Organization | null;
+  const statusNotice = idCardRegistryNotice(operator.status, "operator");
   const plantId =
     normalizePlantOperatorId(operator.operator_id) ??
     operator.operator_id?.trim() ??
     "—";
 
   return {
-    orgName: orgRow?.name ?? "WeldDoc",
+    orgName: orgRow?.name ?? "Organisation",
     welderName: operator.full_name,
     welderNo: plantId,
     photoUrl: publicStorageUrl("welder-photos", operator.photo_path),
     logoUrl: publicStorageUrl("org-assets", orgRow?.logo_path ?? null),
-    rows: buildOperatorIdCardRows(oqs),
+    rows: statusNotice ? [] : buildOperatorIdCardRows(oqs),
     status: summary.overall,
-    expiry: summary.nearestExpiry ? formatDate(summary.nearestExpiry) : null,
+    statusNotice,
+    expiry: statusNotice
+      ? null
+      : summary.nearestExpiry
+        ? formatDate(summary.nearestExpiry)
+        : null,
     employer: operator.employer,
     site: operator.branch_location ?? orgRow?.location_code ?? "—",
     cardHeading: "Operator ID card",

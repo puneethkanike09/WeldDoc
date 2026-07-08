@@ -63,7 +63,7 @@ export function Sidebar({
   return (
     <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-silver bg-panel">
       <div className="flex items-center justify-between px-5 py-5">
-        <Link href="/dashboard" aria-label="WeldDoc" onClick={onNavigate}>
+        <Link href="/dashboard" aria-label="Weld.Doc" onClick={onNavigate}>
           <Logo onDark={resolvedTheme === "dark"} />
         </Link>
         <button

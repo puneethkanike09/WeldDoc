@@ -9,7 +9,7 @@ export function getResendClient(): Resend | null {
 }
 
 export function getResendFrom(): string {
-  return process.env.RESEND_FROM_EMAIL || "WeldDoc <hello@welddoc.in>";
+  return process.env.RESEND_FROM_EMAIL || "Weld.Doc <hello@welddoc.in>";
 }
 
 export interface SendEmailInput {
@@ -136,19 +136,19 @@ function digestCopy(kind: ExpiryDigestKind): {
       return {
         heading: "Operator qualification reminders",
         nameColumn: "Operator",
-        subject: (n) => `WeldDoc — ${n} operator qualification reminder(s)`,
+        subject: (n) => `Weld.Doc — ${n} operator qualification reminder(s)`,
       };
     case "mixed":
       return {
         heading: "Qualification reminders",
         nameColumn: "Person",
-        subject: (n) => `WeldDoc — ${n} qualification reminder(s)`,
+        subject: (n) => `Weld.Doc — ${n} qualification reminder(s)`,
       };
     default:
       return {
         heading: "Welder qualification reminders",
         nameColumn: "Welder",
-        subject: (n) => `WeldDoc — ${n} welder qualification reminder(s)`,
+        subject: (n) => `Weld.Doc — ${n} welder qualification reminder(s)`,
       };
   }
 }
@@ -191,7 +191,7 @@ function expiryDigestHtml(
               <tbody>${rows}</tbody>
             </table>
           </div>
-          <p style="color:${EMAIL.muted};font-size:12px;margin-top:18px">Log a continuity confirmation or revalidation report in WeldDoc to reset the clock.</p>
+          <p style="color:${EMAIL.muted};font-size:12px;margin-top:18px">Log a continuity confirmation or revalidation report in Weld.Doc to reset the clock.</p>
   `);
 }
 
@@ -308,7 +308,7 @@ export function expiryStatusDigestHtml(
           ${sectionsHtml}
           <hr style="border:none;border-top:1px solid ${EMAIL.border};margin:20px 0" />
           <p style="color:${EMAIL.muted};font-size:12px;margin:0">Checked on: ${formatDigestDate(checkedOn)}</p>
-          <p style="color:${EMAIL.muted};font-size:12px;margin:8px 0 0">This alert was sent automatically from WeldDoc.</p>
+          <p style="color:${EMAIL.muted};font-size:12px;margin:8px 0 0">This alert was sent automatically from Weld.Doc.</p>
   `);
 }
 
@@ -322,7 +322,7 @@ export async function sendExpiryStatusDigest(
 ): Promise<{ sent: boolean; error?: string }> {
   if (to.length === 0) return { sent: false, error: "No recipients" };
 
-  const subject = `WeldDoc — qualification status for ${orgName}`;
+  const subject = `Weld.Doc — qualification status for ${orgName}`;
   const html = expiryStatusDigestHtml(orgName, alerts, leadDays, checkedOn, kind);
 
   if (to.length === 1) {
@@ -342,7 +342,7 @@ export async function sendOrgWelcomeEmail(
   const html = emailShell(`
           <h1 style="font-family:Helvetica,Arial,sans-serif;font-size:18px;color:${EMAIL.text};margin:0 0 12px">Email alerts are connected</h1>
           <p style="color:${EMAIL.textSecondary};margin:0 0 12px;line-height:1.5">
-            This is a test message for <strong>${orgName}</strong>. WeldDoc can now send
+            This is a test message for <strong>${orgName}</strong>. Weld.Doc can now send
             qualification expiry and continuity reminders to your organisation.
           </p>
           <p style="color:${EMAIL.muted};font-size:13px;margin:0">
@@ -352,7 +352,7 @@ export async function sendOrgWelcomeEmail(
 
   return sendEmail({
     to,
-    subject: `WeldDoc — email alerts connected for ${orgName}`,
+    subject: `Weld.Doc — email alerts connected for ${orgName}`,
     html,
   });
 }

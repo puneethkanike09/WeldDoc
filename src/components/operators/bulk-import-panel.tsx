@@ -94,7 +94,7 @@ export function OperatorBulkImportPanel() {
               Download the template and fill one row per qualification, repeating
               the operator name and O# No on each of that operator&apos;s rows.
               Only the operator name and O# No are required. If an O# already
-              exists in WeldDoc, the qualification is attached to that operator;
+              exists in Weld.Doc, the qualification is attached to that operator;
               otherwise a new operator is created. Upload to validate — if any
               rows have problems, fix them in Excel and upload again.
             </p>

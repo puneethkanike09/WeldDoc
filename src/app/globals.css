@@ -81,7 +81,7 @@ html[data-app-theme="dark"] .step-done {
 }
 
 @theme {
-  /* WeldDoc brand palette (Weld. red + Doc black) */
+  /* Weld.Doc brand palette (Weld. red + Doc black) */
   /* Surfaces — remapped for admin dark mode */
   --color-parchment: var(--theme-canvas);
   --color-white: #ffffff;
@@ -175,7 +175,7 @@ html[data-app-theme="dark"] .step-done {
 
   --font-ds-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
 
-  /* WeldDoc brand palette (Weld. red + Doc black) — order as supplied */
+  /* Weld.Doc brand palette (Weld. red + Doc black) — order as supplied */
   --color-brand-red: #f90a08;
   --color-brand-red-deep: #de181a;
   --color-brand-offwhite: #f8faf9;
@@ -231,7 +231,7 @@ html[data-app-theme="dark"] .step-done {
   --color-ring: var(--ring);
 }
 
-/* react-datepicker (DatePicker) — WeldDoc brand styling */
+/* react-datepicker (DatePicker) — Weld.Doc brand styling */
 .welddoc-datepicker-wrapper {
   display: block !important;
   width: 100%;

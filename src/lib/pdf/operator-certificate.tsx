@@ -735,7 +735,7 @@ export function OperatorCertificateDocument({
           }}
           fixed
         >
-          {org.name} · WeldDoc
+          {org.name} · Weld.Doc
         </Text>
       </Page>
     </Document>

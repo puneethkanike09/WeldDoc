@@ -6,6 +6,7 @@ import { qrDataUrl, verifyUrl } from "@/lib/qr";
 import { buildOperatorIdCardRows } from "@/lib/iso14732/id-card-model";
 import { IdCardDocument, type IdCardData } from "@/lib/pdf/id-card";
 import { summarizeOperator } from "@/lib/operator-status";
+import { idCardRegistryNotice } from "@/lib/registry-status";
 import { formatDate } from "@/lib/utils";
 import type { Organization, Operator, OperatorQualification } from "@/types/db";
 
@@ -43,6 +44,7 @@ export async function GET(
   const qualifications = (oqs ?? []) as OperatorQualification[];
   const rows = buildOperatorIdCardRows(qualifications);
   const summary = summarizeOperator(o, qualifications);
+  const statusNotice = idCardRegistryNotice(o.status, "operator");
   const photoUrl = await resolveUrl("welder-photos", o.photo_path);
   const logoUrl = await resolveUrl("org-assets", (org as Organization).logo_path);
   const qr = await qrDataUrl(verifyUrl(o.qr_token, request.nextUrl.origin));
@@ -56,11 +58,17 @@ export async function GET(
     qrDataUrl: qr,
     welderName: o.full_name,
     welderNo: plantId,
-    rows,
+    rows: statusNotice ? [] : rows,
     status: summary.overall,
-    expiry: summary.nearestExpiry ? formatDate(summary.nearestExpiry) : null,
+    statusNotice,
+    expiry: statusNotice
+      ? null
+      : summary.nearestExpiry
+        ? formatDate(summary.nearestExpiry)
+        : null,
     cardHeading: "OPERATOR ID CARD",
     plantIdLabel: "OPERATOR ID",
+    standardLabel: "ISO 14732:2025",
     documentTitle: `Operator ID ${plantId}`,
   };
 

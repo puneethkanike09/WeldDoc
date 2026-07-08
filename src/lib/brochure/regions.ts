@@ -36,12 +36,12 @@ const sharedContact = {
   website: "https://welddoc.in",
   email: "hello@welddoc.in",
   phone: `+91 ${BROCHURE_PHONE_NUMBER}`,
-  company: "WeldDoc",
+  company: "Weld.Doc",
 } as const;
 
 const sharedWhatsapp = {
   phone: `91${BROCHURE_PHONE_NUMBER}`,
-  message: "Hi, I'd like to know more about WeldDoc",
+  message: "Hi, I'd like to know more about Weld.Doc",
   label: "Chat with us on WhatsApp",
 } as const;
 
@@ -106,7 +106,7 @@ export const BROCHURE_REGIONS: Record<BrochureRegion, BrochureRegionalConfig> = 
     region: "inr",
     editionLabel: "INR",
     pdfPath: "/brochure/welddoc-brochure.pdf",
-    pdfDownloadName: "WeldDoc-brochure.pdf",
+    pdfDownloadName: "welddoc-brochure.pdf",
     pdfScriptHint: "npm run brochure:pdf",
     contact: sharedContact,
     whatsapp: sharedWhatsapp,
@@ -116,7 +116,7 @@ export const BROCHURE_REGIONS: Record<BrochureRegion, BrochureRegionalConfig> = 
     region: "eur",
     editionLabel: "EUR",
     pdfPath: "/brochure/welddoc-brochure-eur.pdf",
-    pdfDownloadName: "WeldDoc-brochure-eur.pdf",
+    pdfDownloadName: "welddoc-brochure-eur.pdf",
     pdfScriptHint: "npm run brochure:pdf:eur",
     contact: sharedContact,
     whatsapp: sharedWhatsapp,

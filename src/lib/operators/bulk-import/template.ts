@@ -17,13 +17,13 @@ import {
 } from "./columns";
 
 const INSTRUCTIONS = [
-  ["WeldDoc — bulk operator import template"],
+  ["Weld.Doc — bulk operator import template"],
   [],
   ["Only two columns are required: plant_operator_id (O# No) and full_name."],
-  ["Everything else is optional. WeldDoc computes qualified ranges and expiry automatically."],
+  ["Everything else is optional. Weld.Doc computes qualified ranges and expiry automatically."],
   [],
   ["Rules"],
-  ["• plant_operator_id (O# No) is required (O#01 / O#1 / 1). If it already exists in WeldDoc, the qualification is attached to that operator; otherwise a new operator is created."],
+  ["• plant_operator_id (O# No) is required (O#01 / O#1 / 1). If it already exists in Weld.Doc, the qualification is attached to that operator; otherwise a new operator is created."],
   ["• One row = one qualification. Repeat the operator name and O# on every row for that operator."],
   ["• Leave qualification columns blank to just register an operator (no prior qualification)."],
   ["• Dates are flexible: 2024-06-15, 15/06/2024, 15-06-2024 or 10 May 2023 all work (day-first)."],

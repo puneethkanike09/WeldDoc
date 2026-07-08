@@ -37,7 +37,7 @@ export function SignOutButton() {
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Sign out of WeldDoc?</AlertDialogTitle>
+          <AlertDialogTitle>Sign out of Weld.Doc?</AlertDialogTitle>
           <AlertDialogDescription>
             You&apos;ll need to sign in again to access your welder registry,
             qualifications and reports.

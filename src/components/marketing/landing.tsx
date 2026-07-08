@@ -129,7 +129,7 @@ export function Landing() {
             <div className="relative aspect-16/10 overflow-hidden rounded-lg border border-hairline bg-white shadow-(--shadow-lift) xl:aspect-auto xl:min-h-[420px]">
               <Image
                 src="/images/desktopnew.png"
-                alt="WeldDoc dashboard on desktop — welder registry, KPIs and charts in dark mode"
+                alt="Weld.Doc dashboard on desktop — welder registry, KPIs and charts in dark mode"
                 fill
                 priority
                 sizes="(max-width: 1280px) 100vw, 720px"
@@ -139,7 +139,7 @@ export function Landing() {
             <div className="relative hidden aspect-3/4 overflow-hidden rounded-lg border border-hairline bg-white shadow-(--shadow-lift) xl:block xl:aspect-auto xl:min-h-[420px]">
               <Image
                 src="/images/mobilenew.png"
-                alt="WeldDoc dashboard on mobile — KPIs and qualification charts in dark mode"
+                alt="Weld.Doc dashboard on mobile — KPIs and qualification charts in dark mode"
                 fill
                 sizes="360px"
                 className="object-cover object-top"
@@ -341,20 +341,20 @@ export function Landing() {
         </div>
       </section>
 
-      {/* Compare — highlighted WeldDoc column lifted over pale green */}
+      {/* Compare — highlighted Weld.Doc column lifted over pale green */}
       <section id="compare" className="section-y bg-pale-green">
         <div className="mx-auto max-w-[940px] px-6">
           <div className="max-w-[640px]">
-            <p className="text-mono-label text-brand-red">Why WeldDoc</p>
+            <p className="text-mono-label text-brand-red">Why Weld.Doc</p>
             <h2 className="text-section-heading mt-4">Focused beats bloated</h2>
             <p className="text-body-large mt-5 text-slate">
               WeldEye, WeldTrace and WeldNote are broad enterprise platforms.
-              For a shop on ISO 9606-1, WeldDoc is faster and easier to adopt.
+              For a shop on ISO 9606-1, Weld.Doc is faster and easier to adopt.
             </p>
           </div>
 
           <div className="relative mt-14">
-            {/* Lifted white card behind the WeldDoc column */}
+            {/* Lifted white card behind the Weld.Doc column */}
             <div
               aria-hidden
               className="pointer-events-none absolute -top-5 bottom-0 right-[100px] w-[100px] rounded-2xl bg-canvas shadow-(--shadow-lift) sm:right-[150px] sm:w-[150px]"
@@ -367,7 +367,7 @@ export function Landing() {
                   Capability
                 </span>
                 <span className="w-[100px] pb-4 text-center font-ds-display text-[15px] font-semibold text-brand-red sm:w-[150px]">
-                  WeldDoc
+                  Weld.Doc
                 </span>
                 <span className="w-[100px] border-b border-deep-green/15 pb-4 text-center text-caption text-muted-slate sm:w-[150px]">
                   Others

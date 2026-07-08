@@ -5,11 +5,11 @@ import { NavigationRecovery } from "@/components/app/navigation-recovery";
 import "./globals.css";
 export const metadata: Metadata = {
   title: {
-    default: "WeldDoc — Welder Qualification, Done Right",
-    template: "%s · WeldDoc",
+    default: "Weld.Doc — Welder Qualification, Done Right",
+    template: "%s · Weld.Doc",
   },
   description:
-    "WeldDoc digitises the complete EN ISO 9606-1 welder qualification lifecycle — registry, certificates, ID cards, QR verification, expiry alerts and master lists.",
+    "Weld.Doc digitises the complete EN ISO 9606-1 welder qualification lifecycle — registry, certificates, ID cards, QR verification, expiry alerts and master lists.",
   metadataBase: new URL("https://welddoc.in"),
 };
 

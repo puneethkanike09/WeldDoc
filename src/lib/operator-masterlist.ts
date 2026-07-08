@@ -5,6 +5,7 @@ import type {
   OperatorQualification,
   OperatorRange,
 } from "@/types/db";
+import { isActiveRegistryStatus } from "@/lib/registry-status";
 
 export interface OperatorMasterRow {
   operatorName: string;
@@ -52,12 +53,15 @@ export async function getOperatorMasterListRows(
     ((rangeRows ?? []) as OperatorRange[]).map((r) => [r.oq_id, r]),
   );
 
-  return oqs.map((q) => {
+  return oqs.flatMap((q) => {
     const operator = operators.get(q.operator_id);
+    if (!operator || !isActiveRegistryStatus(operator.status)) return [];
+
     const range = ranges.get(q.id);
-    return {
-      operatorName: operator?.full_name ?? "—",
-      operatorId: operator?.operator_id ?? "—",
+    return [
+      {
+        operatorName: operator.full_name,
+        operatorId: operator.operator_id ?? "—",
       process: processLabel(q.process),
       standard: "ISO 14732",
       weldingType: q.welding_type ?? "—",
@@ -70,7 +74,8 @@ export async function getOperatorMasterListRows(
       issued: q.certificate_issued_date ?? "—",
       expiry: q.expiry_date ?? "—",
       revalidation: q.revalidation_method,
-    };
+      },
+    ];
   });
 }
 

@@ -56,7 +56,7 @@ export function SiteNav() {
       >
         <div className="mx-auto grid h-16 max-w-[1280px] grid-cols-[1fr_auto_1fr] items-center px-6">
           <div className="col-start-1 flex items-center gap-4 justify-self-start">
-            <Link href="/" aria-label="WeldDoc home">
+            <Link href="/" aria-label="Weld.Doc home">
               <Logo />
             </Link>
             {isLegal ? (

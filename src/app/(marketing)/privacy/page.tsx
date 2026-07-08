@@ -4,7 +4,7 @@ import { LegalPage } from "@/components/marketing/legal-page";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "How WeldDoc collects, uses, and protects your organisation's welder and operator qualification data.",
+    "How Weld.Doc collects, uses, and protects your organisation's welder and operator qualification data.",
 };
 
 export default function PrivacyPage() {
@@ -16,7 +16,7 @@ export default function PrivacyPage() {
       active="/privacy"
     >
       <p>
-        This page explains, in plain language, what information WeldDoc handles
+        This page explains, in plain language, what information Weld.Doc handles
         when you use the service and how we look after it.
       </p>
 
@@ -30,7 +30,7 @@ export default function PrivacyPage() {
           team.
         </p>
         <p className="mt-4">
-          While using WeldDoc, you create and manage welder and operator records,
+          While using Weld.Doc, you create and manage welder and operator records,
           qualifications, certificates, validation logs, uploaded documents, and
           master lists. That content belongs to your organisation; we store it
           so you can access it securely from any signed-in browser session.
@@ -59,15 +59,15 @@ export default function PrivacyPage() {
         <p>
           Your data is stored in our managed backend (Supabase) with per-
           organisation isolation enforced at the database layer through row-
-          level security. Connections between your browser and WeldDoc, and
-          between WeldDoc and our backend, are encrypted in transit using TLS.
+          level security. Connections between your browser and Weld.Doc, and
+          between Weld.Doc and our backend, are encrypted in transit using TLS.
         </p>
       </section>
 
       <section>
         <h2>Email notifications</h2>
         <p>
-          If you configure expiry alerts, WeldDoc sends digest emails to the
+          If you configure expiry alerts, Weld.Doc sends digest emails to the
           addresses you specify and, where a welder or operator profile includes
           an email, individual reminders about their qualifications. These
           messages are delivered through our email provider (Resend) and contain

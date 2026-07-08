@@ -10,7 +10,7 @@ export default function AuthLayout({
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="flex flex-col px-6 py-8 sm:px-12">
-        <Link href="/" aria-label="WeldDoc home">
+        <Link href="/" aria-label="Weld.Doc home">
           <Logo />
         </Link>
         <div className="flex flex-1 items-center justify-center">
@@ -32,7 +32,7 @@ export default function AuthLayout({
               an auditor can verify with a single scan.”
             </blockquote>
             <p className="mt-6 text-[15px] text-steel">
-              WeldDoc — welder qualification document management.
+              Weld.Doc — welder qualification document management.
             </p>
           </div>
           <div className="flex gap-6 text-steel">

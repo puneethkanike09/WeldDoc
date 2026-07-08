@@ -55,7 +55,7 @@ export default async function VerifyPage({
             </div>
             <WelderIdCardView {...view} />
             <p className="mt-6 text-center text-xs text-steel">
-              Verified live via WeldDoc · {formatDate(new Date())}
+              Verified live via Weld.Doc · {formatDate(new Date())}
             </p>
           </div>
         </main>
@@ -78,7 +78,7 @@ export default async function VerifyPage({
         <WelderIdCardView {...view} />
 
         <p className="mt-6 text-center text-xs text-steel">
-          Verified live via WeldDoc · {formatDate(new Date())}
+          Verified live via Weld.Doc · {formatDate(new Date())}
         </p>
       </div>
     </main>

@@ -15,7 +15,7 @@ export function isActiveStandardSlug(value: string | undefined): value is Standa
   return ACTIVE_SLUGS.has(value as StandardSlug);
 }
 
-const STANDARD_CHANGED_KEY = "welddoc_standard_changed";
+const STANDARD_CHANGED_KEY = "Weld.Doc_standard_changed";
 
 /** Client — persist workspace choice after entering from the standards hub. */
 export function setActiveStandardCookie(slug: StandardSlug = ACTIVE_STANDARD_SLUG) {

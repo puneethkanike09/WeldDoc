@@ -42,7 +42,7 @@ export function DemoVerifyPage() {
         />
 
         <p className="mt-6 text-center text-xs text-steel">
-          Demo preview · WeldDoc · {formatDate(new Date())}
+          Demo preview · Weld.Doc · {formatDate(new Date())}
         </p>
       </div>
     </main>
