@@ -323,10 +323,6 @@ export function buildSummary(r: RangeResult): string {
     parts.push(`positions ${r.approvedPositions.join(", ")}`);
   }
 
-  if (r.approvedMaterialGroups.length) {
-    parts.push(`material groups ${r.approvedMaterialGroups.join(", ")}`);
-  }
-
   if (r.approvedJointTypes.length) {
     parts.push(r.approvedJointTypes.join(" & "));
   }
