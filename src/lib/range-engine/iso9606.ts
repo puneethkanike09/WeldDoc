@@ -30,6 +30,7 @@ export interface RangeInput {
     process?: string | null;
     depositedThicknessMm?: number | null;
     layer?: string | null;
+    position?: string | null;
   } | null;
 }
 
@@ -262,9 +263,18 @@ export function computeRange(input: RangeInput): RangeResult {
 
   const positionMap =
     input.jointType === "FW" ? r.positionMapFw : r.positionMapBw;
-  const approvedPositions = input.position
-    ? (positionMap[input.position] ?? [input.position])
-    : [];
+  const approvedFromPosition = (pos: string | null | undefined): string[] =>
+    pos ? (positionMap[pos] ?? [pos]) : [];
+
+  let approvedPositions = approvedFromPosition(input.position);
+  if (input.secondProcess?.position) {
+    approvedPositions = [
+      ...new Set([
+        ...approvedPositions,
+        ...approvedFromPosition(input.secondProcess.position),
+      ]),
+    ];
+  }
 
   const approvedMaterialGroups = resolveApprovedMaterialGroups(input);
 

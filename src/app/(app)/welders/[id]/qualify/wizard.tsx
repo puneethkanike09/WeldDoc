@@ -315,10 +315,15 @@ export function PlanStep({
                   (wpq?.branch_connection as BranchConnection | null) ?? "set_in"
                 }
                 defaultPosition={draft?.position ?? wpq?.position ?? "PF"}
+                defaultPosition2={draft?.position_2 ?? wpq?.position_2 ?? "PF"}
+                showSecondPosition={Boolean(process2)}
+                process1Code={process1}
+                process2Code={process2 ?? undefined}
                 productError={fieldErrors.product}
                 jointError={fieldErrors.joint_type}
                 branchError={fieldErrors.branch_connection}
                 positionError={fieldErrors.position}
+                position2Error={fieldErrors.position_2}
                 onFieldChange={clearError}
                 onJointChange={setPlanJoint}
               />
@@ -338,10 +343,25 @@ export function PlanStep({
                     ? Number(draft.supplementary_fillet_thickness_mm)
                     : wpq?.supplementary_fillet_thickness_mm
                 }
+                defaultChecked2={
+                  draft?.supplementary_fillet_2 === "on" ||
+                  (wpq?.supplementary_fillet_2 ?? false)
+                }
+                defaultPosition2={
+                  draft?.supplementary_fillet_2_position ??
+                  wpq?.supplementary_fillet_2_position ??
+                  "PB"
+                }
+                defaultThickness2={
+                  draft?.supplementary_fillet_2_thickness_mm != null
+                    ? Number(draft.supplementary_fillet_2_thickness_mm)
+                    : wpq?.supplementary_fillet_2_thickness_mm
+                }
                 processes={process2 ? [process1, process2] : [process1]}
-                defaultProcess={wpq?.supplementary_fillet_process ?? process1}
                 positionError={fieldErrors.supplementary_fillet_position}
                 thicknessError={fieldErrors.supplementary_fillet_thickness_mm}
+                positionError2={fieldErrors.supplementary_fillet_2_position}
+                thicknessError2={fieldErrors.supplementary_fillet_2_thickness_mm}
               />
               <Field label="WPS reference" required error={fieldErrors.wps_reference}>
                 <Input
@@ -1174,10 +1194,13 @@ export function CertificateStep({
               </Field>
             </div>
 
-            {wpq.supplementary_fillet ? (
+            {wpq.supplementary_fillet || wpq.supplementary_fillet_2 ? (
               <p className="rounded-[10px] bg-frost px-4 py-3 text-sm text-charcoal">
-                Supplementary fillet weld test was recorded on the
-                qualification plan (Step 1).
+                Supplementary fillet weld test
+                {wpq.supplementary_fillet && wpq.supplementary_fillet_2
+                  ? "s were"
+                  : " was"}{" "}
+                recorded on the qualification plan (Step 1).
               </p>
             ) : null}
 

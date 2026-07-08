@@ -18,6 +18,7 @@ import {
   testingStandardLabel,
   type CertTableRow,
 } from "@/lib/iso9606/certificate-annex";
+import { hasAnySupplementaryFillet } from "@/lib/iso9606/supplementary-fillet";
 import type {
   NdtDtRecord,
   Organization,
@@ -241,7 +242,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
   const issueDate = fmt(wpq.certificate_issued_date ?? wpq.date_of_welding);
   const validUntil = initialValidUntil(wpq);
   const jobOk = wpq.job_knowledge === "Acceptable";
-  const filletOk = wpq.supplementary_fillet;
+  const filletOk = hasAnySupplementaryFillet(wpq);
 
   return (
     <Document title={`WPQ Certificate ${welder.welder_id ?? welder.full_name}`} author={org.name}>

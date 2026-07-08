@@ -42,6 +42,9 @@ export function welderPlanPayload(
         ? (snapshotStr(plan, "branch_connection") as BranchConnection)
         : null,
     position: snapshotStr(plan, "position"),
+    position_2: snapshotStr(plan, "process_2")
+      ? snapshotStr(plan, "position_2")
+      : null,
     wps_reference: snapshotStr(plan, "wps_reference"),
     examiner_ref: snapshotStr(plan, "examiner_ref"),
     examiner_name: snapshotStr(plan, "examiner_name"),
@@ -58,7 +61,18 @@ export function welderPlanPayload(
     supplementary_fillet_process:
       snapshotBool(plan, "supplementary_fillet") &&
       snapshotStr(plan, "process_2")
-        ? snapshotStr(plan, "supplementary_fillet_process")
+        ? snapshotStr(plan, "process") ?? "135"
+        : null,
+    supplementary_fillet_2: snapshotBool(plan, "supplementary_fillet_2"),
+    supplementary_fillet_2_position:
+      snapshotBool(plan, "supplementary_fillet_2") &&
+      snapshotStr(plan, "process_2")
+        ? snapshotStr(plan, "supplementary_fillet_2_position")
+        : null,
+    supplementary_fillet_2_thickness_mm:
+      snapshotBool(plan, "supplementary_fillet_2") &&
+      snapshotStr(plan, "process_2")
+        ? snapshotNum(plan, "supplementary_fillet_2_thickness_mm")
         : null,
     ...(snapshotStr(plan, "process_2")
       ? {}
@@ -146,6 +160,7 @@ export function welderRecordFromSession(
     joint_type: "BW",
     joint_type_extended: null,
     position: null,
+    position_2: null,
     product: "Plate",
     branch_connection: null,
     base_material_group: null,
@@ -190,6 +205,9 @@ export function welderRecordFromSession(
     supplementary_fillet_position: null,
     supplementary_fillet_thickness_mm: null,
     supplementary_fillet_process: null,
+    supplementary_fillet_2: false,
+    supplementary_fillet_2_position: null,
+    supplementary_fillet_2_thickness_mm: null,
     wps_reference: null,
     examiner_ref: null,
     examiner_name: null,

@@ -57,7 +57,9 @@ export async function savePlan(
   const { joint_type, joint_type_extended } = resolveJointStorage(rawJoint);
 
   const process2 = str(formData.get("process_2"));
-  const hasFillet = formData.get("supplementary_fillet") === "on";
+  const hasFilletP1 = formData.get("supplementary_fillet") === "on";
+  const hasFilletP2 = Boolean(process2) && formData.get("supplementary_fillet_2") === "on";
+  const process1 = str(formData.get("process")) ?? "135";
 
   const payload = {
     org_id: org.id,
@@ -75,6 +77,7 @@ export async function savePlan(
         ? (str(formData.get("branch_connection")) as BranchConnection)
         : null,
     position: str(formData.get("position")),
+    position_2: process2 ? str(formData.get("position_2")) : null,
     wps_reference: str(formData.get("wps_reference")),
     examiner_ref: str(formData.get("examiner_ref")),
     examiner_name: str(formData.get("examiner_name")),
@@ -82,15 +85,22 @@ export async function savePlan(
     revalidation_method: str(
       formData.get("revalidation_method"),
     ) as RevalidationMethod,
-    supplementary_fillet: hasFillet,
-    supplementary_fillet_position: hasFillet
+    supplementary_fillet: hasFilletP1,
+    supplementary_fillet_position: hasFilletP1
       ? str(formData.get("supplementary_fillet_position"))
       : null,
-    supplementary_fillet_thickness_mm: hasFillet
+    supplementary_fillet_thickness_mm: hasFilletP1
       ? num(formData.get("supplementary_fillet_thickness_mm"))
       : null,
     supplementary_fillet_process:
-      hasFillet && process2 ? str(formData.get("supplementary_fillet_process")) : null,
+      hasFilletP1 && process2 ? process1 : null,
+    supplementary_fillet_2: hasFilletP2,
+    supplementary_fillet_2_position: hasFilletP2
+      ? str(formData.get("supplementary_fillet_2_position"))
+      : null,
+    supplementary_fillet_2_thickness_mm: hasFilletP2
+      ? num(formData.get("supplementary_fillet_2_thickness_mm"))
+      : null,
     // Downgrading to single process clears any stale second-process detail.
     ...(process2
       ? {}
@@ -104,6 +114,10 @@ export async function savePlan(
           process2_weld_details: null,
           process2_layer_type: null,
           process2_deposited_thickness_mm: null,
+          position_2: null,
+          supplementary_fillet_2: false,
+          supplementary_fillet_2_position: null,
+          supplementary_fillet_2_thickness_mm: null,
         }),
   };
 

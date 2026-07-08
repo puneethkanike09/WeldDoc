@@ -132,6 +132,7 @@ export interface QualificationRecord {
   joint_type: JointCategory;
   joint_type_extended: string | null;
   position: string | null;
+  position_2: string | null;
   product: ProductType;
   branch_connection: BranchConnection | null;
   base_material_group: string | null;
@@ -178,6 +179,9 @@ export interface QualificationRecord {
   supplementary_fillet_position: string | null;
   supplementary_fillet_thickness_mm: number | null;
   supplementary_fillet_process: string | null;
+  supplementary_fillet_2: boolean;
+  supplementary_fillet_2_position: string | null;
+  supplementary_fillet_2_thickness_mm: number | null;
   wps_reference: string | null;
   examiner_ref: string | null;
   examiner_name: string | null;

@@ -18,6 +18,7 @@ import {
   welderRecordFromSession,
 } from "@/lib/qualify/group-session/welder";
 import { wpqReadyForCertificate } from "@/lib/iso9606/qualification-fields";
+import { hasAnySupplementaryFillet } from "@/lib/iso9606/supplementary-fillet";
 import type {
   NdtDtRecord,
   QualificationRecord,
@@ -189,7 +190,7 @@ export default async function WelderGroupSessionPage({
         defaultExaminerName: q?.examiner_name ?? null,
         defaultCertDate: q?.date_of_welding ?? null,
         defaultJobKnowledge: q?.job_knowledge ?? "",
-        supplementaryFillet: q?.supplementary_fillet ?? false,
+        supplementaryFillet: q ? hasAnySupplementaryFillet(q) : false,
       };
     });
 

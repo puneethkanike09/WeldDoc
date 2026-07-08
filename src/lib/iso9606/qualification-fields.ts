@@ -180,6 +180,9 @@ export function getQualificationPlanFieldErrors(
     errors.branch_connection = "Branch connection is required.";
   }
   if (!str(formData.get("position"))) errors.position = "Welding position is required.";
+  if (process2 && !str(formData.get("position_2"))) {
+    errors.position_2 = "Process 2 welding position is required.";
+  }
   if (!str(formData.get("wps_reference"))) errors.wps_reference = "WPS reference is required.";
   if (!str(formData.get("date_of_welding"))) {
     errors.date_of_welding = "Date of welding is required.";
@@ -194,17 +197,26 @@ export function getQualificationPlanFieldErrors(
     errors.revalidation_method = "Confirmation of revalidation is required.";
   }
   const joint = str(formData.get("joint_type"));
-  if (
-    formData.get("supplementary_fillet") === "on" &&
-    joint !== "FW"
-  ) {
-    if (!str(formData.get("supplementary_fillet_position"))) {
-      errors.supplementary_fillet_position =
-        "Supplementary fillet position is required.";
+  if (joint !== "FW") {
+    if (formData.get("supplementary_fillet") === "on") {
+      if (!str(formData.get("supplementary_fillet_position"))) {
+        errors.supplementary_fillet_position =
+          "Supplementary fillet position is required.";
+      }
+      if (num(formData.get("supplementary_fillet_thickness_mm")) == null) {
+        errors.supplementary_fillet_thickness_mm =
+          "Supplementary fillet material thickness is required.";
+      }
     }
-    if (num(formData.get("supplementary_fillet_thickness_mm")) == null) {
-      errors.supplementary_fillet_thickness_mm =
-        "Supplementary fillet material thickness is required.";
+    if (process2 && formData.get("supplementary_fillet_2") === "on") {
+      if (!str(formData.get("supplementary_fillet_2_position"))) {
+        errors.supplementary_fillet_2_position =
+          "Process 2 supplementary fillet position is required.";
+      }
+      if (num(formData.get("supplementary_fillet_2_thickness_mm")) == null) {
+        errors.supplementary_fillet_2_thickness_mm =
+          "Process 2 supplementary fillet material thickness is required.";
+      }
     }
   }
   if (joint === "Branch" && !str(formData.get("branch_connection"))) {

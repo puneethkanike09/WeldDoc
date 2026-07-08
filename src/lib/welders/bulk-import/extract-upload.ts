@@ -96,15 +96,15 @@ async function extractFromZip(zipFile: File): Promise<ExtractedImportUpload> {
     };
   }
 
-  const excelBuf = await excelEntry.async("nodebuffer");
+  const excelBytes = new Uint8Array(await excelEntry.async("arraybuffer"));
   const excelName = basename(excelEntry.name);
-  const excel = new File([excelBuf], excelName, {
+  const excel = new File([excelBytes], excelName, {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
 
   const photos: PhotoFile[] = [];
   for (const { path, entry } of photoEntries) {
-    const bytes = await entry.async("nodebuffer");
+    const bytes = Buffer.from(await entry.async("arraybuffer"));
     photos.push({
       filename: basename(path),
       bytes,

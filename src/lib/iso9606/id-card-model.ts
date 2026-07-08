@@ -14,6 +14,7 @@ import {
   processDisplayText,
 } from "./certificate-ranges";
 import { formatFilletMaterialRangeText } from "@/lib/range-engine/iso9606";
+import { listSupplementaryFilletEntries } from "@/lib/iso9606/supplementary-fillet";
 import { formatDate } from "@/lib/utils";
 import rules from "@/lib/range-engine/iso9606.rules.json";
 
@@ -105,7 +106,8 @@ function toIdCardRow(
   range: RangeOfApproval | undefined,
 ): IdCardQualRow {
   const jointTypes = resolveJointTypes(q, range);
-  const hasSuppFillet = q.joint_type === "BW" && q.supplementary_fillet;
+  const suppEntries = listSupplementaryFilletEntries(q);
+  const hasSuppFillet = suppEntries.length > 0;
 
   const bwPositions = range?.approved_positions?.length
     ? range.approved_positions
@@ -113,14 +115,17 @@ function toIdCardRow(
       ? [q.position]
       : [];
 
-  const fwPositions =
-    hasSuppFillet && q.supplementary_fillet_position
-      ? (r.positionMapFw[q.supplementary_fillet_position] ?? [
-          q.supplementary_fillet_position,
-        ])
-      : jointTypes.includes("FW") && q.joint_type === "FW"
-        ? bwPositions
-        : [];
+  const fwPositions = hasSuppFillet
+    ? [
+        ...new Set(
+          suppEntries.flatMap(
+            (e) => r.positionMapFw[e.position] ?? [e.position],
+          ),
+        ),
+      ]
+    : jointTypes.includes("FW") && q.joint_type === "FW"
+      ? bwPositions
+      : [];
 
   const thickBw = jointTypes.includes("BW")
     ? isMultiProcessQualification(q)
@@ -130,9 +135,11 @@ function toIdCardRow(
 
   let thickFw = "NA";
   if (hasSuppFillet) {
-    thickFw = compactThickness(
-      formatFilletMaterialRangeText(q.supplementary_fillet_thickness_mm),
-    );
+    thickFw = suppEntries
+      .map((e) =>
+        compactThickness(formatFilletMaterialRangeText(e.thickness_mm)),
+      )
+      .join(" / ");
   } else if (jointTypes.includes("FW")) {
     thickFw = compactThickness(formatThicknessRange(range ?? null));
   }

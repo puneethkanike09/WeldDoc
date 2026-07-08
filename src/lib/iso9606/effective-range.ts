@@ -5,6 +5,7 @@
 
 import { computeRange, type RangeResult } from "@/lib/range-engine/iso9606";
 import { branchPipeOdForRange } from "@/lib/iso9606/branch-deposited-thickness";
+import { hasAnySupplementaryFillet } from "@/lib/iso9606/supplementary-fillet";
 import { ndtJointCategory } from "@/lib/iso9606/qualification-fields";
 import type { QualificationRecord, RangeOfApproval } from "@/types/db";
 
@@ -47,13 +48,14 @@ export function effectiveRangeForWpq(
     materialGroup: wpq.base_material_group,
     fillerGroup: wpq.filler_group,
     fillerType: wpq.filler_type,
-    supplementaryFillet: wpq.supplementary_fillet,
+    supplementaryFillet: hasAnySupplementaryFillet(wpq),
     jointTypeExtended: wpq.joint_type_extended,
     secondProcess: wpq.process_2
       ? {
           process: wpq.process_2,
           depositedThicknessMm: wpq.process2_deposited_thickness_mm,
           layer: wpq.process2_layer_type,
+          position: wpq.position_2,
         }
       : null,
   });
