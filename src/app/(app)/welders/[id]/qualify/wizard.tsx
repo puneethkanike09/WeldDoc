@@ -1008,6 +1008,8 @@ export function NdtTestRow({
   fieldErrors,
   clearError,
   nameScope = "",
+  dateDefault,
+  refDefault,
 }: {
   method: string;
   required?: boolean;
@@ -1017,6 +1019,8 @@ export function NdtTestRow({
   fieldErrors: FieldErrors;
   clearError: (key: string) => void;
   nameScope?: string;
+  dateDefault?: string;
+  refDefault?: string;
 }) {
   const resultKey = scopedNdtFieldName(nameScope, `result__${method}`);
   const dateKey = scopedNdtFieldName(nameScope, `test_date__${method}`);
@@ -1067,7 +1071,7 @@ export function NdtTestRow({
       >
         <DatePicker
           name={dateKey}
-          defaultValue={existing?.test_date ?? ""}
+          defaultValue={dateDefault ?? existing?.test_date ?? ""}
           required={required}
           error={fieldErrors[dateKey]}
         />
@@ -1080,7 +1084,7 @@ export function NdtTestRow({
       >
         <Input
           name={refKey}
-          defaultValue={existing?.conducted_by ?? ""}
+          defaultValue={refDefault ?? existing?.conducted_by ?? ""}
           placeholder="NDT report no."
           required={required}
           className={cn(fieldErrors[refKey] && invalidBorder)}
