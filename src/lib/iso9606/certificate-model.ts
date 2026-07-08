@@ -89,7 +89,7 @@ function designationLine(
       : wpq.position ?? "");
 
   return [
-    "EN ISO 9606-1",
+    "ISO 9606-1",
     opts.process,
     productCode(wpq.product),
     weldTypeCode(opts.jointTypes),
@@ -177,7 +177,7 @@ export function buildDesignation(
 
       lines.push(
         [
-          "EN ISO 9606-1",
+          "ISO 9606-1",
           entry.process,
           productCode(wpq.product),
           "FW",
