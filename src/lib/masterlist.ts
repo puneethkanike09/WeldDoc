@@ -8,7 +8,6 @@ import type {
 
 export interface MasterRow {
   welderName: string;
-  uid: string;
   welderId: string;
   process: string;
   standard: string;
@@ -78,7 +77,6 @@ export async function getMasterListRows(
     const range = ranges.get(q.id);
     return {
       welderName: welder?.full_name ?? "—",
-      uid: welder?.uid ?? "—",
       welderId: welder?.welder_id ?? "—",
       process: processLabel(q.process),
       standard: "ISO 9606-1",
@@ -102,7 +100,6 @@ export async function getMasterListRows(
 
 export const MASTER_COLUMNS: { key: keyof MasterRow; label: string }[] = [
   { key: "welderName", label: "Welder" },
-  { key: "uid", label: "UID" },
   { key: "welderId", label: "Welder ID" },
   { key: "process", label: "Process" },
   { key: "standard", label: "Standard" },

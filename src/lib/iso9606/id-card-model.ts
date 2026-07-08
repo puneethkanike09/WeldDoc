@@ -166,7 +166,7 @@ const EMPTY_ROW: IdCardQualRow = {
 };
 
 export function buildIdCardPayload(
-  welder: Pick<Welder, "full_name" | "welder_id" | "uid">,
+  welder: Pick<Welder, "full_name" | "welder_id">,
   wpqs: QualificationRecord[],
   ranges: Map<string, RangeOfApproval>,
 ): IdCardPayload {
@@ -185,7 +185,7 @@ export function buildIdCardPayload(
   const welderNo =
     normalizePlantWelderId(welder.welder_id) ??
     welder.welder_id?.trim() ??
-    welder.uid;
+    "—";
 
   const rows =
     live.length > 0

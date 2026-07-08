@@ -57,7 +57,7 @@ export const BROCHURE_SOLUTIONS = [
 ] as const;
 
 export const BROCHURE_FEATURES = [
-  { title: "Welder & operator registry", detail: "UID, photo, plant ID, QR profile" },
+  { title: "Welder & operator registry", detail: "Photo, plant ID, QR profile" },
   { title: "Qualification wizard", detail: "ISO 9606-1 & ISO 14732 guided entry" },
   { title: "Certificate generation", detail: "Auto range of approval, stamped PDF" },
   { title: "ID cards", detail: "Wallet-sized, print-ready with QR code" },

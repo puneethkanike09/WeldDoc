@@ -11,6 +11,31 @@ import { toast } from "sonner";
 import { ALERT_FREQUENCY_OPTIONS } from "@/lib/expiry-alerts/frequency";
 import type { Organization } from "@/types/db";
 
+/** Radix Select portals its listbox outside Dialog.Content; without this, dismissing the dropdown can close the dialog too. */
+function keepDialogOpenOnNestedLayerPointer(event: {
+  preventDefault(): void;
+  currentTarget: EventTarget | null;
+  target: EventTarget | null;
+}) {
+  const target = event.target as HTMLElement | null;
+  if (!target) return;
+
+  if (
+    event.currentTarget instanceof Node &&
+    event.currentTarget.contains(target)
+  ) {
+    event.preventDefault();
+    return;
+  }
+
+  if (
+    target.closest('[role="listbox"]') ||
+    target.closest("[data-radix-popper-content-wrapper]")
+  ) {
+    event.preventDefault();
+  }
+}
+
 export function AlertEmailConfigDialog({
   org,
   action,
@@ -34,7 +59,11 @@ export function AlertEmailConfigDialog({
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-onyx/40 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[16px] border border-border bg-popover p-6 text-popover-foreground shadow-(--shadow-lift) data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+        <Dialog.Content
+          className="fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[16px] border border-border bg-popover p-6 text-popover-foreground shadow-(--shadow-lift) data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
+          onInteractOutside={keepDialogOpenOnNestedLayerPointer}
+          onPointerDownOutside={keepDialogOpenOnNestedLayerPointer}
+        >
           <Dialog.Close asChild>
             <button
               type="button"

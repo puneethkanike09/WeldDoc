@@ -4,7 +4,6 @@ import type { OperatorMasterRow } from "@/lib/operator-masterlist";
 
 const COLS: { key: keyof OperatorMasterRow; label: string; w: number }[] = [
   { key: "operatorName", label: "Operator", w: 84 },
-  { key: "uid", label: "UID", w: 64 },
   { key: "operatorId", label: "Op. ID", w: 44 },
   { key: "process", label: "Process", w: 40 },
   { key: "weldingType", label: "Type", w: 48 },

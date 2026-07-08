@@ -260,7 +260,7 @@ export function WelderForm({
 
       <div className="flex items-center justify-end gap-3">
         <Label className="mr-auto mb-0 text-steel">
-          UID &amp; QR code are generated automatically on save.
+          Plant welder ID and QR code are assigned automatically on save.
         </Label>
         <SubmitButton
           label={mode === "create" ? "Create welder" : "Save changes"}

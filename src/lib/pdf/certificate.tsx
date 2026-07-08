@@ -244,7 +244,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
   const filletOk = wpq.supplementary_fillet;
 
   return (
-    <Document title={`WPQ Certificate ${welder.uid}`} author={org.name}>
+    <Document title={`WPQ Certificate ${welder.welder_id ?? welder.full_name}`} author={org.name}>
       <Page
         size="A4"
         style={{
@@ -354,7 +354,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
               <InfoRow label="Welder Name:" value={welder.full_name} bold />
               <InfoRow
                 label="Identification:"
-                value={welder.welder_id ?? welder.uid}
+                value={welder.welder_id ?? "—"}
               />
               <InfoRow
                 label="Method of Identification:"

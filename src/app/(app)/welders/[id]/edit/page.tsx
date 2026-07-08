@@ -6,6 +6,7 @@ import { WelderForm } from "../../welder-form";
 import { updateWelder } from "../../actions";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
+import { normalizePlantWelderId } from "@/lib/welders/plant-id";
 import type { Welder } from "@/types/db";
 import { ArrowLeft } from "lucide-react";
 
@@ -33,7 +34,14 @@ export default async function EditWelderPage({
 
   return (
     <>
-      <PageHeader title="Edit welder" description={(welder as Welder).uid} />
+      <PageHeader
+        title="Edit welder"
+        description={
+          normalizePlantWelderId((welder as Welder).welder_id) ??
+          (welder as Welder).welder_id ??
+          "—"
+        }
+      />
       <div className="px-8 py-8">
         <Link
           href={`/welders/${id}`}

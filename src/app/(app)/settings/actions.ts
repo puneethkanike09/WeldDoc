@@ -32,7 +32,6 @@ export async function updateOrgSettings(formData: FormData) {
     name: str(formData.get("name")) ?? org.name,
     location_code: str(formData.get("location_code")),
     report_prefix: str(formData.get("report_prefix")) ?? org.report_prefix,
-    uid_prefix: str(formData.get("uid_prefix")) ?? org.uid_prefix,
   };
   if (logoPath) update.logo_path = logoPath;
 

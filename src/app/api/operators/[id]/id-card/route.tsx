@@ -46,7 +46,7 @@ export async function GET(
   const photoUrl = await resolveUrl("welder-photos", o.photo_path);
   const logoUrl = await resolveUrl("org-assets", (org as Organization).logo_path);
   const qr = await qrDataUrl(verifyUrl(o.qr_token, request.nextUrl.origin));
-  const plantId = o.operator_id ?? o.uid;
+  const plantId = o.operator_id ?? "—";
 
   const data: IdCardData = {
     org: org as Organization,
@@ -73,7 +73,7 @@ export async function GET(
       "Cache-Control": "no-store, no-cache, must-revalidate",
       "Content-Disposition": `${
         download ? "attachment" : "inline"
-      }; filename="ID-${o.uid}.pdf"`,
+      }; filename="ID-${plantId}.pdf"`,
     },
   });
 }

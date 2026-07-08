@@ -197,7 +197,7 @@ export function buildCertNo(
   const base = (org.report_prefix || "WPQ-")
     .replace(/WPQ-?$/i, "")
     .replace(/\/$/, "");
-  const ref = welder.welder_id || welder.uid;
+  const ref = welder.welder_id ?? "—";
   const pos = wpq.position ?? "PA";
   const mat = materialCode(wpq.base_material_group);
   const proc = wpq.process_2

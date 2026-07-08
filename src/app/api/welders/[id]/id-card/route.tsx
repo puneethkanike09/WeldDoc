@@ -87,7 +87,7 @@ export async function GET(
       "Cache-Control": "no-store, no-cache, must-revalidate",
       "Content-Disposition": `${
         download ? "attachment" : "inline"
-      }; filename="ID-${w.uid}.pdf"`,
+      }; filename="ID-${w.welder_id ?? id}.pdf"`,
     },
   });
 }

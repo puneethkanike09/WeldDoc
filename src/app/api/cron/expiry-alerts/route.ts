@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
     const welderAlerts: BuiltAlert[] = [];
     const welders = new Map<
       string,
-      { id: string; full_name: string; welder_id: string | null; uid: string }
+      { id: string; full_name: string; welder_id: string | null }
     >();
 
     const { data: wpqs } = await supabase
@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
       const welderIds = Array.from(new Set(wpqs.map((w) => w.welder_id)));
       const { data: welderRows } = await supabase
         .from("welders")
-        .select("id, full_name, welder_id, uid")
+        .select("id, full_name, welder_id")
         .in("id", welderIds);
       for (const w of welderRows ?? []) {
         welders.set(w.id, w);
@@ -168,7 +168,7 @@ export async function GET(request: NextRequest) {
             const bucket = bucketFor(dleft, leadDays) ?? "snapshot";
             welderAlerts.push({
               welderName: welder.full_name,
-              plantWelderId: welder.welder_id ?? welder.uid,
+              plantWelderId: welder.welder_id ?? "—",
               process: welderProcessLabel(w.process),
               validityCode: w.revalidation_method ?? "9.3b",
               expiryDate: w.expiry_date,
@@ -191,7 +191,7 @@ export async function GET(request: NextRequest) {
             const bucket = bucketFor(dleft, leadDays) ?? "snapshot";
             welderAlerts.push({
               welderName: welder.full_name,
-              plantWelderId: welder.welder_id ?? welder.uid,
+              plantWelderId: welder.welder_id ?? "—",
               process: welderProcessLabel(w.process),
               validityCode: w.revalidation_method ?? "9.3b",
               expiryDate: due,
@@ -209,7 +209,7 @@ export async function GET(request: NextRequest) {
     const opAlerts: OpAlert[] = [];
     const operators = new Map<
       string,
-      { id: string; full_name: string; operator_id: string | null; uid: string }
+      { id: string; full_name: string; operator_id: string | null }
     >();
 
     const { data: oqs } = await supabase
@@ -224,7 +224,7 @@ export async function GET(request: NextRequest) {
       const operatorIds = Array.from(new Set(oqs.map((o) => o.operator_id)));
       const { data: operatorRows } = await supabase
         .from("operators")
-        .select("id, full_name, operator_id, uid")
+        .select("id, full_name, operator_id")
         .in("id", operatorIds);
       for (const o of operatorRows ?? []) {
         operators.set(o.id, o);
@@ -243,7 +243,7 @@ export async function GET(request: NextRequest) {
             const bucket = bucketFor(dleft, leadDays) ?? "snapshot";
             opAlerts.push({
               welderName: operator.full_name,
-              plantWelderId: operator.operator_id ?? operator.uid,
+              plantWelderId: operator.operator_id ?? "—",
               process: operatorProcessLabel(o.process),
               validityCode: o.revalidation_method ?? "6.3b",
               expiryDate: o.expiry_date,
@@ -266,7 +266,7 @@ export async function GET(request: NextRequest) {
             const bucket = bucketFor(dleft, leadDays) ?? "snapshot";
             opAlerts.push({
               welderName: operator.full_name,
-              plantWelderId: operator.operator_id ?? operator.uid,
+              plantWelderId: operator.operator_id ?? "—",
               process: operatorProcessLabel(o.process),
               validityCode: o.revalidation_method ?? "6.3b",
               expiryDate: due,

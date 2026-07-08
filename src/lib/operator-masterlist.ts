@@ -8,7 +8,6 @@ import type {
 
 export interface OperatorMasterRow {
   operatorName: string;
-  uid: string;
   operatorId: string;
   process: string;
   standard: string;
@@ -58,7 +57,6 @@ export async function getOperatorMasterListRows(
     const range = ranges.get(q.id);
     return {
       operatorName: operator?.full_name ?? "—",
-      uid: operator?.uid ?? "—",
       operatorId: operator?.operator_id ?? "—",
       process: processLabel(q.process),
       standard: "ISO 14732",
@@ -81,7 +79,6 @@ export const OPERATOR_MASTER_COLUMNS: {
   label: string;
 }[] = [
   { key: "operatorName", label: "Operator" },
-  { key: "uid", label: "UID" },
   { key: "operatorId", label: "Operator ID" },
   { key: "process", label: "Process" },
   { key: "standard", label: "Standard" },

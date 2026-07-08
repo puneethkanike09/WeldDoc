@@ -110,7 +110,7 @@ export async function GET(
       "Content-Type": "application/pdf",
       "Content-Disposition": `${
         download ? "attachment" : "inline"
-      }; filename="WPQ-${w.uid}.pdf"`,
+      }; filename="WPQ-${w.welder_id ?? id}.pdf"`,
     },
   });
 }

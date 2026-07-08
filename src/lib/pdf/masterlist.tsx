@@ -4,7 +4,6 @@ import type { MasterRow } from "@/lib/masterlist";
 
 const COLS: { key: keyof MasterRow; label: string; w: number }[] = [
   { key: "welderName", label: "Welder", w: 90 },
-  { key: "uid", label: "UID", w: 70 },
   { key: "welderId", label: "Welder ID", w: 48 },
   { key: "process", label: "Process", w: 60 },
   { key: "jointType", label: "Joint", w: 32 },

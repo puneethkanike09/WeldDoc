@@ -8,6 +8,7 @@ import { updateAlertEmailSettings } from "@/app/(app)/settings/actions";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { summarizeOperator } from "@/lib/operator-status";
+import { normalizePlantOperatorId } from "@/lib/operators/plant-id";
 import { filterOperatorRows } from "@/lib/operators/filter-rows";
 import {
   parseRegistryListPage,
@@ -55,8 +56,8 @@ export default async function OperatorsPage({
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const allRows: OperatorRow[] = ((operators ?? []) as Operator[]).map((o) => ({
     id: o.id,
-    uid: o.uid,
-    operator_id: o.operator_id,
+    operator_id:
+      normalizePlantOperatorId(o.operator_id) ?? o.operator_id?.trim() ?? "—",
     full_name: o.full_name,
     photoUrl: o.photo_path
       ? `${supabaseUrl}/storage/v1/object/public/welder-photos/${o.photo_path}`
@@ -77,7 +78,8 @@ export default async function OperatorsPage({
 
   const qrEntries = ((operators ?? []) as Operator[]).map((o) => ({
     qrToken: o.qr_token,
-    plantWelderId: o.operator_id ?? o.uid,
+    plantWelderId:
+      normalizePlantOperatorId(o.operator_id) ?? o.operator_id?.trim() ?? "—",
   }));
 
   return (

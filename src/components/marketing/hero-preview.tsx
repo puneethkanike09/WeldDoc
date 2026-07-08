@@ -26,7 +26,7 @@ export function HeroPreview() {
           <div className="h-20 w-16 shrink-0 overflow-hidden rounded-[8px] bg-gradient-to-br from-steel/40 to-onyx/20" />
           <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-[13px]">
             <Field label="Welder" value="J. Morrison" />
-            <Field label="UID" value="WLD-2024-042" />
+            <Field label="Welder ID" value="W#01" />
             <Field label="Process" value="GMAW (135)" />
             <Field label="Position" value="PF" />
             <Field label="Joint" value="BW / Plate" />

@@ -278,7 +278,7 @@ export function OperatorForm({
 
       <div className="flex items-center justify-end gap-3">
         <Label className="mr-auto mb-0 text-steel">
-          UID &amp; QR code are generated automatically on save.
+          Plant operator ID and QR code are assigned automatically on save.
         </Label>
         <SubmitButton
           label={mode === "create" ? "Create operator" : "Save changes"}

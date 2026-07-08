@@ -71,7 +71,6 @@ export interface Organization {
   name: string;
   logo_path: string | null;
   location_code: string | null;
-  uid_prefix: string;
   report_prefix: string;
   wpq_seq: number;
   welder_seq: number;
@@ -94,7 +93,6 @@ export interface Profile {
 export interface Welder {
   id: string;
   org_id: string;
-  uid: string;
   welder_id: string | null;
   full_name: string;
   date_of_birth: string | null;
@@ -266,7 +264,6 @@ export type OqStatus = WpqStatus;
 export interface Operator {
   id: string;
   org_id: string;
-  uid: string;
   operator_id: string | null;
   full_name: string;
   date_of_birth: string | null;

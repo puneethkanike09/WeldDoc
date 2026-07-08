@@ -326,7 +326,7 @@ export function OperatorCertificateDocument({
 
   return (
     <Document
-      title={`Operator Certificate ${operator.uid}`}
+      title={`Operator Certificate ${operator.operator_id ?? operator.full_name}`}
       author={org.name}
     >
       <Page
@@ -400,7 +400,7 @@ export function OperatorCertificateDocument({
               <RoleRow />
               <InfoRow
                 label="Identification:"
-                value={operator.operator_id ?? operator.uid}
+                value={operator.operator_id ?? "—"}
               />
               <InfoRow
                 label="Method of identification:"

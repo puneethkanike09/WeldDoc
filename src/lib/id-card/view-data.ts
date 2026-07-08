@@ -3,10 +3,7 @@ import { buildIdCardPayload } from "@/lib/iso9606/id-card-model";
 import { buildOperatorIdCardRows } from "@/lib/iso14732/id-card-model";
 import { summarizeWelder } from "@/lib/welder-status";
 import { summarizeOperator } from "@/lib/operator-status";
-import {
-  normalizePlantOperatorId,
-  plantOperatorIdFromUid,
-} from "@/lib/operators/plant-id";
+import { normalizePlantOperatorId } from "@/lib/operators/plant-id";
 import { formatDate } from "@/lib/utils";
 import type {
   Operator,
@@ -58,7 +55,6 @@ export async function loadWelderIdCardView(
     orgName: orgRow?.name ?? "WeldDoc",
     welderName: card.welderName,
     welderNo: card.welderNo,
-    uid: welder.uid,
     photoUrl: publicStorageUrl("welder-photos", welder.photo_path),
     logoUrl: publicStorageUrl("org-assets", orgRow?.logo_path ?? null),
     rows: card.rows,
@@ -90,14 +86,12 @@ export async function loadOperatorIdCardView(
   const plantId =
     normalizePlantOperatorId(operator.operator_id) ??
     operator.operator_id?.trim() ??
-    plantOperatorIdFromUid(operator.uid) ??
-    operator.uid;
+    "—";
 
   return {
     orgName: orgRow?.name ?? "WeldDoc",
     welderName: operator.full_name,
     welderNo: plantId,
-    uid: operator.uid,
     photoUrl: publicStorageUrl("welder-photos", operator.photo_path),
     logoUrl: publicStorageUrl("org-assets", orgRow?.logo_path ?? null),
     rows: buildOperatorIdCardRows(oqs),

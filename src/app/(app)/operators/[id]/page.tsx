@@ -9,7 +9,6 @@ import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import {
   normalizePlantOperatorId,
-  plantOperatorIdFromUid,
 } from "@/lib/operators/plant-id";
 import { resolveUrl } from "@/lib/storage";
 import { formatDate } from "@/lib/utils";
@@ -51,12 +50,11 @@ export default async function OperatorProfilePage({
   const plantOperatorId =
     normalizePlantOperatorId(o.operator_id) ??
     o.operator_id?.trim() ??
-    plantOperatorIdFromUid(o.uid) ??
-    o.uid;
+    "—";
 
   return (
     <>
-      <PageHeader title={o.full_name} description={`UID ${o.uid}`}>
+      <PageHeader title={o.full_name} description={plantOperatorId}>
         <ButtonLink href={`/operators/${id}/edit`} variant="ghost" size="sm">
           <Pencil className="h-4 w-4" /> Edit
         </ButtonLink>
@@ -94,9 +92,8 @@ export default async function OperatorProfilePage({
                   {summary.overall}
                 </Badge>
                 <p className="mt-2 font-mono text-[13px] text-charcoal">
-                  {o.uid}
+                  {plantOperatorId}
                 </p>
-                <p className="text-xs text-steel">{plantOperatorId}</p>
               </div>
             </div>
 

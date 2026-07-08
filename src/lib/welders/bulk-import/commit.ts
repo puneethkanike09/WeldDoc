@@ -113,13 +113,6 @@ export async function commitValidatedImport(
         continue;
       }
 
-      const { data: uid, error: uidErr } = await supabase.rpc("next_welder_uid", {
-        p_org: ctx.orgId,
-      });
-      if (uidErr || !uid) {
-        throw new Error(uidErr?.message ?? "Could not allocate welder UID.");
-      }
-
       await assertPlantWelderIdAvailable(supabase, ctx.orgId, plantWelderId);
 
       let photoPath: string | null = null;
@@ -137,7 +130,6 @@ export async function commitValidatedImport(
         .from("welders")
         .insert({
           org_id: ctx.orgId,
-          uid,
           welder_id: plantWelderId,
           full_name: welder.fullName,
           date_of_birth: welder.dateOfBirth,

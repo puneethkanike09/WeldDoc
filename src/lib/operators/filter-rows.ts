@@ -12,8 +12,7 @@ export function filterOperatorRows(
     if (
       term &&
       !r.full_name.toLowerCase().includes(term) &&
-      !r.uid.toLowerCase().includes(term) &&
-      !(r.operator_id ?? "").toLowerCase().includes(term)
+      !r.operator_id.toLowerCase().includes(term)
     ) {
       return false;
     }

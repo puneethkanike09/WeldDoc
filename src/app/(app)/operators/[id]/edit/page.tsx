@@ -6,6 +6,7 @@ import { OperatorForm } from "../../operator-form";
 import { updateOperator } from "../../actions";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
+import { normalizePlantOperatorId } from "@/lib/operators/plant-id";
 import type { Operator } from "@/types/db";
 import { ArrowLeft } from "lucide-react";
 
@@ -33,7 +34,14 @@ export default async function EditOperatorPage({
 
   return (
     <>
-      <PageHeader title="Edit operator" description={(operator as Operator).uid} />
+      <PageHeader
+        title="Edit operator"
+        description={
+          normalizePlantOperatorId((operator as Operator).operator_id) ??
+          (operator as Operator).operator_id ??
+          "—"
+        }
+      />
       <div className="px-8 py-8">
         <Link
           href={`/operators/${id}`}

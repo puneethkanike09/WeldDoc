@@ -345,9 +345,6 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
                 <View style={{ flex: 1 }}>
                   <PersonalField label={plantIdLabel} value={welderNo} bold />
                 </View>
-                <View style={{ flex: 1 }}>
-                  <PersonalField label="UID" value={welder.uid} />
-                </View>
               </View>
               {(welder.employer || site !== "—") && (
                 <View style={{ flexDirection: "row", gap: 14, marginTop: 1 }}>

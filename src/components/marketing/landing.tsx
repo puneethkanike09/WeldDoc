@@ -21,7 +21,7 @@ const products = [
   {
     icon: QrCode,
     title: "Welder registry + QR",
-    points: ["Permanent digital profile", "Unique UID per welder", "Live QR status link"],
+    points: ["Permanent digital profile", "Plant welder ID (W#01)", "Live QR status link"],
   },
   {
     icon: FileCheck2,

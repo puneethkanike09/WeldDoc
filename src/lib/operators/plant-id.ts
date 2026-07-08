@@ -33,13 +33,6 @@ export function normalizePlantOperatorId(
   return s;
 }
 
-export function plantOperatorIdFromUid(uid: string): string | null {
-  const m = uid.match(/-(\d+)$/);
-  if (!m) return null;
-  const n = parseInt(m[1], 10);
-  return Number.isFinite(n) ? formatPlantOperatorId(n) : null;
-}
-
 export function suggestPlantOperatorId(currentOperatorSeq: number): string {
   return formatPlantOperatorId(currentOperatorSeq + 1);
 }

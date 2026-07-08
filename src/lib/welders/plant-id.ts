@@ -36,14 +36,6 @@ export function normalizePlantWelderId(
   return s;
 }
 
-/** Derive plant ID from system UID (PUNI-2026-002 → W#02). */
-export function plantWelderIdFromUid(uid: string): string | null {
-  const m = uid.match(/-(\d+)$/);
-  if (!m) return null;
-  const n = parseInt(m[1], 10);
-  return Number.isFinite(n) ? formatPlantWelderId(n) : null;
-}
-
 /** Preview the next plant ID before save (sequence only — may already be taken). */
 export function suggestPlantWelderId(currentWelderSeq: number): string {
   return formatPlantWelderId(currentWelderSeq + 1);

@@ -41,11 +41,6 @@ export async function createOperatorRecord(
   const idMethod =
     idMethodRaw === "Other" ? idMethodOther ?? "Other" : idMethodRaw;
 
-  const { data: uid, error: uidErr } = await supabase.rpc("next_operator_uid", {
-    p_org: ctx.org.id,
-  });
-  if (uidErr || !uid) throw new Error(uidErr?.message ?? "Could not allocate UID.");
-
   let plantOperatorId = normalizePlantOperatorId(str(formData.get("operator_id")));
   if (!plantOperatorId) {
     plantOperatorId = await nextAvailablePlantOperatorId(
@@ -69,7 +64,6 @@ export async function createOperatorRecord(
     .from("operators")
     .insert({
       org_id: ctx.org.id,
-      uid,
       operator_id: plantOperatorId,
       full_name: fullName,
       date_of_birth: str(formData.get("date_of_birth")),

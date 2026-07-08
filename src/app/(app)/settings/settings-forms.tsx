@@ -59,9 +59,6 @@ export function OrgSettingsForm({
   const validate = useCallback((formData: FormData) => {
     const errors: FieldErrors = {};
     if (!str(formData.get("name"))) errors.name = "Company name is required.";
-    if (!str(formData.get("uid_prefix"))) {
-      errors.uid_prefix = "Welder UID prefix is required.";
-    }
     if (!str(formData.get("report_prefix"))) {
       errors.report_prefix = "Report number prefix is required.";
     }
@@ -84,14 +81,6 @@ export function OrgSettingsForm({
         </Field>
         <Field label="Location code" hint="e.g. PLT-A">
           <Input name="location_code" defaultValue={org.location_code ?? ""} />
-        </Field>
-        <Field label="Welder UID prefix" required error={fieldErrors.uid_prefix}>
-          <Input
-            name="uid_prefix"
-            defaultValue={org.uid_prefix}
-            className={cn(fieldErrors.uid_prefix && invalidBorder)}
-            onChange={() => clearError("uid_prefix")}
-          />
         </Field>
         <Field
           label="Report number prefix"

@@ -85,7 +85,7 @@ export default async function QualifyPage({
     <>
       <PageHeader
         title="Qualification workflow"
-        description={`${welder.full_name} · ${welder.uid}`}
+        description={`${welder.full_name} · ${welder.welder_id ?? "—"}`}
       />
 
       <div className="px-8 py-8">
