@@ -184,11 +184,6 @@ function WelderMemberCertificateCard({
                   </p>
                 ) : null}
 
-                <p className="rounded-[10px] bg-frost px-3 py-2 text-sm text-graphite">
-                  The certificate leaves a blank examining-body area so it can be
-                  signed and stamped by hand after printing.
-                </p>
-
                 <div className="flex flex-wrap items-center justify-end gap-3">
                   {member.ndtReady ? (
                     <Badge tone="active">
@@ -334,11 +329,6 @@ function OperatorMemberCertificateCard({
                     />
                   </Field>
                 </div>
-
-                <p className="rounded-[10px] bg-frost px-3 py-2 text-sm text-graphite">
-                  The certificate leaves a blank examining-body area so it can be
-                  signed and stamped by hand after printing.
-                </p>
 
                 <div className="flex flex-wrap items-center justify-end gap-3">
                   {member.ndtReady ? (

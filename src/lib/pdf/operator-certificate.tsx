@@ -705,10 +705,14 @@ export function OperatorCertificateDocument({
           </View>
 
           <View style={{ marginTop: 6, gap: 6 }}>
-            <SignatureTable
-              title="Revalidation by examiner or examining body for the following 3 years (See 6.3 b)"
-              rows={emptySignatureRows(1)}
-            />
+            {/* Examiner revalidation box is only required for 6.3b — for 6.3a
+                and 6.3c revalidation is via the 6-month confirmation below. */}
+            {oq.revalidation_method === "6.3b" ? (
+              <SignatureTable
+                title="Revalidation by examiner or examining body for the following 3 years (See 6.3 b)"
+                rows={emptySignatureRows(1)}
+              />
+            ) : null}
             <SignatureTable
               title="Confirmation of the validity by the employer/welding coordinator/examiner or examining body for the following 6 months (See 6.2)"
               rows={emptySignatureRows(5)}

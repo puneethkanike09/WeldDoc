@@ -11,9 +11,6 @@ import {
   validateOperatorImport,
   commitOperatorImportAction,
 } from "@/app/(app)/operators/import/actions";
-import type { OperatorImportColumnKey } from "@/lib/operators/bulk-import/columns";
-import { validatedRowToColumns } from "@/lib/operators/bulk-import/display";
-import { validateOperatorParsedImport } from "@/lib/operators/bulk-import/validate";
 import type {
   OperatorImportValidationError,
   OperatorImportValidationSummary,
@@ -29,16 +26,11 @@ type PreviewState = {
   ok: boolean;
 };
 
-export function OperatorBulkImportPanel({
-  existingPlantIds,
-}: {
-  existingPlantIds: string[];
-}) {
+export function OperatorBulkImportPanel() {
   const router = useRouter();
   const [preview, setPreview] = useState<PreviewState | null>(null);
   const [isValidating, startValidate] = useTransition();
   const [isCommitting, startCommit] = useTransition();
-  const plantIdSet = new Set(existingPlantIds);
 
   function handleValidate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -73,35 +65,6 @@ export function OperatorBulkImportPanel({
     });
   }
 
-  function handleCellChange(
-    excelRow: number,
-    column: OperatorImportColumnKey,
-    value: string,
-  ) {
-    setPreview((prev) => {
-      if (!prev || prev.fileError) return prev;
-
-      const draft = prev.rows.map((row) => ({
-        excelRow: row.excelRow,
-        raw: validatedRowToColumns(row),
-      }));
-
-      const target = draft.find((r) => r.excelRow === excelRow);
-      if (!target) return prev;
-      target.raw[column] = value;
-
-      const result = validateOperatorParsedImport(draft, plantIdSet);
-
-      return {
-        ...prev,
-        rows: result.rows,
-        errors: result.errors,
-        summary: result.summary,
-        ok: result.ok,
-      };
-    });
-  }
-
   function handleCommit() {
     if (!preview?.ok || !preview.rows.length) return;
 
@@ -128,10 +91,12 @@ export function OperatorBulkImportPanel({
               Bulk import from Excel
             </h3>
             <p className="mt-1 text-sm text-graphite">
-              Download the template, fill operator rows (with or without
-              qualifications), then upload for validation before importing.
-              Plant IDs use the O#01 format; employer and branch are filled from
-              your organisation settings.
+              Download the template and fill one row per qualification, repeating
+              the operator name and O# No on each of that operator&apos;s rows.
+              Only the operator name and O# No are required. If an O# already
+              exists in WeldDoc, the qualification is attached to that operator;
+              otherwise a new operator is created. Upload to validate — if any
+              rows have problems, fix them in Excel and upload again.
             </p>
           </div>
 
@@ -179,11 +144,15 @@ export function OperatorBulkImportPanel({
               </p>
             ) : (
               <>
-                <div className="grid gap-3 sm:grid-cols-4">
+                <div className="grid gap-3 sm:grid-cols-5">
                   <SummaryTile label="Rows" value={preview.summary.totalRows} />
                   <SummaryTile
-                    label="Operators"
-                    value={preview.summary.operatorCount}
+                    label="New operators"
+                    value={preview.summary.newOperatorCount}
+                  />
+                  <SummaryTile
+                    label="Existing (attach)"
+                    value={preview.summary.existingOperatorCount}
                   />
                   <SummaryTile
                     label="Qualifications"
@@ -200,7 +169,6 @@ export function OperatorBulkImportPanel({
                   <OperatorImportPreviewTable
                     rows={preview.rows}
                     errors={preview.errors}
-                    onCellChange={handleCellChange}
                   />
                 )}
 

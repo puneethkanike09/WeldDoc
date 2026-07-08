@@ -1,6 +1,7 @@
 import type { OperatorQualification } from "@/types/db";
 import type { IdCardQualRow } from "@/lib/iso9606/id-card-model";
 import { processLabel } from "@/lib/iso14732/constants";
+import { formatDate } from "@/lib/utils";
 
 export function buildOperatorIdCardRows(
   oqs: OperatorQualification[],
@@ -16,5 +17,7 @@ export function buildOperatorIdCardRows(
       od: "—",
       jointType: q.joint_type ?? "—",
       fmGroup: q.revalidation_method ?? "—",
+      testDate: formatDate(q.certificate_issued_date ?? q.date_of_welding),
+      validUpto: formatDate(q.expiry_date),
     }));
 }

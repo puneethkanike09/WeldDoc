@@ -19,47 +19,47 @@ export interface Slice {
   value: number;
 }
 
-/** Muted categorical palette — avoids harsh brand red on large chart fills. */
+/** Forge Steel categorical palette — navy anchor, amber accent, steel supporting hues. */
 const CHART_COLORS_LIGHT = [
-  "#4d7ec4",
-  "#64748b",
-  "#4a9b8e",
-  "#b8953d",
-  "#7c6aad",
-  "#6b9080",
-  "#8aa4c7",
-  "#94a3b8",
+  "#1c2b3a",
+  "#e8a030",
+  "#2e4a63",
+  "#2dc47a",
+  "#6b7c8c",
+  "#e85a30",
+  "#3a5f80",
+  "#b0bec5",
 ];
 
 const CHART_COLORS_DARK = [
-  "#7eb0e8",
-  "#cbd5e1",
-  "#6bc4b8",
-  "#e4c97a",
-  "#b8a6e0",
-  "#8fbfaa",
-  "#9ec5e8",
-  "#d4d4d4",
+  "#7fa8cf",
+  "#f0b24a",
+  "#5b7d9c",
+  "#6ee7a8",
+  "#9aa8b6",
+  "#f0895f",
+  "#a9c3db",
+  "#cdd5dd",
 ];
 
 const STATUS_COLORS_LIGHT: Record<string, string> = {
-  Active: "#3d7a52",
-  Expiring: "#c9a227",
-  Expired: "#a65d52",
-  Pending: "#64748b",
-  None: "#909090",
-  Inactive: "#cccccc",
-  Suspended: "#b87070",
+  Active: "#2dc47a",
+  Expiring: "#f0b820",
+  Expired: "#e85a30",
+  Pending: "#2e4a63",
+  None: "#7d8896",
+  Inactive: "#b0bec5",
+  Suspended: "#e8794f",
 };
 
 const STATUS_COLORS_DARK: Record<string, string> = {
-  Active: "#6bc48a",
-  Expiring: "#e4c97a",
-  Expired: "#d4918f",
-  Pending: "#cbd5e1",
-  None: "#737373",
-  Inactive: "#525252",
-  Suspended: "#dba0a0",
+  Active: "#6ee7a8",
+  Expiring: "#f7cf6b",
+  Expired: "#f0895f",
+  Pending: "#7fa8cf",
+  None: "#7d8896",
+  Inactive: "#8896a4",
+  Suspended: "#f6b39b",
 };
 
 export function DonutCard({
@@ -76,8 +76,8 @@ export function DonutCard({
   const isDark = resolvedTheme === "dark";
   const statusColors = isDark ? STATUS_COLORS_DARK : STATUS_COLORS_LIGHT;
   const chartColors = isDark ? CHART_COLORS_DARK : CHART_COLORS_LIGHT;
-  const tooltipFg = isDark ? "#ededed" : "#161616";
-  const legendFg = isDark ? "#d4d4d4" : "#4a4a4a";
+  const tooltipFg = isDark ? "#eef1f4" : "#1c2b3a";
+  const legendFg = isDark ? "#aab8c6" : "#3c4a57";
 
   return (
     <div className="rounded-[var(--radius-card)] border border-silver bg-panel p-6">
@@ -145,12 +145,12 @@ export function DonutCard({
 }
 
 function chartTooltipStyle(isDark: boolean) {
-  const tooltipFg = isDark ? "#ededed" : "#161616";
+  const tooltipFg = isDark ? "#eef1f4" : "#1c2b3a";
   return {
     contentStyle: {
       borderRadius: 10,
-      border: isDark ? "1px solid #2e2e2e" : "1px solid #e0e2e6",
-      backgroundColor: isDark ? "#1a1a1a" : "#ffffff",
+      border: isDark ? "1px solid #2e4a63" : "1px solid #e0d8ca",
+      backgroundColor: isDark ? "#1c2b3a" : "#ffffff",
       color: tooltipFg,
       fontSize: 13,
       fontFamily: "var(--font-inter)",

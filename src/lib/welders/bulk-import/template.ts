@@ -2,7 +2,6 @@ import * as XLSX from "xlsx";
 import {
   BW_POSITIONS,
   FILLER_GROUPS,
-  ID_METHODS,
   JOINT_TYPES,
   MATERIAL_GROUPS,
   PRODUCT_TYPES,
@@ -10,7 +9,11 @@ import {
   TESTING_STANDARDS,
   WELDING_PROCESSES,
 } from "@/lib/iso9606/constants";
-import { IMPORT_COLUMNS, IMPORT_SHEET_NAME, MAX_IMPORT_ROWS } from "./columns";
+import {
+  IMPORT_SHEET_NAME,
+  MAX_IMPORT_ROWS,
+  TEMPLATE_COLUMNS,
+} from "./columns";
 import { parseImportWorkbook } from "./parse";
 
 const INSTRUCTIONS = [
@@ -21,31 +24,31 @@ const INSTRUCTIONS = [
   ["• Employer and branch/site are taken from your Settings — do not put them in this file."],
   ["• System UID and QR code are created automatically on import."],
   [],
-  ["Plant welder ID (plant_welder_id)"],
-  ["• Use this if you already have badge numbers (W#01, W#02, …). Formats accepted: W#01, W#1, or 1."],
-  ["• Leave blank to auto-assign the next available ID in your organisation — preview shows assigned IDs before import."],
-  ["• Must be unique within your organisation. Cannot reuse IDs already in WeldDoc."],
+  ["Only two columns are required: plant_welder_id (W# No) and full_name (welder name)."],
+  ["Everything else is optional. WeldDoc computes the qualified ranges, positions,"],
+  ["diameters, thicknesses and both expiry dates automatically — do not enter them here."],
+  [],
+  ["Plant welder ID (plant_welder_id / W# No)"],
+  ["• Required. Formats accepted: W#01, W#1, or 1."],
+  ["• If this W# already exists in WeldDoc, the qualification on the row is ATTACHED to that welder."],
+  ["• If it is new, a new welder is created (personal details optional — add them on the profile later)."],
   [],
   ["Row rules"],
-  ["• One row = one welder record OR one qualification for an existing welder in this file."],
-  ["• Leave all qualification columns blank for welder-only rows (registry without prior WPQ)."],
-  ["• Same plant_welder_id on multiple rows = one welder with multiple qualifications (welder details must match)."],
-  ["• id_number must be unique per welder in your organisation."],
+  ["• One row = one qualification. Repeat the same welder name and W# on every row for that welder."],
+  ["• A welder with 3 qualifications = 3 rows, all with the same name and W#."],
+  ["• Leave all qualification columns blank to just register a welder (no prior WPQ)."],
   [`• Maximum ${MAX_IMPORT_ROWS} data rows per file — split larger migrations into batches.`],
-  ["• Dates: YYYY-MM-DD only (e.g. 2024-06-15)."],
+  ["• Dates are flexible: 2024-06-15, 15/06/2024, 15-06-2024 or 10 May 2023 all work (day-first)."],
+  ["• Values are forgiving: paste codes or labels (process \"135\" or \"MAG (135)\" or \"SMAW\"), case does not matter, extra columns are ignored."],
   [],
-  ["Welder columns"],
-  ["Required: full_name, date_of_birth, place_of_birth, id_method, id_number"],
-  ["Optional: plant_welder_id, email, welder_status (Active | Inactive | Suspended — default Active)"],
-  [`id_method examples: ${ID_METHODS.join(" | ")} (or any custom label)`],
-  ["place_of_birth: free text, e.g. City, State, Country"],
-  [],
-  ["Qualification columns (optional — for historical / legacy WPQ backfill)"],
+  ["Qualification columns (fill these for a legacy WPQ)"],
   ["If any qualification column is filled, these are required:"],
   ["process, joint_type, position, base_material_group, test_thickness_mm, product, date_of_welding, revalidation_method"],
-  ["Imported qualifications are marked legacy — add photos, signed PDFs, WPS, and examiner details on the welder profile later."],
-  ["expiry_date: leave blank to auto-calculate from revalidation method."],
-  ["result_vt / result_rt_ut / result_fracture: Pass | Fail | NA (defaults Pass, NA, NA)"],
+  ["• joint_type: BW (butt) or FW (fillet). A butt test also covers fillets automatically — no separate row needed unless you tested a fillet piece too."],
+  ["• position: the actual test position (e.g. PF). WeldDoc computes the full qualified position range."],
+  ["• filler_group: FM1–FM6 (the group used in the test)."],
+  ["• pipe_od_mm: only for pipe/branch tests; leave blank for plate."],
+  ["• Imported qualifications are marked legacy — add photos, signed PDFs, WPS and examiner details on the profile later."],
   [],
   ["See the Reference sheet for allowed codes."],
 ];
@@ -81,63 +84,47 @@ function buildReferenceSheet(): string[][] {
 
 export const TEMPLATE_EXAMPLE_ROW_COUNT = 3;
 
+// One welder (W#02) with three qualifications — the same name and W# repeat on
+// every row, matching how legacy sheets are laid out.
 const EXAMPLE_ROWS = [
   {
-    plant_welder_id: "W#07",
-    full_name: "Example — existing plant ID",
-    email: "legacy@example.com",
-    date_of_birth: "1990-01-15",
-    place_of_birth: "City, State, Country",
-    id_method: "Passport",
-    id_number: "IMP-EX-001",
-    welder_status: "Active",
+    plant_welder_id: "W#02",
+    full_name: "Sanjay Yadav",
+    process: "136",
+    joint_type: "BW",
+    position: "PF",
+    base_material_group: "1",
+    filler_group: "FM1",
+    test_thickness_mm: 12,
+    product: "Plate",
+    date_of_welding: "2025-08-19",
+    revalidation_method: "9.3b",
   },
   {
-    plant_welder_id: "",
-    full_name: "Example — auto plant ID",
-    email: "auto@example.com",
-    date_of_birth: "1988-05-20",
-    place_of_birth: "City, State, Country",
-    id_method: "ID Card",
-    id_number: "IMP-EX-002",
-    welder_status: "Active",
+    plant_welder_id: "W#02",
+    full_name: "Sanjay Yadav",
     process: "135",
     joint_type: "BW",
     position: "PF",
     base_material_group: "1",
     filler_group: "FM1",
     test_thickness_mm: 12,
-    deposited_thickness_mm: 8,
     product: "Plate",
-    testing_standard: "EN ISO 9606-1:2017",
-    date_of_welding: "2023-05-10",
+    date_of_welding: "2025-08-19",
     revalidation_method: "9.3b",
-    result_vt: "Pass",
-    result_rt_ut: "Pass",
-    result_fracture: "NA",
   },
   {
-    plant_welder_id: "W#07",
-    full_name: "Example — existing plant ID",
-    email: "legacy@example.com",
-    date_of_birth: "1990-01-15",
-    place_of_birth: "City, State, Country",
-    id_method: "Passport",
-    id_number: "IMP-EX-001",
-    welder_status: "Active",
-    process: "141",
+    plant_welder_id: "W#02",
+    full_name: "Sanjay Yadav",
+    process: "121",
     joint_type: "FW",
     position: "PA",
     base_material_group: "1",
     filler_group: "FM1",
-    test_thickness_mm: 6,
+    test_thickness_mm: 15,
     product: "Plate",
-    testing_standard: "EN ISO 9606-1:2017",
-    date_of_welding: "2022-11-03",
+    date_of_welding: "2026-02-25",
     revalidation_method: "9.3b",
-    result_vt: "Pass",
-    result_rt_ut: "NA",
-    result_fracture: "NA",
   },
 ];
 
@@ -150,7 +137,7 @@ export function buildImportTemplateBuffer(): Buffer {
   const referenceSheet = XLSX.utils.aoa_to_sheet(buildReferenceSheet());
   XLSX.utils.book_append_sheet(wb, referenceSheet, "Reference");
 
-  const header = [...IMPORT_COLUMNS];
+  const header = [...TEMPLATE_COLUMNS];
   const dataRows = EXAMPLE_ROWS.map((row) =>
     header.map((col) => {
       const v = row[col as keyof typeof row];

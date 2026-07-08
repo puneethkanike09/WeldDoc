@@ -155,10 +155,23 @@ export interface QualificationRecord {
   layer_type: string | null;
   transfer_mode: string | null;
   weld_details: string | null;
+  // Multi-process (ISO 9606-1): optional second process on the same test piece.
+  // process_2 === null means a single-process qualification.
+  process_2: string | null;
+  process2_filler_group: string | null;
+  process2_filler_designation: string | null;
+  process2_filler_type: string | null;
+  process2_shielding_gas: string | null;
+  process2_current_polarity: string | null;
+  process2_transfer_mode: string | null;
+  process2_weld_details: string | null;
+  process2_layer_type: string | null;
+  process2_deposited_thickness_mm: number | null;
   job_knowledge: string;
   supplementary_fillet: boolean;
   supplementary_fillet_position: string | null;
   supplementary_fillet_thickness_mm: number | null;
+  supplementary_fillet_process: string | null;
   wps_reference: string | null;
   examiner_ref: string | null;
   examiner_name: string | null;

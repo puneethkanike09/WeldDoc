@@ -15,6 +15,8 @@ export interface WelderIdCardViewProps {
   cardHeading?: string;
   plantIdLabel?: string;
   standardLabel?: string;
+  /** Public QR verify page hides the internal WeldDoc UID. */
+  showUid?: boolean;
 }
 
 function statusBadge(status: string): { bg: string; fg: string; label: string } {
@@ -72,6 +74,7 @@ export function WelderIdCardView({
   cardHeading = "Welder ID card",
   plantIdLabel = "Welder ID",
   standardLabel = "EN ISO 9606-1:2017",
+  showUid = true,
 }: WelderIdCardViewProps) {
   const badge = statusBadge(status);
 
@@ -116,7 +119,7 @@ export function WelderIdCardView({
           <PersonalField label="Name" value={welderName} bold />
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
             <PersonalField label={plantIdLabel} value={welderNo} bold />
-            <PersonalField label="UID" value={uid} />
+            {showUid ? <PersonalField label="UID" value={uid} /> : null}
             {employer ? <PersonalField label="Employer" value={employer} /> : null}
             {site !== "—" ? <PersonalField label="Branch" value={site} /> : null}
           </div>
@@ -137,7 +140,7 @@ export function WelderIdCardView({
           {standardLabel}
         </div>
         <div className="overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
-          <table className="w-full min-w-[520px] border-collapse text-center text-xs text-charcoal">
+          <table className="w-full min-w-[680px] border-collapse text-center text-xs text-charcoal">
             <thead className="bg-frost text-graphite">
               <tr className="border-b border-silver">
                 <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
@@ -155,8 +158,14 @@ export function WelderIdCardView({
                 <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
                   Joint type
                 </th>
-                <th className="px-2 py-2 font-semibold" rowSpan={2}>
+                <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
                   FM GROUP
+                </th>
+                <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
+                  Test date
+                </th>
+                <th className="px-2 py-2 font-semibold" rowSpan={2}>
+                  Valid upto
                 </th>
               </tr>
               <tr className="border-b border-silver">
@@ -193,7 +202,13 @@ export function WelderIdCardView({
                   <td className="whitespace-nowrap border-r border-silver px-2 py-2">
                     {row.jointType}
                   </td>
-                  <td className="whitespace-pre-line px-2 py-2">{row.fmGroup}</td>
+                  <td className="whitespace-pre-line border-r border-silver px-2 py-2">
+                    {row.fmGroup}
+                  </td>
+                  <td className="whitespace-nowrap border-r border-silver px-2 py-2">
+                    {row.testDate}
+                  </td>
+                  <td className="whitespace-nowrap px-2 py-2">{row.validUpto}</td>
                 </tr>
               ))}
             </tbody>

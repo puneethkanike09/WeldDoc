@@ -234,7 +234,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
     certNo,
   } = data;
 
-  const designation = buildDesignation(wpq, range);
+  const designations = buildDesignation(wpq, range);
   const rows = buildCertRows(wpq, range);
   const continuity = continuityRows(validations);
   const examinerRows = examinerRevalidationRows(validations);
@@ -335,15 +335,19 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
                   </Text>
                 </View>
                 <View style={{ flex: 1, paddingVertical: 3, paddingHorizontal: 4 }}>
-                  <Text
-                    style={{
-                      fontFamily: "Helvetica-Bold",
-                      fontSize: 9.5,
-                      color: COLORS.onyx,
-                    }}
-                  >
-                    {designation}
-                  </Text>
+                  {designations.map((line, i) => (
+                    <Text
+                      key={i}
+                      style={{
+                        fontFamily: "Helvetica-Bold",
+                        fontSize: 9.5,
+                        color: COLORS.onyx,
+                        marginBottom: i < designations.length - 1 ? 2 : 0,
+                      }}
+                    >
+                      {line}
+                    </Text>
+                  ))}
                 </View>
               </View>
               <InfoRow label="WPS Reference:" value={wpq.wps_reference ?? "—"} />
@@ -649,11 +653,15 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
           </View>
 
           <View style={{ flexDirection: "row", gap: 6, marginTop: 5 }}>
-            <AnnexTable
-              title={revalidationTitle(wpq.revalidation_method)}
-              rows={examinerRows}
-              minRows={3}
-            />
+            {/* Examiner revalidation box is only required for 9.3b — for 9.3a
+                and 9.3c revalidation is via the 6-month coordinator prolongation. */}
+            {wpq.revalidation_method === "9.3b" ? (
+              <AnnexTable
+                title={revalidationTitle(wpq.revalidation_method)}
+                rows={examinerRows}
+                minRows={1}
+              />
+            ) : null}
             <AnnexTable
               title="Prolongation for approval by the welding coordinator for the following 6 months (according to 9.2)"
               rows={continuity}

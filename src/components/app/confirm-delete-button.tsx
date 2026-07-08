@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition, type ReactNode } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 import { Loader2, Trash2 } from "lucide-react";
 import {
   AlertDialog,
@@ -33,16 +33,21 @@ export function ConfirmDeleteButton({
   confirmLabel?: string;
   trigger: ReactNode;
 }) {
+  const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const handleConfirm = () => {
-    startTransition(() => {
-      void action();
+    startTransition(async () => {
+      try {
+        await action();
+      } finally {
+        setOpen(false);
+      }
     });
   };
 
   return (
-    <AlertDialog>
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>

@@ -1,44 +1,37 @@
 "use client";
 
-import {
-  OPERATOR_IMPORT_COLUMNS,
-  type OperatorImportColumnKey,
-} from "@/lib/operators/bulk-import/columns";
+import { OPERATOR_TEMPLATE_COLUMNS } from "@/lib/operators/bulk-import/columns";
 import { validatedRowToColumns } from "@/lib/operators/bulk-import/display";
-import { OperatorImportCellEditor } from "@/components/operators/import-cell-editor";
 import type {
   OperatorImportValidationError,
   ValidatedOperatorImportRow,
 } from "@/lib/operators/bulk-import/types";
 
+/**
+ * Read-only preview of the parsed operator import. Cells that failed validation
+ * are highlighted so the user can fix them in the Excel file and re-upload —
+ * there is no in-grid editing.
+ */
 export function OperatorImportPreviewTable({
   rows,
   errors,
-  onCellChange,
 }: {
   rows: ValidatedOperatorImportRow[];
   errors: OperatorImportValidationError[];
-  onCellChange: (
-    excelRow: number,
-    column: OperatorImportColumnKey,
-    value: string,
-  ) => void;
 }) {
   if (!rows.length) return null;
 
   const errorRows = new Set(errors.map((e) => e.excelRow));
   const errorCells = new Set(
-    errors
-      .filter((e) => e.column)
-      .map((e) => `${e.excelRow}:${e.column}`),
+    errors.filter((e) => e.column).map((e) => `${e.excelRow}:${e.column}`),
   );
 
   return (
     <div>
       <h4 className="text-sm font-medium text-charcoal">Data preview</h4>
       <p className="mt-1 text-xs text-steel">
-        Review and edit rows before importing. Employer and branch are applied
-        from your organisation settings on import.
+        This is what will be imported. Rows highlighted in red have problems —
+        fix them in your Excel file and upload again.
       </p>
       <div className="sleek-scroll mt-3 max-h-128 overflow-auto rounded-[10px] border border-silver">
         <table className="w-full min-w-max border-collapse text-left text-xs">
@@ -47,7 +40,7 @@ export function OperatorImportPreviewTable({
               <th className="border-b border-r border-silver px-2 py-2 font-medium text-steel">
                 Row
               </th>
-              {OPERATOR_IMPORT_COLUMNS.map((col) => (
+              {OPERATOR_TEMPLATE_COLUMNS.map((col) => (
                 <th
                   key={col}
                   className="border-b border-r border-silver px-2 py-2 font-medium text-steel last:border-r-0"
@@ -69,22 +62,19 @@ export function OperatorImportPreviewTable({
                   <td className="border-b border-r border-silver px-2 py-1.5 font-mono text-steel">
                     {row.excelRow}
                   </td>
-                  {OPERATOR_IMPORT_COLUMNS.map((col) => {
-                    const cellKey = `${row.excelRow}:${col}`;
-                    const invalid = errorCells.has(cellKey);
+                  {OPERATOR_TEMPLATE_COLUMNS.map((col) => {
+                    const invalid = errorCells.has(`${row.excelRow}:${col}`);
+                    const value = cells[col];
                     return (
                       <td
                         key={col}
-                        className="border-b border-r border-silver p-1 last:border-r-0"
+                        className={`whitespace-nowrap border-b border-r border-silver px-2 py-1.5 last:border-r-0 ${
+                          invalid
+                            ? "bg-ember/10 font-medium text-expired-ink"
+                            : "text-charcoal"
+                        }`}
                       >
-                        <OperatorImportCellEditor
-                          column={col}
-                          value={cells[col]}
-                          invalid={invalid}
-                          onChange={(value) =>
-                            onCellChange(row.excelRow, col, value)
-                          }
-                        />
+                        {value || <span className="text-steel">—</span>}
                       </td>
                     );
                   })}

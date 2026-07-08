@@ -15,10 +15,9 @@ export default function WelderMasterListLoading() {
           <Skeleton className="h-10 w-full lg:w-36" />
           <div className="flex flex-wrap gap-2">
             <Skeleton className="h-10 w-24" />
-            <Skeleton className="h-10 w-20" />
           </div>
         </div>
-        <div className="sleek-scroll mt-5 overflow-x-auto">
+        <div className="mt-5 overflow-x-auto overflow-y-clip overscroll-y-auto">
           <TableSkeleton columns={8} rows={10} minWidth={1100} />
         </div>
       </div>

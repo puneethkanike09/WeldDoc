@@ -4,9 +4,12 @@
  */
 
 import type { QualificationRecord, RangeOfApproval } from "@/types/db";
+import { isMultiProcessQualification } from "@/lib/iso9606/constants";
 import { branchPipeOdTestMm, isBranchQualification } from "@/lib/iso9606/branch-deposited-thickness";
 import { fillerTypeQualificationRange } from "@/lib/iso9606/filler-types";
 import { displayJointType } from "@/lib/iso9606/product-dimensions";
+import { computeTable6DepositedRange } from "@/lib/range-engine/iso9606";
+import { normalizeShieldingGas } from "@/lib/iso9606/shielding-gas";
 import rules from "@/lib/range-engine/iso9606.rules.json";
 
 type Rules = typeof rules & {
@@ -146,4 +149,149 @@ export function materialGroupRangeText(
 
 export function positionsRangeText(positions: string[]): string {
   return positions.length ? positions.join(", ") : "—";
+}
+
+/** One welding process on a qualification (primary or second). */
+export interface ProcessSlice {
+  process: string;
+  filler_group: string | null;
+  filler_designation: string | null;
+  filler_type: string | null;
+  shielding_gas: string | null;
+  current_polarity: string | null;
+  transfer_mode: string | null;
+  weld_details: string | null;
+  layer_type: string | null;
+  deposited_thickness_mm: number | null;
+}
+
+
+export { isMultiProcessQualification } from "@/lib/iso9606/constants";
+
+/** Primary + optional second process slices from a WPQ row. */
+export function getProcessSlices(wpq: QualificationRecord): ProcessSlice[] {
+  const primary: ProcessSlice = {
+    process: wpq.process,
+    filler_group: wpq.filler_group,
+    filler_designation: wpq.filler_designation,
+    filler_type: wpq.filler_type,
+    shielding_gas: wpq.shielding_gas,
+    current_polarity: wpq.current_polarity,
+    transfer_mode: wpq.transfer_mode,
+    weld_details: wpq.weld_details,
+    layer_type: wpq.layer_type,
+    deposited_thickness_mm: wpq.deposited_thickness_mm,
+  };
+  if (!wpq.process_2) return [primary];
+  return [
+    primary,
+    {
+      process: wpq.process_2,
+      filler_group: wpq.process2_filler_group,
+      filler_designation: wpq.process2_filler_designation,
+      filler_type: wpq.process2_filler_type,
+      shielding_gas: wpq.process2_shielding_gas,
+      current_polarity: wpq.process2_current_polarity,
+      transfer_mode: wpq.process2_transfer_mode,
+      weld_details: wpq.process2_weld_details,
+      layer_type: wpq.process2_layer_type,
+      deposited_thickness_mm: wpq.process2_deposited_thickness_mm,
+    },
+  ];
+}
+
+export function processDisplayText(wpq: QualificationRecord): string {
+  if (wpq.process_2) return `${wpq.process}+${wpq.process_2}`;
+  return wpq.process;
+}
+
+export function processRangeDisplayText(wpq: QualificationRecord): string {
+  if (wpq.process_2) {
+    return `${processRangeText(wpq.process)}+${processRangeText(wpq.process_2)}`;
+  }
+  return processRangeText(wpq.process);
+}
+
+function formatTable6RangeText(
+  s: number,
+  process: string,
+  layer: string | null,
+): string {
+  const res = computeTable6DepositedRange(s, { process, layer });
+  if (res.unlimited) return formatMinMm(res.min);
+  if (res.max != null) return `${res.min} – ${res.max} mm`;
+  return formatMinMm(res.min);
+}
+
+/** Per-process Table 6 deposited-thickness range (multi-process certificates). */
+export function perProcessDepositedRangeText(slice: ProcessSlice): string {
+  const s = slice.deposited_thickness_mm;
+  if (s == null || s <= 0) return "—";
+  return formatTable6RangeText(s, slice.process, slice.layer_type);
+}
+
+/** Test column: `3 (141) & 8 (111)` when two processes differ. */
+export function formatPerProcessTestValues(
+  slices: ProcessSlice[],
+  value: (s: ProcessSlice) => string | null,
+  fallback = "—",
+): string {
+  if (slices.length === 1) return value(slices[0]) ?? fallback;
+  const parts = slices
+    .map((s) => {
+      const v = value(s);
+      if (v == null || v === "—" || v === "NA") return null;
+      return `${v} (${s.process})`;
+    })
+    .filter(Boolean);
+  return parts.length ? parts.join(" & ") : fallback;
+}
+
+/** Test/range column with process prefix: `111: …` & `141: …`. */
+export function formatPerProcessPrefixed(
+  slices: ProcessSlice[],
+  value: (s: ProcessSlice) => string,
+): string {
+  if (slices.length === 1) return value(slices[0]);
+  return slices.map((s) => `${s.process}: ${value(s)}`).join(", ");
+}
+
+/** Range column for per-process deposited thickness. */
+export function formatPerProcessDepositedRange(slices: ProcessSlice[]): string {
+  if (slices.length === 1) return perProcessDepositedRangeText(slices[0]);
+  return slices
+    .map((s) => {
+      const r = perProcessDepositedRangeText(s);
+      return r === "—" ? null : `${r} (${s.process})`;
+    })
+    .filter(Boolean)
+    .join(" & ");
+}
+
+export function shieldingGasDisplay(stored: string | null | undefined): string {
+  const n = normalizeShieldingGas(stored);
+  return n || "—";
+}
+
+/** Compact per-process thickness for ID card: `3–16mm(111) & 3–6mm(141)`. */
+export function formatIdCardPerProcessThickness(
+  slices: ProcessSlice[],
+): string {
+  if (slices.length === 1) {
+    return compactIdCardThickness(
+      perProcessDepositedRangeText(slices[0]),
+    );
+  }
+  return slices
+    .map((s) => {
+      const r = compactIdCardThickness(perProcessDepositedRangeText(s));
+      return r === "—" ? null : `${r}(${s.process})`;
+    })
+    .filter(Boolean)
+    .join(" & ");
+}
+
+function compactIdCardThickness(text: string): string {
+  if (text === "—") return "—";
+  return text.replace(/ mm/g, "mm").replace(/ – /g, "–").replace(/>= /g, "≥");
 }

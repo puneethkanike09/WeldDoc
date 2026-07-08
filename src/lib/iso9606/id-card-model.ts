@@ -6,9 +6,14 @@ import { weldTypeCode } from "./ped-format";
 import { resolveJointTypes } from "./joint-coverage";
 import {
   fillerGroupRangeText,
+  formatIdCardPerProcessThickness,
   formatThicknessRange,
+  getProcessSlices,
+  isMultiProcessQualification,
+  processDisplayText,
 } from "./certificate-ranges";
 import { formatFilletMaterialRangeText } from "@/lib/range-engine/iso9606";
+import { formatDate } from "@/lib/utils";
 import rules from "@/lib/range-engine/iso9606.rules.json";
 
 export interface IdCardQualRow {
@@ -20,6 +25,8 @@ export interface IdCardQualRow {
   od: string;
   jointType: string;
   fmGroup: string;
+  testDate: string;
+  validUpto: string;
 }
 
 export interface IdCardPayload {
@@ -115,7 +122,9 @@ function toIdCardRow(
         : [];
 
   const thickBw = jointTypes.includes("BW")
-    ? compactThickness(formatThicknessRange(range ?? null))
+    ? isMultiProcessQualification(q)
+      ? formatIdCardPerProcessThickness(getProcessSlices(q))
+      : compactThickness(formatThicknessRange(range ?? null))
     : "NA";
 
   let thickFw = "NA";
@@ -128,7 +137,9 @@ function toIdCardRow(
   }
 
   return {
-    process: processCompact(q.process),
+    process: isMultiProcessQualification(q)
+      ? processDisplayText(q)
+      : processCompact(q.process),
     positionBw: formatPositionsSlash(bwPositions, "BW", jointTypes),
     positionFw: formatPositionsSlash(fwPositions, "FW", jointTypes),
     thicknessBw: thickBw,
@@ -136,6 +147,8 @@ function toIdCardRow(
     od: formatDiameter(range, q.product),
     jointType: weldTypeCode(jointTypes),
     fmGroup: fillerGroupRangeText(q.filler_group),
+    testDate: formatDate(q.certificate_issued_date ?? q.date_of_welding),
+    validUpto: formatDate(q.expiry_date),
   };
 }
 
@@ -148,6 +161,8 @@ const EMPTY_ROW: IdCardQualRow = {
   od: "—",
   jointType: "—",
   fmGroup: "—",
+  testDate: "—",
+  validUpto: "—",
 };
 
 export function buildIdCardPayload(

@@ -1,12 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { QualListItem } from "@/components/qualify/qualification-sidebar";
 import type { QualView } from "@/app/(app)/welders/[id]/welder-qualifications";
-import { processLabel, POSITION_LABELS, ALL_NDT_TESTS } from "@/lib/iso9606/constants";
+import { qualificationProcessLabel, POSITION_LABELS, ALL_NDT_TESTS, isMultiProcessQualification } from "@/lib/iso9606/constants";
 import {
   parseQualListPage,
   qualListRange,
 } from "@/lib/qualify/profile-pagination";
 import { daysUntil } from "@/lib/welder-status";
+import { continuityDue } from "@/lib/expiry";
 import { resolveUrl } from "@/lib/storage";
 import { formatDate } from "@/lib/utils";
 import { findSessionForQualification } from "@/lib/qualify/group-session";
@@ -35,10 +36,11 @@ function welderQualListItem(q: QualificationRecord): QualListItem {
     : "—";
   return {
     id: q.id,
-    title: `${processLabel(q.process)} · ${
+    title: `${qualificationProcessLabel(q.process, q.process_2)} · ${
       q.joint_type === "BW" ? "Butt" : "Fillet"
     } · ${q.product}`,
     subtitle: `ISO 9606-1 · Position ${position} · Method ${q.revalidation_method}`,
+    isMultiProcess: isMultiProcessQualification(q),
     statusLabel: q.wpq_status.replace("_", " "),
     statusTone: WPQ_TONE[q.wpq_status] ?? "neutral",
     expiry: formatDate(q.expiry_date),
@@ -70,6 +72,10 @@ function welderQualDetailView(
       validatorName: v.validator_name,
       note: v.note,
       newExpiry: v.new_expiry_date ? formatDate(v.new_expiry_date) : null,
+      nextContinuityDue:
+        v.kind === "continuity"
+          ? formatDate(continuityDue(v.validated_on))
+          : null,
       docUrl: docUrlById.get(v.id) ?? null,
     })),
   };

@@ -75,6 +75,13 @@ export async function recomputeWpqRange(
     fillerType: q.filler_type,
     supplementaryFillet: q.supplementary_fillet,
     jointTypeExtended: q.joint_type_extended,
+    secondProcess: q.process_2
+      ? {
+          process: q.process_2,
+          depositedThicknessMm: q.process2_deposited_thickness_mm,
+          layer: q.process2_layer_type,
+        }
+      : null,
   });
 
   await upsertRangeOfApproval(supabase, {

@@ -16,9 +16,9 @@ import { normalizePlantOperatorId } from "@/lib/operators/plant-id";
 import { isValidEmailFormat, normalizeOptionalEmail } from "@/lib/utils";
 import {
   NDT_RESULT_COLUMN_BY_METHOD,
-  OPERATOR_QUAL_COLUMN_KEYS,
   OPERATOR_QUAL_REQUIRED_KEYS,
 } from "./columns";
+import { normalizeOperatorRawRow } from "./normalize";
 import type {
   OperatorImportFields,
   OperatorImportValidationError,
@@ -65,7 +65,9 @@ function str(raw: RawOperatorImportRow, key: string): string | null {
 }
 
 function hasAnyQualField(raw: RawOperatorImportRow): boolean {
-  return OPERATOR_QUAL_COLUMN_KEYS.some((k) => str(raw, k) != null);
+  // Only the core qualification fields trigger the qualification block, so a
+  // stray value in an optional column doesn't force a whole qualification.
+  return OPERATOR_QUAL_REQUIRED_KEYS.some((k) => str(raw, k) != null);
 }
 
 function parseDate(
@@ -140,15 +142,25 @@ function parseOperator(
   excelRow: number,
   errors: OperatorImportValidationError[],
 ): OperatorImportFields | null {
+  // Plant/Operator ID (O# No) is required — used to match an imported
+  // qualification to an existing operator or create a new one.
   const plantRaw = str(raw, "plant_operator_id");
   const plantOperatorId = plantRaw
     ? (normalizePlantOperatorId(plantRaw) ?? "")
     : "";
-  if (plantRaw && !plantOperatorId) {
+  if (!plantRaw) {
     errors.push({
       excelRow,
       column: "plant_operator_id",
-      message: "Invalid plant operator ID.",
+      message: "plant_operator_id (O# No) is required.",
+    });
+    return null;
+  }
+  if (!plantOperatorId) {
+    errors.push({
+      excelRow,
+      column: "plant_operator_id",
+      message: "plant_operator_id is invalid. Use O#01 / O#1 / 1 format.",
     });
     return null;
   }
@@ -159,24 +171,11 @@ function parseOperator(
     return null;
   }
 
-  const dateOfBirth = parseDate(raw, "date_of_birth", excelRow, errors, true);
+  // Personal details are optional (legacy sheets rarely include them).
+  const dateOfBirth = parseDate(raw, "date_of_birth", excelRow, errors);
   const placeOfBirth = str(raw, "place_of_birth");
-  if (!placeOfBirth) {
-    errors.push({ excelRow, column: "place_of_birth", message: "place_of_birth is required." });
-    return null;
-  }
-
   const idMethod = str(raw, "id_method");
-  if (!idMethod) {
-    errors.push({ excelRow, column: "id_method", message: "id_method is required." });
-    return null;
-  }
-
   const idNumber = str(raw, "id_number");
-  if (!idNumber) {
-    errors.push({ excelRow, column: "id_number", message: "id_number is required." });
-    return null;
-  }
 
   const emailRaw = str(raw, "email");
   let email: string | null = null;
@@ -197,8 +196,6 @@ function parseOperator(
     });
     return null;
   }
-
-  if (!dateOfBirth) return null;
 
   return {
     plantOperatorId,
@@ -390,20 +387,25 @@ export function validateOperatorParsedImport(
   const seenGroups = new Map<string, number>();
   const fingerprintByGroup = new Map<string, string>();
 
-  for (const { excelRow, raw } of parsed) {
+  for (const { excelRow, raw: rawInput } of parsed) {
+    // Coerce real-world encodings (labels, casing, British spelling, date
+    // formats, method numbers) to canonical codes. The normalized map is also
+    // what the preview grid renders, so nothing disappears.
+    const normalized = normalizeOperatorRawRow(rawInput);
+    const raw: RawOperatorImportRow = normalized;
+
     const operator = parseOperator(raw, excelRow, errors);
     if (!operator) continue;
 
-    const groupKey = operatorGroupKey(operator);
-
-    if (operator.plantOperatorId && existingPlantIds.has(operator.plantOperatorId)) {
-      errors.push({
-        excelRow,
-        column: "plant_operator_id",
-        message: `Plant operator ID "${operator.plantOperatorId}" already exists in your organisation.`,
-      });
+    if (operator.plantOperatorId) {
+      normalized.plant_operator_id = operator.plantOperatorId;
     }
 
+    const groupKey = operatorGroupKey(operator);
+
+    // An operator already in the org is fine — the qualification(s) on this row
+    // will be attached to that operator at commit time. Only flag rows in this
+    // same file that reuse a plant ID with conflicting operator details.
     const prevRow = seenGroups.get(groupKey);
     if (prevRow != null) {
       const fp = operatorFingerprint(operator);
@@ -434,10 +436,16 @@ export function validateOperatorParsedImport(
       qualification = parseQualification(raw, excelRow, errors);
     }
 
-    rows.push({ excelRow, operator, qualification });
+    rows.push({ excelRow, operator, qualification, raw: normalized });
   }
 
-  const uniqueOperators = new Set(rows.map((r) => operatorGroupKey(r.operator)));
+  const uniqueOperators = new Set(rows.map((r) => r.operator.plantOperatorId));
+  let existingOperatorCount = 0;
+  let newOperatorCount = 0;
+  for (const plantId of uniqueOperators) {
+    if (existingPlantIds.has(plantId)) existingOperatorCount += 1;
+    else newOperatorCount += 1;
+  }
   const qualificationCount = rows.filter((r) => r.qualification).length;
 
   return {
@@ -447,6 +455,8 @@ export function validateOperatorParsedImport(
     summary: {
       totalRows: rows.length,
       operatorCount: uniqueOperators.size,
+      existingOperatorCount,
+      newOperatorCount,
       qualificationCount,
       errorCount: errors.length,
     },

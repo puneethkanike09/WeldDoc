@@ -64,6 +64,42 @@ export async function sendBatchEmails(
   }
 }
 
+export type ExpiryReminderKind = "certificate" | "continuity";
+
+/** Forge Steel palette — matches app theme (navy + amber). */
+const EMAIL = {
+  canvas: "#f5f0e8",
+  panel: "#ffffff",
+  border: "#e0d8ca",
+  navy: "#1c2b3a",
+  parchment: "#f5f0e8",
+  ember: "#e8a030",
+  text: "#1c2b3a",
+  textSecondary: "#3c4a57",
+  muted: "#7d8896",
+  dueSoon: "#8a6400",
+  overdue: "#b23a15",
+} as const;
+
+function emailHeader(): string {
+  return `
+        <div style="background:${EMAIL.navy};padding:18px 24px">
+          <span style="font-family:Helvetica,Arial,sans-serif;font-size:18px;font-weight:700">
+            <span style="color:${EMAIL.parchment}">Weld</span><span style="color:${EMAIL.ember}">.Doc</span>
+          </span>
+        </div>`;
+}
+
+function emailShell(body: string, maxWidth = 640): string {
+  return `
+    <div style="font-family:Helvetica,Arial,sans-serif;background:${EMAIL.canvas};padding:24px">
+      <div style="max-width:${maxWidth}px;margin:0 auto;background:${EMAIL.panel};border:1px solid ${EMAIL.border};border-radius:16px;overflow:hidden">
+        ${emailHeader()}
+        <div style="padding:24px">${body}</div>
+      </div>
+    </div>`;
+}
+
 export interface ExpiryAlert {
   welderName: string;
   plantWelderId: string;
@@ -71,6 +107,20 @@ export interface ExpiryAlert {
   validityCode: string;
   expiryDate: string;
   daysLeft: number;
+  reminderKind: ExpiryReminderKind;
+}
+
+function reminderKindLabel(kind: ExpiryReminderKind): string {
+  return kind === "continuity" ? "Continuity check" : "Certificate expiry";
+}
+
+function dueCell(daysLeft: number, expiryDate: string): string {
+  const label =
+    daysLeft < 0
+      ? `${Math.abs(daysLeft)}d overdue`
+      : `${daysLeft}d`;
+  const color = daysLeft < 0 ? EMAIL.overdue : EMAIL.dueSoon;
+  return `<td style="padding:8px 12px;border-bottom:1px solid ${EMAIL.border};color:${color};font-weight:600;white-space:nowrap">${expiryDate} (${label})</td>`;
 }
 
 /** Org digest scope — welder-only, operator-only, or combined. */
@@ -113,42 +163,36 @@ function expiryDigestHtml(
     .map(
       (a) => `
       <tr>
-        <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;font-weight:600;color:#161616;white-space:nowrap">${a.welderName}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:#4a4a4a;white-space:nowrap">${a.plantWelderId}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:#4a4a4a;white-space:nowrap">${a.process}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:#4a4a4a;white-space:nowrap">${a.validityCode}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:${a.daysLeft < 0 ? "#912e1f" : "#f90a08"};font-weight:600;white-space:nowrap">${a.expiryDate} (${a.daysLeft < 0 ? `${Math.abs(a.daysLeft)}d overdue` : `${a.daysLeft}d`})</td>
+        <td style="padding:8px 12px;border-bottom:1px solid ${EMAIL.border};font-weight:600;color:${EMAIL.text};white-space:nowrap">${a.welderName}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid ${EMAIL.border};color:${EMAIL.textSecondary};white-space:nowrap">${a.plantWelderId}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid ${EMAIL.border};color:${EMAIL.textSecondary};white-space:nowrap">${a.process}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid ${EMAIL.border};color:${EMAIL.textSecondary};white-space:nowrap">${reminderKindLabel(a.reminderKind)}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid ${EMAIL.border};color:${EMAIL.textSecondary};white-space:nowrap">${a.validityCode}</td>
+        ${dueCell(a.daysLeft, a.expiryDate)}
       </tr>`,
     )
     .join("");
 
-  return `
-    <div style="font-family:Helvetica,Arial,sans-serif;background:#f8faf9;padding:24px">
-      <div style="max-width:640px;margin:0 auto;background:#fff;border:1px solid #e2e2e4;border-radius:16px;overflow:hidden">
-        <div style="background:#161616;padding:18px 24px">
-          <span style="font-size:18px;font-weight:700"><span style="color:#f90a08">Weld.</span><span style="color:#fff">Doc</span></span>
-        </div>
-        <div style="padding:24px">
-          <h1 style="font-size:18px;color:#161616;margin:0 0 6px">${copy.heading}</h1>
-          <p style="color:#4a4a4a;margin:0 0 18px">${orgName} — ${alerts.length} qualification(s) need attention.</p>
+  return emailShell(`
+          <h1 style="font-family:Helvetica,Arial,sans-serif;font-size:18px;color:${EMAIL.text};margin:0 0 6px">${copy.heading}</h1>
+          <p style="color:${EMAIL.textSecondary};margin:0 0 18px">${orgName} — ${alerts.length} qualification(s) need attention.</p>
           <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;max-width:100%">
-            <table style="min-width:560px;width:100%;border-collapse:collapse;font-size:13px">
+            <table style="min-width:640px;width:100%;border-collapse:collapse;font-size:13px">
               <thead>
-                <tr style="text-align:left;color:#9297a0;font-size:11px;text-transform:uppercase">
+                <tr style="text-align:left;color:${EMAIL.muted};font-size:11px;text-transform:uppercase">
                   <th style="padding:8px 12px;white-space:nowrap">${copy.nameColumn}</th>
                   <th style="padding:8px 12px;white-space:nowrap">Plant ID</th>
                   <th style="padding:8px 12px;white-space:nowrap">Process</th>
-                  <th style="padding:8px 12px;white-space:nowrap">Type</th>
+                  <th style="padding:8px 12px;white-space:nowrap">Reminder</th>
+                  <th style="padding:8px 12px;white-space:nowrap">Method</th>
                   <th style="padding:8px 12px;white-space:nowrap">Due</th>
                 </tr>
               </thead>
               <tbody>${rows}</tbody>
             </table>
           </div>
-          <p style="color:#9297a0;font-size:12px;margin-top:18px">Log a continuity confirmation or revalidation report in WeldDoc to reset the clock.</p>
-        </div>
-      </div>
-    </div>`;
+          <p style="color:${EMAIL.muted};font-size:12px;margin-top:18px">Log a continuity confirmation or revalidation report in WeldDoc to reset the clock.</p>
+  `);
 }
 
 export async function sendExpiryDigest(
@@ -181,40 +225,34 @@ function welderExpiryDigestHtml(
     .map(
       (a) => `
       <tr>
-        <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:#4a4a4a;white-space:nowrap">${a.plantWelderId}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:#4a4a4a;white-space:nowrap">${a.process}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:#4a4a4a;white-space:nowrap">${a.validityCode}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #e2e2e4;color:${a.daysLeft < 0 ? "#912e1f" : "#f90a08"};font-weight:600;white-space:nowrap">${a.expiryDate} (${a.daysLeft < 0 ? `${Math.abs(a.daysLeft)}d overdue` : `${a.daysLeft}d`})</td>
+        <td style="padding:8px 12px;border-bottom:1px solid ${EMAIL.border};color:${EMAIL.textSecondary};white-space:nowrap">${a.plantWelderId}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid ${EMAIL.border};color:${EMAIL.textSecondary};white-space:nowrap">${a.process}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid ${EMAIL.border};color:${EMAIL.textSecondary};white-space:nowrap">${reminderKindLabel(a.reminderKind)}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid ${EMAIL.border};color:${EMAIL.textSecondary};white-space:nowrap">${a.validityCode}</td>
+        ${dueCell(a.daysLeft, a.expiryDate)}
       </tr>`,
     )
     .join("");
 
-  return `
-    <div style="font-family:Helvetica,Arial,sans-serif;background:#f8faf9;padding:24px">
-      <div style="max-width:640px;margin:0 auto;background:#fff;border:1px solid #e2e2e4;border-radius:16px;overflow:hidden">
-        <div style="background:#161616;padding:18px 24px">
-          <span style="font-size:18px;font-weight:700"><span style="color:#f90a08">Weld.</span><span style="color:#fff">Doc</span></span>
-        </div>
-        <div style="padding:24px">
-          <h1 style="font-size:18px;color:#161616;margin:0 0 6px">Your qualification reminders</h1>
-          <p style="color:#4a4a4a;margin:0 0 18px">Hi ${welderName}, ${alerts.length} of your qualification(s) at ${orgName} need attention.</p>
+  return emailShell(`
+          <h1 style="font-family:Helvetica,Arial,sans-serif;font-size:18px;color:${EMAIL.text};margin:0 0 6px">Your qualification reminders</h1>
+          <p style="color:${EMAIL.textSecondary};margin:0 0 18px">Hi ${welderName}, ${alerts.length} of your qualification(s) at ${orgName} need attention.</p>
           <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;max-width:100%">
-            <table style="min-width:480px;width:100%;border-collapse:collapse;font-size:13px">
+            <table style="min-width:520px;width:100%;border-collapse:collapse;font-size:13px">
               <thead>
-                <tr style="text-align:left;color:#9297a0;font-size:11px;text-transform:uppercase">
+                <tr style="text-align:left;color:${EMAIL.muted};font-size:11px;text-transform:uppercase">
                   <th style="padding:8px 12px;white-space:nowrap">Plant ID</th>
                   <th style="padding:8px 12px;white-space:nowrap">Process</th>
-                  <th style="padding:8px 12px;white-space:nowrap">Type</th>
+                  <th style="padding:8px 12px;white-space:nowrap">Reminder</th>
+                  <th style="padding:8px 12px;white-space:nowrap">Method</th>
                   <th style="padding:8px 12px;white-space:nowrap">Due</th>
                 </tr>
               </thead>
               <tbody>${rows}</tbody>
             </table>
           </div>
-          <p style="color:#9297a0;font-size:12px;margin-top:18px">Contact your welding coordinator to log a continuity confirmation or revalidation report.</p>
-        </div>
-      </div>
-    </div>`;
+          <p style="color:${EMAIL.muted};font-size:12px;margin-top:18px">Contact your welding coordinator to log a continuity confirmation or revalidation report.</p>
+  `, 640);
 }
 
 export type PersonalExpiryDigestKind = "welder" | "operator";
@@ -240,24 +278,16 @@ export async function sendOrgWelcomeEmail(
   to: string[],
   orgName: string,
 ): Promise<{ sent: boolean; error?: string; id?: string }> {
-  const html = `
-    <div style="font-family:Helvetica,Arial,sans-serif;background:#f8faf9;padding:24px">
-      <div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e2e2e4;border-radius:16px;overflow:hidden">
-        <div style="background:#161616;padding:18px 24px">
-          <span style="font-size:18px;font-weight:700"><span style="color:#f90a08">Weld.</span><span style="color:#fff">Doc</span></span>
-        </div>
-        <div style="padding:24px">
-          <h1 style="font-size:18px;color:#161616;margin:0 0 12px">Email alerts are connected</h1>
-          <p style="color:#4a4a4a;margin:0 0 12px;line-height:1.5">
+  const html = emailShell(`
+          <h1 style="font-family:Helvetica,Arial,sans-serif;font-size:18px;color:${EMAIL.text};margin:0 0 12px">Email alerts are connected</h1>
+          <p style="color:${EMAIL.textSecondary};margin:0 0 12px;line-height:1.5">
             This is a test message for <strong>${orgName}</strong>. WeldDoc can now send
             qualification expiry and continuity reminders to your organisation.
           </p>
-          <p style="color:#9297a0;font-size:13px;margin:0">
+          <p style="color:${EMAIL.muted};font-size:13px;margin:0">
             Manage recipients in Settings → Organisation &amp; alerts.
           </p>
-        </div>
-      </div>
-    </div>`;
+  `, 560);
 
   return sendEmail({
     to,

@@ -11,7 +11,6 @@ import {
   assertPlantOperatorIdAvailable,
   isUniqueViolation,
   normalizePlantOperatorId,
-  nextAvailablePlantOperatorId,
 } from "@/lib/operators/plant-id";
 import type { ValidatedOperatorImportRow } from "./types";
 import type { OperatorQualification, TestResult } from "@/types/db";
@@ -80,22 +79,40 @@ export async function commitOperatorImport(
       }
     }
 
+    // Map existing operators in this org by their (normalized) plant/operator ID
+    // so imported qualifications attach to the right person instead of failing.
+    const { data: existingOperators, error: existingErr } = await supabase
+      .from("operators")
+      .select("id, operator_id")
+      .eq("org_id", ctx.orgId);
+    if (existingErr) {
+      throw new Error(`Could not load existing operators: ${existingErr.message}`);
+    }
+    const existingIdByPlant = new Map<string, string>();
+    for (const o of existingOperators ?? []) {
+      const norm = normalizePlantOperatorId(o.operator_id);
+      if (norm) existingIdByPlant.set(norm, o.id);
+    }
+
+    let operatorsCreated = 0;
+
     for (const [groupKey, operator] of uniqueOperators) {
+      const plantOperatorId =
+        normalizePlantOperatorId(operator.plantOperatorId) ??
+        operator.plantOperatorId;
+
+      const existingId = existingIdByPlant.get(plantOperatorId);
+      if (existingId) {
+        operatorIdByGroup.set(groupKey, existingId);
+        continue;
+      }
+
       const { data: uid, error: uidErr } = await supabase.rpc(
         "next_operator_uid",
         { p_org: ctx.orgId },
       );
       if (uidErr || !uid) {
         throw new Error(uidErr?.message ?? "Could not allocate UID.");
-      }
-
-      let plantOperatorId = normalizePlantOperatorId(operator.plantOperatorId);
-      if (!plantOperatorId) {
-        plantOperatorId = await nextAvailablePlantOperatorId(
-          supabase,
-          ctx.orgId,
-          0,
-        );
       }
 
       await assertPlantOperatorIdAvailable(supabase, ctx.orgId, plantOperatorId);
@@ -133,7 +150,9 @@ export async function commitOperatorImport(
       }
 
       createdOperatorIds.push(created.id);
+      existingIdByPlant.set(plantOperatorId, created.id);
       operatorIdByGroup.set(groupKey, created.id);
+      operatorsCreated += 1;
     }
 
     let qualificationsCreated = 0;
@@ -165,7 +184,7 @@ export async function commitOperatorImport(
           wps_reference: "IMPORT",
           employer_branch: ctx.orgLocation,
           functional_knowledge_ref: "IMPORT",
-          welding_technology_knowledge: "acceptable",
+          welding_technology_knowledge: "Acceptable",
           examiner_ref: "IMPORT",
           examiner_name: qual.examinerName ?? "Imported",
           revalidation_method: qual.revalidationMethod,
@@ -248,7 +267,7 @@ export async function commitOperatorImport(
     }
 
     return {
-      operatorsCreated: uniqueOperators.size,
+      operatorsCreated,
       qualificationsCreated,
     };
   } catch (err) {

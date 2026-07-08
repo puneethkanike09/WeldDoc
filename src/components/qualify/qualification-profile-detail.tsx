@@ -29,6 +29,7 @@ export interface ValidationView {
   validatorName: string | null;
   note: string | null;
   newExpiry: string | null;
+  nextContinuityDue: string | null;
   docUrl: string | null;
 }
 
@@ -40,6 +41,7 @@ export interface QualProfileDetail {
   statusTone: BadgeTone;
   expiry: string;
   daysToExpiry: number | null;
+  isMultiProcess?: boolean;
   isLegacy: boolean;
   isApproved: boolean;
   hasSignedCertificate: boolean;
@@ -130,6 +132,9 @@ export function QualificationProfileDetail({
               {selected.title}
             </h3>
             <Badge tone={selected.statusTone}>{selected.statusLabel}</Badge>
+            {selected.isMultiProcess && (
+              <Badge tone="sapphire">Multi-process</Badge>
+            )}
             {selected.isLegacy && <Badge tone="outline">Legacy</Badge>}
           </div>
           <p className="mt-1 text-[13px] text-steel">{selected.subtitle}</p>
@@ -163,6 +168,7 @@ export function QualificationProfileDetail({
           <Workflow className="h-4 w-4" /> Open workflow
         </ButtonLink>
         <ConfirmDeleteButton
+          key={selected.id}
           action={onDeleteQual}
           title="Delete this qualification?"
           description={deleteQualDescription}
@@ -235,11 +241,18 @@ export function QualificationProfileDetail({
                       {v.note && (
                         <p className="mt-0.5 text-graphite">{v.note}</p>
                       )}
-                      {v.newExpiry && (
-                        <p className="mt-0.5 text-steel">
-                          New expiry: {v.newExpiry}
-                        </p>
-                      )}
+                      {v.kind === "continuity"
+                        ? v.nextContinuityDue && (
+                            <p className="mt-0.5 text-steel">
+                              Continuity confirmed · next due{" "}
+                              {v.nextContinuityDue}
+                            </p>
+                          )
+                        : v.newExpiry && (
+                            <p className="mt-0.5 text-steel">
+                              New expiry: {v.newExpiry}
+                            </p>
+                          )}
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       {v.docUrl ? (

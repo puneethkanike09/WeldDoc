@@ -7,6 +7,7 @@ import {
   qualListRange,
 } from "@/lib/qualify/profile-pagination";
 import { daysUntil } from "@/lib/operator-status";
+import { operatorContinuityDue } from "@/lib/iso14732/expiry";
 import { resolveUrl } from "@/lib/storage";
 import { formatDate } from "@/lib/utils";
 import { findSessionForQualification } from "@/lib/qualify/group-session";
@@ -66,6 +67,10 @@ function operatorQualDetailView(
       validatorName: v.validator_name,
       note: v.note,
       newExpiry: v.new_expiry_date ? formatDate(v.new_expiry_date) : null,
+      nextContinuityDue:
+        v.kind === "continuity"
+          ? formatDate(operatorContinuityDue(v.validated_on))
+          : null,
       docUrl: docUrlById.get(v.id) ?? null,
     })),
   };

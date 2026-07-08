@@ -7,16 +7,12 @@ import { FileSpreadsheet, Loader2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { ImportPreviewTable } from "@/components/welders/import-preview-table";
-import { validatedRowToColumns } from "@/lib/welders/bulk-import/display";
-import { validateParsedImport } from "@/lib/welders/bulk-import/validate";
-import type { ImportColumnKey } from "@/lib/welders/bulk-import/columns";
 import type {
   ImportValidationError,
   ImportValidationSummary,
   ValidatedImportRow,
 } from "@/lib/welders/bulk-import/types";
 import { toast } from "sonner";
-import type { WelderImportContext } from "@/app/(app)/welders/import/actions";
 
 type PreviewState = {
   rows: ValidatedImportRow[];
@@ -41,10 +37,8 @@ type CommitResult = {
 
 export function BulkImportPanel({
   commitAction,
-  importContext,
 }: {
   commitAction: (rows: ValidatedImportRow[]) => Promise<CommitResult>;
-  importContext: WelderImportContext;
 }) {
   const router = useRouter();
   const [preview, setPreview] = useState<PreviewState | null>(null);
@@ -95,38 +89,6 @@ export function BulkImportPanel({
     });
   }
 
-  function handleCellChange(
-    excelRow: number,
-    column: ImportColumnKey,
-    value: string,
-  ) {
-    setPreview((prev) => {
-      if (!prev || prev.fileError) return prev;
-
-      const draft = prev.rows.map((row) => ({
-        excelRow: row.excelRow,
-        raw: validatedRowToColumns(row),
-      }));
-
-      const target = draft.find((r) => r.excelRow === excelRow);
-      if (!target) return prev;
-      target.raw[column] = value;
-
-      const result = validateParsedImport(draft, importContext.existingPlantIds, {
-        existingIdNumbers: importContext.existingIdNumbers,
-        welderSeq: importContext.welderSeq,
-      });
-
-      return {
-        ...prev,
-        rows: result.rows,
-        errors: result.errors,
-        summary: result.summary,
-        ok: result.ok,
-      };
-    });
-  }
-
   function handleCommit() {
     if (!preview?.ok || !preview.rows.length) return;
 
@@ -153,12 +115,14 @@ export function BulkImportPanel({
               Bulk import from Excel
             </h3>
             <p className="mt-1 text-sm text-graphite">
-              Download the template, fill welder rows (with or without
-              qualifications), then upload for validation before importing.
-              Leave plant_welder_id blank to auto-assign — assigned IDs appear
-              in the preview. Employer and branch are filled from your
-              organisation settings. Photos and PDFs can be added on each welder
-              profile afterwards. Maximum 1,000 rows per file.
+              Download the template and fill one row per qualification, repeating
+              the welder name and W# No on each of that welder&apos;s rows. Only
+              the welder name and W# No are required. If a W# already exists in
+              WeldDoc, the qualification is attached to that welder; otherwise a
+              new welder is created. WeldDoc computes the qualified ranges and
+              expiry dates automatically. Upload to validate — if any rows have
+              problems, fix them in Excel and upload again. Maximum 1,000 rows
+              per file.
             </p>
           </div>
 
@@ -206,14 +170,15 @@ export function BulkImportPanel({
               </p>
             ) : (
               <>
-                <div className="grid gap-3 sm:grid-cols-4">
+                <div className="grid gap-3 sm:grid-cols-5">
+                  <SummaryTile label="Rows" value={preview.summary.totalRows} />
                   <SummaryTile
-                    label="Rows"
-                    value={preview.summary.totalRows}
+                    label="New welders"
+                    value={preview.summary.newWelderCount}
                   />
                   <SummaryTile
-                    label="Welders"
-                    value={preview.summary.welderCount}
+                    label="Existing (attach)"
+                    value={preview.summary.existingWelderCount}
                   />
                   <SummaryTile
                     label="Qualifications"
@@ -230,14 +195,13 @@ export function BulkImportPanel({
                   <ImportPreviewTable
                     rows={preview.rows}
                     errors={preview.errors}
-                    onCellChange={handleCellChange}
                   />
                 )}
 
                 {preview.errors.length > 0 && !preview.ok && (
                   <p className="text-sm text-graphite">
-                    Fix the highlighted cells or review the errors below, then
-                    confirm import when all errors are resolved.
+                    Fix the problems listed below in your Excel file, then upload
+                    it again.
                   </p>
                 )}
 

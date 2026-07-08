@@ -27,6 +27,8 @@ function emptyResult(fileError: string): ValidateUploadResult {
     summary: {
       totalRows: 0,
       welderCount: 0,
+      existingWelderCount: 0,
+      newWelderCount: 0,
       qualificationCount: 0,
       errorCount: 0,
     },

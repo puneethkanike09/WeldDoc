@@ -14,7 +14,7 @@ const variants: Record<Variant, string> = {
   ghost:
     "bg-panel text-onyx border border-silver hover:bg-frost active:translate-y-px",
   ember:
-    "bg-ember text-white hover:bg-[#8f2600] shadow-[var(--shadow-subtle)] active:translate-y-px",
+    "bg-ember text-midnight hover:bg-[#cf8c22] shadow-[var(--shadow-subtle)] active:translate-y-px",
   subtle: "bg-transparent text-charcoal hover:bg-onyx/5",
 };
 

@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/app/page-header";
 import { PdfPreview } from "@/components/app/pdf-preview";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
-import { processLabel } from "@/lib/iso9606/constants";
+import { qualificationProcessLabel } from "@/lib/iso9606/constants";
 import type { QualificationRecord, Welder } from "@/types/db";
 
 export async function generateMetadata({
@@ -32,15 +32,15 @@ export async function generateMetadata({
 
   const { data: wpq } = await supabase
     .from("qualification_records")
-    .select("process, joint_type")
+    .select("process, process_2, joint_type")
     .eq("id", wpqId)
     .eq("welder_id", id)
     .eq("org_id", org.id)
     .single();
 
-  const q = wpq as Pick<QualificationRecord, "process" | "joint_type"> | null;
+  const q = wpq as Pick<QualificationRecord, "process" | "process_2" | "joint_type"> | null;
   const qual = q
-    ? `${processLabel(q.process)} · ${q.joint_type === "BW" ? "Butt" : "Fillet"}`
+    ? `${qualificationProcessLabel(q.process, q.process_2)} · ${q.joint_type === "BW" ? "Butt" : "Fillet"}`
     : "Qualification";
 
   return {
@@ -71,7 +71,7 @@ export default async function WelderCertificatePreviewPage({
       .single(),
     supabase
       .from("qualification_records")
-      .select("id, process, joint_type, wpq_status")
+      .select("id, process, process_2, joint_type, wpq_status")
       .eq("id", wpqId)
       .eq("welder_id", id)
       .eq("org_id", org.id)
@@ -83,14 +83,14 @@ export default async function WelderCertificatePreviewPage({
   const w = welder as Pick<Welder, "full_name" | "uid">;
   const q = wpq as Pick<
     QualificationRecord,
-    "id" | "process" | "joint_type" | "wpq_status"
+    "id" | "process" | "process_2" | "joint_type" | "wpq_status"
   >;
 
   if (q.wpq_status !== "Approved") {
     notFound();
   }
 
-  const qualLabel = `${processLabel(q.process)} · ${q.joint_type === "BW" ? "Butt weld" : "Fillet weld"}`;
+  const qualLabel = `${qualificationProcessLabel(q.process, q.process_2)} · ${q.joint_type === "BW" ? "Butt weld" : "Fillet weld"}`;
   const previewSrc = `/api/welders/${id}/certificate?wpq=${wpqId}`;
   const downloadSrc = `/api/welders/${id}/certificate?wpq=${wpqId}&download=1`;
 

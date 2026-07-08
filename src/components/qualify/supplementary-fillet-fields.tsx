@@ -4,7 +4,11 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Input, Field } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
-import { FW_POSITIONS, POSITION_LABELS } from "@/lib/iso9606/constants";
+import {
+  FW_POSITIONS,
+  POSITION_LABELS,
+  WELDING_PROCESSES,
+} from "@/lib/iso9606/constants";
 import { Iso9606TablePdfGlobe } from "@/components/qualify/iso9606-pdf-drawer";
 
 interface SupplementaryFilletFieldsProps {
@@ -12,8 +16,16 @@ interface SupplementaryFilletFieldsProps {
   defaultPosition?: string;
   defaultThickness?: number | null;
   show: boolean;
+  /** Processes on the test piece; 2 entries => show a "welded with" picker. */
+  processes?: string[];
+  defaultProcess?: string;
   positionError?: string;
   thicknessError?: string;
+}
+
+function processLabel(code: string): string {
+  const p = WELDING_PROCESSES.find((x) => x.code === code);
+  return p ? `${p.name} — ${p.code}` : code;
 }
 
 /** Step 1 — optional supplementary fillet (extends BW qualification to FW). */
@@ -22,11 +34,14 @@ export function SupplementaryFilletFields({
   defaultPosition = "PB",
   defaultThickness,
   show,
+  processes = [],
+  defaultProcess,
   positionError,
   thicknessError,
 }: SupplementaryFilletFieldsProps) {
   const [checked, setChecked] = useState(defaultChecked);
   const invalidBorder = "border-ember ring-1 ring-ember/20";
+  const multiProcess = processes.length > 1;
 
   if (!show) return null;
 
@@ -86,6 +101,25 @@ export function SupplementaryFilletFields({
               className={cn(thicknessError && invalidBorder)}
             />
           </Field>
+          {multiProcess ? (
+            <Field label="Fillet welded with process" required>
+              <Select
+                name="supplementary_fillet_process"
+                defaultValue={
+                  defaultProcess && processes.includes(defaultProcess)
+                    ? defaultProcess
+                    : processes[0]
+                }
+                required
+              >
+                {processes.map((code) => (
+                  <option key={code} value={code}>
+                    {processLabel(code)}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          ) : null}
         </div>
       ) : null}
     </div>

@@ -34,8 +34,8 @@ import {
 import { displayJointType } from "@/lib/iso9606/product-dimensions";
 import { fillerTypesForProcess } from "@/lib/iso9606/filler-types";
 import {
-  DEFAULT_SHIELDING_GAS,
-  ISO_14175_GASES,
+  SHIELDING_GAS_OPTIONS,
+  defaultShieldingGasForProcess,
   normalizeShieldingGas,
 } from "@/lib/iso9606/shielding-gas";
 import { MaterialLookupPair } from "@/components/qualify/material-lookup-pair";
@@ -62,7 +62,7 @@ import type {
 import type { FieldErrors } from "@/lib/field-errors";
 import { cn } from "@/lib/utils";
 import { ValidatedForm, useFormPending } from "@/lib/form-toast";
-import { ArrowLeft, Check, Loader2, Save, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Plus, Save, ShieldCheck, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 const STEPS = ["Plan", "Test piece", "NDT / DT", "Certificate"] as const;
@@ -184,6 +184,10 @@ export function PlanStep({
     wpq ?? { joint_type: "BW", joint_type_extended: null },
   );
   const [planJoint, setPlanJoint] = useState(defaultJoint);
+  const [process1, setProcess1] = useState(wpq?.process ?? "135");
+  const [process2, setProcess2] = useState<string | null>(
+    wpq?.process_2 ?? null,
+  );
   const validate = useCallback(
     (formData: FormData) => getQualificationPlanFieldErrors(formData),
     [],
@@ -235,10 +239,13 @@ export function PlanStep({
               >
                 <Select
                   name="process"
-                  defaultValue={wpq?.process ?? "135"}
+                  value={process1}
                   required
                   className={cn(fieldErrors.process && invalidBorder)}
-                  onChange={() => clearError("process")}
+                  onChange={(e) => {
+                    setProcess1(e.target.value);
+                    clearError("process");
+                  }}
                 >
                   {WELDING_PROCESSES.map((p) => (
                     <option key={p.code} value={p.code}>
@@ -246,7 +253,61 @@ export function PlanStep({
                     </option>
                   ))}
                 </Select>
+                {process2 === null ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setProcess2(process1 === "141" ? "111" : "141")
+                    }
+                    className="mt-2 inline-flex items-center gap-1 text-[13px] font-medium text-ember hover:underline"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Add second process (multi-process)
+                  </button>
+                ) : null}
               </Field>
+              {process2 !== null ? (
+                <Field
+                  label="Second welding process (ISO 4063)"
+                  required
+                  error={fieldErrors.process_2}
+                  labelAccessory={<Iso9606TablePdfGlobe table="process" />}
+                >
+                  <div className="flex items-center gap-2">
+                    <Select
+                      name="process_2"
+                      value={process2}
+                      required
+                      className={cn(
+                        "flex-1",
+                        fieldErrors.process_2 && invalidBorder,
+                      )}
+                      onChange={(e) => {
+                        setProcess2(e.target.value);
+                        clearError("process_2");
+                      }}
+                    >
+                      {WELDING_PROCESSES.map((p) => (
+                        <option key={p.code} value={p.code}>
+                          {p.name} — {p.code}
+                        </option>
+                      ))}
+                    </Select>
+                    <button
+                      type="button"
+                      onClick={() => setProcess2(null)}
+                      aria-label="Remove second process"
+                      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-silver text-steel transition-colors hover:bg-frost hover:text-charcoal"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <p className="mt-1 text-[12px] text-steel">
+                    Multi-process test piece (e.g. 111 + 141). Each process has
+                    its own filler details and deposited thickness in Step 2.
+                  </p>
+                </Field>
+              ) : null}
               <PlanProductJointFields
                 defaultProduct={wpq?.product ?? "Plate"}
                 defaultJoint={defaultJoint}
@@ -277,6 +338,8 @@ export function PlanStep({
                     ? Number(draft.supplementary_fillet_thickness_mm)
                     : wpq?.supplementary_fillet_thickness_mm
                 }
+                processes={process2 ? [process1, process2] : [process1]}
+                defaultProcess={wpq?.supplementary_fillet_process ?? process1}
                 positionError={fieldErrors.supplementary_fillet_position}
                 thicknessError={fieldErrors.supplementary_fillet_thickness_mm}
               />
@@ -374,6 +437,251 @@ export function PlanStep({
   );
 }
 
+/** Filler / weld-variable fields for one welding process (prefixed for #2). */
+function ProcessDetailFields({
+  processCode,
+  prefix,
+  defaults,
+  fieldErrors,
+  clearError,
+  showTestThickness,
+  showDepositedThickness,
+  depositedLabel,
+}: {
+  processCode: string;
+  prefix: "" | "process2_";
+  defaults: {
+    filler_group: string | null;
+    filler_designation: string | null;
+    filler_type: string | null;
+    shielding_gas: string | null;
+    current_polarity: string | null;
+    transfer_mode: string | null;
+    weld_details: string | null;
+    test_thickness_mm: number | null;
+    deposited_thickness_mm: number | null;
+    layer_type: string | null;
+  };
+  fieldErrors: FieldErrors;
+  clearError: (field: string) => void;
+  showTestThickness: boolean;
+  showDepositedThickness: boolean;
+  depositedLabel: string;
+}) {
+  const n = (base: string) => `${prefix}${base}`;
+  const fillerTypeOptions = fillerTypesForProcess(processCode);
+  const fillerTypeDefault =
+    defaults.filler_type &&
+    (fillerTypeOptions as readonly string[]).includes(defaults.filler_type)
+      ? defaults.filler_type
+      : fillerTypeOptions[0];
+  const shieldingDefault =
+    normalizeShieldingGas(defaults.shielding_gas) ||
+    defaultShieldingGasForProcess(processCode);
+
+  return (
+    <>
+      <Field
+        label="Filler material group"
+        required
+        error={fieldErrors[n("filler_group")]}
+        labelAccessory={<Iso9606TablePdfGlobe table="fillerGroup" />}
+      >
+        <Select
+          name={n("filler_group")}
+          defaultValue={defaults.filler_group ?? "FM1"}
+          required
+          className={cn(fieldErrors[n("filler_group")] && invalidBorder)}
+          onChange={() => clearError(n("filler_group"))}
+        >
+          {FILLER_GROUPS.map((f) => (
+            <option key={f.code} value={f.code}>
+              {f.label}
+            </option>
+          ))}
+        </Select>
+      </Field>
+      <Field
+        label="Filler designation"
+        required
+        error={fieldErrors[n("filler_designation")]}
+      >
+        <Input
+          name={n("filler_designation")}
+          defaultValue={defaults.filler_designation ?? ""}
+          placeholder="ER70S-6 / SFA 5.18"
+          required
+          className={cn(fieldErrors[n("filler_designation")] && invalidBorder)}
+          onChange={() => clearError(n("filler_designation"))}
+        />
+      </Field>
+      <Field
+        label="Filler type"
+        required
+        error={fieldErrors[n("filler_type")]}
+        labelAccessory={
+          <Iso9606TablePdfGlobe
+            table={processCode === "111" ? "fillerType111" : "fillerTypeOther"}
+          />
+        }
+      >
+        <Select
+          name={n("filler_type")}
+          defaultValue={fillerTypeDefault}
+          required
+          className={cn(fieldErrors[n("filler_type")] && invalidBorder)}
+          onChange={() => clearError(n("filler_type"))}
+        >
+          {fillerTypeOptions.map((f) => (
+            <option key={f} value={f}>
+              {f}
+            </option>
+          ))}
+        </Select>
+      </Field>
+      <Field
+        label="Shielding gas (ISO 14175)"
+        required
+        error={fieldErrors[n("shielding_gas")]}
+        labelAccessory={<Iso9606TablePdfGlobe table="shieldingGas" />}
+      >
+        <Select
+          name={n("shielding_gas")}
+          defaultValue={shieldingDefault}
+          required
+          className={cn(fieldErrors[n("shielding_gas")] && invalidBorder)}
+          onChange={() => clearError(n("shielding_gas"))}
+        >
+          {SHIELDING_GAS_OPTIONS.map((g) => (
+            <option key={g} value={g}>
+              {g}
+            </option>
+          ))}
+        </Select>
+      </Field>
+      <Field
+        label="Current & polarity"
+        required
+        error={fieldErrors[n("current_polarity")]}
+        labelAccessory={<Iso9606TablePdfGlobe table="currentPolarity" />}
+      >
+        <Select
+          name={n("current_polarity")}
+          defaultValue={defaults.current_polarity ?? "DCEP"}
+          required
+          className={cn(fieldErrors[n("current_polarity")] && invalidBorder)}
+          onChange={() => clearError(n("current_polarity"))}
+        >
+          {CURRENT_POLARITY.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </Select>
+      </Field>
+      <Field
+        label="Transfer mode"
+        required
+        error={fieldErrors[n("transfer_mode")]}
+        labelAccessory={<Iso9606TablePdfGlobe table="transferMode" />}
+      >
+        <Select
+          name={n("transfer_mode")}
+          defaultValue={defaults.transfer_mode ?? "Spray"}
+          required
+          className={cn(fieldErrors[n("transfer_mode")] && invalidBorder)}
+          onChange={() => clearError(n("transfer_mode"))}
+        >
+          {TRANSFER_MODE_OPTIONS.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </Select>
+      </Field>
+      <Field
+        label="Weld details"
+        required
+        error={fieldErrors[n("weld_details")]}
+        labelAccessory={<Iso9606TablePdfGlobe table="weldDetails" />}
+      >
+        <Select
+          name={n("weld_details")}
+          defaultValue={defaults.weld_details ?? "ss nb"}
+          required
+          className={cn(fieldErrors[n("weld_details")] && invalidBorder)}
+          onChange={() => clearError(n("weld_details"))}
+        >
+          {WELD_DETAILS.map((c) => (
+            <option key={c.code} value={c.code}>
+              {c.label}
+            </option>
+          ))}
+        </Select>
+      </Field>
+      {showTestThickness ? (
+        <Field
+          label="Material thickness (mm)"
+          required
+          error={fieldErrors.test_thickness_mm}
+          labelAccessory={<Iso9606TablePdfGlobe table="thicknessFw" />}
+        >
+          <Input
+            type="number"
+            step="0.1"
+            name="test_thickness_mm"
+            defaultValue={defaults.test_thickness_mm ?? ""}
+            placeholder="12"
+            required
+            className={cn(fieldErrors.test_thickness_mm && invalidBorder)}
+            onChange={() => clearError("test_thickness_mm")}
+          />
+        </Field>
+      ) : null}
+      {showDepositedThickness ? (
+        <Field
+          label={depositedLabel}
+          required
+          error={fieldErrors[n("deposited_thickness_mm")]}
+          labelAccessory={<Iso9606TablePdfGlobe table="thicknessBw" />}
+        >
+          <Input
+            type="number"
+            step="0.1"
+            name={n("deposited_thickness_mm")}
+            defaultValue={defaults.deposited_thickness_mm ?? ""}
+            required
+            className={cn(
+              fieldErrors[n("deposited_thickness_mm")] && invalidBorder,
+            )}
+            onChange={() => clearError(n("deposited_thickness_mm"))}
+          />
+        </Field>
+      ) : null}
+      <Field
+        label="Layer"
+        required
+        error={fieldErrors[n("layer_type")]}
+        labelAccessory={<Iso9606TablePdfGlobe table="layerTechnique" />}
+      >
+        <Select
+          name={n("layer_type")}
+          defaultValue={defaults.layer_type ?? LAYER_TYPES[1]}
+          required
+          className={cn(fieldErrors[n("layer_type")] && invalidBorder)}
+          onChange={() => clearError(n("layer_type"))}
+        >
+          {LAYER_TYPES.map((l) => (
+            <option key={l} value={l}>
+              {l}
+            </option>
+          ))}
+        </Select>
+      </Field>
+    </>
+  );
+}
+
 export function TestStep({
   action,
   welderId,
@@ -388,7 +696,6 @@ export function TestStep({
   draftStorageKeyOverride?: string;
 }) {
   const jointLabel = displayJointType(wpq);
-  const shieldingDefault = normalizeShieldingGas(wpq.shielding_gas);
   const showTestThickness = showTestThicknessField(
     wpq.product,
     wpq.joint_type,
@@ -400,17 +707,15 @@ export function TestStep({
     jointLabel,
   );
   const depositedLabel = branchDepositedThicknessLabel(wpq);
-  const fillerTypeOptions = fillerTypesForProcess(wpq.process);
-  const fillerTypeDefault =
-    wpq.filler_type &&
-    (fillerTypeOptions as readonly string[]).includes(wpq.filler_type)
-      ? wpq.filler_type
-      : fillerTypeOptions[0];
+  const hasSecondProcess = Boolean(wpq.process_2);
 
   const validate = useCallback(
     (formData: FormData) =>
-      getTestPieceFieldErrors(formData, jointLabel, wpq.product),
-    [jointLabel, wpq.product],
+      getTestPieceFieldErrors(formData, jointLabel, wpq.product, {
+        hasSecondProcess,
+        showDepositedThickness,
+      }),
+    [jointLabel, wpq.product, hasSecondProcess, showDepositedThickness],
   );
 
   const draftKey =
@@ -447,200 +752,85 @@ export function TestStep({
               }}
               onFieldChange={clearError}
             />
-            <div className="grid gap-5 sm:grid-cols-2">
-              <ProductDimensions
-                product={wpq.product}
-                jointType={jointLabel}
-                wpq={wpq}
-                errors={fieldErrors}
-                onFieldChange={clearError}
-              />
-              <Field
-                label="Filler material group"
-                required
-                error={fieldErrors.filler_group}
-                labelAccessory={<Iso9606TablePdfGlobe table="fillerGroup" />}
-              >
-                <Select
-                  name="filler_group"
-                  defaultValue={wpq.filler_group ?? "FM1"}
-                  required
-                  className={cn(fieldErrors.filler_group && invalidBorder)}
-                  onChange={() => clearError("filler_group")}
-                >
-                  {FILLER_GROUPS.map((f) => (
-                    <option key={f.code} value={f.code}>
-                      {f.label}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label="Filler designation" required error={fieldErrors.filler_designation}>
-                <Input
-                  name="filler_designation"
-                  defaultValue={wpq.filler_designation ?? ""}
-                  placeholder="ER70S-6 / SFA 5.18"
-                  required
-                  className={cn(fieldErrors.filler_designation && invalidBorder)}
-                  onChange={() => clearError("filler_designation")}
+            {hasSecondProcess ? (
+              <>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <ProductDimensions
+                    product={wpq.product}
+                    jointType={jointLabel}
+                    wpq={wpq}
+                    errors={fieldErrors}
+                    onFieldChange={clearError}
+                  />
+                </div>
+                <div className="rounded-[var(--radius-card)] border border-silver bg-frost/30 p-4">
+                  <h4 className="mb-3 font-display text-[13px] font-semibold uppercase tracking-[0.1em] text-charcoal">
+                    Process 1 — {wpq.process}
+                  </h4>
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <ProcessDetailFields
+                      processCode={wpq.process}
+                      prefix=""
+                      defaults={wpq}
+                      fieldErrors={fieldErrors}
+                      clearError={clearError}
+                      showTestThickness={showTestThickness}
+                      showDepositedThickness={showDepositedThickness}
+                      depositedLabel={depositedLabel}
+                    />
+                  </div>
+                </div>
+                <div className="rounded-[var(--radius-card)] border border-silver bg-frost/30 p-4">
+                  <h4 className="mb-3 font-display text-[13px] font-semibold uppercase tracking-[0.1em] text-charcoal">
+                    Process 2 — {wpq.process_2}
+                  </h4>
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <ProcessDetailFields
+                      processCode={wpq.process_2 ?? ""}
+                      prefix="process2_"
+                      defaults={{
+                        filler_group: wpq.process2_filler_group,
+                        filler_designation: wpq.process2_filler_designation,
+                        filler_type: wpq.process2_filler_type,
+                        shielding_gas: wpq.process2_shielding_gas,
+                        current_polarity: wpq.process2_current_polarity,
+                        transfer_mode: wpq.process2_transfer_mode,
+                        weld_details: wpq.process2_weld_details,
+                        test_thickness_mm: null,
+                        deposited_thickness_mm:
+                          wpq.process2_deposited_thickness_mm,
+                        layer_type: wpq.process2_layer_type,
+                      }}
+                      fieldErrors={fieldErrors}
+                      clearError={clearError}
+                      showTestThickness={false}
+                      showDepositedThickness={showDepositedThickness}
+                      depositedLabel={depositedLabel}
+                    />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="grid gap-5 sm:grid-cols-2">
+                <ProductDimensions
+                  product={wpq.product}
+                  jointType={jointLabel}
+                  wpq={wpq}
+                  errors={fieldErrors}
+                  onFieldChange={clearError}
                 />
-              </Field>
-              <Field
-                label="Filler type"
-                required
-                error={fieldErrors.filler_type}
-                labelAccessory={
-                  <Iso9606TablePdfGlobe
-                    table={wpq.process === "111" ? "fillerType111" : "fillerTypeOther"}
-                  />
-                }
-              >
-                <Select
-                  name="filler_type"
-                  defaultValue={fillerTypeDefault}
-                  required
-                  className={cn(fieldErrors.filler_type && invalidBorder)}
-                  onChange={() => clearError("filler_type")}
-                >
-                  {fillerTypeOptions.map((f) => (
-                    <option key={f} value={f}>
-                      {f}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field
-                label="Shielding gas (ISO 14175)"
-                required
-                error={fieldErrors.shielding_gas}
-                labelAccessory={<Iso9606TablePdfGlobe table="shieldingGas" />}
-              >
-                <Select
-                  name="shielding_gas"
-                  defaultValue={shieldingDefault || DEFAULT_SHIELDING_GAS}
-                  required
-                  className={cn(fieldErrors.shielding_gas && invalidBorder)}
-                  onChange={() => clearError("shielding_gas")}
-                >
-                  {ISO_14175_GASES.map((g) => (
-                    <option key={g} value={g}>
-                      {g}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field
-                label="Current & polarity"
-                required
-                error={fieldErrors.current_polarity}
-                labelAccessory={<Iso9606TablePdfGlobe table="currentPolarity" />}
-              >
-                <Select
-                  name="current_polarity"
-                  defaultValue={wpq.current_polarity ?? "DCEP"}
-                  required
-                  className={cn(fieldErrors.current_polarity && invalidBorder)}
-                  onChange={() => clearError("current_polarity")}
-                >
-                  {CURRENT_POLARITY.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field
-                label="Transfer mode"
-                required
-                error={fieldErrors.transfer_mode}
-                labelAccessory={<Iso9606TablePdfGlobe table="transferMode" />}
-              >
-                <Select
-                  name="transfer_mode"
-                  defaultValue={wpq.transfer_mode ?? "Spray"}
-                  required
-                  className={cn(fieldErrors.transfer_mode && invalidBorder)}
-                  onChange={() => clearError("transfer_mode")}
-                >
-                  {TRANSFER_MODE_OPTIONS.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label="Weld details" required error={fieldErrors.weld_details}
-                labelAccessory={<Iso9606TablePdfGlobe table="weldDetails" />}
-              >
-                <Select
-                  name="weld_details"
-                  defaultValue={wpq.weld_details ?? "ss nb"}
-                  required
-                  className={cn(fieldErrors.weld_details && invalidBorder)}
-                  onChange={() => clearError("weld_details")}
-                >
-                  {WELD_DETAILS.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.label}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              {showTestThickness ? (
-                <Field
-                  label="Material thickness (mm)"
-                  required
-                  error={fieldErrors.test_thickness_mm}
-                  labelAccessory={<Iso9606TablePdfGlobe table="thicknessFw" />}
-                >
-                  <Input
-                    type="number"
-                    step="0.1"
-                    name="test_thickness_mm"
-                    defaultValue={wpq.test_thickness_mm ?? ""}
-                    placeholder="12"
-                    required
-                    className={cn(fieldErrors.test_thickness_mm && invalidBorder)}
-                    onChange={() => clearError("test_thickness_mm")}
-                  />
-                </Field>
-              ) : null}
-              {showDepositedThickness ? (
-                <Field
-                  label={depositedLabel}
-                  required
-                  error={fieldErrors.deposited_thickness_mm}
-                  labelAccessory={<Iso9606TablePdfGlobe table="thicknessBw" />}
-                >
-                  <Input
-                    type="number"
-                    step="0.1"
-                    name="deposited_thickness_mm"
-                    defaultValue={wpq.deposited_thickness_mm ?? ""}
-                    required
-                    className={cn(fieldErrors.deposited_thickness_mm && invalidBorder)}
-                    onChange={() => clearError("deposited_thickness_mm")}
-                  />
-                </Field>
-              ) : null}
-              <Field label="Layer" required error={fieldErrors.layer_type}
-                labelAccessory={<Iso9606TablePdfGlobe table="layerTechnique" />}
-              >
-                <Select
-                  name="layer_type"
-                  defaultValue={wpq.layer_type ?? LAYER_TYPES[1]}
-                  required
-                  className={cn(fieldErrors.layer_type && invalidBorder)}
-                  onChange={() => clearError("layer_type")}
-                >
-                  {LAYER_TYPES.map((l) => (
-                    <option key={l} value={l}>
-                      {l}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-            </div>
+                <ProcessDetailFields
+                  processCode={wpq.process}
+                  prefix=""
+                  defaults={wpq}
+                  fieldErrors={fieldErrors}
+                  clearError={clearError}
+                  showTestThickness={showTestThickness}
+                  showDepositedThickness={showDepositedThickness}
+                  depositedLabel={depositedLabel}
+                />
+              </div>
+            )}
 
             {rangePreview && (
               <div className="rounded-[10px] border border-sapphire/20 bg-sapphire/5 p-3">
@@ -990,11 +1180,6 @@ export function CertificateStep({
                 qualification plan (Step 1).
               </p>
             ) : null}
-
-            <p className="rounded-[10px] bg-frost px-3 py-2 text-sm text-graphite">
-              The certificate leaves a blank examining-body area so it can be
-              signed and stamped by hand after printing.
-            </p>
 
             <div className="flex flex-wrap items-center justify-between gap-3">
               <StepPreviousLink welderId={welderId} wpqId={wpq.id} step={4} />

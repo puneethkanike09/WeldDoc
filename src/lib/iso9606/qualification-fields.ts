@@ -180,6 +180,10 @@ export function getQualificationPlanFieldErrors(
     errors.testing_standard = "Code / testing standard is required.";
   }
   if (!str(formData.get("process"))) errors.process = "Welding process is required.";
+  const process2 = str(formData.get("process_2"));
+  if (process2 && process2 === str(formData.get("process"))) {
+    errors.process_2 = "Second process must differ from the first.";
+  }
   if (!str(formData.get("joint_type"))) errors.joint_type = "Joint type is required.";
   if (!str(formData.get("product"))) errors.product = "Product type is required.";
   const product = str(formData.get("product"));
@@ -231,6 +235,7 @@ export function getTestPieceFieldErrors(
   formData: FormData,
   jointType: string,
   product: ProductType,
+  options?: { hasSecondProcess?: boolean; showDepositedThickness?: boolean },
 ): Record<string, string> {
   const errors: Record<string, string> = {};
 
@@ -284,6 +289,40 @@ export function getTestPieceFieldErrors(
     }
   }
 
+  if (options?.hasSecondProcess) {
+    if (!str(formData.get("process2_filler_group"))) {
+      errors.process2_filler_group = "Filler material group is required.";
+    }
+    if (!str(formData.get("process2_filler_designation"))) {
+      errors.process2_filler_designation = "Filler designation is required.";
+    }
+    if (!str(formData.get("process2_filler_type"))) {
+      errors.process2_filler_type = "Filler type is required.";
+    }
+    if (!str(formData.get("process2_shielding_gas"))) {
+      errors.process2_shielding_gas = "Shielding gas is required.";
+    }
+    if (!str(formData.get("process2_current_polarity"))) {
+      errors.process2_current_polarity = "Current & polarity is required.";
+    }
+    if (!str(formData.get("process2_transfer_mode"))) {
+      errors.process2_transfer_mode = "Transfer mode is required.";
+    }
+    if (!str(formData.get("process2_weld_details"))) {
+      errors.process2_weld_details = "Weld details is required.";
+    }
+    if (!str(formData.get("process2_layer_type"))) {
+      errors.process2_layer_type = "Layer is required.";
+    }
+    const showDeposited =
+      options.showDepositedThickness ??
+      showDepositedThicknessField(product, ndtJointCategory(jointType), jointType);
+    if (showDeposited && num(formData.get("process2_deposited_thickness_mm")) == null) {
+      errors.process2_deposited_thickness_mm =
+        "Deposited thickness is required.";
+    }
+  }
+
   Object.assign(errors, validateMaterialDimensions(formData, product, jointType));
 
   return errors;
@@ -293,8 +332,9 @@ export function validateTestPiece(
   formData: FormData,
   jointType: string,
   product: ProductType,
+  options?: { hasSecondProcess?: boolean; showDepositedThickness?: boolean },
 ) {
-  const errors = getTestPieceFieldErrors(formData, jointType, product);
+  const errors = getTestPieceFieldErrors(formData, jointType, product, options);
   const first = Object.values(errors)[0];
   if (first) throw new QualificationValidationError(first);
 }

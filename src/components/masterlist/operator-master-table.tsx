@@ -1,17 +1,30 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
-import { ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { MasterListExportButton } from "@/components/masterlist/masterlist-export-button";
 import { formatDate } from "@/lib/utils";
 import {
   OPERATOR_MASTER_COLUMNS,
   type OperatorMasterRow,
 } from "@/lib/operator-masterlist";
 import { WELDING_TYPES } from "@/lib/iso14732/constants";
-import { Search, FileSpreadsheet, FileDown } from "lucide-react";
+import { Search } from "lucide-react";
+
+function formatOperatorExportCell(
+  key: keyof OperatorMasterRow,
+  row: OperatorMasterRow,
+): string {
+  if (key === "issued" || key === "expiry") {
+    return formatDate(row[key] === "—" ? null : row[key]);
+  }
+  if (key === "status") {
+    return row.status.replace("_", " ");
+  }
+  return String(row[key] ?? "");
+}
 
 const STATUS_TONE: Record<
   string,
@@ -29,6 +42,8 @@ export function OperatorMasterTable({ rows }: { rows: OperatorMasterRow[] }) {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
   const [weldingType, setWeldingType] = useState("all");
+
+  const formatCell = useCallback(formatOperatorExportCell, []);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -84,16 +99,18 @@ export function OperatorMasterTable({ rows }: { rows: OperatorMasterRow[] }) {
           ))}
         </Select>
         <div className="flex flex-wrap gap-2">
-          <ButtonLink href="/api/operators/masterlist/export?format=csv">
-            <FileSpreadsheet className="h-4 w-4" /> Excel
-          </ButtonLink>
-          <ButtonLink href="/api/operators/masterlist/export?format=pdf">
-            <FileDown className="h-4 w-4" /> PDF
-          </ButtonLink>
+          <MasterListExportButton
+            columns={OPERATOR_MASTER_COLUMNS}
+            rows={filtered}
+            filteredCount={filtered.length}
+            totalCount={rows.length}
+            filenamePrefix="operator-master-list"
+            formatCell={formatCell}
+          />
         </div>
       </div>
 
-      <div className="sleek-scroll mt-5 overflow-x-auto rounded-[var(--radius-card)] border border-silver bg-panel">
+      <div className="mt-5 overflow-x-auto overflow-y-clip overscroll-y-auto rounded-[var(--radius-card)] border border-silver bg-panel">
         <table className="w-full min-w-[1200px] text-left text-[13px]">
           <thead>
             <tr className="border-b border-silver bg-frost text-[11px] uppercase tracking-wide text-steel">

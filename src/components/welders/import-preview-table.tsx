@@ -1,42 +1,37 @@
 "use client";
 
-import { IMPORT_COLUMNS, type ImportColumnKey } from "@/lib/welders/bulk-import/columns";
+import { TEMPLATE_COLUMNS } from "@/lib/welders/bulk-import/columns";
 import { validatedRowToColumns } from "@/lib/welders/bulk-import/display";
-import { ImportCellEditor } from "@/components/welders/import-cell-editor";
 import type {
   ImportValidationError,
   ValidatedImportRow,
 } from "@/lib/welders/bulk-import/types";
 
+/**
+ * Read-only preview of the parsed import. Cells that failed validation are
+ * highlighted so the user can go back to the Excel file, fix them, and
+ * re-upload — there is no in-grid editing.
+ */
 export function ImportPreviewTable({
   rows,
   errors,
-  onCellChange,
 }: {
   rows: ValidatedImportRow[];
   errors: ImportValidationError[];
-  onCellChange: (
-    excelRow: number,
-    column: ImportColumnKey,
-    value: string,
-  ) => void;
 }) {
   if (!rows.length) return null;
 
   const errorRows = new Set(errors.map((e) => e.excelRow));
   const errorCells = new Set(
-    errors
-      .filter((e) => e.column)
-      .map((e) => `${e.excelRow}:${e.column}`),
+    errors.filter((e) => e.column).map((e) => `${e.excelRow}:${e.column}`),
   );
 
   return (
     <div>
       <h4 className="text-sm font-medium text-charcoal">Data preview</h4>
       <p className="mt-1 text-xs text-steel">
-        Review and edit rows before importing. Blank plant_welder_id cells show
-        auto-assigned IDs for your organisation. Employer and branch/site are
-        applied from your organisation settings on import.
+        This is what will be imported. Rows highlighted in red have problems —
+        fix them in your Excel file and upload again.
       </p>
       <div className="sleek-scroll mt-3 max-h-128 overflow-auto rounded-[10px] border border-silver">
         <table className="min-w-full text-left text-xs">
@@ -45,11 +40,8 @@ export function ImportPreviewTable({
               <th className="sticky left-0 z-20 bg-frost px-3 py-2 font-medium">
                 #
               </th>
-              {IMPORT_COLUMNS.map((col) => (
-                <th
-                  key={col}
-                  className="whitespace-nowrap px-2 py-2 font-medium"
-                >
+              {TEMPLATE_COLUMNS.map((col) => (
+                <th key={col} className="whitespace-nowrap px-2 py-2 font-medium">
                   {col}
                 </th>
               ))}
@@ -73,23 +65,19 @@ export function ImportPreviewTable({
                   >
                     {row.excelRow}
                   </td>
-                  {IMPORT_COLUMNS.map((col) => {
+                  {TEMPLATE_COLUMNS.map((col) => {
                     const value = cells[col];
-                    const cellInvalid = errorCells.has(
-                      `${row.excelRow}:${col}`,
-                    );
-
+                    const cellInvalid = errorCells.has(`${row.excelRow}:${col}`);
                     return (
-                      <td key={col} className="px-1.5 py-1.5 align-top">
-                        <ImportCellEditor
-                          column={col}
-                          value={value}
-                          rowCells={cells}
-                          invalid={cellInvalid}
-                          onChange={(next) =>
-                            onCellChange(row.excelRow, col, next)
-                          }
-                        />
+                      <td
+                        key={col}
+                        className={`whitespace-nowrap px-2 py-1.5 align-top ${
+                          cellInvalid
+                            ? "bg-ember/10 font-medium text-expired-ink"
+                            : "text-charcoal"
+                        }`}
+                      >
+                        {value || <span className="text-steel">—</span>}
                       </td>
                     );
                   })}

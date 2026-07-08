@@ -57,21 +57,34 @@ export function parseImportWorkbook(buffer: ArrayBuffer): {
     if (key) headerMap.set(i, key);
   }
 
-  const expected = new Set<string>(IMPORT_COLUMNS);
-  const found = new Set(headerMap.values());
-  const missing = IMPORT_COLUMNS.filter((c) => !found.has(c));
-  if (missing.length > 0) {
+  // Match headers leniently: case-insensitive, spaces/hyphens normalized to
+  // underscores. Unknown columns are ignored (not rejected) and missing
+  // optional columns simply produce empty cells — legacy files rarely match
+  // our exact header set.
+  const canonicalize = (h: string) =>
+    h.trim().toLowerCase().replace(/[\s-]+/g, "_").replace(/_+/g, "_");
+  const columnByCanonical = new Map<string, string>(
+    IMPORT_COLUMNS.map((c) => [c, c]),
+  );
+
+  const recognizedHeaders = new Map<number, string>();
+  for (const [index, key] of headerMap) {
+    const canonical = columnByCanonical.get(canonicalize(key));
+    if (canonical) recognizedHeaders.set(index, canonical);
+  }
+
+  if (!recognizedHeaders.size) {
     return {
       rows: [],
-      fileError: `Missing column headers: ${missing.join(", ")}`,
+      fileError:
+        "No recognised column headers were found. Download the template and keep the header row.",
     };
   }
 
-  const extra = [...found].filter((h) => !expected.has(h));
-  if (extra.length > 0) {
+  if (![...recognizedHeaders.values()].includes("full_name")) {
     return {
       rows: [],
-      fileError: `Unknown column headers: ${extra.join(", ")}`,
+      fileError: 'A "full_name" column is required.',
     };
   }
 
@@ -80,9 +93,10 @@ export function parseImportWorkbook(buffer: ArrayBuffer): {
   for (let r = 1; r < matrix.length; r++) {
     const line = matrix[r] ?? [];
     const raw: RawImportRow = {};
+    for (const col of IMPORT_COLUMNS) raw[col] = null;
     let hasValue = false;
 
-    for (const [colIndex, key] of headerMap) {
+    for (const [colIndex, key] of recognizedHeaders) {
       const val = cellToString(line[colIndex]);
       if (val != null) hasValue = true;
       raw[key] = val;

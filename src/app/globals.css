@@ -1,71 +1,72 @@
 @import "tailwindcss";
 @import "react-datepicker/dist/react-datepicker.css";
 
-/* Admin dashboard theme tokens — scoped via html[data-app-theme] so portaled UI (dialogs, selects) stays in sync */
+/* Admin dashboard theme tokens — "Forge Steel" palette (navy anchor + amber accent).
+   Scoped via html[data-app-theme] so portaled UI (dialogs, selects) stays in sync */
 :root {
-  --theme-canvas: #f8faf9;
+  --theme-canvas: #f5f0e8;
   --theme-panel: #ffffff;
-  --theme-muted: #f4f5f6;
-  --theme-border: #e2e2e4;
-  --theme-text: #161616;
-  --theme-text-strong: #2a2a2a;
-  --theme-text-secondary: #4a4a4a;
-  --theme-text-muted: #909090;
-  --theme-inverse-bg: #161616;
-  --theme-inverse-fg: #ffffff;
+  --theme-muted: #efe8dc;
+  --theme-border: #e0d8ca;
+  --theme-text: #1c2b3a;
+  --theme-text-strong: #16222e;
+  --theme-text-secondary: #3c4a57;
+  --theme-text-muted: #7d8896;
+  --theme-inverse-bg: #1c2b3a;
+  --theme-inverse-fg: #f5f0e8;
   --theme-segment-active-bg: var(--theme-inverse-bg);
   --theme-segment-active-fg: var(--theme-inverse-fg);
   --theme-segment-active-border: var(--theme-inverse-bg);
-  --theme-scrollbar: #161616;
-  --theme-scrollbar-hover: #404040;
-  --status-active: #214224;
-  --status-active-ink: #0a2e0e;
-  --status-active-soft: rgb(33 66 36 / 0.12);
-  --status-expired: #912e1f;
-  --status-expired-ink: #912e1f;
-  --status-warning-ink: #161616;
-  --status-expiring-ink: #8a6a00;
+  --theme-scrollbar: #1c2b3a;
+  --theme-scrollbar-hover: #2e4a63;
+  --status-active: #2dc47a;
+  --status-active-ink: #177245;
+  --status-active-soft: rgb(45 196 122 / 0.14);
+  --status-expired: #e85a30;
+  --status-expired-ink: #b23a15;
+  --status-warning-ink: #16222e;
+  --status-expiring-ink: #8a6400;
 }
 
 html[data-app-theme="dark"] {
-  --theme-canvas: #090909;
-  --theme-panel: #121212;
-  --theme-muted: #1a1a1a;
-  --theme-border: #2e2e2e;
-  --theme-text: #ededed;
-  --theme-text-strong: #f5f5f5;
-  --theme-text-secondary: #a3a3a3;
-  --theme-text-muted: #737373;
-  /* Inverse = contrast surface: dark pill in light UI, white pill in dark UI */
-  --theme-inverse-bg: #ffffff;
-  --theme-inverse-fg: #161616;
+  --theme-canvas: #0e1720;
+  --theme-panel: #16222e;
+  --theme-muted: #1c2b3a;
+  --theme-border: #2e4a63;
+  --theme-text: #eef1f4;
+  --theme-text-strong: #f7f9fb;
+  --theme-text-secondary: #aab8c6;
+  --theme-text-muted: #7d8896;
+  /* Inverse = contrast surface: navy pill in light UI, warm-white pill in dark UI */
+  --theme-inverse-bg: #f5f0e8;
+  --theme-inverse-fg: #1c2b3a;
   --theme-segment-active-bg: var(--theme-inverse-bg);
   --theme-segment-active-fg: var(--theme-inverse-fg);
   --theme-segment-active-border: var(--theme-inverse-bg);
-  --theme-scrollbar: #ffffff;
-  --theme-scrollbar-hover: #d4d4d4;
-  --status-active-ink: #86efac;
-  --status-active-soft: rgb(134 239 172 / 0.14);
-  --status-expired: #b85c4a;
-  --status-expired-ink: #fca5a5;
-  --status-warning-ink: #161616;
-  --status-expiring-ink: #fcd34d;
+  --theme-scrollbar: #f5f0e8;
+  --theme-scrollbar-hover: #cdd5dd;
+  --status-active-ink: #6ee7a8;
+  --status-active-soft: rgb(45 196 122 / 0.18);
+  --status-expired: #e8794f;
+  --status-expired-ink: #f6b39b;
+  --status-warning-ink: #16222e;
+  --status-expiring-ink: #f7cf6b;
 
-  --background: #121212;
-  --foreground: #ededed;
-  --card: #121212;
-  --card-foreground: #ededed;
-  --popover: #1a1a1a;
-  --popover-foreground: #ededed;
-  --secondary: #1a1a1a;
-  --secondary-foreground: #ededed;
-  --muted: #1a1a1a;
-  --muted-foreground: #a3a3a3;
-  --accent: #262626;
-  --accent-foreground: #ededed;
-  --border: #2e2e2e;
-  --input: #2e2e2e;
-  --ring: #f90a08;
+  --background: #16222e;
+  --foreground: #eef1f4;
+  --card: #16222e;
+  --card-foreground: #eef1f4;
+  --popover: #1c2b3a;
+  --popover-foreground: #eef1f4;
+  --secondary: #1c2b3a;
+  --secondary-foreground: #eef1f4;
+  --muted: #1c2b3a;
+  --muted-foreground: #aab8c6;
+  --accent: #2e4a63;
+  --accent-foreground: #eef1f4;
+  --border: #2e4a63;
+  --input: #2e4a63;
+  --ring: #e8a030;
 
   color-scheme: dark;
 }
@@ -97,32 +98,32 @@ html[data-app-theme="dark"] .step-done {
   --color-segment-active-bg: var(--theme-segment-active-bg);
   --color-segment-active-fg: var(--theme-segment-active-fg);
   --color-segment-active-border: var(--theme-segment-active-border);
-  --color-midnight: #161616;
+  --color-midnight: #1c2b3a;
 
-  /* Signature + secondary accents (brand red family) */
-  --color-ember: #f90a08;
-  --color-ember-soft: #f48789;
-  --color-sapphire: #254fad;
-  --color-cobalt: #1b61c9;
+  /* Signature + secondary accents (Forge Steel — navy + amber) */
+  --color-ember: #e8a030;
+  --color-ember-soft: #f7dfb4;
+  --color-sapphire: #2e4a63;
+  --color-cobalt: #3a5f80;
 
   /* Status semantics */
   --color-active: var(--status-active);
   --color-active-ink: var(--status-active-ink);
-  --color-expiring: #fcb42a;
+  --color-expiring: #f0b820;
   --color-expired: var(--status-expired);
   --color-warning-ink: var(--status-warning-ink);
   --color-expired-ink: var(--status-expired-ink);
   --color-expiring-ink: var(--status-expiring-ink);
 
-  /* Chart categorical hues (brand red/black family) */
-  --color-chart-1: #f90a08;
-  --color-chart-2: #161616;
-  --color-chart-3: #d43c3b;
-  --color-chart-4: #f48789;
-  --color-chart-5: #686868;
-  --color-chart-6: #ffbbb4;
-  --color-chart-7: #de181a;
-  --color-chart-8: #9a9a9a;
+  /* Chart categorical hues (Forge Steel — navy/amber/steel family) */
+  --color-chart-1: #1c2b3a;
+  --color-chart-2: #e8a030;
+  --color-chart-3: #2e4a63;
+  --color-chart-4: #2dc47a;
+  --color-chart-5: #b0bec5;
+  --color-chart-6: #e85a30;
+  --color-chart-7: #f0b820;
+  --color-chart-8: #6b7c8c;
 
   /* Surfaces */
   --color-pale-sky: #c7e5f2;
@@ -163,7 +164,7 @@ html[data-app-theme="dark"] .step-done {
   --color-slate: #686868;
   --color-hairline: #dcdcde;
   --color-border-light: #e7e7e9;
-  --color-focus-blue: #f90a08;
+  --color-focus-blue: #e8a030;
 
   --radius-xs: 4px;
   --radius-sm: 8px;
@@ -185,27 +186,27 @@ html[data-app-theme="dark"] .step-done {
   --color-brand-pink: #ffbbb4;
 }
 
-/* shadcn/ui token layer — mapped to the WeldDoc red/black brand */
+/* shadcn/ui token layer — mapped to the "Forge Steel" navy + amber palette */
 :root {
-  --background: #ffffff;
-  --foreground: #161616;
+  --background: #f5f0e8;
+  --foreground: #1c2b3a;
   --card: #ffffff;
-  --card-foreground: #161616;
+  --card-foreground: #1c2b3a;
   --popover: #ffffff;
-  --popover-foreground: #161616;
-  --primary: #f90a08;
-  --primary-foreground: #ffffff;
-  --secondary: #f1f1f2;
-  --secondary-foreground: #161616;
-  --muted: #f1f1f2;
-  --muted-foreground: #686868;
-  --accent: #f1f1f2;
-  --accent-foreground: #161616;
-  --destructive: #de181a;
+  --popover-foreground: #1c2b3a;
+  --primary: #1c2b3a;
+  --primary-foreground: #f5f0e8;
+  --secondary: #efe8dc;
+  --secondary-foreground: #1c2b3a;
+  --muted: #efe8dc;
+  --muted-foreground: #6b7c8c;
+  --accent: #e8a030;
+  --accent-foreground: #1c2b3a;
+  --destructive: #e85a30;
   --destructive-foreground: #ffffff;
-  --border: #e2e2e4;
-  --input: #e2e2e4;
-  --ring: #f90a08;
+  --border: #e0d8ca;
+  --input: #e0d8ca;
+  --ring: #e8a030;
 }
 
 @theme inline {
@@ -285,13 +286,13 @@ html[data-app-theme="dark"] .step-done {
 
 .welddoc-datepicker .react-datepicker__day--selected,
 .welddoc-datepicker .react-datepicker__day--keyboard-selected {
-  background: #f90a08 !important;
-  color: #fff !important;
+  background: #1c2b3a !important;
+  color: #f5f0e8 !important;
   border-radius: 8px;
 }
 
 .welddoc-datepicker .react-datepicker__day--today {
-  color: #f90a08;
+  color: #b8801f;
   font-weight: 600;
 }
 
@@ -301,7 +302,7 @@ html[data-app-theme="dark"] .step-done {
 }
 
 .welddoc-datepicker .react-datepicker__navigation-icon::before {
-  border-color: #f90a08;
+  border-color: #1c2b3a;
 }
 
 .welddoc-datepicker .react-datepicker__month-dropdown-container select,
@@ -319,7 +320,7 @@ html[data-app-theme="dark"] .step-done {
 
 .welddoc-datepicker .react-datepicker__month-read-view,
 .welddoc-datepicker .react-datepicker__year-read-view {
-  color: #f90a08;
+  color: #1c2b3a;
   font-weight: 600;
 }
 
@@ -352,8 +353,8 @@ html[data-app-theme="dark"] .welddoc-datepicker select {
   }
 
   ::selection {
-    background-color: var(--color-ember);
-    color: var(--color-white);
+    background-color: var(--color-inverse-bg);
+    color: var(--color-inverse-fg);
   }
 
   h1,

@@ -50,6 +50,7 @@ export default async function WelderIdCardPage({
       backHref={`/welders/${id}`}
       backLabel="Back to profile"
       badge="Welder ID card"
+      showPrint={false}
     >
       <WelderIdCardView {...view} />
       <p className="mt-6 text-center text-xs text-steel print:mt-4">
