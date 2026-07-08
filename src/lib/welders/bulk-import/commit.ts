@@ -32,7 +32,6 @@ function welderGroupKey(welder: WelderImportFields): string {
 function welderFingerprint(w: WelderImportFields): string {
   return [
     w.fullName,
-    w.email ?? "",
     w.dateOfBirth,
     w.placeOfBirth,
     w.idMethod,
@@ -145,7 +144,6 @@ export async function commitValidatedImport(
           place_of_birth: welder.placeOfBirth,
           id_method: welder.idMethod,
           id_number: welder.idNumber,
-          email: welder.email,
           employer: ctx.orgName,
           branch_location: ctx.orgLocation,
           photo_path: photoPath,

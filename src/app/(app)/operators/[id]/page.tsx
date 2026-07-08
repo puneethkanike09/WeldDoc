@@ -110,7 +110,6 @@ export default async function OperatorProfilePage({
               <Detail label="ID number" value={o.id_number} />
               <Detail label="Employer" value={o.employer} />
               <Detail label="Branch" value={o.branch_location} />
-              {o.email ? <Detail label="Email" value={o.email} /> : null}
             </dl>
 
             <div className="lg:w-52 lg:shrink-0">

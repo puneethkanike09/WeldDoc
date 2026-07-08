@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Input, Textarea, Field } from "@/components/ui/input";
+import { Input, Field } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FileDropzone } from "@/components/ui/file-dropzone";
 import { useFormSubmit } from "@/lib/form-toast";
@@ -106,27 +106,7 @@ export function OrgSettingsForm({
             onChange={() => clearError("report_prefix")}
           />
         </Field>
-        <Field
-          label="Alert lead days"
-          hint="Comma-separated, e.g. 30,7"
-        >
-          <Input
-            name="alert_lead_days"
-            defaultValue={(org.alert_lead_days ?? [30, 7]).join(",")}
-          />
-        </Field>
       </div>
-      <Field
-        label="Alert recipients"
-        hint="One email per line or comma-separated"
-      >
-        <Textarea
-          name="alert_emails"
-          rows={3}
-          defaultValue={(org.alert_emails ?? []).join("\n")}
-          placeholder="engineer@plant.com"
-        />
-      </Field>
       <Field
         label="Company logo"
         hint="Shown on certificates and master list exports (PNG/JPG)"

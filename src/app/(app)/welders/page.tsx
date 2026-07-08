@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
 import { AddWelderButton } from "@/components/app/add-welder-button";
 import { ImportWeldersButton } from "@/components/app/import-welders-button";
-import { GroupQualifyButton } from "@/components/app/group-qualify-button";
 import { BulkQrPrintButton } from "@/components/app/bulk-qr-print-button";
+import { AlertEmailConfigDialog } from "@/components/app/alert-email-config-dialog";
+import { updateAlertEmailSettings } from "@/app/(app)/settings/actions";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { summarizeWelder } from "@/lib/welder-status";
@@ -87,7 +88,7 @@ export default async function WeldersPage({
       >
         <div className="flex flex-wrap items-center gap-2">
           <BulkQrPrintButton entries={qrEntries} />
-          <GroupQualifyButton href="/welders/qualify/group/new" />
+          <AlertEmailConfigDialog org={org} action={updateAlertEmailSettings} />
           <ImportWeldersButton />
           <AddWelderButton />
         </div>

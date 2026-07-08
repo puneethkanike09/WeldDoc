@@ -1,7 +1,6 @@
 export const OPERATOR_PROFILE_COLUMN_KEYS = [
   "plant_operator_id",
   "full_name",
-  "email",
   "date_of_birth",
   "place_of_birth",
   "id_method",

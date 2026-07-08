@@ -58,6 +58,14 @@ export interface QualificationSessionMember {
   created_at: string;
 }
 
+export type AlertEmailFrequency =
+  | "once"
+  | "daily"
+  | "every_2_days"
+  | "weekly"
+  | "twice_weekly"
+  | "every_3_weeks";
+
 export interface Organization {
   id: string;
   name: string;
@@ -70,6 +78,7 @@ export interface Organization {
   operator_seq: number;
   alert_emails: string[];
   alert_lead_days: number[];
+  alert_email_frequency: AlertEmailFrequency;
   dashboard_widgets: DashboardWidgetsConfig | null;
   created_at: string;
 }
@@ -95,7 +104,6 @@ export interface Welder {
   employer: string | null;
   branch_location: string | null;
   photo_path: string | null;
-  email: string | null;
   qr_token: string;
   status: WelderStatus;
   is_new_welder: boolean;
@@ -268,7 +276,6 @@ export interface Operator {
   employer: string | null;
   branch_location: string | null;
   photo_path: string | null;
-  email: string | null;
   qr_token: string;
   status: WelderStatus;
   is_new_operator: boolean;

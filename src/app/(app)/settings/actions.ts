@@ -10,6 +10,7 @@ import {
   type DashboardWidgetId,
 } from "@/lib/dashboard/widgets";
 import type { StandardSlug } from "@/lib/standards/catalog";
+import { parseAlertEmailFrequency } from "@/lib/expiry-alerts/frequency";
 
 function str(v: FormDataEntryValue | null): string | null {
   const s = typeof v === "string" ? v.trim() : "";
@@ -19,16 +20,6 @@ function str(v: FormDataEntryValue | null): string | null {
 export async function updateOrgSettings(formData: FormData) {
   const { org } = await requireSession();
   const supabase = await createClient();
-
-  const emails = (str(formData.get("alert_emails")) ?? "")
-    .split(/[,\n]/)
-    .map((e) => e.trim())
-    .filter(Boolean);
-
-  const leadDays = (str(formData.get("alert_lead_days")) ?? "30,7")
-    .split(/[,\s]+/)
-    .map((n) => parseInt(n, 10))
-    .filter((n) => Number.isFinite(n) && n > 0);
 
   const logo = formData.get("logo");
   const logoPath = await uploadFile(
@@ -42,8 +33,6 @@ export async function updateOrgSettings(formData: FormData) {
     location_code: str(formData.get("location_code")),
     report_prefix: str(formData.get("report_prefix")) ?? org.report_prefix,
     uid_prefix: str(formData.get("uid_prefix")) ?? org.uid_prefix,
-    alert_emails: emails,
-    alert_lead_days: leadDays.length ? leadDays : [30, 7],
   };
   if (logoPath) update.logo_path = logoPath;
 
@@ -54,6 +43,39 @@ export async function updateOrgSettings(formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePath("/settings");
+}
+
+export async function updateAlertEmailSettings(formData: FormData) {
+  const { org } = await requireSession();
+  const supabase = await createClient();
+
+  const emails = (str(formData.get("alert_emails")) ?? "")
+    .split(/[,\n]/)
+    .map((e) => e.trim())
+    .filter(Boolean);
+
+  const leadDays = (str(formData.get("alert_lead_days")) ?? "30,7")
+    .split(/[,\s]+/)
+    .map((n) => parseInt(n, 10))
+    .filter((n) => Number.isFinite(n) && n > 0);
+
+  const frequency = parseAlertEmailFrequency(
+    str(formData.get("alert_email_frequency")),
+  );
+
+  const { error } = await supabase
+    .from("organizations")
+    .update({
+      alert_emails: emails,
+      alert_lead_days: leadDays.length ? leadDays : [30, 7],
+      alert_email_frequency: frequency,
+    })
+    .eq("id", org.id);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/welders");
+  revalidatePath("/operators");
 }
 
 const LAYOUT_STANDARD_SLUGS: StandardSlug[] = ["iso9606-1", "iso-14732"];

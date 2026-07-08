@@ -417,15 +417,6 @@ function InlineNewPersonRow({
                 }}
               />
             </Field>
-            <Field label="Email" error={err("email")}>
-              <Input
-                name={`${rowKey}_email`}
-                type="email"
-                placeholder="welder@example.com"
-                className={cn(err("email") && invalidBorder)}
-                onChange={() => clearError(`${rowKey}_email`)}
-              />
-            </Field>
             <Field label="Date of birth" required error={err("date_of_birth")}>
               <DatePicker
                 name={`${rowKey}_date_of_birth`}

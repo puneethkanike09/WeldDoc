@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
 import { AddOperatorButton } from "@/components/app/add-operator-button";
-import { GroupQualifyButton } from "@/components/app/group-qualify-button";
 import { ImportOperatorsButton } from "@/components/app/import-operators-button";
 import { BulkQrPrintButton } from "@/components/app/bulk-qr-print-button";
+import { AlertEmailConfigDialog } from "@/components/app/alert-email-config-dialog";
+import { updateAlertEmailSettings } from "@/app/(app)/settings/actions";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { summarizeOperator } from "@/lib/operator-status";
@@ -87,7 +88,7 @@ export default async function OperatorsPage({
       >
         <div className="flex flex-wrap items-center gap-2">
           <BulkQrPrintButton entries={qrEntries} />
-          <GroupQualifyButton href="/operators/qualify/group/new" />
+          <AlertEmailConfigDialog org={org} action={updateAlertEmailSettings} />
           <ImportOperatorsButton />
           <AddOperatorButton />
         </div>

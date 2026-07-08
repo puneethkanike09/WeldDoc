@@ -12,7 +12,6 @@ import {
   isUniqueViolation,
   normalizePlantOperatorId,
 } from "@/lib/operators/plant-id";
-import { normalizeOptionalEmail } from "@/lib/utils";
 import {
   createOperatorRecord,
   type CreateOperatorRecordContext,
@@ -78,7 +77,6 @@ export async function updateOperator(operatorId: string, formData: FormData) {
     id_number: str(formData.get("id_number")),
     employer: str(formData.get("employer")),
     branch_location: str(formData.get("branch_location")),
-    email: normalizeOptionalEmail(str(formData.get("email"))),
   };
   if (photoPath) update.photo_path = photoPath;
 

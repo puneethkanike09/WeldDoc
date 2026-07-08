@@ -11,7 +11,6 @@ export type RawImportRow = Record<string, string | number | null>;
 export interface WelderImportFields {
   plantWelderId: string;
   fullName: string;
-  email: string | null;
   dateOfBirth: string | null;
   placeOfBirth: string | null;
   idMethod: string | null;

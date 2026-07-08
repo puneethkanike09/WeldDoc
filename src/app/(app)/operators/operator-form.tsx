@@ -121,20 +121,6 @@ export function OperatorForm({
               />
             </Field>
             <Field
-              label="Email"
-              hint="Used to send qualification expiry and continuity reminders."
-              error={fieldErrors.email}
-            >
-              <Input
-                name="email"
-                type="email"
-                defaultValue={operator?.email ?? ""}
-                placeholder="operator@example.com"
-                className={cn(fieldErrors.email && invalidBorder)}
-                onChange={() => clearError("email")}
-              />
-            </Field>
-            <Field
               label="Plant operator ID"
               hint={
                 fieldErrors.operator_id

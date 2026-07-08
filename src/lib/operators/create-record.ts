@@ -7,7 +7,6 @@ import {
   normalizePlantOperatorId,
   nextAvailablePlantOperatorId,
 } from "@/lib/operators/plant-id";
-import { normalizeOptionalEmail } from "@/lib/utils";
 import type { Organization } from "@/types/db";
 
 function str(v: FormDataEntryValue | null): string | null {
@@ -80,7 +79,6 @@ export async function createOperatorRecord(
       employer: str(formData.get("employer")) ?? ctx.org.name,
       branch_location:
         str(formData.get("branch_location")) ?? ctx.org.location_code,
-      email: normalizeOptionalEmail(str(formData.get("email"))),
       photo_path: photoPath,
       status: "Active",
       is_new_operator: true,

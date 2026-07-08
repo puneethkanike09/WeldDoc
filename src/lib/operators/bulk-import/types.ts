@@ -12,7 +12,6 @@ export type RawOperatorImportRow = Record<string, string | number | null>;
 export interface OperatorImportFields {
   plantOperatorId: string;
   fullName: string;
-  email: string | null;
   dateOfBirth: string | null;
   placeOfBirth: string | null;
   idMethod: string | null;
