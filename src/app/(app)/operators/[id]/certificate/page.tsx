@@ -99,7 +99,7 @@ export default async function OperatorCertificatePreviewPage({
   return (
     <>
       <PageHeader
-        title="Qualification certificate"
+        title="Operator's Certificate"
         description={`${o.full_name} · ${o.operator_id ?? "—"} · ${qualLabel}`}
       />
       <div className="px-8 py-8">

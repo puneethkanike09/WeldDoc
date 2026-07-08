@@ -378,8 +378,7 @@ export function OperatorCertificateDocument({
               marginBottom: 7,
             }}
           >
-            Example of a qualification test certificate for welding operators
-            and/or weld setters
+            Operator&apos;s Certificate
           </Text>
 
           <View

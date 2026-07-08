@@ -114,6 +114,8 @@ export function QualificationProfileDetail({
       ? `oq=${selected.id}`
       : `wpq=${selected.id}`;
   const apiBase = `/api/${entityKind}s/${entityId}`;
+  const certificateTitle =
+    entityKind === "operator" ? "Operator's Certificate" : "Welder's Certificate";
   const certificateSrc = `${apiBase}/certificate?${qualQuery}`;
   const signedCertificateSrc = `${apiBase}/signed-certificate?${qualQuery}`;
   const hasDocumentList =
@@ -316,7 +318,7 @@ export function QualificationProfileDetail({
                     <span className="font-medium text-onyx">Certificate</span>
                     <DocumentViewButton
                       src={certificateSrc}
-                      title="Qualification certificate"
+                      title={certificateTitle}
                     />
                   </li>
                 )}

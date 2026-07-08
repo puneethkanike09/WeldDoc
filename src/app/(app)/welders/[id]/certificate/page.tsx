@@ -97,7 +97,7 @@ export default async function WelderCertificatePreviewPage({
   return (
     <>
       <PageHeader
-        title="Qualification certificate"
+        title="Welder's Certificate"
         description={`${w.full_name} · ${w.welder_id ?? "—"} · ${qualLabel}`}
       />
       <div className="px-8 py-8">

@@ -297,7 +297,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
                 textDecoration: "underline",
               }}
             >
-              Welder&apos;s Qualification Test Certificate
+              Welder&apos;s Certificate
             </Text>
           </View>
 
