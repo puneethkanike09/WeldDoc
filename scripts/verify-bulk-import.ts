@@ -1,9 +1,13 @@
 import assert from "node:assert/strict";
-import { validateImportRows } from "../src/lib/welders/bulk-import/validate";
+import * as XLSX from "xlsx";
+import { IMPORT_SHEET_NAME } from "../src/lib/welders/bulk-import/columns";
 import {
+  buildImportTemplateBuffer,
   TEMPLATE_EXAMPLE_ROW_COUNT,
   verifyBuiltImportTemplate,
 } from "../src/lib/welders/bulk-import/template";
+import { matchPhotosToWelders } from "../src/lib/welders/bulk-import/match-import-photos";
+import { validateImportRows } from "../src/lib/welders/bulk-import/validate";
 
 function test(name: string, fn: () => void) {
   try {
@@ -33,7 +37,7 @@ function qualRaw(overrides: Record<string, string> = {}) {
     test_thickness_mm: "12",
     product: "Plate",
     testing_standard: "EN ISO 9606-1:2017",
-    date_of_welding: "2023-01-15",
+    date_of_welding: "2025-01-15",
     revalidation_method: "9.3b",
     result_vt: "Pass",
     result_rt_ut: "NA",
@@ -50,6 +54,23 @@ test("built template parses with all example rows", () => {
   assert.equal(r.rowCount, TEMPLATE_EXAMPLE_ROW_COUNT);
 });
 
+test("template has only Import sheet", () => {
+  const buffer = buildImportTemplateBuffer();
+  const wb = XLSX.read(buffer, { type: "buffer" });
+  assert.deepEqual(wb.SheetNames, [IMPORT_SHEET_NAME]);
+});
+
+test("template includes expiry_date, continuity_last_verified, photo_filename in header", () => {
+  const buffer = buildImportTemplateBuffer();
+  const wb = XLSX.read(buffer, { type: "buffer" });
+  const sheet = wb.Sheets[IMPORT_SHEET_NAME];
+  const rows = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1 });
+  const header = rows[0] as string[];
+  assert.ok(header.includes("expiry_date"));
+  assert.ok(header.includes("continuity_last_verified"));
+  assert.ok(header.includes("photo_filename"));
+});
+
 test("welder-only row validates (name + W# only)", () => {
   const r = validateImportRows(
     [{ excelRow: 2, raw: baseWelderRaw() }],
@@ -62,13 +83,13 @@ test("welder-only row validates (name + W# only)", () => {
   assert.equal(r.rows[0].qualification, null);
 });
 
-test("requires plant_welder_id (W# No)", () => {
+test("allows blank plant_welder_id (auto-assign in preview)", () => {
   const r = validateImportRows(
     [{ excelRow: 2, raw: baseWelderRaw({ plant_welder_id: "" }) }],
     new Set(),
   );
-  assert.equal(r.ok, false);
-  assert.ok(r.errors.some((e) => e.column === "plant_welder_id"));
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  assert.equal(r.rows[0].welder.plantWelderId, "");
 });
 
 test("requires full_name", () => {
@@ -87,7 +108,7 @@ test("welder + qualification validates and computes expiry", () => {
   );
   assert.equal(r.ok, true);
   assert.equal(r.summary.qualificationCount, 1);
-  assert.equal(r.rows[0].qualification?.expiryDate, "2025-01-15");
+  assert.equal(r.rows[0].qualification?.expiryDate, "2027-01-15");
   assert.equal(r.rows[0].qualification?.wpqStatus, "Approved");
 });
 
@@ -335,7 +356,150 @@ test("preserves raw values for invalid cells (data does not disappear)", () => {
   // visible in the preview grid via row.raw.
   assert.equal(r.rows[0].raw.process, "135");
   assert.equal(r.rows[0].raw.position, "ZZ");
-  assert.equal(r.rows[0].raw.date_of_welding, "2023-01-15");
+  assert.equal(r.rows[0].raw.date_of_welding, "2025-01-15");
+});
+
+test("fill-forward copies welder fields on qualification rows", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          plant_welder_id: "W#02",
+          full_name: "Sanjay",
+          date_of_birth: "1988-05-20",
+          id_method: "Aadhar",
+          process: "135",
+          joint_type: "BW",
+          position: "PF",
+          base_material_group: "1",
+          test_thickness_mm: "12",
+          product: "Plate",
+          date_of_welding: "2025-08-19",
+          revalidation_method: "9.3b",
+        },
+      },
+      {
+        excelRow: 3,
+        raw: {
+          plant_welder_id: "",
+          full_name: "",
+          process: "141",
+          joint_type: "BW",
+          position: "PA",
+          base_material_group: "1",
+          test_thickness_mm: "12",
+          product: "Plate",
+          date_of_welding: "2025-08-19",
+          revalidation_method: "9.3b",
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  assert.equal(r.rows[1].welder.fullName, "Sanjay");
+  assert.equal(r.rows[1].welder.plantWelderId, "W#02");
+  assert.equal(r.rows[1].welder.dateOfBirth, "1988-05-20");
+  assert.equal(r.rows[1].welder.idMethod, "Aadhar");
+});
+
+test("legacy expiry used as-is not recalculated from old test date", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          plant_welder_id: "W#15",
+          full_name: "Rajesh",
+          process: "135",
+          joint_type: "BW",
+          position: "PF",
+          base_material_group: "1",
+          test_thickness_mm: "12",
+          product: "Plate",
+          date_of_welding: "2019-06-10",
+          expiry_date: "2026-03-01",
+          continuity_last_verified: "2025-12-01",
+          revalidation_method: "9.3a",
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  assert.equal(r.rows[0].qualification?.expiryDate, "2026-03-01");
+  assert.equal(r.rows[0].qualification?.continuityLastVerified, "2025-12-01");
+  assert.notEqual(r.rows[0].qualification?.expiryDate, "2022-06-10");
+  assert.equal(r.warnings.length, 0);
+});
+
+test("expired legacy cert gets Expired status", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          plant_welder_id: "W#99",
+          full_name: "Old Cert",
+          process: "135",
+          joint_type: "BW",
+          position: "PF",
+          base_material_group: "1",
+          test_thickness_mm: "12",
+          product: "Plate",
+          date_of_welding: "2019-01-01",
+          expiry_date: "2020-01-01",
+          revalidation_method: "9.3b",
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  assert.equal(r.rows[0].qualification?.wpqStatus, "Expired");
+});
+
+test("missing expiry_date emits estimate warning", () => {
+  const r = validateImportRows(
+    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...qualRaw() } }],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  assert.equal(r.rows[0].qualification?.continuityLastVerified, null);
+  assert.equal(r.warnings.length, 1);
+  assert.equal(r.warnings[0].column, "expiry_date");
+  assert.ok(r.warnings[0].message.includes("Expiry estimated"));
+});
+
+console.log("\nPhoto matching\n");
+
+test("photo match by photo_filename column", () => {
+  const { matches, results } = matchPhotosToWelders(
+    [{ welder: { plantWelderId: "W#02", photoFilename: "sanjay.jpg" } }],
+    [{ filename: "sanjay.jpg", bytes: Buffer.from("x"), mime: "image/jpeg" }],
+  );
+  assert.equal(matches.size, 1);
+  assert.equal(results[0].status, "ready");
+});
+
+test("photo match by plant_welder_id fallback W#02.png", () => {
+  const { matches } = matchPhotosToWelders(
+    [{ welder: { plantWelderId: "W#02", photoFilename: null } }],
+    [{ filename: "W#02.png", bytes: Buffer.from("x"), mime: "image/png" }],
+  );
+  assert.equal(matches.size, 1);
+});
+
+test("duplicate photos for same welder flagged", () => {
+  const { results } = matchPhotosToWelders(
+    [{ welder: { plantWelderId: "W#02", photoFilename: null } }],
+    [
+      { filename: "W#02.jpg", bytes: Buffer.from("a"), mime: "image/jpeg" },
+      { filename: "W#02.png", bytes: Buffer.from("b"), mime: "image/png" },
+    ],
+  );
+  assert.equal(results[0].status, "duplicate");
 });
 
 console.log("\nAll bulk import validation tests passed.");

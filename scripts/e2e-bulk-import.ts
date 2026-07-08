@@ -102,12 +102,19 @@ async function main() {
   const today = todayIso();
   const welderOnlyId = "W#9981";
   const welderQualId = "W#9982";
+  const welderLegacyId = "W#9983";
+  const welderExpiredId = "W#9984";
   const expectedExpiry = computeExpiry("9.3b", today);
+  const legacyExpiry = "2026-03-01";
+  const legacyContinuity = "2025-12-01";
+  const expiredExpiry = "2020-01-01";
 
   console.log(`E2E bulk import — org "${(org as Organization).name}" — today ${today}\n`);
 
   await deleteWelderByPlantId(supabase, org.id, welderOnlyId);
   await deleteWelderByPlantId(supabase, org.id, welderQualId);
+  await deleteWelderByPlantId(supabase, org.id, welderLegacyId);
+  await deleteWelderByPlantId(supabase, org.id, welderExpiredId);
 
   const testRows = [
     {
@@ -142,6 +149,53 @@ async function main() {
       result_rt_ut: "Pass",
       result_fracture: "NA",
     },
+    {
+      plant_welder_id: welderLegacyId,
+      full_name: "E2E Import Legacy Dates",
+      date_of_birth: "1985-11-03",
+      place_of_birth: "Chennai, Tamil Nadu, India",
+      id_method: "Passport",
+      id_number: "E2E-W9983",
+      welder_status: "Active",
+      process: "135",
+      joint_type: "BW",
+      position: "PF",
+      base_material_group: "1",
+      filler_group: "FM1",
+      test_thickness_mm: 12,
+      product: "Plate",
+      testing_standard: "EN ISO 9606-1:2017",
+      date_of_welding: "2019-06-10",
+      expiry_date: legacyExpiry,
+      revalidation_method: "9.3a",
+      continuity_last_verified: legacyContinuity,
+      result_vt: "Pass",
+      result_rt_ut: "Pass",
+      result_fracture: "NA",
+    },
+    {
+      plant_welder_id: welderExpiredId,
+      full_name: "E2E Import Expired Cert",
+      date_of_birth: "1975-04-18",
+      place_of_birth: "Delhi, India",
+      id_method: "ID Card",
+      id_number: "E2E-W9984",
+      welder_status: "Active",
+      process: "135",
+      joint_type: "BW",
+      position: "PF",
+      base_material_group: "1",
+      filler_group: "FM1",
+      test_thickness_mm: 12,
+      product: "Plate",
+      testing_standard: "EN ISO 9606-1:2017",
+      date_of_welding: "2019-01-01",
+      expiry_date: expiredExpiry,
+      revalidation_method: "9.3b",
+      result_vt: "Pass",
+      result_rt_ut: "Pass",
+      result_fracture: "NA",
+    },
   ];
 
   const buffer = buildWorkbookBuffer(testRows);
@@ -150,7 +204,7 @@ async function main() {
   console.log(`Wrote test workbook: ${outPath}\n`);
 
   const { rows: parsed, fileError } = parseImportWorkbook(buffer);
-  log(!fileError && parsed.length === 2, `parse workbook (${parsed.length} rows)`);
+  log(!fileError && parsed.length === 4, `parse workbook (${parsed.length} rows)`);
 
   const validation = validateParsedImport(parsed, new Set());
   log(validation.ok, `validate parsed rows (${validation.summary.errorCount} errors)`);
@@ -165,6 +219,18 @@ async function main() {
     validation.rows[1].qualification?.expiryDate === expectedExpiry,
     `expiry auto-calculated to ${expectedExpiry}`,
   );
+  log(
+    validation.rows[2].qualification?.expiryDate === legacyExpiry,
+    `legacy expiry preserved as ${legacyExpiry}`,
+  );
+  log(
+    validation.rows[2].qualification?.continuityLastVerified === legacyContinuity,
+    `legacy continuity preserved as ${legacyContinuity}`,
+  );
+  log(
+    validation.rows[3].qualification?.wpqStatus === "Expired",
+    "past expiry_date yields Expired status in validation",
+  );
 
   const commit = await commitValidatedImport(
     supabase,
@@ -178,7 +244,7 @@ async function main() {
     validation.rows,
   );
   log(
-    commit.weldersCreated === 2 && commit.qualificationsCreated === 1,
+    commit.weldersCreated === 4 && commit.qualificationsCreated === 3,
     `commit (${commit.weldersCreated} welders, ${commit.qualificationsCreated} quals)`,
   );
 
@@ -195,7 +261,20 @@ async function main() {
     .eq("welder_id", welderQualId)
     .single();
 
-  log(Boolean(welderOnly && welderQual), "welders persisted");
+  const { data: welderLegacy } = await supabase
+    .from("welders")
+    .select("*")
+    .eq("org_id", org.id)
+    .eq("welder_id", welderLegacyId)
+    .single();
+  const { data: welderExpired } = await supabase
+    .from("welders")
+    .select("*")
+    .eq("org_id", org.id)
+    .eq("welder_id", welderExpiredId)
+    .single();
+
+  log(Boolean(welderOnly && welderQual && welderLegacy && welderExpired), "welders persisted");
   if (welderOnly) {
     log(welderOnly.employer === org.name, "welder-only employer from org settings");
     log(
@@ -264,9 +343,65 @@ async function main() {
     "certificate endpoint eligible (Approved status)",
   );
 
+  if (!welderLegacy) throw new Error("Missing legacy dates welder.");
+
+  const { data: wpqLegacy } = await supabase
+    .from("qualification_records")
+    .select("*")
+    .eq("welder_id", welderLegacy.id)
+    .maybeSingle();
+
+  log(Boolean(wpqLegacy), "legacy qualification record exists");
+  if (wpqLegacy) {
+    const legacy = wpqLegacy as QualificationRecord;
+    log(legacy.expiry_date === legacyExpiry, "legacy expiry_date stored exactly");
+    log(
+      legacy.continuity_last_verified === legacyContinuity,
+      "legacy continuity_last_verified stored exactly",
+    );
+    log(legacy.wpq_status === "Approved", "legacy qualification status Approved");
+
+    const { data: continuityVal } = await supabase
+      .from("validation_records")
+      .select("*")
+      .eq("wpq_id", legacy.id)
+      .eq("kind", "continuity")
+      .maybeSingle();
+
+    log(Boolean(continuityVal), "continuity validation_records row exists");
+    if (continuityVal) {
+      log(continuityVal.kind === "continuity", "validation_records kind is continuity");
+      log(
+        continuityVal.note === "Imported from legacy registry",
+        'validation_records note is "Imported from legacy registry"',
+      );
+      log(
+        continuityVal.validated_on === legacyContinuity,
+        "validation_records validated_on matches continuity_last_verified",
+      );
+    }
+  }
+
+  if (!welderExpired) throw new Error("Missing expired cert welder.");
+
+  const { data: wpqExpired } = await supabase
+    .from("qualification_records")
+    .select("*")
+    .eq("welder_id", welderExpired.id)
+    .maybeSingle();
+
+  log(Boolean(wpqExpired), "expired qualification record exists");
+  if (wpqExpired) {
+    const expired = wpqExpired as QualificationRecord;
+    log(expired.expiry_date === expiredExpiry, "expired expiry_date stored exactly");
+    log(expired.wpq_status === "Expired", "expired wpq_status is Expired");
+  }
+
   console.log("\nSummary:");
   console.log(`  Welder-only: ${welderOnlyId} → ${welderOnly?.uid}`);
   console.log(`  With qual:   ${welderQualId} → ${welderQual.uid}, WPQ ${wpqId}`);
+  console.log(`  Legacy:      ${welderLegacyId} → ${welderLegacy.uid}, expiry ${legacyExpiry}, continuity ${legacyContinuity}`);
+  console.log(`  Expired:     ${welderExpiredId} → ${welderExpired.uid}, expiry ${expiredExpiry}`);
   console.log(`  Expiry:      ${expectedExpiry} (9.3b from ${today})`);
   console.log(`  Range:       ${range?.summary ?? "—"}`);
   console.log(`  NDT:         ${ndtMethods.join(", ") || "—"}`);

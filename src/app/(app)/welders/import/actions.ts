@@ -5,10 +5,17 @@ import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { commitValidatedImport } from "@/lib/welders/bulk-import/commit";
 import { rowsToRawImport } from "@/lib/welders/bulk-import/display";
+import { extractPhotosFromFormData } from "@/lib/welders/bulk-import/extract-upload";
+import { matchPhotosToWelders } from "@/lib/welders/bulk-import/match-import-photos";
 import type { ValidatedImportRow } from "@/lib/welders/bulk-import/types";
 import { validateWelderImportUpload } from "@/lib/welders/bulk-import/validate-upload";
 import { validateParsedImport } from "@/lib/welders/bulk-import/validate";
 import { normalizePlantWelderId } from "@/lib/welders/plant-id";
+
+export type CommitWelderImportResult = {
+  weldersCreated: number;
+  qualificationsCreated: number;
+};
 
 export async function validateWelderImport(formData: FormData) {
   const { org } = await requireSession();
@@ -21,13 +28,21 @@ export async function validateWelderImport(formData: FormData) {
   );
 }
 
-export type WelderImportContext = {
-  existingPlantIds: string[];
-  existingIdNumbers: string[];
-  welderSeq: number;
-};
+export async function commitWelderImport(
+  formData: FormData,
+): Promise<CommitWelderImportResult> {
+  const rowsRaw = formData.get("rows");
+  if (typeof rowsRaw !== "string" || !rowsRaw.trim()) {
+    throw new Error("Missing import rows.");
+  }
 
-export async function commitWelderImport(rows: ValidatedImportRow[]) {
+  let rows: ValidatedImportRow[];
+  try {
+    rows = JSON.parse(rowsRaw) as ValidatedImportRow[];
+  } catch {
+    throw new Error("Invalid import rows payload.");
+  }
+
   if (!rows.length) {
     throw new Error("Nothing to import.");
   }
@@ -62,6 +77,12 @@ export async function commitWelderImport(rows: ValidatedImportRow[]) {
     );
   }
 
+  const photos = await extractPhotosFromFormData(formData);
+  const { matches: photoMatches } = matchPhotosToWelders(
+    revalidation.rows,
+    photos,
+  );
+
   const result = await commitValidatedImport(
     supabase,
     {
@@ -72,6 +93,7 @@ export async function commitWelderImport(rows: ValidatedImportRow[]) {
       welderSeq: org.welder_seq,
     },
     revalidation.rows,
+    photoMatches,
   );
 
   revalidatePath("/welders");

@@ -13,10 +13,12 @@ import { computeExpiry } from "@/lib/expiry";
 import { normalizePlantWelderId } from "@/lib/welders/plant-id";
 import { isValidEmailFormat, normalizeOptionalEmail } from "@/lib/utils";
 import { QUAL_REQUIRED_KEYS } from "./columns";
+import { fillForwardWelderFields } from "./fill-forward";
 import { normalizeRawRow } from "./normalize";
 import type {
   ImportValidationError,
   ImportValidationResult,
+  ImportWarning,
   QualificationImportFields,
   RawImportRow,
   ValidatedImportRow,
@@ -171,30 +173,34 @@ function wpqStatusFromNdt(
   return "Approved";
 }
 
+function resolveWpqStatus(
+  ndtStatus: WpqStatus,
+  expiryDate: string,
+): WpqStatus {
+  if (ndtStatus === "Failed") return "Failed";
+  const today = new Date().toISOString().slice(0, 10);
+  if (expiryDate < today) return "Expired";
+  return "Approved";
+}
+
 function parseWelder(
   raw: RawImportRow,
   excelRow: number,
   errors: ImportValidationError[],
 ): WelderImportFields | null {
-  // Plant/Welder ID (W# No) is required — it is how we match an imported
-  // qualification to an existing welder, or create a new one.
+  // Blank plant_welder_id is allowed — preview assigns the next free W# before commit.
   const plantRaw = str(raw, "plant_welder_id");
-  const plantWelderId = plantRaw ? (normalizePlantWelderId(plantRaw) ?? "") : "";
-  if (!plantRaw) {
-    errors.push({
-      excelRow,
-      column: "plant_welder_id",
-      message: "plant_welder_id (W# No) is required.",
-    });
-    return null;
-  }
-  if (!plantWelderId) {
-    errors.push({
-      excelRow,
-      column: "plant_welder_id",
-      message: "plant_welder_id is invalid. Use W#01 / W#1 / 1 format.",
-    });
-    return null;
+  let plantWelderId = "";
+  if (plantRaw) {
+    plantWelderId = normalizePlantWelderId(plantRaw) ?? "";
+    if (!plantWelderId) {
+      errors.push({
+        excelRow,
+        column: "plant_welder_id",
+        message: "plant_welder_id is invalid. Use W#01 / W#1 / 1 format.",
+      });
+      return null;
+    }
   }
 
   const fullName = str(raw, "full_name");
@@ -208,6 +214,7 @@ function parseWelder(
   const placeOfBirth = str(raw, "place_of_birth");
   const idMethod = str(raw, "id_method");
   const idNumber = str(raw, "id_number");
+  const photoFilename = str(raw, "photo_filename");
 
   const statusRaw = str(raw, "welder_status") ?? "Active";
   if (!WELDER_STATUS_SET.has(statusRaw as WelderStatus)) {
@@ -241,6 +248,7 @@ function parseWelder(
     placeOfBirth,
     idMethod,
     idNumber,
+    photoFilename,
     welderStatus: statusRaw as WelderStatus,
   };
 }
@@ -249,6 +257,7 @@ function parseQualification(
   raw: RawImportRow,
   excelRow: number,
   errors: ImportValidationError[],
+  warnings: ImportWarning[],
 ): QualificationImportFields | null {
   if (!hasAnyQualField(raw)) return null;
 
@@ -388,7 +397,18 @@ function parseQualification(
 
   const method = revalidationMethod as RevalidationMethod;
   const expiryDate = expiryOverride ?? computeExpiry(method, dateOfWelding);
-  const continuityLastVerified = continuityOverride ?? dateOfWelding;
+  const continuityLastVerified = continuityOverride ?? null;
+
+  if (!expiryOverride && dateOfWelding) {
+    warnings.push({
+      excelRow,
+      column: "expiry_date",
+      message:
+        "Expiry estimated from test date and revalidation method — add expiry_date from the certificate if you have it.",
+    });
+  }
+
+  const ndtStatus = wpqStatusFromNdt(resultVt, resultRtUt, resultFracture);
 
   return {
     process,
@@ -408,7 +428,7 @@ function parseQualification(
     resultVt,
     resultRtUt,
     resultFracture,
-    wpqStatus: wpqStatusFromNdt(resultVt, resultRtUt, resultFracture),
+    wpqStatus: resolveWpqStatus(ndtStatus, expiryDate),
   };
 }
 
@@ -418,12 +438,15 @@ export function validateImportRows(
   options: ImportValidationOptions = {},
 ): ImportValidationResult {
   const errors: ImportValidationError[] = [];
+  const warnings: ImportWarning[] = [];
   const rows: ValidatedImportRow[] = [];
 
   const seenGroups = new Map<string, number>();
   const fingerprintByGroup = new Map<string, string>();
 
-  for (const { excelRow, raw: rawInput } of parsed) {
+  const filled = fillForwardWelderFields(parsed);
+
+  for (const { excelRow, raw: rawInput } of filled) {
     // Coerce common real-world encodings (labels, casing, date formats, units)
     // to the canonical codes the validator + dropdowns expect. The normalized
     // map is also what the preview grid renders, so nothing disappears.
@@ -459,7 +482,7 @@ export function validateImportRows(
       fingerprintByGroup.set(groupKey, welderFingerprint(welder));
     }
 
-    const qualification = parseQualification(raw, excelRow, errors);
+    const qualification = parseQualification(raw, excelRow, errors, warnings);
     rows.push({ excelRow, welder, qualification, raw: normalized });
   }
 
@@ -476,6 +499,7 @@ export function validateImportRows(
     ok: errors.length === 0,
     rows,
     errors,
+    warnings,
     summary: {
       totalRows: rows.length,
       welderCount: uniqueWelders.size,

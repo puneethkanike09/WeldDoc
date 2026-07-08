@@ -1,5 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
-import { validateWelderImportUpload } from "@/lib/welders/bulk-import/validate-upload";
+import { extractImportUpload } from "@/lib/welders/bulk-import/extract-upload";
+import {
+  emptyValidateUploadResult,
+  validateWelderImportUpload,
+} from "@/lib/welders/bulk-import/validate-upload";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,11 +29,17 @@ export async function POST(request: Request) {
   }
 
   const formData = await request.formData();
-  const file = formData.get("file");
+  const extracted = await extractImportUpload(formData);
+
+  if (extracted.fileError) {
+    return Response.json(emptyValidateUploadResult(extracted.fileError));
+  }
+
   const result = await validateWelderImportUpload(
-    file instanceof File ? file : null,
+    extracted.excel,
     profile.org_id,
     supabase,
+    extracted.photos,
   );
 
   return Response.json(result);

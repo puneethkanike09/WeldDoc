@@ -1,9 +1,15 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { normalizePlantWelderId } from "@/lib/welders/plant-id";
+import {
+  matchPhotosToWelders,
+  type PhotoFile,
+  type PhotoMatchResult,
+} from "./match-import-photos";
 import { parseImportWorkbook } from "./parse";
 import type {
   ImportValidationError,
   ImportValidationSummary,
+  ImportWarning,
   ValidatedImportRow,
 } from "./types";
 import { validateParsedImport } from "./validate";
@@ -15,15 +21,20 @@ export type ValidateUploadResult = {
   fileError: string | null;
   rows: ValidatedImportRow[];
   errors: ImportValidationError[];
+  warnings: ImportWarning[];
   summary: ImportValidationSummary;
+  photoResults: PhotoMatchResult[];
 };
 
-function emptyResult(fileError: string): ValidateUploadResult {
+export function emptyValidateUploadResult(
+  fileError: string,
+): ValidateUploadResult {
   return {
     ok: false,
     fileError,
     rows: [],
     errors: [],
+    warnings: [],
     summary: {
       totalRows: 0,
       welderCount: 0,
@@ -32,6 +43,7 @@ function emptyResult(fileError: string): ValidateUploadResult {
       qualificationCount: 0,
       errorCount: 0,
     },
+    photoResults: [],
   };
 }
 
@@ -39,20 +51,21 @@ export async function validateWelderImportUpload(
   file: File | null,
   orgId: string,
   supabase: SupabaseClient,
+  photos: PhotoFile[] = [],
 ): Promise<ValidateUploadResult> {
   if (!file || file.size === 0) {
-    return emptyResult("Select an Excel file to upload.");
+    return emptyValidateUploadResult("Select an Excel file to upload.");
   }
 
   if (file.size > MAX_FILE_BYTES) {
-    return emptyResult("File is too large (max 5 MB).");
+    return emptyValidateUploadResult("File is too large (max 5 MB).");
   }
 
   const buffer = await file.arrayBuffer();
   const { rows: parsed, fileError } = parseImportWorkbook(buffer);
 
   if (fileError) {
-    return emptyResult(fileError);
+    return emptyValidateUploadResult(fileError);
   }
 
   const { data: existing } = await supabase
@@ -79,11 +92,15 @@ export async function validateWelderImportUpload(
     welderSeq: org?.welder_seq ?? 0,
   });
 
+  const { results: photoResults } = matchPhotosToWelders(result.rows, photos);
+
   return {
     ok: result.ok,
     fileError: null,
     rows: result.rows,
     errors: result.errors,
+    warnings: result.warnings,
     summary: result.summary,
+    photoResults,
   };
 }

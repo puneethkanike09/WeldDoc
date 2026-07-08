@@ -16,6 +16,7 @@ export interface WelderImportFields {
   placeOfBirth: string | null;
   idMethod: string | null;
   idNumber: string | null;
+  photoFilename: string | null;
   welderStatus: WelderStatus;
 }
 
@@ -33,7 +34,7 @@ export interface QualificationImportFields {
   dateOfWelding: string;
   expiryDate: string;
   revalidationMethod: RevalidationMethod;
-  continuityLastVerified: string;
+  continuityLastVerified: string | null;
   resultVt: TestResult;
   resultRtUt: TestResult;
   resultFracture: TestResult;
@@ -58,6 +59,12 @@ export interface ImportValidationError {
   message: string;
 }
 
+export interface ImportWarning {
+  excelRow?: number;
+  column?: string;
+  message: string;
+}
+
 export interface ImportValidationSummary {
   totalRows: number;
   welderCount: number;
@@ -73,5 +80,6 @@ export interface ImportValidationResult {
   ok: boolean;
   rows: ValidatedImportRow[];
   errors: ImportValidationError[];
+  warnings: ImportWarning[];
   summary: ImportValidationSummary;
 }

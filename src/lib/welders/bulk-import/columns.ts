@@ -7,6 +7,7 @@ export const IMPORT_COLUMNS = [
   "place_of_birth",
   "id_method",
   "id_number",
+  "photo_filename",
   "welder_status",
   "process",
   "joint_type",
@@ -37,6 +38,7 @@ export const WELDER_COLUMN_KEYS = [
   "place_of_birth",
   "id_method",
   "id_number",
+  "photo_filename",
   "welder_status",
 ] as const satisfies readonly ImportColumnKey[];
 
@@ -61,14 +63,18 @@ export const QUAL_COLUMN_KEYS = [
 ] as const satisfies readonly ImportColumnKey[];
 
 /**
- * The slim set of columns shown in the downloadable template and the read-only
- * preview. Everything else (expiry dates, qualified ranges, positions) is
- * computed by WeldDoc, and personal-detail columns are still accepted if
- * present but are not part of the default template.
+ * Columns in the downloadable template and read-only preview. Extra columns in
+ * uploaded files are still accepted via lenient header matching.
  */
 export const TEMPLATE_COLUMNS = [
   "plant_welder_id",
   "full_name",
+  "date_of_birth",
+  "id_method",
+  "id_number",
+  "photo_filename",
+  "email",
+  "welder_status",
   "process",
   "joint_type",
   "position",
@@ -78,12 +84,13 @@ export const TEMPLATE_COLUMNS = [
   "pipe_od_mm",
   "product",
   "date_of_welding",
+  "expiry_date",
+  "continuity_last_verified",
   "revalidation_method",
 ] as const satisfies readonly ImportColumnKey[];
 
 /** Columns that must be present/valid on every row. */
 export const WELDER_REQUIRED_KEYS = [
-  "plant_welder_id",
   "full_name",
 ] as const satisfies readonly ImportColumnKey[];
 

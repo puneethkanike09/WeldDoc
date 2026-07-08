@@ -2,11 +2,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { VISUAL_TEST_METHOD } from "@/lib/iso9606/constants";
 import { resolveJointStorage } from "@/lib/iso9606/product-dimensions";
 import { recomputeWpqRange } from "@/lib/iso9606/recompute-wpq-range";
+import { uploadFile } from "@/lib/storage";
 import {
   assertPlantWelderIdAvailable,
   isUniqueViolation,
   normalizePlantWelderId,
 } from "@/lib/welders/plant-id";
+import type { PhotoFile } from "./match-import-photos";
 import type { ValidatedImportRow, WelderImportFields } from "./types";
 
 export interface CommitImportContext {
@@ -39,15 +41,23 @@ function welderFingerprint(w: WelderImportFields): string {
   ].join("|");
 }
 
+function photoFileAsUpload(photo: PhotoFile): File {
+  return new File([Uint8Array.from(photo.bytes)], photo.filename, {
+    type: photo.mime,
+  });
+}
+
 export async function commitValidatedImport(
   supabase: SupabaseClient,
   ctx: CommitImportContext,
   rows: ValidatedImportRow[],
+  photoMatches?: Map<string, PhotoFile>,
 ): Promise<CommitImportResult> {
   const welderIdByGroup = new Map<string, string>();
   const welderHasQual = new Map<string, boolean>();
   const createdWelderIds: string[] = [];
   const createdWpqIds: string[] = [];
+  const uploadedPhotoPaths: string[] = [];
 
   async function rollback() {
     for (const wpqId of createdWpqIds) {
@@ -55,6 +65,9 @@ export async function commitValidatedImport(
     }
     for (const welderId of createdWelderIds) {
       await supabase.from("welders").delete().eq("id", welderId);
+    }
+    if (uploadedPhotoPaths.length) {
+      await supabase.storage.from("welder-photos").remove(uploadedPhotoPaths);
     }
   }
 
@@ -110,6 +123,17 @@ export async function commitValidatedImport(
 
       await assertPlantWelderIdAvailable(supabase, ctx.orgId, plantWelderId);
 
+      let photoPath: string | null = null;
+      const matchedPhoto = photoMatches?.get(plantWelderId);
+      if (matchedPhoto) {
+        photoPath = await uploadFile(
+          "welder-photos",
+          photoFileAsUpload(matchedPhoto),
+          ctx.orgId,
+        );
+        if (photoPath) uploadedPhotoPaths.push(photoPath);
+      }
+
       const { data: created, error } = await supabase
         .from("welders")
         .insert({
@@ -124,7 +148,7 @@ export async function commitValidatedImport(
           email: welder.email,
           employer: ctx.orgName,
           branch_location: ctx.orgLocation,
-          photo_path: null,
+          photo_path: photoPath,
           status: welder.welderStatus,
           is_new_welder: !welderHasQual.get(groupKey),
           created_by: ctx.userId,
@@ -202,6 +226,23 @@ export async function commitValidatedImport(
 
       createdWpqIds.push(wpq.id);
       await recomputeWpqRange(wpq.id, supabase);
+
+      if (qual.continuityLastVerified) {
+        const { error: valErr } = await supabase
+          .from("validation_records")
+          .insert({
+            org_id: ctx.orgId,
+            wpq_id: wpq.id,
+            validated_on: qual.continuityLastVerified,
+            kind: "continuity",
+            note: "Imported from legacy registry",
+          });
+        if (valErr) {
+          throw new Error(
+            `Failed to seed continuity for row ${row.excelRow}: ${valErr.message}`,
+          );
+        }
+      }
 
       const ndtRows = [
         { method: VISUAL_TEST_METHOD, result: qual.resultVt },

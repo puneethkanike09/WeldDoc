@@ -14,7 +14,11 @@ export function validatedRowToColumns(
 ): Record<ImportColumnKey, string> {
   const out = {} as Record<ImportColumnKey, string>;
   for (const col of IMPORT_COLUMNS) {
-    out[col] = row.raw[col] ?? "";
+    if (col === "photo_filename") {
+      out[col] = row.raw[col] ?? row.welder.photoFilename ?? "";
+    } else {
+      out[col] = row.raw[col] ?? "";
+    }
   }
   return out;
 }
