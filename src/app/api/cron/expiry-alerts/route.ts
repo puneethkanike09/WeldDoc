@@ -143,7 +143,8 @@ export async function GET(request: NextRequest) {
         "id, process, expiry_date, continuity_last_verified, wpq_status, welder_id, revalidation_method",
       )
       .eq("org_id", org.id)
-      .eq("wpq_status", "Approved");
+      .eq("wpq_status", "Approved")
+      .eq("is_active", true);
 
     if (wpqs && wpqs.length > 0) {
       const welderIds = Array.from(new Set(wpqs.map((w) => w.welder_id)));
@@ -218,7 +219,8 @@ export async function GET(request: NextRequest) {
         "id, process, expiry_date, continuity_last_verified, oq_status, operator_id, revalidation_method",
       )
       .eq("org_id", org.id)
-      .eq("oq_status", "Approved");
+      .eq("oq_status", "Approved")
+      .eq("is_active", true);
 
     if (oqs && oqs.length > 0) {
       const operatorIds = Array.from(new Set(oqs.map((o) => o.operator_id)));

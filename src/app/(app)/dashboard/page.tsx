@@ -2,6 +2,7 @@ import { PageHeader } from "@/components/app/page-header";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { orderedDashboardWidgets } from "@/lib/dashboard/widgets";
+import { activeQualifications } from "@/lib/qualification-active";
 import { updateDashboardWidgets } from "@/app/(app)/settings/actions";
 import type {
   Operator,
@@ -38,7 +39,8 @@ export default async function DashboardPage() {
     supabase.from("operator_qualifications").select("*").eq("org_id", org.id),
   ]);
 
-  const wpqs = (wpqRows ?? []) as QualificationRecord[];
+  const allWpqs = (wpqRows ?? []) as QualificationRecord[];
+  const wpqs = activeQualifications(allWpqs);
   const { data: rangeRows } = await supabase
     .from("ranges_of_approval")
     .select("*")
@@ -64,7 +66,7 @@ export default async function DashboardPage() {
         <WelderDashboard
           order={welderOrder}
           welders={(welderRows ?? []) as Welder[]}
-          wpqs={wpqs}
+          wpqs={allWpqs}
           ranges={ranges}
         />
         <OperatorDashboard

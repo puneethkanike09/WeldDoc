@@ -8,6 +8,7 @@ import { ConfirmDeleteButton } from "@/components/app/confirm-delete-button";
 import { ValidationForm } from "@/components/qualify/validation-form";
 import { NdtReportViewer } from "@/components/qualify/ndt-report-viewer";
 import { SignedCertificateForm } from "@/app/(app)/welders/[id]/signed-certificate-form";
+import { QualificationActiveControl } from "@/components/qualify/qualification-active-control";
 import { useStandardPdfDrawer } from "@/components/qualify/iso9606-pdf-drawer";
 import { FileText, Trash2, Workflow } from "lucide-react";
 
@@ -43,6 +44,7 @@ export interface QualProfileDetail {
   daysToExpiry: number | null;
   isMultiProcess?: boolean;
   isLegacy: boolean;
+  isActive: boolean;
   isApproved: boolean;
   hasSignedCertificate: boolean;
   canLogValidation: boolean;
@@ -91,6 +93,7 @@ export function QualificationProfileDetail({
   onDeleteValidation,
   onSaveValidation,
   onUploadSignedCert,
+  onSetQualificationActive,
   continuityLabel,
   certificateHint,
   deleteQualDescription,
@@ -103,6 +106,7 @@ export function QualificationProfileDetail({
   onDeleteValidation: (validationId: string) => Promise<void>;
   onSaveValidation: (fd: FormData) => Promise<void>;
   onUploadSignedCert?: (fd: FormData) => Promise<void>;
+  onSetQualificationActive?: (active: boolean) => Promise<void>;
   continuityLabel: string;
   certificateHint: string;
   deleteQualDescription: string;
@@ -118,12 +122,13 @@ export function QualificationProfileDetail({
     entityKind === "operator" ? "Operator's Certificate" : "Welder's Certificate";
   const certificateSrc = `${apiBase}/certificate?${qualQuery}`;
   const signedCertificateSrc = `${apiBase}/signed-certificate?${qualQuery}`;
+  const showCertificates = selected.isActive && selected.isApproved;
   const hasDocumentList =
-    (selected.isApproved) ||
+    showCertificates ||
     ndtWithReports.length > 0 ||
-    selected.hasSignedCertificate;
+    (selected.isActive && selected.hasSignedCertificate);
   const showDocumentsPanel =
-    hasDocumentList || (selected.isApproved && onUploadSignedCert);
+    hasDocumentList || (showCertificates && onUploadSignedCert);
 
   return (
     <div className="min-w-0 rounded-[var(--radius-card)] border border-silver bg-panel p-6">
@@ -155,7 +160,8 @@ export function QualificationProfileDetail({
         <div className="text-right text-[13px]">
           <p className="text-steel">Expires</p>
           <p className="font-medium text-onyx">{selected.expiry}</p>
-          {selected.daysToExpiry !== null &&
+          {selected.isActive &&
+            selected.daysToExpiry !== null &&
             selected.daysToExpiry >= 0 &&
             selected.daysToExpiry <= 60 && (
               <p className="text-xs text-[#8a6a00]">
@@ -165,27 +171,46 @@ export function QualificationProfileDetail({
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+      {!selected.isActive && (
+        <p className="mt-3 rounded-[10px] bg-frost px-3 py-2 text-[13px] text-steel">
+          This qualification is inactive. It appears here for reference only and
+          is excluded from the master list, ID card, dashboard counts, and expiry
+          alerts.
+        </p>
+      )}
+
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-b border-silver pb-4">
         <ButtonLink href={qualifyHref} variant="ghost" size="sm">
           <Workflow className="h-4 w-4" /> Open workflow
         </ButtonLink>
-        <ConfirmDeleteButton
-          key={selected.id}
-          action={onDeleteQual}
-          title="Delete this qualification?"
-          description={deleteQualDescription}
-          confirmLabel="Delete qualification"
-          trigger={
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="text-ember"
-            >
-              <Trash2 className="h-4 w-4" /> Delete
-            </Button>
-          }
-        />
+        <div className="flex flex-wrap items-center gap-3">
+          {onSetQualificationActive && (
+            <div className="flex items-center gap-2">
+              <span className="text-[13px] text-steel">Status</span>
+              <QualificationActiveControl
+                isActive={selected.isActive}
+                onSetActive={onSetQualificationActive}
+              />
+            </div>
+          )}
+          <ConfirmDeleteButton
+            key={selected.id}
+            action={onDeleteQual}
+            title="Delete this qualification?"
+            description={deleteQualDescription}
+            confirmLabel="Delete qualification"
+            trigger={
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-ember hover:bg-ember/10 hover:text-ember"
+              >
+                <Trash2 className="h-4 w-4" /> Delete
+              </Button>
+            }
+          />
+        </div>
       </div>
 
       <div
@@ -313,7 +338,7 @@ export function QualificationProfileDetail({
 
             {(hasDocumentList) && (
               <ul className="mt-3 space-y-2">
-                {selected.isApproved && (
+                {showCertificates && (
                   <li className="flex items-center justify-between gap-3 rounded-[10px] border border-silver bg-panel px-3 py-2.5 text-[13px]">
                     <span className="font-medium text-onyx">Certificate</span>
                     <DocumentViewButton
@@ -340,7 +365,7 @@ export function QualificationProfileDetail({
                     />
                   </li>
                 ))}
-                {selected.hasSignedCertificate && (
+                {selected.isActive && selected.hasSignedCertificate && (
                   <li className="flex items-center justify-between gap-3 rounded-[10px] border border-silver bg-panel px-3 py-2.5 text-[13px]">
                     <span className="font-medium text-onyx">
                       Signed certificate
@@ -354,7 +379,7 @@ export function QualificationProfileDetail({
               </ul>
             )}
 
-            {selected.isApproved && onUploadSignedCert && (
+            {showCertificates && onUploadSignedCert && (
               <div
                 className={cn(hasDocumentList && "mt-4 border-t border-silver pt-4")}
               >

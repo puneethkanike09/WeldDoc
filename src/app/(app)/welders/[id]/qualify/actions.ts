@@ -656,3 +656,23 @@ export async function uploadSignedCertificate(
 
   revalidatePath(`/welders/${welderId}`);
 }
+
+export async function setWelderQualificationActive(
+  welderId: string,
+  wpqId: string,
+  isActive: boolean,
+) {
+  const { org } = await requireSession();
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("qualification_records")
+    .update({ is_active: isActive })
+    .eq("id", wpqId)
+    .eq("welder_id", welderId)
+    .eq("org_id", org.id);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/welders/${welderId}`);
+}

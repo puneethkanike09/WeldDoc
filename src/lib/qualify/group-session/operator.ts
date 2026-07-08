@@ -112,6 +112,7 @@ export function operatorRecordFromSession(
     signed_certificate_pdf_path: null,
     continuity_last_verified: null,
     expiry_date: null,
+    is_active: existing?.is_active ?? true,
     created_at: "",
   };
 

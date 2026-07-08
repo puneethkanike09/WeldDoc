@@ -192,6 +192,7 @@ export interface QualificationRecord {
   legacy_document_paths: string[];
   continuity_last_verified: string | null;
   expiry_date: string | null;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -322,6 +323,7 @@ export interface OperatorQualification {
   signed_certificate_pdf_path: string | null;
   continuity_last_verified: string | null;
   expiry_date: string | null;
+  is_active: boolean;
   created_at: string;
 }
 

@@ -1,5 +1,6 @@
 import type { QualificationRecord, RangeOfApproval, Welder } from "@/types/db";
 import { daysUntil } from "@/lib/welder-status";
+import { isActiveQualification } from "@/lib/qualification-active";
 import { normalizePlantWelderId } from "@/lib/welders/plant-id";
 import { BW_POSITIONS, FW_POSITIONS, WELDING_PROCESSES } from "./constants";
 import { weldTypeCode } from "./ped-format";
@@ -171,6 +172,7 @@ export function buildIdCardPayload(
   ranges: Map<string, RangeOfApproval>,
 ): IdCardPayload {
   const live = wpqs
+    .filter((q) => isActiveQualification(q))
     .filter((q) => q.wpq_status === "Approved")
     .filter((q) => {
       const d = daysUntil(q.expiry_date);

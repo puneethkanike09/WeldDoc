@@ -17,6 +17,7 @@ import {
   deleteWpq,
   deleteValidation,
   saveValidation,
+  setWelderQualificationActive,
   uploadSignedCertificate,
 } from "./qualify/actions";
 import { Plus } from "lucide-react";
@@ -101,6 +102,9 @@ export function WelderQualifications({
             onSaveValidation={(fd) => saveValidation(welderId, selected.id, fd)}
             onUploadSignedCert={(fd) =>
               uploadSignedCertificate(welderId, selected.id, fd)
+            }
+            onSetQualificationActive={(active) =>
+              setWelderQualificationActive(welderId, selected.id, active)
             }
             continuityLabel="6-month continuity (9.2)"
             certificateHint="After logging continuity, re-download the certificate — the 9.2 prolongation table will include the new date."

@@ -8,6 +8,7 @@ import {
   type DashboardWidgetId,
 } from "@/lib/dashboard/widgets";
 import { summarizeOperator, daysUntil } from "@/lib/operator-status";
+import { activeQualifications, isActiveQualification } from "@/lib/qualification-active";
 import type { Operator, OperatorQualification } from "@/types/db";
 
 export function OperatorDashboard({
@@ -20,8 +21,10 @@ export function OperatorDashboard({
   oqs: OperatorQualification[];
 }) {
   const widgets = new Set(order);
+  const activeOqs = activeQualifications(oqs);
+  const inactiveQuals = oqs.filter((o) => !isActiveQualification(o)).length;
   const oqByOperator = new Map<string, OperatorQualification[]>();
-  for (const o of oqs) {
+  for (const o of activeOqs) {
     const arr = oqByOperator.get(o.operator_id) ?? [];
     arr.push(o);
     oqByOperator.set(o.operator_id, arr);
@@ -36,7 +39,7 @@ export function OperatorDashboard({
     ([name, value]) => ({ name, value }),
   );
 
-  const approved = oqs.filter((o) => o.oq_status === "Approved");
+  const approved = activeOqs.filter((o) => o.oq_status === "Approved");
   const masterCharts = aggregateOperatorMasterCharts(approved);
 
   const expiring = approved
@@ -75,6 +78,18 @@ export function OperatorDashboard({
           label="Active qualifications"
           value={activeQuals}
           hint={`${approved.length} approved on record`}
+        />
+      ),
+    },
+    {
+      id: "kpi_inactive_operator_qualifications",
+      el: (
+        <DashboardStat
+          key="kpi_inactive_operator_qualifications"
+          tone="brand"
+          label="Inactive qualifications"
+          value={inactiveQuals}
+          hint="Hidden from master list and alerts"
         />
       ),
     },

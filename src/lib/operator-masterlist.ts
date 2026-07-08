@@ -6,6 +6,7 @@ import type {
   OperatorRange,
 } from "@/types/db";
 import { isActiveRegistryStatus } from "@/lib/registry-status";
+import { isActiveQualification } from "@/lib/qualification-active";
 
 export interface OperatorMasterRow {
   operatorName: string;
@@ -56,6 +57,7 @@ export async function getOperatorMasterListRows(
   return oqs.flatMap((q) => {
     const operator = operators.get(q.operator_id);
     if (!operator || !isActiveRegistryStatus(operator.status)) return [];
+    if (!isActiveQualification(q)) return [];
 
     const range = ranges.get(q.id);
     return [

@@ -1,5 +1,6 @@
 import type { Operator, OperatorQualification, OqStatus } from "@/types/db";
 import { processLabel } from "@/lib/iso14732/constants";
+import { activeQualifications } from "@/lib/qualification-active";
 import type {
   ProcessStatus,
   QualCounts,
@@ -86,6 +87,7 @@ export function summarizeOperator(
   oqs: OperatorQualification[],
   expiringWindowDays = 30,
 ): OperatorSummary {
+  oqs = activeQualifications(oqs);
   const processes = Array.from(
     new Set(oqs.map((o) => processLabel(o.process))),
   );

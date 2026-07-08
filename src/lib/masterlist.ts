@@ -6,6 +6,7 @@ import type {
   Welder,
 } from "@/types/db";
 import { isActiveRegistryStatus } from "@/lib/registry-status";
+import { isActiveQualification } from "@/lib/qualification-active";
 
 export interface MasterRow {
   welderName: string;
@@ -76,6 +77,7 @@ export async function getMasterListRows(
   return wpqs.flatMap((q) => {
     const welder = welders.get(q.welder_id);
     if (!welder || !isActiveRegistryStatus(welder.status)) return [];
+    if (!isActiveQualification(q)) return [];
 
     const range = ranges.get(q.id);
     return [
