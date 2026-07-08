@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { Globe, RotateCcw, X } from "lucide-react";
+import { ExternalLink, Globe, RotateCcw, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ISO_9606_1, iso9606PdfHref, tr20172PdfHref, tr20173PdfHref, TR_20172, TR_20173, type Iso9606TableKey } from "@/lib/iso9606/standards-reference";
 
@@ -155,6 +155,18 @@ export function StandardPdfDrawerProvider({ children }: { children: ReactNode })
                       <RotateCcw className="size-3.5" aria-hidden />
                       Reset view
                     </button>
+                    {meta?.src ? (
+                      <a
+                        href={meta.src}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Open PDF in new tab"
+                        className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-xs font-medium text-steel hover:bg-frost hover:text-onyx"
+                      >
+                        <ExternalLink className="size-3.5" aria-hidden />
+                        New tab
+                      </a>
+                    ) : null}
                     <button
                       type="button"
                       aria-label="Close reference panel"
