@@ -168,6 +168,7 @@ export function QualificationProfileDetail({
           <Workflow className="h-4 w-4" /> Open workflow
         </ButtonLink>
         <ConfirmDeleteButton
+          key={selected.id}
           action={onDeleteQual}
           title="Delete this qualification?"
           description={deleteQualDescription}
