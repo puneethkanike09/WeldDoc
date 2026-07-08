@@ -53,13 +53,29 @@ function snapshotFromDraft(
   const gradeKey = variant === 1 ? "material_grade" : "material2_grade";
   const groupKey = variant === 1 ? "base_material_group" : "material2_group";
   const standard = draft[stdKey] ?? "";
+  const draftSource = draft[sourceKey];
+  const resolvedSource =
+    draftSource === "Others" ||
+    draftSource === "TR20172" ||
+    draftSource === "TR20173"
+      ? (draftSource as MaterialLookupSource)
+      : inferMaterialLookupSource(standard);
   return {
-    lookupSource:
-      (draft[sourceKey] as MaterialLookupSource | undefined) ??
-      inferMaterialLookupSource(standard),
+    lookupSource: resolvedSource,
     standard,
     grade: draft[gradeKey] ?? "",
     group: draft[groupKey] ?? "",
+  };
+}
+
+function snapshotFromForm(form: HTMLFormElement): MaterialSnapshot {
+  const fd = new FormData(form);
+  return {
+    lookupSource: (fd.get("material_lookup_source")?.toString() ??
+      "") as MaterialSnapshot["lookupSource"],
+    standard: fd.get("material_standard")?.toString() ?? "",
+    grade: fd.get("material_grade")?.toString() ?? "",
+    group: fd.get("base_material_group")?.toString() ?? "",
   };
 }
 
@@ -102,14 +118,21 @@ export function MaterialLookupPair({
     setMaterial1(values);
   }, []);
 
-  const copyMaterial1To2 = useCallback(() => {
-    setMaterial2({ ...material1 });
-    setMaterial2Key((k) => k + 1);
-    onFieldChange?.("material2_specification");
-    onFieldChange?.("material2_grade");
-    onFieldChange?.("material2_group");
-    onFieldChange?.("material2_lookup_source");
-  }, [material1, onFieldChange]);
+  const copyMaterial1To2 = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      const form = e.currentTarget.closest("form");
+      if (!form) return;
+      const snapshot = snapshotFromForm(form);
+      setMaterial1(snapshot);
+      setMaterial2(snapshot);
+      setMaterial2Key((k) => k + 1);
+      onFieldChange?.("material2_specification");
+      onFieldChange?.("material2_grade");
+      onFieldChange?.("material2_group");
+      onFieldChange?.("material2_lookup_source");
+    },
+    [onFieldChange],
+  );
 
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-start">

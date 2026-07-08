@@ -60,6 +60,21 @@ function buildInitialValues(
   return { m1, m2 };
 }
 
+function readBlockValuesFromForm(
+  form: HTMLFormElement,
+  block: MaterialDimensionBlock,
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const key of block.fields) {
+    const name = fieldName(block.material, key);
+    const el = form.elements.namedItem(name);
+    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+      out[name] = el.value;
+    }
+  }
+  return out;
+}
+
 function dimensionFieldGlobe(
   key: DimensionFieldKey,
   jointType: string,
@@ -106,7 +121,7 @@ function DimensionBlock({
         >
           <Input
             name={fieldName(block.material, "freeText")}
-            defaultValue={values[fieldName(block.material, "freeText")] ?? ""}
+            value={values[fieldName(block.material, "freeText")] ?? ""}
             placeholder="Describe test piece dimensions"
             required
             className={cn(
@@ -137,7 +152,7 @@ function DimensionBlock({
                   type="number"
                   step="0.1"
                   name={name}
-                  defaultValue={values[name] ?? ""}
+                  value={values[name] ?? ""}
                   placeholder={
                     key === "thickness"
                       ? "12"
@@ -187,29 +202,40 @@ export function ProductDimensions({
 
   const [m1Values, setM1Values] = useState(initial.m1);
   const [m2Values, setM2Values] = useState(initial.m2);
+  const [m1Key, setM1Key] = useState(0);
   const [m2Key, setM2Key] = useState(0);
 
   useEffect(() => {
     setM1Values(initial.m1);
     setM2Values(initial.m2);
+    setM1Key((k) => k + 1);
     setM2Key((k) => k + 1);
   }, [initial]);
 
-  const copyToMaterial2 = useCallback(() => {
-    if (blocks.length < 2) return;
-    const [b1, b2] = blocks;
-    const next = { ...m2Values };
-    for (const key of b2.fields) {
-      if (b1.fields.includes(key)) {
-        const src = fieldName(1, key);
-        const dst = fieldName(2, key);
-        next[dst] = m1Values[src] ?? "";
-        onFieldChange?.(dst);
+  const copyToMaterial2 = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (blocks.length < 2) return;
+      const form = e.currentTarget.closest("form");
+      if (!form) return;
+
+      const [b1, b2] = blocks;
+      const liveM1 = readBlockValuesFromForm(form, b1);
+      setM1Values((prev) => ({ ...prev, ...liveM1 }));
+
+      const next: Record<string, string> = {};
+      for (const key of b2.fields) {
+        if (b1.fields.includes(key)) {
+          const src = fieldName(1, key);
+          const dst = fieldName(2, key);
+          next[dst] = liveM1[src] ?? "";
+          onFieldChange?.(dst);
+        }
       }
-    }
-    setM2Values(next);
-    setM2Key((k) => k + 1);
-  }, [blocks, m1Values, m2Values, onFieldChange]);
+      setM2Values((prev) => ({ ...prev, ...next }));
+      setM2Key((k) => k + 1);
+    },
+    [blocks, onFieldChange],
+  );
 
   const showCopy = blocks.length === 2;
 
@@ -228,7 +254,13 @@ export function ProductDimensions({
       </div>
 
       {blocks.map((block, index) => (
-        <div key={block.material === 2 ? `m2-${m2Key}` : `m1-${layoutKey}`}>
+        <div
+          key={
+            block.material === 2
+              ? `m2-${m2Key}`
+              : `m1-${layoutKey}-${m1Key}`
+          }
+        >
           {index === 1 && showCopy ? (
             <div className="mb-3 flex justify-center">
               <button
