@@ -131,8 +131,7 @@ test("buildCertRows shows per-process deposited thickness", () => {
   const rows = buildCertRows(baseWpq(), range);
   const deposited = rows.find((r) => r.label === "Deposited thickness (mm)");
   assert.ok(deposited);
-  assert.match(deposited!.test, /8 \(111\)/);
-  assert.match(deposited!.test, /3 \(141\)/);
+  assert.match(deposited!.test, /\(BW\) 8\(111\) & 3\(141\)/);
   assert.match(deposited!.range, /\(111\)/);
   assert.match(deposited!.range, /\(141\)/);
 });

@@ -4,7 +4,7 @@ import type {
   RangeOfApproval,
   Welder,
 } from "@/types/db";
-import { branchDepositedThicknessTest, isBranchQualification } from "@/lib/iso9606/branch-deposited-thickness";
+import { isBranchQualification } from "@/lib/iso9606/branch-deposited-thickness";
 import { formatFilletMaterialRangeText } from "@/lib/range-engine/iso9606";
 import rules from "@/lib/range-engine/iso9606.rules.json";
 import {
@@ -13,6 +13,8 @@ import {
   formatPerProcessDepositedRange,
   formatPerProcessPrefixed,
   formatPerProcessTestValues,
+  formatDepositedThicknessTest,
+  formatMaterialThicknessTest,
   formatPipeOdRange,
   formatPipeOdTest,
   formatThicknessRange,
@@ -243,11 +245,14 @@ export function buildCertRows(
   const materialThickTest = hasSuppFillet
     ? suppEntries
         .map((e) =>
-          e.thickness_mm != null ? `${e.process}: ${e.thickness_mm}` : `${e.process}: —`,
+          formatMaterialThicknessTest(e.thickness_mm, {
+            process:
+              suppEntries.length > 1 || multi ? e.process : undefined,
+          }),
         )
-        .join(" / ")
+        .join(" & ")
     : isFillet && wpq.test_thickness_mm != null
-      ? String(wpq.test_thickness_mm)
+      ? formatMaterialThicknessTest(wpq.test_thickness_mm)
       : "—";
 
   const materialThickRange = isFillet
@@ -284,13 +289,9 @@ export function buildCertRows(
         )
       : positionsRangeText(positions);
 
-  const depositedTest = multi
-    ? formatPerProcessTestValues(slices, (s) =>
-        s.deposited_thickness_mm != null
-          ? String(s.deposited_thickness_mm)
-          : null,
-      )
-    : branchDepositedThicknessTest(wpq);
+  const depositedTest = isFillet
+    ? "—"
+    : formatDepositedThicknessTest(slices);
 
   const depositedRange = isFillet
     ? "NA"

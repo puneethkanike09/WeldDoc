@@ -233,6 +233,29 @@ export function perProcessDepositedRangeText(slice: ProcessSlice): string {
   return formatTable6RangeText(s, slice.process, slice.layer_type);
 }
 
+/** Test piece column — fillet material thickness t (Table 8). */
+export function formatMaterialThicknessTest(
+  thickness: number | null | undefined,
+  opts?: { process?: string | null },
+): string {
+  if (thickness == null) return "—";
+  if (opts?.process) return `${thickness} (FW, ${opts.process})`;
+  return `${thickness} (FW)`;
+}
+
+/** Test piece column — butt deposited thickness s (Table 6), with (BW) prefix. */
+export function formatDepositedThicknessTest(slices: ProcessSlice[]): string {
+  const parts = slices
+    .map((s) => {
+      const v = s.deposited_thickness_mm;
+      if (v == null) return null;
+      return `${v}(${s.process})`;
+    })
+    .filter(Boolean);
+  if (!parts.length) return "—";
+  return `(BW) ${parts.join(" & ")}`;
+}
+
 /** Test column: `3 (141) & 8 (111)` when two processes differ. */
 export function formatPerProcessTestValues(
   slices: ProcessSlice[],
