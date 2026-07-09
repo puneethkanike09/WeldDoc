@@ -9,6 +9,7 @@ import {
   normalizePlantWelderId,
 } from "@/lib/welders/plant-id";
 import type { PhotoFile } from "./match-import-photos";
+import { collectValidationRecordsForImport } from "./parse-history";
 import type { ValidatedImportRow, WelderImportFields } from "./types";
 
 export interface CommitImportContext {
@@ -227,19 +228,20 @@ export async function commitValidatedImport(
       createdWpqIds.push(wpq.id);
       await recomputeWpqRange(wpq.id, supabase);
 
-      if (qual.continuityLastVerified) {
-        const { error: valErr } = await supabase
-          .from("validation_records")
-          .insert({
+      const validationRecords = collectValidationRecordsForImport(qual);
+      if (validationRecords.length > 0) {
+        const { error: valErr } = await supabase.from("validation_records").insert(
+          validationRecords.map((record) => ({
             org_id: ctx.orgId,
             wpq_id: wpq.id,
-            validated_on: qual.continuityLastVerified,
-            kind: "continuity",
+            validated_on: record.validatedOn,
+            kind: record.kind,
             note: "Imported from legacy registry",
-          });
+          })),
+        );
         if (valErr) {
           throw new Error(
-            `Failed to seed continuity for row ${row.excelRow}: ${valErr.message}`,
+            `Failed to seed validation history for row ${row.excelRow}: ${valErr.message}`,
           );
         }
       }

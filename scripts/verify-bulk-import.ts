@@ -8,6 +8,10 @@ import {
 } from "../src/lib/welders/bulk-import/template";
 import { matchPhotosToWelders } from "../src/lib/welders/bulk-import/match-import-photos";
 import { validateImportRows } from "../src/lib/welders/bulk-import/validate";
+import {
+  collectValidationRecordsForImport,
+  parseDateHistory,
+} from "../src/lib/welders/bulk-import/parse-history";
 
 function test(name: string, fn: () => void) {
   try {
@@ -68,6 +72,8 @@ test("template includes expiry_date, continuity_last_verified, photo_filename in
   const header = rows[0] as string[];
   assert.ok(header.includes("expiry_date"));
   assert.ok(header.includes("continuity_last_verified"));
+  assert.ok(header.includes("continuity_history"));
+  assert.ok(header.includes("revalidation_history"));
   assert.ok(header.includes("photo_filename"));
 });
 
@@ -470,6 +476,227 @@ test("missing expiry_date emits estimate warning", () => {
   assert.equal(r.warnings.length, 1);
   assert.equal(r.warnings[0].column, "expiry_date");
   assert.ok(r.warnings[0].message.includes("Expiry estimated"));
+});
+
+console.log("\nValidation history\n");
+
+test("parses continuity_history semicolon-separated dates", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          ...baseWelderRaw(),
+          ...qualRaw({
+            continuity_history:
+              "2020-01-15;2020-07-15;2021-01-15;2025-12-01",
+            continuity_last_verified: "2025-12-01",
+          }),
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  assert.deepEqual(r.rows[0].qualification?.continuityHistory, [
+    "2020-01-15",
+    "2020-07-15",
+    "2021-01-15",
+    "2025-12-01",
+  ]);
+});
+
+test("parses comma-separated history dates", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          ...baseWelderRaw(),
+          ...qualRaw({
+            continuity_history: "2020-01-15, 2020-07-15",
+          }),
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  assert.deepEqual(r.rows[0].qualification?.continuityHistory, [
+    "2020-01-15",
+    "2020-07-15",
+  ]);
+  assert.equal(
+    r.rows[0].qualification?.continuityLastVerified,
+    "2020-07-15",
+  );
+});
+
+test("rejects invalid date in continuity_history", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          ...baseWelderRaw(),
+          ...qualRaw({ continuity_history: "2020-01-15;not-a-date" }),
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, false);
+  assert.ok(
+    r.errors.some((e) => e.column === "continuity_history"),
+  );
+});
+
+test("dedupes continuity_history dates", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          ...baseWelderRaw(),
+          ...qualRaw({
+            continuity_history: "2020-01-15;2020-01-15;2021-01-15",
+          }),
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  assert.deepEqual(r.rows[0].qualification?.continuityHistory, [
+    "2020-01-15",
+    "2021-01-15",
+  ]);
+});
+
+test("warns when continuity_last_verified mismatches latest history date", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          ...baseWelderRaw(),
+          ...qualRaw({
+            continuity_history: "2020-01-15;2021-01-15",
+            continuity_last_verified: "2025-12-01",
+          }),
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  assert.ok(
+    r.warnings.some(
+      (w) =>
+        w.column === "continuity_last_verified" &&
+        w.message.includes("differs from the latest date"),
+    ),
+  );
+});
+
+test("parses revalidation_history dates", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          ...baseWelderRaw(),
+          ...qualRaw({
+            revalidation_history: "2021-06-10;2023-06-10",
+          }),
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  assert.deepEqual(r.rows[0].qualification?.revalidationHistory, [
+    "2021-06-10",
+    "2023-06-10",
+  ]);
+});
+
+test("collectValidationRecordsForImport merges continuity snapshot and history", () => {
+  const records = collectValidationRecordsForImport({
+    continuityLastVerified: "2025-12-01",
+    continuityHistory: ["2020-01-15", "2021-01-15", "2025-12-01"],
+    revalidationHistory: ["2021-06-10", "2023-06-10"],
+  });
+  assert.equal(
+    records.filter((r) => r.kind === "continuity").length,
+    3,
+  );
+  assert.equal(
+    records.filter((r) => r.kind === "revalidation").length,
+    2,
+  );
+  assert.ok(
+    records.some(
+      (r) => r.kind === "continuity" && r.validatedOn === "2025-12-01",
+    ),
+  );
+});
+
+test("collectValidationRecordsForImport uses only last verified when no history", () => {
+  const records = collectValidationRecordsForImport({
+    continuityLastVerified: "2025-12-01",
+    continuityHistory: [],
+    revalidationHistory: [],
+  });
+  assert.deepEqual(records, [
+    { validatedOn: "2025-12-01", kind: "continuity" },
+  ]);
+});
+
+test("parseDateHistory sorts dates chronologically", () => {
+  const errors: Array<{ excelRow: number; column?: string; message: string }> =
+    [];
+  const dates = parseDateHistory(
+    "2021-01-15;2020-01-15",
+    "continuity_history",
+    2,
+    errors,
+  );
+  assert.equal(errors.length, 0);
+  assert.deepEqual(dates, ["2020-01-15", "2021-01-15"]);
+});
+
+test("legacy Rajesh example imports full validation history fields", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          plant_welder_id: "W#15",
+          full_name: "Rajesh",
+          process: "135",
+          joint_type: "BW",
+          position: "PF",
+          base_material_group: "1",
+          test_thickness_mm: "12",
+          product: "Plate",
+          date_of_welding: "2019-06-10",
+          expiry_date: "2026-03-01",
+          continuity_last_verified: "2025-12-01",
+          continuity_history:
+            "2019-12-01;2020-06-01;2021-06-01;2023-06-01;2025-12-01",
+          revalidation_history: "2021-06-10;2023-06-10",
+          revalidation_method: "9.3a",
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  assert.equal(r.rows[0].qualification?.continuityHistory.length, 5);
+  assert.equal(r.rows[0].qualification?.revalidationHistory.length, 2);
+  const records = collectValidationRecordsForImport(r.rows[0].qualification!);
+  assert.equal(records.length, 7);
 });
 
 console.log("\nPhoto matching\n");

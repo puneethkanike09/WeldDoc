@@ -67,6 +67,9 @@ export function getImportFieldKind(column: ImportColumnKey): ImportFieldKind {
     case "expiry_date":
     case "continuity_last_verified":
       return { type: "date" };
+    case "continuity_history":
+    case "revalidation_history":
+      return { type: "text" };
     case "test_thickness_mm":
     case "deposited_thickness_mm":
     case "pipe_od_mm":

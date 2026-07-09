@@ -23,6 +23,8 @@ export const IMPORT_COLUMNS = [
   "expiry_date",
   "revalidation_method",
   "continuity_last_verified",
+  "continuity_history",
+  "revalidation_history",
   "result_vt",
   "result_rt_ut",
   "result_fracture",
@@ -57,6 +59,8 @@ export const QUAL_COLUMN_KEYS = [
   "expiry_date",
   "revalidation_method",
   "continuity_last_verified",
+  "continuity_history",
+  "revalidation_history",
   "result_vt",
   "result_rt_ut",
   "result_fracture",
@@ -86,6 +90,8 @@ export const TEMPLATE_COLUMNS = [
   "date_of_welding",
   "expiry_date",
   "continuity_last_verified",
+  "continuity_history",
+  "revalidation_history",
   "revalidation_method",
 ] as const satisfies readonly ImportColumnKey[];
 

@@ -72,6 +72,9 @@ const EXAMPLE_ROWS = [
     date_of_welding: "2019-06-10",
     expiry_date: "2026-03-01",
     continuity_last_verified: "2025-12-01",
+    continuity_history:
+      "2019-12-01;2020-06-01;2021-06-01;2023-06-01;2025-12-01",
+    revalidation_history: "2021-06-10;2023-06-10",
     revalidation_method: "9.3a",
   },
 ];

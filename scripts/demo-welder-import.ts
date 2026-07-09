@@ -52,6 +52,9 @@ function buildDemoWorkbook() {
       date_of_welding: "2019-06-10",
       expiry_date: "2026-03-01",
       continuity_last_verified: "2025-12-01",
+      continuity_history:
+        "2019-12-01;2020-06-01;2021-06-01;2023-06-01;2025-12-01",
+      revalidation_history: "2021-06-10;2023-06-10",
       revalidation_method: "9.3a",
     },
     {
@@ -71,6 +74,7 @@ function buildDemoWorkbook() {
       date_of_welding: "2024-11-15",
       expiry_date: "2026-11-15",
       continuity_last_verified: "2026-01-10",
+      continuity_history: "2025-05-15;2025-11-15;2026-01-10",
       revalidation_method: "9.3b",
     },
     {
@@ -338,11 +342,12 @@ async function main() {
         .from("validation_records")
         .select("kind, validated_on, note")
         .eq("wpq_id", wpqs[0].id)
-        .limit(1);
-      if (vrec?.[0]) {
-        console.log(
-          `    continuity log: ${vrec[0].kind} on ${vrec[0].validated_on} — ${vrec[0].note}`,
-        );
+        .order("validated_on", { ascending: true });
+      if (vrec?.length) {
+        console.log(`    validation history (${vrec.length} records):`);
+        for (const v of vrec) {
+          console.log(`      ${v.kind} on ${v.validated_on}`);
+        }
       }
     }
   }

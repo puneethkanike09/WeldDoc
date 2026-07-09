@@ -35,6 +35,8 @@ export interface QualificationImportFields {
   expiryDate: string;
   revalidationMethod: RevalidationMethod;
   continuityLastVerified: string | null;
+  continuityHistory: string[];
+  revalidationHistory: string[];
   resultVt: TestResult;
   resultRtUt: TestResult;
   resultFracture: TestResult;

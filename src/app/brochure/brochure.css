@@ -164,7 +164,7 @@
 
 /* Logo */
 .brochure-logo-img {
-  height: 34px;
+  height: 74px;
   width: auto;
   display: block;
 }
@@ -726,10 +726,10 @@
   flex-shrink: 0;
 }
 .brochure-footer-logo {
-  height: 28px;
+  height: 52px;
   width: auto;
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
 }
 .brochure-contact-line { margin: 0; font-size: 11.5px; line-height: 1.6; color: rgb(255 255 255 / 0.70); }
 .brochure-contact-cta  { text-align: right; }

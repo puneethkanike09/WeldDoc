@@ -289,6 +289,23 @@ export function coerceNumber(value: string): string | null {
 
 type Coercer = (value: string) => string | null;
 
+/** Coerce semicolon- or comma-separated dates to canonical ISO list. */
+export function coerceDateHistory(value: string): string | null {
+  const parts = value
+    .split(/[;,]/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  if (!parts.length) return null;
+
+  const out: string[] = [];
+  for (const part of parts) {
+    const d = coerceDate(part);
+    if (!d) return null;
+    out.push(d);
+  }
+  return out.join(";");
+}
+
 const COERCERS: Partial<Record<ImportColumnKey, Coercer>> = {
   welder_status: coerceStatus,
   process: coerceProcess,
@@ -306,6 +323,8 @@ const COERCERS: Partial<Record<ImportColumnKey, Coercer>> = {
   date_of_welding: coerceDate,
   expiry_date: coerceDate,
   continuity_last_verified: coerceDate,
+  continuity_history: coerceDateHistory,
+  revalidation_history: coerceDateHistory,
   result_vt: coerceNdt,
   result_rt_ut: coerceNdt,
   result_fracture: coerceNdt,

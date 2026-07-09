@@ -15,6 +15,7 @@ import { isValidEmailFormat, normalizeOptionalEmail } from "@/lib/utils";
 import { QUAL_REQUIRED_KEYS } from "./columns";
 import { fillForwardWelderFields } from "./fill-forward";
 import { normalizeRawRow } from "./normalize";
+import { parseDateHistory } from "./parse-history";
 import type {
   ImportValidationError,
   ImportValidationResult,
@@ -369,6 +370,18 @@ function parseQualification(
     excelRow,
     errors,
   );
+  const continuityHistory = parseDateHistory(
+    str(raw, "continuity_history"),
+    "continuity_history",
+    excelRow,
+    errors,
+  );
+  const revalidationHistory = parseDateHistory(
+    str(raw, "revalidation_history"),
+    "revalidation_history",
+    excelRow,
+    errors,
+  );
 
   if (dateOfWelding && expiryOverride && expiryOverride < dateOfWelding) {
     errors.push({
@@ -397,7 +410,24 @@ function parseQualification(
 
   const method = revalidationMethod as RevalidationMethod;
   const expiryDate = expiryOverride ?? computeExpiry(method, dateOfWelding);
-  const continuityLastVerified = continuityOverride ?? null;
+  let continuityLastVerified = continuityOverride ?? null;
+
+  if (!continuityLastVerified && continuityHistory.length > 0) {
+    continuityLastVerified = continuityHistory[continuityHistory.length - 1];
+  }
+
+  if (
+    continuityOverride &&
+    continuityHistory.length > 0 &&
+    continuityOverride !== continuityHistory[continuityHistory.length - 1]
+  ) {
+    warnings.push({
+      excelRow,
+      column: "continuity_last_verified",
+      message:
+        "continuity_last_verified differs from the latest date in continuity_history — both will be imported; snapshot uses continuity_last_verified.",
+    });
+  }
 
   if (!expiryOverride && dateOfWelding) {
     warnings.push({
@@ -425,6 +455,8 @@ function parseQualification(
     expiryDate,
     revalidationMethod: method,
     continuityLastVerified,
+    continuityHistory,
+    revalidationHistory,
     resultVt,
     resultRtUt,
     resultFracture,
