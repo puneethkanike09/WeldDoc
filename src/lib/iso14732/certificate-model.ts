@@ -15,6 +15,7 @@ export interface OperatorCertificateData {
   range: OperatorRange | null;
   certNo: string;
   photoUrl: string | null;
+  logoUrl: string | null;
 }
 
 function rangePhrase(

@@ -120,6 +120,8 @@ export async function GET(
 
   const photoUrl = await resolveUrl("welder-photos", op.photo_path);
 
+  const logoUrl = await resolveUrl("org-assets", (org as Organization).logo_path);
+
   const certNo = `OQ-${(oq as OperatorQualification).id.slice(0, 8).toUpperCase()}`;
 
 
@@ -141,6 +143,8 @@ export async function GET(
         certNo,
 
         photoUrl,
+
+        logoUrl,
 
       }}
 

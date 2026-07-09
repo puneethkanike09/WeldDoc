@@ -1,4 +1,5 @@
 import type { DashboardWidgetsConfig } from "@/lib/dashboard/widgets";
+import type { CertificateBranding } from "@/lib/certificate/branding";
 
 export type WelderStatus = "Active" | "Inactive" | "Suspended";
 export type WeldingStandard = "ISO_9606_1" | "ASME_IX" | "AWS_D1_1" | "ISO_14732";
@@ -80,6 +81,7 @@ export interface Organization {
   alert_email_frequency: AlertEmailFrequency;
   alert_email_time: string;
   alert_email_timezone: string;
+  certificate_branding: CertificateBranding;
   dashboard_widgets: DashboardWidgetsConfig | null;
   created_at: string;
 }

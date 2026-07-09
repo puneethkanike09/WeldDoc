@@ -14,6 +14,10 @@ import {
   type AnnexCVariableRow,
   type CertTableRow,
 } from "@/lib/iso14732/certificate-annex";
+import {
+  operatorCertificateLocationText,
+} from "@/lib/certificate/branding";
+import { CertificateBrandingHeader } from "@/lib/pdf/certificate-branding-header";
 
 const HAIR = 0.75;
 const BORDER = COLORS.charcoal;
@@ -318,11 +322,15 @@ export function OperatorCertificateDocument({
 }: {
   data: OperatorCertificateData;
 }) {
-  const { org, operator, oq, photoUrl } = data;
+  const { org, operator, oq, photoUrl, logoUrl } = data;
   const variableRows = buildAnnexCVariableRows(oq);
   const checks = clause4MethodChecks(oq);
   const techOk = oq.welding_technology_knowledge === "Acceptable";
   const issueDate = fmt(oq.certificate_issued_date ?? oq.date_of_welding);
+  const headerLocation = operatorCertificateLocationText(
+    oq.employer_branch,
+    org.location_code,
+  );
 
   return (
     <Document
@@ -346,6 +354,13 @@ export function OperatorCertificateDocument({
             padding: 10,
           }}
         >
+          <CertificateBrandingHeader
+            branding={org.certificate_branding}
+            orgName={org.name}
+            locationText={headerLocation}
+            logoUrl={logoUrl ?? null}
+          />
+
           <Text
             style={{
               fontSize: 9,

@@ -19,6 +19,8 @@ import {
   type CertTableRow,
 } from "@/lib/iso9606/certificate-annex";
 import { hasAnySupplementaryFillet } from "@/lib/iso9606/supplementary-fillet";
+import { certificateLocationText } from "@/lib/certificate/branding";
+import { CertificateBrandingHeader } from "@/lib/pdf/certificate-branding-header";
 import type {
   NdtDtRecord,
   Organization,
@@ -263,38 +265,22 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
             padding: 10,
           }}
         >
-          {logoUrl ? (
-            // eslint-disable-next-line jsx-a11y/alt-text
-            <Image
-              src={logoUrl}
-              style={{
-                height: 28,
-                objectFit: "contain",
-                alignSelf: "center",
-                marginBottom: 4,
-              }}
-            />
-          ) : null}
+          <CertificateBrandingHeader
+            branding={org.certificate_branding}
+            orgName={org.name}
+            locationText={certificateLocationText(
+              welder.branch_location,
+              org.location_code,
+            )}
+            logoUrl={logoUrl}
+          />
 
           <View style={{ alignItems: "center", marginBottom: 5 }}>
             <Text
               style={{
                 fontFamily: "Helvetica-Bold",
-                fontSize: 13,
-                color: COLORS.onyx,
-              }}
-            >
-              {org.name}
-            </Text>
-            <Text style={{ fontSize: 8, color: COLORS.graphite }}>
-              {welder.branch_location || org.location_code || "Manufacturing Plant"}
-            </Text>
-            <Text
-              style={{
-                fontFamily: "Helvetica-Bold",
                 fontSize: 10,
                 color: COLORS.onyx,
-                marginTop: 3,
                 textDecoration: "underline",
               }}
             >

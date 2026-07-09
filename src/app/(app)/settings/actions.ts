@@ -15,6 +15,7 @@ import {
   parseAlertEmailTime,
   parseAlertEmailTimezone,
 } from "@/lib/expiry-alerts/send-time";
+import { parseCertificateBrandingFromForm } from "@/lib/certificate/branding";
 
 function str(v: FormDataEntryValue | null): string | null {
   const s = typeof v === "string" ? v.trim() : "";
@@ -36,6 +37,7 @@ export async function updateOrgSettings(formData: FormData) {
     name: str(formData.get("name")) ?? org.name,
     location_code: str(formData.get("location_code")),
     report_prefix: str(formData.get("report_prefix")) ?? org.report_prefix,
+    certificate_branding: parseCertificateBrandingFromForm(formData),
   };
   if (logoPath) update.logo_path = logoPath;
 
