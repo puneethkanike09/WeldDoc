@@ -9,6 +9,11 @@ import { ValidationForm } from "@/components/qualify/validation-form";
 import { NdtReportViewer } from "@/components/qualify/ndt-report-viewer";
 import { SignedCertificateForm } from "@/app/(app)/welders/[id]/signed-certificate-form";
 import { QualificationActiveControl } from "@/components/qualify/qualification-active-control";
+import {
+  certificateExpiryHeading,
+  continuityExpiryHeading,
+  continuityExpiryTone,
+} from "@/lib/qualify/expiry-display";
 import { useStandardPdfDrawer } from "@/components/qualify/iso9606-pdf-drawer";
 import { FileText, Trash2, Workflow } from "lucide-react";
 
@@ -42,6 +47,8 @@ export interface QualProfileDetail {
   statusTone: BadgeTone;
   expiry: string;
   daysToExpiry: number | null;
+  continuityDue: string | null;
+  daysToContinuityDue: number | null;
   isMultiProcess?: boolean;
   isLegacy: boolean;
   isActive: boolean;
@@ -157,17 +164,61 @@ export function QualificationProfileDetail({
             </p>
           )}
         </div>
-        <div className="text-right text-[13px]">
-          <p className="text-steel">Expires</p>
-          <p className="font-medium text-onyx">{selected.expiry}</p>
-          {selected.isActive &&
-            selected.daysToExpiry !== null &&
-            selected.daysToExpiry >= 0 &&
-            selected.daysToExpiry <= 60 && (
-              <p className="text-xs text-[#8a6a00]">
-                in {selected.daysToExpiry} days
+        <div className="space-y-3 text-right text-[13px]">
+          <div>
+            <p className="text-steel">
+              {certificateExpiryHeading(
+                selected.statusTone,
+                selected.daysToExpiry,
+              )}
+            </p>
+            <p className="font-medium text-onyx">{selected.expiry}</p>
+            {selected.isActive &&
+              selected.daysToExpiry !== null &&
+              selected.daysToExpiry >= 0 &&
+              selected.daysToExpiry <= 60 && (
+                <p className="text-xs text-[#8a6a00]">
+                  in {selected.daysToExpiry} days
+                </p>
+              )}
+          </div>
+          {selected.continuityDue ? (
+            <div>
+              <p
+                className={cn(
+                  continuityExpiryTone(selected.daysToContinuityDue) === "danger"
+                    ? "text-ember"
+                    : continuityExpiryTone(selected.daysToContinuityDue) ===
+                        "warning"
+                      ? "text-[#8a6a00]"
+                      : "text-steel",
+                )}
+              >
+                {continuityExpiryHeading(selected.daysToContinuityDue)}
               </p>
-            )}
+              <p
+                className={cn(
+                  "font-medium",
+                  continuityExpiryTone(selected.daysToContinuityDue) === "danger"
+                    ? "text-ember"
+                    : continuityExpiryTone(selected.daysToContinuityDue) ===
+                        "warning"
+                      ? "text-[#8a6a00]"
+                      : "text-onyx",
+                )}
+              >
+                {selected.continuityDue}
+              </p>
+              {selected.isActive &&
+                selected.daysToContinuityDue !== null &&
+                selected.daysToContinuityDue >= 0 &&
+                selected.daysToContinuityDue <= 60 && (
+                  <p className="text-xs text-[#8a6a00]">
+                    in {selected.daysToContinuityDue} days
+                  </p>
+                )}
+            </div>
+          ) : null}
         </div>
       </div>
 

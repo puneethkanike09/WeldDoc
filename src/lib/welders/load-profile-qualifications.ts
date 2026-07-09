@@ -36,6 +36,9 @@ function welderQualListItem(q: QualificationRecord): QualListItem {
     ? POSITION_LABELS[q.position] ?? q.position
     : "—";
   const inactive = !isActiveQualification(q);
+  const continuityDueIso = q.continuity_last_verified
+    ? continuityDue(q.continuity_last_verified)
+    : null;
   return {
     id: q.id,
     title: `${qualificationProcessLabel(q.process, q.process_2)} · ${
@@ -47,6 +50,8 @@ function welderQualListItem(q: QualificationRecord): QualListItem {
     statusTone: inactive ? "neutral" : (WPQ_TONE[q.wpq_status] ?? "neutral"),
     expiry: formatDate(q.expiry_date),
     daysToExpiry: daysUntil(q.expiry_date),
+    continuityDue: continuityDueIso ? formatDate(continuityDueIso) : null,
+    daysToContinuityDue: continuityDueIso ? daysUntil(continuityDueIso) : null,
   };
 }
 

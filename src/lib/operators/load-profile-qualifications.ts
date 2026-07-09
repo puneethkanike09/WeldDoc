@@ -33,6 +33,9 @@ const OQ_TONE: Record<
 
 function operatorQualListItem(q: OperatorQualification): QualListItem {
   const inactive = !isActiveQualification(q);
+  const continuityDueIso = q.continuity_last_verified
+    ? operatorContinuityDue(q.continuity_last_verified)
+    : null;
   return {
     id: q.id,
     title: [processLabel(q.process), q.welding_mode, q.product_type]
@@ -43,6 +46,8 @@ function operatorQualListItem(q: OperatorQualification): QualListItem {
     statusTone: inactive ? "neutral" : (OQ_TONE[q.oq_status] ?? "neutral"),
     expiry: formatDate(q.expiry_date),
     daysToExpiry: daysUntil(q.expiry_date),
+    continuityDue: continuityDueIso ? formatDate(continuityDueIso) : null,
+    daysToContinuityDue: continuityDueIso ? daysUntil(continuityDueIso) : null,
   };
 }
 

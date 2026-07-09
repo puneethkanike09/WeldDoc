@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { QualListItemSkeleton } from "@/components/app/skeletons";
 import { cn } from "@/lib/utils";
+import {
+  certificateExpiryHeading,
+  continuityExpiryHeading,
+  continuityExpiryTone,
+} from "@/lib/qualify/expiry-display";
 import { ButtonLink } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import type { QualProfileDetail } from "@/components/qualify/qualification-profile-detail";
@@ -16,6 +21,8 @@ export type QualListItem = Pick<
   | "statusTone"
   | "expiry"
   | "daysToExpiry"
+  | "continuityDue"
+  | "daysToContinuityDue"
   | "isMultiProcess"
 >;
 
@@ -140,7 +147,8 @@ export function QualificationSidebar({
                   </div>
                   <p className="mt-0.5 truncate text-xs text-steel">{q.subtitle}</p>
                   <p className="mt-1 text-xs text-graphite">
-                    Expires {q.expiry}
+                    {certificateExpiryHeading(q.statusTone, q.daysToExpiry)}{" "}
+                    {q.expiry}
                     {q.daysToExpiry !== null &&
                       q.daysToExpiry >= 0 &&
                       q.daysToExpiry <= 60 && (
@@ -149,6 +157,27 @@ export function QualificationSidebar({
                         </span>
                       )}
                   </p>
+                  {q.continuityDue ? (
+                    <p
+                      className={cn(
+                        "mt-0.5 text-xs",
+                        continuityExpiryTone(q.daysToContinuityDue) === "danger"
+                          ? "text-ember"
+                          : continuityExpiryTone(q.daysToContinuityDue) ===
+                              "warning"
+                            ? "text-[#8a6a00]"
+                            : "text-graphite",
+                      )}
+                    >
+                      {continuityExpiryHeading(q.daysToContinuityDue)}{" "}
+                      {q.continuityDue}
+                      {q.daysToContinuityDue !== null &&
+                        q.daysToContinuityDue >= 0 &&
+                        q.daysToContinuityDue <= 60 && (
+                          <span className="ml-1">· {q.daysToContinuityDue}d</span>
+                        )}
+                    </p>
+                  ) : null}
                 </Link>
               </li>
             );
