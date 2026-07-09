@@ -121,7 +121,7 @@ export function StandardsHub({ userName }: { userName: string }) {
         description={`${greeting(firstName)} · reference library for qualification standards and PDFs`}
       />
 
-      <div className="grid gap-5 px-8 py-8 sm:grid-cols-2">
+      <div className="page-content grid gap-5 sm:grid-cols-2">
         {WELDING_STANDARDS_CATALOG.map((entry) => (
           <StandardCard key={entry.slug} entry={entry} onViewPdf={viewPdf} />
         ))}

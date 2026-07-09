@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
 import { Badge } from "@/components/ui/badge";
 import { MasterListExportButton } from "@/components/masterlist/masterlist-export-button";
+import { TableScrollArea } from "@/components/ui/table-scroll-area";
 import { formatDate } from "@/lib/utils";
 import { MASTER_COLUMNS, type MasterRow } from "@/lib/masterlist";
 import { Search } from "lucide-react";
@@ -99,7 +100,7 @@ export function WelderMasterTable({ rows }: { rows: MasterRow[] }) {
         </div>
       </div>
 
-      <div className="mt-5 overflow-x-auto overflow-y-clip overscroll-y-auto rounded-[var(--radius-card)] border border-silver bg-panel">
+      <TableScrollArea className="mt-5">
         <table className="w-full min-w-[1100px] text-left text-[13px]">
           <thead>
             <tr className="border-b border-silver bg-frost text-[11px] uppercase tracking-wide text-steel">
@@ -159,7 +160,7 @@ export function WelderMasterTable({ rows }: { rows: MasterRow[] }) {
             )}
           </tbody>
         </table>
-      </div>
+      </TableScrollArea>
       <p className="mt-3 text-sm text-steel">
         {filtered.length} of {rows.length} qualification records
       </p>

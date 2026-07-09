@@ -8,7 +8,7 @@ export default function DashboardLoading() {
   return (
     <div role="status" aria-label="Loading dashboard">
       <PageHeaderSkeleton />
-      <div className="space-y-6 px-8 py-8">
+      <div className="page-content space-y-6">
         {/* KPI cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }, (_, i) => (

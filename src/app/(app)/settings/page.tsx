@@ -26,7 +26,7 @@ export default async function SettingsPage({
         title="Settings"
         description="Organisation details and appearance."
       />
-      <div className="px-8 py-8">
+      <div className="page-content">
         <SettingsTabs
           initialTab={parseSettingsTab(tab)}
           organisation={

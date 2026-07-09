@@ -182,7 +182,7 @@ export function OperatorDashboard({
   ).map((e) => e.el);
 
   return (
-    <div className="space-y-6 px-8 py-8">
+    <div className="page-content space-y-6">
       {kpiItems.length > 0 ? (
         <div className={kpiGridClass(kpiItems.length)}>{kpiItems}</div>
       ) : null}

@@ -25,7 +25,7 @@ export default async function NewOperatorPage() {
         title="Add operator"
         description="Create a permanent operator profile. Plant operator ID and QR code are issued automatically."
       />
-      <div className="px-8 py-8">
+      <div className="page-content">
         <Link
           href="/operators"
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-graphite hover:text-onyx"

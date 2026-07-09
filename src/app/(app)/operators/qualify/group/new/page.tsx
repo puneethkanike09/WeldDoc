@@ -34,7 +34,7 @@ export default async function NewOperatorGroupSessionPage() {
         title="New group session"
         description="Select existing operators and/or register new operators for a shared ISO 14732 qualification."
       />
-      <div className="px-8 py-8">
+      <div className="page-content">
         <Link
           href="/operators"
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-graphite hover:text-onyx"

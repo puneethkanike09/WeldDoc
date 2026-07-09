@@ -45,7 +45,7 @@ export default async function WelderGroupSessionsPage() {
       >
         <NewGroupSessionButton href={`${baseHref}/new`} />
       </PageHeader>
-      <div className="px-8 py-8">
+      <div className="page-content">
         <GroupSessionsList
           sessions={(sessions ?? []) as QualificationSession[]}
           countBySession={countBySession}

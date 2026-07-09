@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { RegistryListFilters } from "@/components/app/registry-list-filters";
 import { RegistryListPagination } from "@/components/app/registry-list-pagination";
+import { TableScrollArea } from "@/components/ui/table-scroll-area";
 import { formatDate } from "@/lib/utils";
 import { STATUS_TONE } from "@/lib/welder-status";
 import type { WelderRow } from "@/lib/welders/registry-row";
@@ -35,7 +36,7 @@ export function WeldersTable({
   processOptions: string[];
 }) {
   return (
-    <div>
+    <div className="min-w-0">
       <RegistryListFilters
         basePath="/welders"
         q={q}
@@ -46,8 +47,8 @@ export function WeldersTable({
         pendingClassName="opacity-60"
       />
 
-      <div className="mt-5 overflow-hidden rounded-[var(--radius-card)] border border-silver bg-panel">
-        <table className="w-full text-left text-[14px]">
+      <TableScrollArea className="mt-5">
+        <table className="w-full min-w-[880px] text-left text-[14px]">
           <thead>
             <tr className="border-b border-silver bg-frost text-[12px] uppercase tracking-wide text-steel">
               <th className="px-5 py-3 font-medium">Welder</th>
@@ -124,7 +125,7 @@ export function WeldersTable({
             )}
           </tbody>
         </table>
-      </div>
+      </TableScrollArea>
 
       <Suspense fallback={null}>
         <RegistryListPagination

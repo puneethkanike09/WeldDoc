@@ -8,7 +8,7 @@ export default function OperatorsLoading() {
   return (
     <div role="status" aria-label="Loading operators">
       <PageHeaderSkeleton />
-      <div className="px-8 py-8">
+      <div className="page-content">
         <FilterBarSkeleton selects={2} />
         <div className="mt-5">
           <TableSkeleton columns={6} rows={8} />

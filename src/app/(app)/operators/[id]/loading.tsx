@@ -19,7 +19,7 @@ export default function OperatorProfileLoading() {
         </div>
       </div>
 
-      <div className="px-8 py-8">
+      <div className="page-content">
         <BackLinkSkeleton />
 
         <div className="mb-6 rounded-(--radius-card) border border-silver bg-panel p-6">

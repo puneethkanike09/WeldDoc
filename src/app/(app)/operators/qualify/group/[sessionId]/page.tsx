@@ -208,7 +208,7 @@ export default async function OperatorGroupSessionPage({
         title={session.label ?? "Group qualification"}
         description={`${activeMembers.length} operator(s) · shared ISO 14732 session`}
       />
-      <div className="px-8 py-8">
+      <div className="page-content">
         <Link
           href="/operators/qualify/group"
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-graphite hover:text-onyx"

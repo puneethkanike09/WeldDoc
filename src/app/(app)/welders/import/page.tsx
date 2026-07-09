@@ -13,7 +13,7 @@ export default async function WelderImportPage() {
         title="Import welders"
         description="Bulk import welders and prior qualifications from Excel. Data is scoped to your organisation only."
       />
-      <div className="px-8 py-8">
+      <div className="page-content">
         <BulkImportPanel commitAction={commitWelderImport} />
       </div>
     </>

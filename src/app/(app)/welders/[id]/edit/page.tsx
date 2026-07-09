@@ -42,7 +42,7 @@ export default async function EditWelderPage({
           "—"
         }
       />
-      <div className="px-8 py-8">
+      <div className="page-content">
         <Link
           href={`/welders/${id}`}
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-graphite hover:text-onyx"

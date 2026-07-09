@@ -86,7 +86,7 @@ export default async function OperatorsPage({
     <>
       <PageHeader
         title="Operators"
-        description="Your central operator registry. Search, filter and open a profile."
+        description="Your central operator registry."
       >
         <div className="flex flex-wrap items-center gap-2">
           <BulkQrPrintButton entries={qrEntries} />
@@ -95,7 +95,7 @@ export default async function OperatorsPage({
           <AddOperatorButton />
         </div>
       </PageHeader>
-      <div className="px-8 py-8">
+      <div className="page-content">
         {allRows.length === 0 ? (
           <EmptyState />
         ) : (

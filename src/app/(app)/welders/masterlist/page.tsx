@@ -20,7 +20,7 @@ export default async function WelderMasterListPage() {
         title="Master list"
         description="Every welder qualification with its computed range of approval. Export to Excel."
       />
-      <div className="px-8 py-8">
+      <div className="page-content">
         {rows.length === 0 ? (
           <div className="rounded-[var(--radius-card)] border border-dashed border-silver bg-panel px-6 py-16 text-center text-graphite">
             No qualification records yet. Qualify a welder to populate the

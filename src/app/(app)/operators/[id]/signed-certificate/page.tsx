@@ -106,7 +106,7 @@ export default async function OperatorSignedCertificatePage({
         title="Signed certificate"
         description={`${o.full_name} · ${o.operator_id ?? "—"} · ${qualLabel}`}
       />
-      <div className="px-8 py-8">
+      <div className="page-content">
         <PdfPreview
           src={previewSrc}
           backHref={`/operators/${id}?oq=${oqId}`}

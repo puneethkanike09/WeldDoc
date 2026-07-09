@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { TableScrollArea } from "@/components/ui/table-scroll-area";
 
 /** Base shimmer block. Compose these into page-shaped skeletons. */
 export function Skeleton({ className }: { className?: string }) {
@@ -13,7 +14,7 @@ export function Skeleton({ className }: { className?: string }) {
 /** Matches <PageHeader>: title + description on the left, optional action on the right. */
 export function PageHeaderSkeleton({ action = true }: { action?: boolean }) {
   return (
-    <div className="sticky top-0 z-20 flex flex-col gap-4 border-b border-silver bg-panel px-8 py-6 sm:flex-row sm:items-center sm:justify-between">
+    <div className="sticky top-0 z-20 flex min-w-0 flex-col gap-4 border-b border-silver bg-panel px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-6 lg:px-8">
       <div className="space-y-2.5">
         <Skeleton className="h-7 w-44" />
         <Skeleton className="h-4 w-72 max-w-full" />
@@ -46,7 +47,7 @@ export function TableSkeleton({
   minWidth?: number;
 }) {
   return (
-    <div className="overflow-hidden rounded-(--radius-card) border border-silver bg-panel">
+    <TableScrollArea>
       <div style={minWidth ? { minWidth } : undefined}>
         <div className="flex gap-4 border-b border-silver bg-frost px-5 py-3.5">
           {Array.from({ length: columns }, (_, i) => (
@@ -67,7 +68,7 @@ export function TableSkeleton({
           </div>
         ))}
       </div>
-    </div>
+    </TableScrollArea>
   );
 }
 
@@ -189,7 +190,7 @@ export function BulkImportPageSkeleton() {
   return (
     <div role="status" aria-label="Loading import page">
       <PageHeaderSkeleton action={false} />
-      <div className="px-8 py-8">
+      <div className="page-content">
         <div className="rounded-(--radius-card) border border-silver bg-panel p-6">
           <div className="space-y-5">
             <div className="space-y-2">
@@ -221,7 +222,7 @@ export function WelderFormPageSkeleton() {
   return (
     <div role="status" aria-label="Loading welder form">
       <PageHeaderSkeleton />
-      <div className="px-8 py-8">
+      <div className="page-content">
         <BackLinkSkeleton />
         <div className="rounded-(--radius-card) border border-silver bg-panel p-6">
           <Skeleton className="h-5 w-36" />
@@ -259,7 +260,7 @@ export function PdfPreviewPageSkeleton() {
   return (
     <div role="status" aria-label="Loading document preview">
       <PageHeaderSkeleton />
-      <div className="flex min-h-112 flex-col gap-4 px-8 py-8">
+      <div className="page-content flex min-h-112 flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <Skeleton className="h-9 w-36" />
           <div className="ml-auto flex gap-2">
@@ -279,7 +280,7 @@ export function QualifyWorkflowSkeleton() {
   return (
     <div role="status" aria-label="Loading qualification workflow">
       <PageHeaderSkeleton action={false} />
-      <div className="px-8 py-8">
+      <div className="page-content">
         <BackLinkSkeleton />
         <div className="mb-8 flex flex-wrap items-center gap-2">
           {Array.from({ length: 4 }, (_, i) => (
@@ -339,7 +340,7 @@ export function StandardsHubSkeleton() {
   return (
     <div role="status" aria-label="Loading standards">
       <PageHeaderSkeleton action={false} />
-      <div className="grid gap-5 px-8 py-8 sm:grid-cols-2">
+      <div className="page-content grid gap-5 sm:grid-cols-2">
         {Array.from({ length: 4 }, (_, i) => (
           <StandardCardSkeleton key={i} />
         ))}

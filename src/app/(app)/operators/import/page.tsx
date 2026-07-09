@@ -12,7 +12,7 @@ export default async function OperatorImportPage() {
         title="Import operators"
         description="Bulk import operators and prior qualifications from Excel."
       />
-      <div className="px-8 py-8">
+      <div className="page-content">
         <OperatorBulkImportPanel />
       </div>
     </>

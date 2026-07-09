@@ -105,7 +105,7 @@ export default async function WelderSignedCertificatePage({
         title="Signed certificate"
         description={`${w.full_name} · ${w.welder_id ?? "—"} · ${qualLabel}`}
       />
-      <div className="px-8 py-8">
+      <div className="page-content">
         <PdfPreview
           src={previewSrc}
           backHref={`/welders/${id}?wpq=${wpqId}`}

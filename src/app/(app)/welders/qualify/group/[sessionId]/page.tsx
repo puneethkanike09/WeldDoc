@@ -219,7 +219,7 @@ export default async function WelderGroupSessionPage({
         title={session.label ?? "Group qualification"}
         description={`${activeMembers.length} welder(s) · shared ISO 9606-1 session`}
       />
-      <div className="px-8 py-8">
+      <div className="page-content">
         <Link
           href="/welders/qualify/group"
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-graphite hover:text-onyx"

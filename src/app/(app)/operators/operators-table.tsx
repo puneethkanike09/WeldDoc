@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { RegistryListFilters } from "@/components/app/registry-list-filters";
 import { RegistryListPagination } from "@/components/app/registry-list-pagination";
+import { TableScrollArea } from "@/components/ui/table-scroll-area";
 import { formatDate } from "@/lib/utils";
 import { STATUS_TONE } from "@/lib/operator-status";
 import type { OperatorRow } from "@/lib/operators/registry-row";
@@ -35,7 +36,7 @@ export function OperatorsTable({
   processOptions: string[];
 }) {
   return (
-    <div>
+    <div className="min-w-0">
       <RegistryListFilters
         basePath="/operators"
         q={q}
@@ -46,8 +47,8 @@ export function OperatorsTable({
         pendingClassName="opacity-60"
       />
 
-      <div className="mt-5 overflow-hidden rounded-[var(--radius-card)] border border-silver bg-panel">
-        <table className="w-full text-left text-[14px]">
+      <TableScrollArea className="mt-5">
+        <table className="w-full min-w-[880px] text-left text-[14px]">
           <thead>
             <tr className="border-b border-silver bg-frost text-[12px] uppercase tracking-wide text-steel">
               <th className="px-5 py-3 font-medium">Operator</th>
@@ -124,7 +125,7 @@ export function OperatorsTable({
             )}
           </tbody>
         </table>
-      </div>
+      </TableScrollArea>
 
       <Suspense fallback={null}>
         <RegistryListPagination

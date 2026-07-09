@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
+import { TableScrollArea } from "@/components/ui/table-scroll-area";
 import { formatDate } from "@/lib/utils";
 import { Eye } from "lucide-react";
 import type {
@@ -46,8 +47,8 @@ export function GroupSessionsList({
   }
 
   return (
-    <div className="overflow-hidden rounded-[var(--radius-card)] border border-silver bg-panel">
-      <table className="w-full text-left text-[14px]">
+    <TableScrollArea>
+      <table className="w-full min-w-[640px] text-left text-[14px]">
         <thead>
           <tr className="border-b border-silver bg-frost text-[12px] uppercase tracking-wide text-steel">
             <th className="px-5 py-3 font-medium">Session</th>
@@ -96,6 +97,6 @@ export function GroupSessionsList({
           ))}
         </tbody>
       </table>
-    </div>
+    </TableScrollArea>
   );
 }

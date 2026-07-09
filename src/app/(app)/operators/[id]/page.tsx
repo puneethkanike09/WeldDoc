@@ -64,7 +64,7 @@ export default async function OperatorProfilePage({
         <QrDialog qrToken={o.qr_token} plantWelderId={plantOperatorId} />
       </PageHeader>
 
-      <div className="px-8 py-8">
+      <div className="page-content">
         <Link
           href="/operators"
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-graphite hover:text-onyx"

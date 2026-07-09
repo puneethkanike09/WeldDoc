@@ -8,7 +8,7 @@ export default function WelderMasterListLoading() {
   return (
     <div role="status" aria-label="Loading master list">
       <PageHeaderSkeleton action={false} />
-      <div className="px-8 py-8">
+      <div className="page-content">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <Skeleton className="h-10 flex-1" />
           <Skeleton className="h-10 w-full lg:w-40" />
@@ -17,7 +17,7 @@ export default function WelderMasterListLoading() {
             <Skeleton className="h-10 w-24" />
           </div>
         </div>
-        <div className="mt-5 overflow-x-auto overflow-y-clip overscroll-y-auto">
+        <div className="mt-5">
           <TableSkeleton columns={8} rows={10} minWidth={1100} />
         </div>
       </div>

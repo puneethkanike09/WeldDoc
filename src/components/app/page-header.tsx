@@ -14,11 +14,12 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "sticky top-0 z-20 flex flex-col gap-4 border-b border-silver bg-panel px-8 py-6 sm:flex-row sm:items-center sm:justify-between",
+        "sticky top-0 z-20 flex min-w-0 max-w-full flex-col gap-4 border-b border-silver bg-panel px-4 py-5 sm:px-6 sm:py-6 lg:px-8",
         className,
       )}
     >
-      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+      <div className="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 flex-wrap items-baseline gap-x-2.5 gap-y-1">
         <h1 className="font-display text-[26px] font-bold tracking-tight text-onyx">
           {title}
         </h1>
@@ -30,8 +31,9 @@ export function PageHeader({
         )}
       </div>
       {children && (
-        <div className="flex shrink-0 items-center gap-2.5">{children}</div>
+        <div className="flex shrink-0 flex-wrap items-center gap-2.5">{children}</div>
       )}
+      </div>
     </div>
   );
 }

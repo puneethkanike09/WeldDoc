@@ -497,6 +497,13 @@ html[data-app-theme="dark"] .welddoc-datepicker select {
     padding-bottom: clamp(64px, 10vw, 120px);
   }
 
+  .page-content {
+    min-width: 0;
+    max-width: 100%;
+    padding-inline: clamp(1rem, 4vw, 2rem);
+    padding-block: clamp(1.5rem, 4vw, 2rem);
+  }
+
   /* Slim scrollbar for inner scroll areas — black in light mode, white in dark mode. */
   .sleek-scroll,
   .app-shell main,

@@ -34,7 +34,7 @@ export default async function NewWelderGroupSessionPage() {
         title="New group session"
         description="Select existing welders and/or register new welders for a shared ISO 9606-1 qualification."
       />
-      <div className="px-8 py-8">
+      <div className="page-content">
         <Link
           href="/welders"
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-graphite hover:text-onyx"
