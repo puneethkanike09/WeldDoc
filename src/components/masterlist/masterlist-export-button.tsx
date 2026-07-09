@@ -5,6 +5,7 @@ import { FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
+  AlertDialogBody,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -92,53 +93,55 @@ export function MasterListExportButton<
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="mt-4 flex items-center justify-between gap-2 text-sm">
-          <span className="text-steel">
-            {selected.size} of {columns.length} columns selected
-          </span>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              className="font-medium text-ember hover:underline"
-              onClick={selectAll}
-            >
-              Select all
-            </button>
-            <button
-              type="button"
-              className="font-medium text-steel hover:text-onyx hover:underline"
-              onClick={clearAll}
-            >
-              Clear all
-            </button>
+        <AlertDialogBody>
+          <div className="flex items-center justify-between gap-2 text-sm">
+            <span className="text-steel">
+              {selected.size} of {columns.length} columns selected
+            </span>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                className="font-medium text-ember hover:underline"
+                onClick={selectAll}
+              >
+                Select all
+              </button>
+              <button
+                type="button"
+                className="font-medium text-steel hover:text-onyx hover:underline"
+                onClick={clearAll}
+              >
+                Clear all
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div className="mt-3 max-h-64 overflow-y-auto rounded-[10px] border border-silver p-3">
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {columns.map((column) => {
-              const checked = selected.has(column.key);
-              return (
-                <li key={column.key}>
-                  <label
-                    className={cn(
-                      "flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-charcoal hover:bg-frost",
-                      checked && "bg-frost/60",
-                    )}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggleColumn(column.key)}
-                      className="h-4 w-4 rounded border-silver text-onyx focus:ring-onyx/20"
-                    />
-                    {column.label}
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+          <div className="mt-3 rounded-[10px] border border-silver p-3">
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {columns.map((column) => {
+                const checked = selected.has(column.key);
+                return (
+                  <li key={column.key}>
+                    <label
+                      className={cn(
+                        "flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-charcoal hover:bg-frost",
+                        checked && "bg-frost/60",
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleColumn(column.key)}
+                        className="h-4 w-4 rounded border-silver text-onyx focus:ring-onyx/20"
+                      />
+                      {column.label}
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </AlertDialogBody>
 
         <AlertDialogFooter>
           <AlertDialogCancel type="button">Cancel</AlertDialogCancel>

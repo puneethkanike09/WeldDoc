@@ -1,10 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import * as Dialog from "@radix-ui/react-dialog";
-import { QrCode, ShieldCheck, Printer, Copy, X } from "lucide-react";
+import { QrCode, ShieldCheck, Printer, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogBody,
+  DialogCloseButton,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/sui/dialog";
 import { printQrWithId } from "@/lib/print-qr";
 import { copyQrImage } from "@/lib/print-bulk-qr";
 import {
@@ -24,39 +33,29 @@ export function QrDialog({
   const [color, setColor] = useState<QrPrintColor>("black");
 
   return (
-    <Dialog.Root>
-      <Dialog.Trigger asChild>
+    <Dialog>
+      <DialogTrigger asChild>
         <Button type="button" variant="ghost" size="sm">
           <QrCode className="h-4 w-4" /> QR code
         </Button>
-      </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-onyx/40 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-xs -translate-x-1/2 -translate-y-1/2 rounded-[16px] border border-border bg-popover p-6 text-center text-popover-foreground shadow-(--shadow-lift) data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
-          <Dialog.Close asChild>
-            <button
-              type="button"
-              aria-label="Close"
-              className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-sm text-steel hover:bg-onyx/5 hover:text-onyx"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </Dialog.Close>
-
-          <Dialog.Title className="font-display text-base font-semibold text-onyx">
-            Auditor QR code
-          </Dialog.Title>
-          <Dialog.Description className="sr-only">
+      </DialogTrigger>
+      <DialogContent className="max-w-xs text-center">
+        <DialogHeader className="text-center">
+          <DialogCloseButton />
+          <DialogTitle className="text-base">Auditor QR code</DialogTitle>
+          <DialogDescription className="sr-only">
             Scan this code to verify the welder&apos;s live qualification
             status. Choose a print color before printing.
-          </Dialog.Description>
+          </DialogDescription>
+        </DialogHeader>
 
+        <DialogBody className="text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             key={color}
             src={qrImageUrl(qrToken, color)}
             alt="Welder verification QR code"
-            className="mx-auto mt-4 h-56 w-56 rounded-[10px] border border-silver bg-white p-2"
+            className="mx-auto h-56 w-56 rounded-[10px] border border-silver bg-white p-2"
           />
           <p className="mt-3 font-display text-lg font-semibold text-onyx">
             {plantWelderId}
@@ -119,8 +118,8 @@ export function QrDialog({
               Print QR
             </Button>
           </div>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
   );
 }
