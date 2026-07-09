@@ -8,6 +8,7 @@ import {
   ndtJointCategory,
   wpqReadyForCertificate,
 } from "@/lib/iso9606/qualification-fields";
+import { effectiveRangeForWpq } from "@/lib/iso9606/effective-range";
 import {
   savePlan,
   saveTest,
@@ -80,6 +81,9 @@ export default async function QualifyPage({
 
   const step = Math.min(Math.max(Number(sp.step) || 1, 1), 4);
   const certReady = wpq ? wpqReadyForCertificate(wpq, ndt) : false;
+  const rangeSummary = wpq
+    ? (effectiveRangeForWpq(wpq, range).summary ?? null)
+    : null;
 
   return (
     <>
@@ -120,7 +124,7 @@ export default async function QualifyPage({
             action={saveTest.bind(null, id, wpq.id)}
             welderId={id}
             wpq={wpq}
-            rangePreview={range?.summary ?? null}
+            rangePreview={rangeSummary}
           />
         )}
 
@@ -139,7 +143,7 @@ export default async function QualifyPage({
             action={issueCertificate.bind(null, id, wpq.id)}
             welderId={id}
             wpq={wpq}
-            rangeSummary={range?.summary ?? null}
+            rangeSummary={rangeSummary}
             ndtReady={certReady}
           />
         )}

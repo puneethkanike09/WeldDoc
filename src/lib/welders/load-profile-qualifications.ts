@@ -12,6 +12,7 @@ import { continuityDue } from "@/lib/expiry";
 import { resolveUrl } from "@/lib/storage";
 import { formatDate } from "@/lib/utils";
 import { findSessionForQualification } from "@/lib/qualify/group-session";
+import { effectiveRangeForWpq } from "@/lib/iso9606/effective-range";
 import type {
   QualificationRecord,
   RangeOfApproval,
@@ -72,7 +73,8 @@ function welderQualDetailView(
     canLogValidation:
       isActiveQualification(q) &&
       (q.wpq_status === "Approved" || q.wpq_status === "Expired"),
-    rangeSummary: ranges.get(q.id)?.summary ?? null,
+    rangeSummary:
+      effectiveRangeForWpq(q, ranges.get(q.id) ?? null).summary ?? null,
     ndtRecords: ndtViewsFor(q.id),
     validations: (validationsByWpq.get(q.id) ?? []).map((v) => ({
       id: v.id,

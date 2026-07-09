@@ -18,6 +18,7 @@ import {
   welderRecordFromSession,
 } from "@/lib/qualify/group-session/welder";
 import { wpqReadyForCertificate } from "@/lib/iso9606/qualification-fields";
+import { effectiveRangeForWpq } from "@/lib/iso9606/effective-range";
 import { hasAnySupplementaryFillet } from "@/lib/iso9606/supplementary-fillet";
 import type {
   NdtDtRecord,
@@ -96,10 +97,13 @@ export default async function WelderGroupSessionPage({
       templateWpq = wpqRow as QualificationRecord;
       const { data: rangeRow } = await supabase
         .from("ranges_of_approval")
-        .select("summary")
+        .select("*")
         .eq("wpq_id", templateWpq.id)
         .maybeSingle();
-      rangePreview = (rangeRow as RangeOfApproval | null)?.summary ?? null;
+      rangePreview = effectiveRangeForWpq(
+        templateWpq,
+        (rangeRow as RangeOfApproval | null) ?? null,
+      ).summary;
     }
   }
 
@@ -176,7 +180,9 @@ export default async function WelderGroupSessionPage({
         plantId: w?.welder_id ?? null,
         memberStatus: m.member_status,
         qualificationId: m.qualification_id,
-        rangeSummary: range?.summary ?? null,
+        rangeSummary: q
+          ? (effectiveRangeForWpq(q, range ?? null).summary ?? null)
+          : null,
         profileHref: `/welders/${m.welder_id}`,
         ndtReady: q
           ? wpqReadyForCertificate(
