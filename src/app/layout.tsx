@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     template: "%s · Weld.Doc",
   },
   description:
-    "Weld.Doc digitises the complete EN ISO 9606-1 welder qualification lifecycle — registry, certificates, ID cards, QR verification, expiry alerts and master lists.",
+    "Weld.Doc digitises the complete welder qualification lifecycle — registry, certificates, ID cards, QR verification, expiry alerts and master lists.",
   metadataBase: new URL("https://welddoc.in"),
 };
 

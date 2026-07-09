@@ -23,9 +23,6 @@ export default function AuthLayout({
       <div className="relative hidden overflow-hidden bg-onyx lg:block">
         <div className="grain absolute inset-0 opacity-40" />
         <div className="relative flex h-full flex-col justify-between p-12">
-          <p className="font-display text-[12px] font-semibold uppercase tracking-[0.18em] text-ember-soft">
-            EN ISO 9606-1:2017
-          </p>
           <div>
             <blockquote className="font-display text-[30px] font-semibold leading-[1.2] tracking-tight text-white">
               “Every welder, every qualification, every expiry — in one place

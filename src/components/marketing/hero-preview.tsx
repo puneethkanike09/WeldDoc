@@ -9,10 +9,7 @@ export function HeroPreview() {
       <div className="relative z-10 rotate-[-1.5deg] rounded-[var(--radius-card)] border border-silver bg-white p-6 shadow-[var(--shadow-lift)]">
         <div className="flex items-start justify-between border-b border-silver pb-4">
           <div>
-            <p className="font-display text-[11px] font-semibold uppercase tracking-[0.14em] text-ember">
-              EN ISO 9606-1:2017
-            </p>
-            <h3 className="mt-1 font-display text-lg font-bold tracking-tight text-onyx">
+            <h3 className="font-display text-lg font-bold tracking-tight text-onyx">
               Welder Qualification
             </h3>
           </div>
@@ -69,7 +66,6 @@ export function HeroPreview() {
               <p className="font-display text-sm font-semibold text-white">
                 W#247
               </p>
-              <p className="text-[10px] text-steel">ISO 9606-1</p>
             </div>
             <div className="h-9 w-9 rounded-[5px] bg-white/90 p-1">
               <QrGlyph />

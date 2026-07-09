@@ -26,7 +26,7 @@ const products = [
   {
     icon: FileCheck2,
     title: "Certificate generation",
-    points: ["EN ISO 9606-1 format", "Auto range of approval", "Stamp & signature applied"],
+    points: ["Auto range of approval", "Stamp & signature applied"],
   },
   {
     icon: IdCard,
@@ -74,7 +74,7 @@ const workflow = [
 ];
 
 const comparison = [
-  { label: "EN ISO 9606-1, done simply", others: "Buried in multi-standard ERPs" },
+  { label: "Purpose-built, done simply", others: "Buried in multi-standard ERPs" },
   { label: "Auto range-of-approval engine", others: true },
   { label: "Instant QR auditor verification", others: "Partial" },
   { label: "Batch qualification report (BW + FW)", others: false },
