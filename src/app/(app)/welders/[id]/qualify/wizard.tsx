@@ -437,7 +437,7 @@ export function PlanStep({
                           revalidationDefault === m.code
                         }
                         required={index === 0}
-                        className="h-4 w-4 accent-[#f90a08]"
+                        className="form-check"
                         onChange={() => clearError("revalidation_method")}
                       />
                       {m.label}
@@ -939,7 +939,7 @@ export function NdtStep({
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggleTest(method)}
-                        className="h-4 w-4 accent-[#f90a08]"
+                        className="form-check"
                       />
                       {method}
                     </label>

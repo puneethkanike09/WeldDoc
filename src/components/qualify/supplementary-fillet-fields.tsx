@@ -132,7 +132,7 @@ export function SupplementaryFilletFields({
                 name="supplementary_fillet"
                 checked={checked}
                 onChange={(e) => setChecked(e.target.checked)}
-                className="mt-0.5 h-4 w-4 accent-[#f90a08]"
+                className="form-check mt-0.5"
               />
               <span className="text-[14px] font-medium text-onyx">
                 Supplementary fillet for process {processLabel(process1)}
@@ -159,7 +159,7 @@ export function SupplementaryFilletFields({
                 name="supplementary_fillet_2"
                 checked={checked2}
                 onChange={(e) => setChecked2(e.target.checked)}
-                className="mt-0.5 h-4 w-4 accent-[#f90a08]"
+                className="form-check mt-0.5"
               />
               <span className="text-[14px] font-medium text-onyx">
                 Supplementary fillet for process {processLabel(process2)}
@@ -187,7 +187,7 @@ export function SupplementaryFilletFields({
               name="supplementary_fillet"
               checked={checked}
               onChange={(e) => setChecked(e.target.checked)}
-              className="mt-0.5 h-4 w-4 accent-[#f90a08]"
+              className="form-check mt-0.5"
             />
             <span className="text-[14px] text-charcoal">
               Supplementary fillet weld test completed with this butt-weld

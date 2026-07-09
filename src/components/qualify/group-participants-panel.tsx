@@ -250,7 +250,7 @@ export function GroupParticipantsPanel({
                       type="checkbox"
                       checked={selected.has(p.id)}
                       onChange={() => toggle(p.id)}
-                      className="h-4 w-4 accent-[#f90a08]"
+                      className="form-check"
                     />
                     <span className="font-medium text-charcoal">{p.full_name}</span>
                     {p.plant_id ? (

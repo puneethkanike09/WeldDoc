@@ -19,6 +19,7 @@
   --theme-segment-active-border: var(--theme-inverse-bg);
   --theme-scrollbar: #1c2b3a;
   --theme-scrollbar-hover: #2e4a63;
+  --theme-control-accent: var(--color-onyx);
   --status-active: #2dc47a;
   --status-active-ink: #177245;
   --status-active-soft: rgb(45 196 122 / 0.14);
@@ -45,6 +46,7 @@ html[data-app-theme="dark"] {
   --theme-segment-active-border: var(--theme-inverse-bg);
   --theme-scrollbar: #f5f0e8;
   --theme-scrollbar-hover: #cdd5dd;
+  --theme-control-accent: var(--color-ember);
   --status-active-ink: #6ee7a8;
   --status-active-soft: rgb(45 196 122 / 0.18);
   --status-expired: #e8794f;
@@ -381,6 +383,11 @@ html[data-app-theme="dark"] .welddoc-datepicker select {
   select:disabled {
     cursor: not-allowed;
   }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--theme-control-accent);
+  }
 }
 
 @layer utilities {
@@ -390,6 +397,19 @@ html[data-app-theme="dark"] .welddoc-datepicker select {
 
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Native checkboxes / radios — shared size + border; accent from --theme-control-accent */
+  .form-check {
+    height: 1rem;
+    width: 1rem;
+    flex-shrink: 0;
+    border-radius: 0.25rem;
+    border: 1px solid var(--color-silver);
+  }
+
+  input[type="radio"].form-check {
+    border-radius: 9999px;
   }
 
   .grain {

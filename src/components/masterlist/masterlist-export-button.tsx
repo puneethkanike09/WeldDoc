@@ -132,7 +132,7 @@ export function MasterListExportButton<
                         type="checkbox"
                         checked={checked}
                         onChange={() => toggleColumn(column.key)}
-                        className="h-4 w-4 rounded border-silver text-onyx focus:ring-onyx/20"
+                        className="form-check"
                       />
                       {column.label}
                     </label>

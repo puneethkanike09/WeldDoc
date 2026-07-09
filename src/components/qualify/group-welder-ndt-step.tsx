@@ -177,7 +177,7 @@ export function GroupWelderNdtStep({
                       type="checkbox"
                       checked={selected.includes(method)}
                       onChange={() => toggle(method)}
-                      className="h-4 w-4 accent-[#f90a08]"
+                      className="form-check"
                     />
                     {method}
                   </label>

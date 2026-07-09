@@ -370,7 +370,7 @@ export function OperatorPlanStep({
                         value={m.code}
                         defaultChecked={revalidationDefault === m.code}
                         required={index === 0}
-                        className="h-4 w-4 accent-[#f90a08]"
+                        className="form-check"
                         onChange={() => clearError("revalidation_method")}
                       />
                       {m.label}

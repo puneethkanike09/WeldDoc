@@ -69,7 +69,7 @@ function CertificateBrandingFieldRow({
       <div>
         <label
           htmlFor={`cert_brand_${id}_enabled`}
-          className="flex cursor-pointer items-center gap-2.5 text-sm font-medium text-onyx"
+          className="inline-flex w-fit max-w-full cursor-pointer items-center gap-2.5 text-sm font-medium text-onyx"
         >
           <input
             id={`cert_brand_${id}_enabled`}
@@ -77,7 +77,7 @@ function CertificateBrandingFieldRow({
             name={`cert_brand_${id}_enabled`}
             value="1"
             defaultChecked={enabled}
-            className="h-4 w-4 rounded border-silver text-onyx focus:ring-onyx/20"
+            className="form-check"
           />
           {label}
         </label>
