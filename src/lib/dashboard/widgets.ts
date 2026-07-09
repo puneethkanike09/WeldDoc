@@ -21,6 +21,12 @@ export const WELDER_DASHBOARD_WIDGETS = [
     group: "KPI cards" as const,
   },
   {
+    id: "kpi_inactive_qualifications",
+    label: "Inactive qualifications",
+    description: "Marked inactive on welder profiles",
+    group: "KPI cards" as const,
+  },
+  {
     id: "kpi_expiring_soon",
     label: "Expiring soon",
     description: "Within the next 60 days",
@@ -93,6 +99,12 @@ export const OPERATOR_DASHBOARD_WIDGETS = [
     id: "kpi_active_operator_qualifications",
     label: "Active qualifications",
     description: "Approved operator qualifications still in date",
+    group: "KPI cards" as const,
+  },
+  {
+    id: "kpi_inactive_operator_qualifications",
+    label: "Inactive qualifications",
+    description: "Marked inactive on operator profiles",
     group: "KPI cards" as const,
   },
   {
@@ -288,6 +300,7 @@ export function kpiGridClass(count: number): string {
   if (count <= 1) return "grid gap-4 grid-cols-1";
   if (count === 2) return "grid gap-4 sm:grid-cols-2";
   if (count === 3) return "grid gap-4 sm:grid-cols-2 lg:grid-cols-3";
+  if (count === 5) return "grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5";
   return "grid gap-4 sm:grid-cols-2 lg:grid-cols-4";
 }
 

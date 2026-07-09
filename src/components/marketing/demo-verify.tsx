@@ -31,8 +31,7 @@ export function DemoVerifyPage() {
         <WelderIdCardView
           orgName="SMS group"
           welderName="Bebina Swain"
-          welderNo="W421"
-          uid="WLD-2024-042"
+          welderNo="W#01"
           photoUrl={null}
           logoUrl={null}
           rows={DEMO_ROWS}
@@ -40,11 +39,10 @@ export function DemoVerifyPage() {
           expiry="20 Jun 2028"
           employer="SMS group"
           site="PLT-A"
-          showUid={false}
         />
 
         <p className="mt-6 text-center text-xs text-steel">
-          Demo preview · WeldDoc · {formatDate(new Date())}
+          Demo preview · Weld.Doc · {formatDate(new Date())}
         </p>
       </div>
     </main>

@@ -4,19 +4,17 @@ export interface WelderIdCardViewProps {
   orgName: string;
   welderName: string;
   welderNo: string;
-  uid: string;
   photoUrl: string | null;
   logoUrl: string | null;
   rows: IdCardQualRow[];
   status: string;
   expiry: string | null;
+  statusNotice?: string | null;
   employer: string | null;
   site: string;
   cardHeading?: string;
   plantIdLabel?: string;
   standardLabel?: string;
-  /** Public QR verify page hides the internal WeldDoc UID. */
-  showUid?: boolean;
 }
 
 function statusBadge(status: string): { bg: string; fg: string; label: string } {
@@ -29,6 +27,10 @@ function statusBadge(status: string): { bg: string; fg: string; label: string } 
       return { bg: "bg-[#fde8e4]", fg: "text-ember", label: "EXPIRED" };
     case "Pending":
       return { bg: "bg-[#e8eef8]", fg: "text-sapphire", label: "PENDING" };
+    case "Inactive":
+      return { bg: "bg-frost", fg: "text-graphite", label: "INACTIVE" };
+    case "Suspended":
+      return { bg: "bg-[#fde8e4]", fg: "text-ember", label: "SUSPENDED" };
     default:
       return {
         bg: "bg-frost",
@@ -63,18 +65,17 @@ export function WelderIdCardView({
   orgName,
   welderName,
   welderNo,
-  uid,
   photoUrl,
   logoUrl,
   rows,
   status,
   expiry,
+  statusNotice = null,
   employer,
   site,
   cardHeading = "Welder ID card",
   plantIdLabel = "Welder ID",
   standardLabel = "EN ISO 9606-1:2017",
-  showUid = true,
 }: WelderIdCardViewProps) {
   const badge = statusBadge(status);
 
@@ -119,7 +120,6 @@ export function WelderIdCardView({
           <PersonalField label="Name" value={welderName} bold />
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
             <PersonalField label={plantIdLabel} value={welderNo} bold />
-            {showUid ? <PersonalField label="UID" value={uid} /> : null}
             {employer ? <PersonalField label="Employer" value={employer} /> : null}
             {site !== "—" ? <PersonalField label="Branch" value={site} /> : null}
           </div>
@@ -129,13 +129,26 @@ export function WelderIdCardView({
             >
               {badge.label}
             </span>
-            <span className="text-xs text-graphite">Valid {expiry ?? "—"}</span>
+            {statusNotice ? (
+              <span className="text-xs font-medium text-ember">{statusNotice}</span>
+            ) : (
+              <span className="text-xs text-graphite">Valid {expiry ?? "—"}</span>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Footer — qualifications */}
+      {/* Footer — qualifications or registry notice */}
       <div className="bg-frost">
+        {statusNotice ? (
+          <div className="border-t border-silver bg-[#fde8e4]/40 px-6 py-8 text-center">
+            <p className="font-display text-sm font-semibold uppercase tracking-wide text-ember">
+              {status === "Suspended" ? "Suspended" : "Inactive"}
+            </p>
+            <p className="mt-2 text-sm text-charcoal">{statusNotice}</p>
+          </div>
+        ) : (
+          <>
         <div className="bg-charcoal py-1.5 text-center text-[11px] font-semibold tracking-wide text-white">
           {standardLabel}
         </div>
@@ -214,6 +227,8 @@ export function WelderIdCardView({
             </tbody>
           </table>
         </div>
+          </>
+        )}
       </div>
     </div>
   );

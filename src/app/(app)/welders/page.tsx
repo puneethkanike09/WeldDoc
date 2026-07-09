@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
 import { AddWelderButton } from "@/components/app/add-welder-button";
 import { ImportWeldersButton } from "@/components/app/import-welders-button";
-import { GroupQualifyButton } from "@/components/app/group-qualify-button";
 import { BulkQrPrintButton } from "@/components/app/bulk-qr-print-button";
+import { AlertEmailConfigDialog } from "@/components/app/alert-email-config-dialog";
+import { updateAlertEmailSettings } from "@/app/(app)/settings/actions";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { summarizeWelder } from "@/lib/welder-status";
+import { normalizePlantWelderId } from "@/lib/welders/plant-id";
 import { filterWelderRows } from "@/lib/welders/filter-rows";
 import {
   parseRegistryListPage,
@@ -54,8 +56,8 @@ export default async function WeldersPage({
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const allRows: WelderRow[] = ((welders ?? []) as Welder[]).map((w) => ({
     id: w.id,
-    uid: w.uid,
-    welder_id: w.welder_id,
+    welder_id:
+      normalizePlantWelderId(w.welder_id) ?? w.welder_id?.trim() ?? "—",
     full_name: w.full_name,
     photoUrl: w.photo_path
       ? `${supabaseUrl}/storage/v1/object/public/welder-photos/${w.photo_path}`
@@ -76,7 +78,8 @@ export default async function WeldersPage({
 
   const qrEntries = ((welders ?? []) as Welder[]).map((w) => ({
     qrToken: w.qr_token,
-    plantWelderId: w.welder_id ?? w.uid,
+    plantWelderId:
+      normalizePlantWelderId(w.welder_id) ?? w.welder_id?.trim() ?? "—",
   }));
 
   return (
@@ -87,7 +90,7 @@ export default async function WeldersPage({
       >
         <div className="flex flex-wrap items-center gap-2">
           <BulkQrPrintButton entries={qrEntries} />
-          <GroupQualifyButton href="/welders/qualify/group/new" />
+          <AlertEmailConfigDialog org={org} action={updateAlertEmailSettings} />
           <ImportWeldersButton />
           <AddWelderButton />
         </div>

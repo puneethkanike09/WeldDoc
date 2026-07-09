@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   sendExpiryDigest,
-  sendWelderExpiryDigest,
+  sendExpiryStatusDigest,
   type ExpiryAlert,
 } from "@/lib/email";
 import { continuityDue } from "@/lib/expiry";
@@ -12,21 +12,26 @@ import { processLabel as operatorProcessLabel } from "@/lib/iso14732/constants";
 import {
   bucketFor,
   daysUntil,
+  inLeadWindow,
+  normalizeFrequency,
   orgDigestKind,
+  ORG_DIGEST_ALERT_TYPE,
 } from "@/lib/expiry-alerts/cron-logic";
+import {
+  shouldSendOrgDigest,
+  usesRepeatingDigest,
+} from "@/lib/expiry-alerts/frequency";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type BuiltAlert = ExpiryAlert & {
-  welderId: string;
   wpqId: string;
   alertType: string;
   keyDate: string;
 };
 
 type OpAlert = ExpiryAlert & {
-  operatorId: string;
   oqId: string;
   alertType: string;
   keyDate: string;
@@ -35,25 +40,17 @@ type OpAlert = ExpiryAlert & {
 async function filterFreshWelderAlerts(
   supabase: ReturnType<typeof createAdminClient>,
   alerts: BuiltAlert[],
-  welderId: string | null,
 ): Promise<BuiltAlert[]> {
   const fresh: BuiltAlert[] = [];
   for (const a of alerts) {
-    let query = supabase
+    const { data: existing } = await supabase
       .from("notification_log")
       .select("id")
       .eq("wpq_id", a.wpqId)
       .eq("alert_type", a.alertType)
       .eq("expiry_date", a.keyDate)
-      .eq("status", "sent");
-
-    if (welderId) {
-      query = query.eq("welder_id", welderId);
-    } else {
-      query = query.is("welder_id", null);
-    }
-
-    const { data: existing } = await query.maybeSingle();
+      .eq("status", "sent")
+      .maybeSingle();
     if (!existing) fresh.push(a);
   }
   return fresh;
@@ -62,28 +59,39 @@ async function filterFreshWelderAlerts(
 async function filterFreshOperatorAlerts(
   supabase: ReturnType<typeof createAdminClient>,
   alerts: OpAlert[],
-  operatorId: string | null,
 ): Promise<OpAlert[]> {
   const fresh: OpAlert[] = [];
   for (const a of alerts) {
-    let query = supabase
+    const { data: existing } = await supabase
       .from("notification_log")
       .select("id")
       .eq("operator_qualification_id", a.oqId)
       .eq("alert_type", a.alertType)
       .eq("expiry_date", a.keyDate)
-      .eq("status", "sent");
-
-    if (operatorId) {
-      query = query.eq("operator_id", operatorId);
-    } else {
-      query = query.is("operator_id", null);
-    }
-
-    const { data: existing } = await query.maybeSingle();
+      .eq("status", "sent")
+      .maybeSingle();
     if (!existing) fresh.push(a);
   }
   return fresh;
+}
+
+async function lastOrgDigestSentAt(
+  supabase: ReturnType<typeof createAdminClient>,
+  orgId: string,
+): Promise<Date | null> {
+  const { data } = await supabase
+    .from("notification_log")
+    .select("sent_at")
+    .eq("org_id", orgId)
+    .eq("alert_type", ORG_DIGEST_ALERT_TYPE)
+    .eq("status", "sent")
+    .order("sent_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!data?.sent_at) return null;
+  const d = new Date(data.sent_at);
+  return Number.isNaN(d.getTime()) ? null : d;
 }
 
 export async function GET(request: NextRequest) {
@@ -99,10 +107,11 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = createAdminClient();
+  const now = new Date();
+  const checkedOn = now.toISOString().slice(0, 10);
   const { data: orgs } = await supabase.from("organizations").select("*");
 
   let totalSent = 0;
-  let individualEmailsSent = 0;
   const summary: Record<string, number> = {};
 
   for (const org of orgs ?? []) {
@@ -111,11 +120,21 @@ export async function GET(request: NextRequest) {
       : [30, 7];
     const maxLead = Math.max(...leadDays);
     const recipients: string[] = org.alert_emails ?? [];
+    const frequency = normalizeFrequency(org.alert_email_frequency);
+    const repeating = usesRepeatingDigest(frequency);
+
+    if (recipients.length === 0) continue;
+
+    const lastSentAt = repeating
+      ? await lastOrgDigestSentAt(supabase, org.id)
+      : null;
+
+    if (!shouldSendOrgDigest(frequency, now, lastSentAt)) continue;
 
     const welderAlerts: BuiltAlert[] = [];
     const welders = new Map<
       string,
-      { id: string; full_name: string; welder_id: string | null; uid: string; email: string | null }
+      { id: string; full_name: string; welder_id: string | null }
     >();
 
     const { data: wpqs } = await supabase
@@ -124,13 +143,14 @@ export async function GET(request: NextRequest) {
         "id, process, expiry_date, continuity_last_verified, wpq_status, welder_id, revalidation_method",
       )
       .eq("org_id", org.id)
-      .eq("wpq_status", "Approved");
+      .eq("wpq_status", "Approved")
+      .eq("is_active", true);
 
     if (wpqs && wpqs.length > 0) {
       const welderIds = Array.from(new Set(wpqs.map((w) => w.welder_id)));
       const { data: welderRows } = await supabase
         .from("welders")
-        .select("id, full_name, welder_id, uid, email")
+        .select("id, full_name, welder_id")
         .in("id", welderIds);
       for (const w of welderRows ?? []) {
         welders.set(w.id, w);
@@ -142,46 +162,46 @@ export async function GET(request: NextRequest) {
 
         if (w.expiry_date) {
           const dleft = daysUntil(w.expiry_date);
-          if (dleft <= maxLead) {
-            const bucket = bucketFor(dleft, leadDays);
-            if (bucket) {
-              welderAlerts.push({
-                welderId: welder.id,
-                welderName: welder.full_name,
-                plantWelderId: welder.welder_id ?? welder.uid,
-                process: welderProcessLabel(w.process),
-                validityCode: w.revalidation_method ?? "9.3b",
-                expiryDate: w.expiry_date,
-                daysLeft: dleft,
-                reminderKind: "certificate",
-                wpqId: w.id,
-                alertType: `expiry-${bucket}`,
-                keyDate: w.expiry_date,
-              });
-            }
+          const inWindow = repeating
+            ? inLeadWindow(dleft, leadDays)
+            : dleft <= maxLead && bucketFor(dleft, leadDays) !== null;
+          if (inWindow) {
+            const bucket = bucketFor(dleft, leadDays) ?? "snapshot";
+            welderAlerts.push({
+              welderName: welder.full_name,
+              plantWelderId: welder.welder_id ?? "—",
+              process: welderProcessLabel(w.process),
+              validityCode: w.revalidation_method ?? "9.3b",
+              expiryDate: w.expiry_date,
+              daysLeft: dleft,
+              reminderKind: "certificate",
+              wpqId: w.id,
+              alertType: `expiry-${bucket}`,
+              keyDate: w.expiry_date,
+            });
           }
         }
 
         const due = continuityDue(w.continuity_last_verified);
         if (due) {
           const dleft = daysUntil(due);
-          if (dleft <= maxLead) {
-            const bucket = bucketFor(dleft, leadDays);
-            if (bucket) {
-              welderAlerts.push({
-                welderId: welder.id,
-                welderName: welder.full_name,
-                plantWelderId: welder.welder_id ?? welder.uid,
-                process: welderProcessLabel(w.process),
-                validityCode: w.revalidation_method ?? "9.3b",
-                expiryDate: due,
-                daysLeft: dleft,
-                reminderKind: "continuity",
-                wpqId: w.id,
-                alertType: `continuity-${bucket}`,
-                keyDate: due,
-              });
-            }
+          const inWindow = repeating
+            ? inLeadWindow(dleft, leadDays)
+            : dleft <= maxLead && bucketFor(dleft, leadDays) !== null;
+          if (inWindow) {
+            const bucket = bucketFor(dleft, leadDays) ?? "snapshot";
+            welderAlerts.push({
+              welderName: welder.full_name,
+              plantWelderId: welder.welder_id ?? "—",
+              process: welderProcessLabel(w.process),
+              validityCode: w.revalidation_method ?? "9.3b",
+              expiryDate: due,
+              daysLeft: dleft,
+              reminderKind: "continuity",
+              wpqId: w.id,
+              alertType: `continuity-${bucket}`,
+              keyDate: due,
+            });
           }
         }
       }
@@ -190,7 +210,7 @@ export async function GET(request: NextRequest) {
     const opAlerts: OpAlert[] = [];
     const operators = new Map<
       string,
-      { id: string; full_name: string; operator_id: string | null; uid: string; email: string | null }
+      { id: string; full_name: string; operator_id: string | null }
     >();
 
     const { data: oqs } = await supabase
@@ -199,13 +219,14 @@ export async function GET(request: NextRequest) {
         "id, process, expiry_date, continuity_last_verified, oq_status, operator_id, revalidation_method",
       )
       .eq("org_id", org.id)
-      .eq("oq_status", "Approved");
+      .eq("oq_status", "Approved")
+      .eq("is_active", true);
 
     if (oqs && oqs.length > 0) {
       const operatorIds = Array.from(new Set(oqs.map((o) => o.operator_id)));
       const { data: operatorRows } = await supabase
         .from("operators")
-        .select("id, full_name, operator_id, uid, email")
+        .select("id, full_name, operator_id")
         .in("id", operatorIds);
       for (const o of operatorRows ?? []) {
         operators.set(o.id, o);
@@ -217,76 +238,86 @@ export async function GET(request: NextRequest) {
 
         if (o.expiry_date) {
           const dleft = daysUntil(o.expiry_date);
-          if (dleft <= maxLead) {
-            const bucket = bucketFor(dleft, leadDays);
-            if (bucket) {
-              opAlerts.push({
-                operatorId: operator.id,
-                welderName: operator.full_name,
-                plantWelderId: operator.operator_id ?? operator.uid,
-                process: operatorProcessLabel(o.process),
-                validityCode: o.revalidation_method ?? "6.3b",
-                expiryDate: o.expiry_date,
-                daysLeft: dleft,
-                reminderKind: "certificate",
-                oqId: o.id,
-                alertType: `op-expiry-${bucket}`,
-                keyDate: o.expiry_date,
-              });
-            }
+          const inWindow = repeating
+            ? inLeadWindow(dleft, leadDays)
+            : dleft <= maxLead && bucketFor(dleft, leadDays) !== null;
+          if (inWindow) {
+            const bucket = bucketFor(dleft, leadDays) ?? "snapshot";
+            opAlerts.push({
+              welderName: operator.full_name,
+              plantWelderId: operator.operator_id ?? "—",
+              process: operatorProcessLabel(o.process),
+              validityCode: o.revalidation_method ?? "6.3b",
+              expiryDate: o.expiry_date,
+              daysLeft: dleft,
+              reminderKind: "certificate",
+              oqId: o.id,
+              alertType: `op-expiry-${bucket}`,
+              keyDate: o.expiry_date,
+            });
           }
         }
 
         const due = operatorContinuityDue(o.continuity_last_verified);
         if (due) {
           const dleft = daysUntil(due);
-          if (dleft <= maxLead) {
-            const bucket = bucketFor(dleft, leadDays);
-            if (bucket) {
-              opAlerts.push({
-                operatorId: operator.id,
-                welderName: operator.full_name,
-                plantWelderId: operator.operator_id ?? operator.uid,
-                process: operatorProcessLabel(o.process),
-                validityCode: o.revalidation_method ?? "6.3b",
-                expiryDate: due,
-                daysLeft: dleft,
-                reminderKind: "continuity",
-                oqId: o.id,
-                alertType: `op-continuity-${bucket}`,
-                keyDate: due,
-              });
-            }
+          const inWindow = repeating
+            ? inLeadWindow(dleft, leadDays)
+            : dleft <= maxLead && bucketFor(dleft, leadDays) !== null;
+          if (inWindow) {
+            const bucket = bucketFor(dleft, leadDays) ?? "snapshot";
+            opAlerts.push({
+              welderName: operator.full_name,
+              plantWelderId: operator.operator_id ?? "—",
+              process: operatorProcessLabel(o.process),
+              validityCode: o.revalidation_method ?? "6.3b",
+              expiryDate: due,
+              daysLeft: dleft,
+              reminderKind: "continuity",
+              oqId: o.id,
+              alertType: `op-continuity-${bucket}`,
+              keyDate: due,
+            });
           }
         }
       }
     }
 
-    const freshWelderOrg =
-      welderAlerts.length > 0
-        ? await filterFreshWelderAlerts(supabase, welderAlerts, null)
-        : [];
-    const freshOperatorOrg =
-      opAlerts.length > 0
-        ? await filterFreshOperatorAlerts(supabase, opAlerts, null)
-        : [];
+    const welderForSend = repeating
+      ? welderAlerts
+      : await filterFreshWelderAlerts(supabase, welderAlerts);
+    const opForSend = repeating
+      ? opAlerts
+      : await filterFreshOperatorAlerts(supabase, opAlerts);
 
-    const combinedOrgAlerts: ExpiryAlert[] = [
-      ...freshWelderOrg,
-      ...freshOperatorOrg,
-    ];
+    const combinedOrgAlerts: ExpiryAlert[] = [...welderForSend, ...opForSend];
 
-    if (combinedOrgAlerts.length > 0 && recipients.length > 0) {
-      const kind = orgDigestKind(freshWelderOrg.length, freshOperatorOrg.length);
-      const result = await sendExpiryDigest(
-        recipients,
-        org.name,
-        combinedOrgAlerts,
-        kind,
-      );
+    if (!repeating && combinedOrgAlerts.length === 0) continue;
 
-      if (result.sent) {
-        for (const a of freshWelderOrg) {
+    const kind = orgDigestKind(welderForSend.length, opForSend.length);
+
+    const result = repeating
+      ? await sendExpiryStatusDigest(
+          recipients,
+          org.name,
+          combinedOrgAlerts,
+          leadDays,
+          checkedOn,
+          kind,
+        )
+      : await sendExpiryDigest(recipients, org.name, combinedOrgAlerts, kind);
+
+    if (result.sent) {
+      if (repeating) {
+        await supabase.from("notification_log").insert({
+          org_id: org.id,
+          alert_type: ORG_DIGEST_ALERT_TYPE,
+          expiry_date: null,
+          channel: "email",
+          status: "sent",
+        });
+      } else {
+        for (const a of welderForSend) {
           await supabase.from("notification_log").insert({
             org_id: org.id,
             wpq_id: a.wpqId,
@@ -296,7 +327,7 @@ export async function GET(request: NextRequest) {
             status: "sent",
           });
         }
-        for (const a of freshOperatorOrg) {
+        for (const a of opForSend) {
           await supabase.from("notification_log").insert({
             org_id: org.id,
             operator_qualification_id: a.oqId,
@@ -306,106 +337,15 @@ export async function GET(request: NextRequest) {
             status: "sent",
           });
         }
-        totalSent += combinedOrgAlerts.length;
-        summary[org.name] = combinedOrgAlerts.length;
       }
-    }
-
-    if (welderAlerts.length > 0) {
-      const alertsByWelder = new Map<string, BuiltAlert[]>();
-      for (const a of welderAlerts) {
-        const list = alertsByWelder.get(a.welderId) ?? [];
-        list.push(a);
-        alertsByWelder.set(a.welderId, list);
-      }
-
-      for (const [welderId, items] of alertsByWelder) {
-        const welder = welders.get(welderId);
-        const email = welder?.email?.trim();
-        if (!email) continue;
-
-        const freshWelder = await filterFreshWelderAlerts(
-          supabase,
-          items,
-          welderId,
-        );
-        if (freshWelder.length === 0) continue;
-
-        const result = await sendWelderExpiryDigest(
-          email,
-          welder!.full_name,
-          org.name,
-          freshWelder,
-          "welder",
-        );
-
-        if (result.sent) {
-          for (const a of freshWelder) {
-            await supabase.from("notification_log").insert({
-              org_id: org.id,
-              wpq_id: a.wpqId,
-              welder_id: welderId,
-              alert_type: a.alertType,
-              expiry_date: a.keyDate,
-              channel: "email",
-              status: "sent",
-            });
-          }
-          individualEmailsSent += 1;
-        }
-      }
-    }
-
-    if (opAlerts.length > 0) {
-      const opByOperator = new Map<string, OpAlert[]>();
-      for (const a of opAlerts) {
-        const list = opByOperator.get(a.operatorId) ?? [];
-        list.push(a);
-        opByOperator.set(a.operatorId, list);
-      }
-
-      for (const [operatorId, items] of opByOperator) {
-        const operator = operators.get(operatorId);
-        const email = operator?.email?.trim();
-        if (!email) continue;
-
-        const freshOp = await filterFreshOperatorAlerts(
-          supabase,
-          items,
-          operatorId,
-        );
-        if (freshOp.length === 0) continue;
-
-        const result = await sendWelderExpiryDigest(
-          email,
-          operator!.full_name,
-          org.name,
-          freshOp,
-          "operator",
-        );
-
-        if (result.sent) {
-          for (const a of freshOp) {
-            await supabase.from("notification_log").insert({
-              org_id: org.id,
-              operator_qualification_id: a.oqId,
-              operator_id: operatorId,
-              alert_type: a.alertType,
-              expiry_date: a.keyDate,
-              channel: "email",
-              status: "sent",
-            });
-          }
-          individualEmailsSent += 1;
-        }
-      }
+      totalSent += combinedOrgAlerts.length || 1;
+      summary[org.name] = combinedOrgAlerts.length;
     }
   }
 
   return NextResponse.json({
     ok: true,
     totalSent,
-    individualEmailsSent,
     summary,
   });
 }

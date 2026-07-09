@@ -89,7 +89,7 @@ export function standardPdfApiPath(slug: StandardSlug): string {
   return `/api/standards/${slug}`;
 }
 
-export const ACTIVE_STANDARD_COOKIE = "welddoc_active_standard";
+export const ACTIVE_STANDARD_COOKIE = "Weld.Doc_active_standard";
 export const ACTIVE_STANDARD_SLUG: StandardSlug = "iso9606-1";
 
 export function activeStandardEntry(): StandardCatalogEntry {

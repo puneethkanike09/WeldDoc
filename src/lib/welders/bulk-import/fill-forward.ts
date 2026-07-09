@@ -7,7 +7,6 @@ const FILL_KEYS = [
   "id_method",
   "id_number",
   "photo_filename",
-  "email",
   "welder_status",
   "place_of_birth",
 ] as const;

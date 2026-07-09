@@ -9,7 +9,7 @@ export function getResendClient(): Resend | null {
 }
 
 export function getResendFrom(): string {
-  return process.env.RESEND_FROM_EMAIL || "WeldDoc <hello@welddoc.in>";
+  return process.env.RESEND_FROM_EMAIL || "Weld.Doc <hello@welddoc.in>";
 }
 
 export interface SendEmailInput {
@@ -136,19 +136,19 @@ function digestCopy(kind: ExpiryDigestKind): {
       return {
         heading: "Operator qualification reminders",
         nameColumn: "Operator",
-        subject: (n) => `WeldDoc — ${n} operator qualification reminder(s)`,
+        subject: (n) => `Weld.Doc — ${n} operator qualification reminder(s)`,
       };
     case "mixed":
       return {
         heading: "Qualification reminders",
         nameColumn: "Person",
-        subject: (n) => `WeldDoc — ${n} qualification reminder(s)`,
+        subject: (n) => `Weld.Doc — ${n} qualification reminder(s)`,
       };
     default:
       return {
         heading: "Welder qualification reminders",
         nameColumn: "Welder",
-        subject: (n) => `WeldDoc — ${n} welder qualification reminder(s)`,
+        subject: (n) => `Weld.Doc — ${n} welder qualification reminder(s)`,
       };
   }
 }
@@ -191,7 +191,7 @@ function expiryDigestHtml(
               <tbody>${rows}</tbody>
             </table>
           </div>
-          <p style="color:${EMAIL.muted};font-size:12px;margin-top:18px">Log a continuity confirmation or revalidation report in WeldDoc to reset the clock.</p>
+          <p style="color:${EMAIL.muted};font-size:12px;margin-top:18px">Log a continuity confirmation or revalidation report in Weld.Doc to reset the clock.</p>
   `);
 }
 
@@ -216,62 +216,123 @@ export async function sendExpiryDigest(
   return { sent: result.sent, error: result.error };
 }
 
-function welderExpiryDigestHtml(
-  welderName: string,
-  orgName: string,
-  alerts: ExpiryAlert[],
-): string {
-  const rows = alerts
-    .map(
-      (a) => `
-      <tr>
-        <td style="padding:8px 12px;border-bottom:1px solid ${EMAIL.border};color:${EMAIL.textSecondary};white-space:nowrap">${a.plantWelderId}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid ${EMAIL.border};color:${EMAIL.textSecondary};white-space:nowrap">${a.process}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid ${EMAIL.border};color:${EMAIL.textSecondary};white-space:nowrap">${reminderKindLabel(a.reminderKind)}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid ${EMAIL.border};color:${EMAIL.textSecondary};white-space:nowrap">${a.validityCode}</td>
-        ${dueCell(a.daysLeft, a.expiryDate)}
-      </tr>`,
-    )
-    .join("");
-
-  return emailShell(`
-          <h1 style="font-family:Helvetica,Arial,sans-serif;font-size:18px;color:${EMAIL.text};margin:0 0 6px">Your qualification reminders</h1>
-          <p style="color:${EMAIL.textSecondary};margin:0 0 18px">Hi ${welderName}, ${alerts.length} of your qualification(s) at ${orgName} need attention.</p>
-          <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;max-width:100%">
-            <table style="min-width:520px;width:100%;border-collapse:collapse;font-size:13px">
-              <thead>
-                <tr style="text-align:left;color:${EMAIL.muted};font-size:11px;text-transform:uppercase">
-                  <th style="padding:8px 12px;white-space:nowrap">Plant ID</th>
-                  <th style="padding:8px 12px;white-space:nowrap">Process</th>
-                  <th style="padding:8px 12px;white-space:nowrap">Reminder</th>
-                  <th style="padding:8px 12px;white-space:nowrap">Method</th>
-                  <th style="padding:8px 12px;white-space:nowrap">Due</th>
-                </tr>
-              </thead>
-              <tbody>${rows}</tbody>
-            </table>
-          </div>
-          <p style="color:${EMAIL.muted};font-size:12px;margin-top:18px">Contact your welding coordinator to log a continuity confirmation or revalidation report.</p>
-  `, 640);
+function formatDigestDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(d);
 }
 
-export type PersonalExpiryDigestKind = "welder" | "operator";
+function statusSection(
+  title: string,
+  items: ExpiryAlert[],
+  emptyLabel: string,
+  lineFn: (a: ExpiryAlert) => string,
+): string {
+  if (items.length === 0) {
+    return `<p style="margin:0 0 16px;color:${EMAIL.textSecondary};font-size:14px">✅ ${emptyLabel}</p>`;
+  }
+  const lines = items.map((a) => `<li style="margin:0 0 6px;color:${EMAIL.textSecondary};font-size:13px">${lineFn(a)}</li>`).join("");
+  return `
+    <div style="margin:0 0 20px">
+      <p style="margin:0 0 8px;font-weight:700;color:${EMAIL.text};font-size:14px">${title} (${items.length})</p>
+      <ul style="margin:0;padding-left:18px">${lines}</ul>
+    </div>`;
+}
 
-export async function sendWelderExpiryDigest(
-  to: string,
-  welderName: string,
+/** Sectioned status digest for repeating schedules (daily, weekly, etc.). */
+export function expiryStatusDigestHtml(
   orgName: string,
   alerts: ExpiryAlert[],
-  kind: PersonalExpiryDigestKind = "welder",
-): Promise<{ sent: boolean; error?: string }> {
-  if (!to) return { sent: false, error: "No recipient" };
+  leadDays: number[],
+  checkedOn: string,
+  kind: ExpiryDigestKind,
+): string {
+  const personLabel =
+    kind === "operator" ? "Operator" : kind === "mixed" ? "Person" : "Welder";
+  const sortedLeads = [...leadDays].sort((a, b) => b - a);
 
-  const subject =
+  const expired = alerts.filter((a) => a.daysLeft < 0);
+  const today = alerts.filter((a) => a.daysLeft === 0);
+
+  const leadSections = sortedLeads.map((lead) => {
+    const inBucket = alerts.filter(
+      (a) => a.daysLeft > 0 && a.daysLeft <= lead,
+    );
+    return {
+      lead,
+      items: inBucket,
+    };
+  });
+
+  let sectionsHtml = statusSection(
+    "ALREADY EXPIRED",
+    expired,
+    "No certificates or continuity checks overdue",
+    (a) =>
+      `${personLabel} No: ${a.plantWelderId} | Process: ${a.process} | ${reminderKindLabel(a.reminderKind)} | Expired: ${formatDigestDate(a.expiryDate)} (${Math.abs(a.daysLeft)} days ago)`,
+  );
+
+  sectionsHtml += statusSection(
+    "EXPIRES TODAY",
+    today,
+    "No certificates or continuity checks due today",
+    (a) =>
+      `${personLabel} No: ${a.plantWelderId} | Process: ${a.process} | ${reminderKindLabel(a.reminderKind)} | Due: ${formatDigestDate(a.expiryDate)}`,
+  );
+
+  for (const { lead, items } of leadSections) {
+    sectionsHtml += statusSection(
+      `EXPIRING WITHIN ${lead} DAYS`,
+      items,
+      `No certificates or continuity checks expiring within ${lead} days`,
+      (a) =>
+        `${personLabel} No: ${a.plantWelderId} | Process: ${a.process} | ${reminderKindLabel(a.reminderKind)} | Due: ${formatDigestDate(a.expiryDate)} (${a.daysLeft}d)`,
+    );
+  }
+
+  const heading =
     kind === "operator"
-      ? "WeldDoc — your operator qualification reminder(s)"
-      : "WeldDoc — your qualification reminder(s)";
-  const html = welderExpiryDigestHtml(welderName, orgName, alerts);
-  return sendEmail({ to: [to], subject, html });
+      ? "Operator qualification expiry status"
+      : kind === "mixed"
+        ? "Qualification expiry status"
+        : "Welder certificate expiry status";
+
+  return emailShell(`
+          <p style="color:${EMAIL.textSecondary};margin:0 0 4px;font-size:14px">Hi,</p>
+          <h1 style="font-family:Helvetica,Arial,sans-serif;font-size:18px;color:${EMAIL.text};margin:0 0 16px">${heading}</h1>
+          <p style="color:${EMAIL.textSecondary};margin:0 0 20px;font-size:13px">${orgName}</p>
+          ${sectionsHtml}
+          <hr style="border:none;border-top:1px solid ${EMAIL.border};margin:20px 0" />
+          <p style="color:${EMAIL.muted};font-size:12px;margin:0">Checked on: ${formatDigestDate(checkedOn)}</p>
+          <p style="color:${EMAIL.muted};font-size:12px;margin:8px 0 0">This alert was sent automatically from Weld.Doc.</p>
+  `);
+}
+
+export async function sendExpiryStatusDigest(
+  to: string[],
+  orgName: string,
+  alerts: ExpiryAlert[],
+  leadDays: number[],
+  checkedOn: string,
+  kind: ExpiryDigestKind = "welder",
+): Promise<{ sent: boolean; error?: string }> {
+  if (to.length === 0) return { sent: false, error: "No recipients" };
+
+  const subject = `Weld.Doc — qualification status for ${orgName}`;
+  const html = expiryStatusDigestHtml(orgName, alerts, leadDays, checkedOn, kind);
+
+  if (to.length === 1) {
+    return sendEmail({ to, subject, html });
+  }
+
+  const result = await sendBatchEmails(
+    to.map((email) => ({ to: [email], subject, html })),
+  );
+  return { sent: result.sent, error: result.error };
 }
 
 export async function sendOrgWelcomeEmail(
@@ -281,17 +342,17 @@ export async function sendOrgWelcomeEmail(
   const html = emailShell(`
           <h1 style="font-family:Helvetica,Arial,sans-serif;font-size:18px;color:${EMAIL.text};margin:0 0 12px">Email alerts are connected</h1>
           <p style="color:${EMAIL.textSecondary};margin:0 0 12px;line-height:1.5">
-            This is a test message for <strong>${orgName}</strong>. WeldDoc can now send
+            This is a test message for <strong>${orgName}</strong>. Weld.Doc can now send
             qualification expiry and continuity reminders to your organisation.
           </p>
           <p style="color:${EMAIL.muted};font-size:13px;margin:0">
-            Manage recipients in Settings → Organisation &amp; alerts.
+            Manage recipients from the Welders or Operators page → Alert email configuration.
           </p>
   `, 560);
 
   return sendEmail({
     to,
-    subject: `WeldDoc — email alerts connected for ${orgName}`,
+    subject: `Weld.Doc — email alerts connected for ${orgName}`,
     html,
   });
 }

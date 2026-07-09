@@ -731,6 +731,8 @@ export function OperatorNdtRow({
   fieldErrors,
   clearError,
   nameScope = "",
+  dateDefault,
+  refDefault,
 }: {
   label: string;
   method: string;
@@ -739,6 +741,8 @@ export function OperatorNdtRow({
   fieldErrors: FieldErrors;
   clearError: (key: string) => void;
   nameScope?: string;
+  dateDefault?: string;
+  refDefault?: string;
 }) {
   const resultKey = scopedNdtFieldName(nameScope, `ndt_${method}`);
   const dateKey = scopedNdtFieldName(nameScope, `test_date__${method}`);
@@ -778,7 +782,7 @@ export function OperatorNdtRow({
       >
         <DatePicker
           name={dateKey}
-          defaultValue={existing?.test_date ?? ""}
+          defaultValue={dateDefault ?? existing?.test_date ?? ""}
           required
           error={fieldErrors[dateKey]}
         />
@@ -791,7 +795,7 @@ export function OperatorNdtRow({
       >
         <Input
           name={refKey}
-          defaultValue={existing?.conducted_by ?? ""}
+          defaultValue={refDefault ?? existing?.conducted_by ?? ""}
           placeholder="NDT report no."
           required
           className={cn(

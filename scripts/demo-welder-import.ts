@@ -318,7 +318,7 @@ async function main() {
   for (const plantId of ["W#9901", "W#9902", "W#9903"]) {
     const { data: w } = await supabase
       .from("welders")
-      .select("id, uid, full_name, photo_path, is_new_welder")
+      .select("id, welder_id, full_name, photo_path, is_new_welder")
       .eq("org_id", org.id)
       .eq("welder_id", plantId)
       .maybeSingle();
@@ -330,7 +330,7 @@ async function main() {
       .from("qualification_records")
       .select("id, process, expiry_date, continuity_last_verified, wpq_status, is_legacy")
       .eq("welder_id", w.id);
-    console.log(`  ${plantId} ${w.full_name} (${w.uid})`);
+    console.log(`  ${plantId} ${w.full_name} (${w.welder_id})`);
     console.log(`    photo: ${w.photo_path ? "yes" : "no"} | new_welder: ${w.is_new_welder}`);
     for (const q of wpqs ?? []) {
       console.log(

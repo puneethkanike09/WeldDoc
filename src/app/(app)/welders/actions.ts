@@ -12,7 +12,6 @@ import {
   isUniqueViolation,
   normalizePlantWelderId,
 } from "@/lib/welders/plant-id";
-import { normalizeOptionalEmail } from "@/lib/utils";
 import {
   createWelderRecord,
   type CreateWelderRecordContext,
@@ -65,7 +64,6 @@ export async function updateWelder(welderId: string, formData: FormData) {
     id_number: str(formData.get("id_number")),
     employer: str(formData.get("employer")),
     branch_location: str(formData.get("branch_location")),
-    email: normalizeOptionalEmail(str(formData.get("email"))),
   };
   if (photoPath) update.photo_path = photoPath;
 

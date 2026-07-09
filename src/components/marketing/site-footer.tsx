@@ -35,7 +35,7 @@ export function SiteFooter() {
 
         <div className="relative z-10 mt-8 flex flex-col gap-6 md:mt-10 md:flex-row md:items-center md:justify-between">
           <p className="text-micro text-muted-slate">
-            © {new Date().getFullYear()} WeldDoc. Built for welding engineers,
+            © {new Date().getFullYear()} Weld.Doc. Built for welding engineers,
             auditors and fabrication shops.
           </p>
           <LegalNavLinks variant="on-dark" />

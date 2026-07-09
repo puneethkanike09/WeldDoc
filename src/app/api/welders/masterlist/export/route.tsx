@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
 
   if (format === "pdf") {
     const buffer = await renderToBuffer(
-      <MasterListDocument rows={rows} orgName={org?.name ?? "WeldDoc"} />,
+      <MasterListDocument rows={rows} orgName={org?.name ?? "Organisation"} />,
     );
     return new Response(new Uint8Array(buffer), {
       headers: {

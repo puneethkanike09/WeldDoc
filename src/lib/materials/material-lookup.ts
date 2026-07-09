@@ -3,7 +3,7 @@ import * as tr20172 from "./tr20172";
 import type { Tr20173Material } from "./tr20173";
 import * as tr20173 from "./tr20173";
 
-export type MaterialLookupSource = "TR20172" | "TR20173";
+export type MaterialLookupSource = "TR20172" | "TR20173" | "Others";
 
 export const MATERIAL_LOOKUP_OPTIONS: {
   value: MaterialLookupSource;
@@ -19,6 +19,11 @@ export const MATERIAL_LOOKUP_OPTIONS: {
     value: "TR20173",
     label: "ISO/TR 20173 — American materials",
     hint: "ASTM, ASME, API, ABS, CSA, AS/NZS, …",
+  },
+  {
+    value: "Others",
+    label: "Others — not listed in TR 20172 / TR 20173",
+    hint: "Enter material standard, grade and parent group manually.",
   },
 ];
 
@@ -36,12 +41,19 @@ export function inferMaterialLookupSource(
   if (!norm) return "";
   if (tr20172.listGradesForStandard(norm).length > 0) return "TR20172";
   if (tr20173.listGradesForStandard(norm).length > 0) return "TR20173";
-  return "";
+  return "Others";
+}
+
+export function isManualMaterialLookup(
+  source: MaterialLookupSource | "",
+): boolean {
+  return source === "Others";
 }
 
 export function listMaterialStandards(
   source: MaterialLookupSource,
 ): string[] {
+  if (source === "Others") return [];
   return source === "TR20172"
     ? tr20172.listMaterialStandards()
     : tr20173.listMaterialStandards();
@@ -51,6 +63,7 @@ export function listGradesForStandard(
   source: MaterialLookupSource,
   standard: string,
 ): MaterialGradeOption[] {
+  if (source === "Others") return [];
   if (source === "TR20172") {
     return tr20172.listGradesForStandard(standard).map((m) => ({
       source: "TR20172" as const,
@@ -80,6 +93,8 @@ export function lookupMaterialGroup(
 } | null {
   const resolved =
     source ?? (standard ? inferMaterialLookupSource(standard) : "");
+
+  if (resolved === "Others") return null;
 
   if (resolved === "TR20172") {
     const eu = tr20172.lookupMaterialGroup(designation, standard);

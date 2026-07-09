@@ -18,6 +18,7 @@ import {
   testingStandardLabel,
   type CertTableRow,
 } from "@/lib/iso9606/certificate-annex";
+import { hasAnySupplementaryFillet } from "@/lib/iso9606/supplementary-fillet";
 import type {
   NdtDtRecord,
   Organization,
@@ -241,10 +242,10 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
   const issueDate = fmt(wpq.certificate_issued_date ?? wpq.date_of_welding);
   const validUntil = initialValidUntil(wpq);
   const jobOk = wpq.job_knowledge === "Acceptable";
-  const filletOk = wpq.supplementary_fillet;
+  const filletOk = hasAnySupplementaryFillet(wpq);
 
   return (
-    <Document title={`WPQ Certificate ${welder.uid}`} author={org.name}>
+    <Document title={`WPQ Certificate ${welder.welder_id ?? welder.full_name}`} author={org.name}>
       <Page
         size="A4"
         style={{
@@ -297,7 +298,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
                 textDecoration: "underline",
               }}
             >
-              Welder&apos;s Qualification Test Certificate
+              Welder&apos;s Certificate
             </Text>
           </View>
 
@@ -354,7 +355,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
               <InfoRow label="Welder Name:" value={welder.full_name} bold />
               <InfoRow
                 label="Identification:"
-                value={welder.welder_id ?? welder.uid}
+                value={welder.welder_id ?? "—"}
               />
               <InfoRow
                 label="Method of Identification:"
@@ -682,7 +683,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
           }}
           fixed
         >
-          {org.name} · WeldDoc
+          {org.name} · Weld.Doc
         </Text>
       </Page>
     </Document>

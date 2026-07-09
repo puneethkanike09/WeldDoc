@@ -55,7 +55,7 @@ export function BrochureDocument({ region = "inr" }: { region?: BrochureRegion }
     <div className="brochure-root">
       {/* Screen toolbar */}
       <div className="brochure-screen-toolbar">
-        <span>WeldDoc · Forge Steel brochure · {regional.editionLabel}</span>
+        <span>Weld.Doc · Forge Steel brochure · {regional.editionLabel}</span>
         <div className="brochure-screen-actions">
           <a
             href={regional.pdfPath}
@@ -79,7 +79,7 @@ export function BrochureDocument({ region = "inr" }: { region?: BrochureRegion }
             <div className="brochure-hero-top">
               <BrochureShot
                 src="/images/welddoc-logo.png"
-                alt="WeldDoc"
+                alt="Weld.Doc"
                 className="brochure-logo-img"
               />
               <div className="brochure-cover-pills">
@@ -215,13 +215,13 @@ export function BrochureDocument({ region = "inr" }: { region?: BrochureRegion }
 
         {/* Page 2 header band */}
         <header className="brochure-page-header">
-          <p className="brochure-kicker">Why WeldDoc</p>
+          <p className="brochure-kicker">Why Weld.Doc</p>
           <h2 className="brochure-headline brochure-headline-sm">
             Built for qualification. Priced for your shop.
           </h2>
           <p className="brochure-lead brochure-lead-sm">
             Big platforms charge for weld mapping, ERP connectors and features most shops never
-            touch. WeldDoc does one thing really well — keeps your welders qualified and your
+            touch. Weld.Doc does one thing really well — keeps your welders qualified and your
             records audit-ready. That's it. Honest pricing, fast setup, no training course needed.
           </p>
         </header>
@@ -229,9 +229,9 @@ export function BrochureDocument({ region = "inr" }: { region?: BrochureRegion }
         {/* Page 2 body */}
         <div className="brochure-body-pad">
 
-          {/* Who uses WeldDoc — 3 persona cards */}
+          {/* Who uses Weld.Doc — 3 persona cards */}
           <div className="brochure-mt-tight">
-            <p className="brochure-kicker">Who uses WeldDoc</p>
+            <p className="brochure-kicker">Who uses Weld.Doc</p>
             <div className="brochure-personas">
               {BROCHURE_PERSONAS.map((persona) => (
                 <div key={persona.role} className="brochure-persona">
@@ -253,7 +253,7 @@ export function BrochureDocument({ region = "inr" }: { region?: BrochureRegion }
                 <tr>
                   <th className="col-feature">Capability</th>
                   {COMPETITOR_COLUMNS.map((col) => (
-                    <th key={col} className={col === "WeldDoc" ? "col-welddoc" : undefined}>
+                    <th key={col} className={col === "Weld.Doc" ? "col-welddoc" : undefined}>
                       {col}
                     </th>
                   ))}
@@ -266,7 +266,7 @@ export function BrochureDocument({ region = "inr" }: { region?: BrochureRegion }
                     {row.values.map((value, index) => (
                       <td
                         key={`${row.label}-${COMPETITOR_COLUMNS[index]}`}
-                        className={COMPETITOR_COLUMNS[index] === "WeldDoc" ? "col-welddoc" : undefined}
+                        className={COMPETITOR_COLUMNS[index] === "Weld.Doc" ? "col-welddoc" : undefined}
                       >
                         <CompareIcon value={value} />
                       </td>
@@ -329,7 +329,7 @@ export function BrochureDocument({ region = "inr" }: { region?: BrochureRegion }
           <div>
             <BrochureShot
               src="/images/welddoc-logo.png"
-              alt="WeldDoc"
+              alt="Weld.Doc"
               className="brochure-footer-logo"
             />
             <p className="brochure-contact-line">{regional.contact.phone}</p>

@@ -103,20 +103,6 @@ export function WelderForm({
               />
             </Field>
             <Field
-              label="Email"
-              hint="Used to send qualification expiry and continuity reminders."
-              error={fieldErrors.email}
-            >
-              <Input
-                name="email"
-                type="email"
-                defaultValue={welder?.email ?? ""}
-                placeholder="welder@example.com"
-                className={cn(fieldErrors.email && invalidBorder)}
-                onChange={() => clearError("email")}
-              />
-            </Field>
-            <Field
               label="Plant welder ID"
               hint={
                 fieldErrors.welder_id
@@ -274,7 +260,7 @@ export function WelderForm({
 
       <div className="flex items-center justify-end gap-3">
         <Label className="mr-auto mb-0 text-steel">
-          UID &amp; QR code are generated automatically on save.
+          Plant welder ID and QR code are assigned automatically on save.
         </Label>
         <SubmitButton
           label={mode === "create" ? "Create welder" : "Save changes"}

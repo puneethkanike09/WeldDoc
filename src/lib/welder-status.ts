@@ -1,5 +1,6 @@
 import type { QualificationRecord, Welder, WpqStatus } from "@/types/db";
 import { processLabel } from "@/lib/iso9606/constants";
+import { activeQualifications } from "@/lib/qualification-active";
 
 export type OverallStatus =
   | "Active"
@@ -98,6 +99,7 @@ export function summarizeWelder(
   wpqs: QualificationRecord[],
   expiringWindowDays = 30,
 ): WelderSummary {
+  wpqs = activeQualifications(wpqs);
   const processes = Array.from(
     new Set(wpqs.map((w) => processLabel(w.process))),
   );

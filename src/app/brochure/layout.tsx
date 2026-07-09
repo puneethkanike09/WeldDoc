@@ -5,7 +5,7 @@ import "./brochure.css";
 
 export const metadata: Metadata = {
   title: "Brochure",
-  description: "WeldDoc product brochure — qualification management for fabrication shops.",
+  description: "Weld.Doc product brochure — qualification management for fabrication shops.",
   robots: { index: false, follow: false },
 };
 

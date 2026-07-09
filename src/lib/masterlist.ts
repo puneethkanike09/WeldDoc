@@ -5,10 +5,11 @@ import type {
   RangeOfApproval,
   Welder,
 } from "@/types/db";
+import { isActiveRegistryStatus } from "@/lib/registry-status";
+import { isActiveQualification } from "@/lib/qualification-active";
 
 export interface MasterRow {
   welderName: string;
-  uid: string;
   welderId: string;
   process: string;
   standard: string;
@@ -73,13 +74,16 @@ export async function getMasterListRows(
     ((rangeRows ?? []) as RangeOfApproval[]).map((r) => [r.wpq_id, r]),
   );
 
-  return wpqs.map((q) => {
+  return wpqs.flatMap((q) => {
     const welder = welders.get(q.welder_id);
+    if (!welder || !isActiveRegistryStatus(welder.status)) return [];
+    if (!isActiveQualification(q)) return [];
+
     const range = ranges.get(q.id);
-    return {
-      welderName: welder?.full_name ?? "—",
-      uid: welder?.uid ?? "—",
-      welderId: welder?.welder_id ?? "—",
+    return [
+      {
+        welderName: welder.full_name,
+        welderId: welder.welder_id ?? "—",
       process: processLabel(q.process),
       standard: "ISO 9606-1",
       jointType: q.joint_type,
@@ -96,13 +100,13 @@ export async function getMasterListRows(
       issued: q.certificate_issued_date ?? "—",
       expiry: q.expiry_date ?? "—",
       revalidation: q.revalidation_method,
-    };
+      },
+    ];
   });
 }
 
 export const MASTER_COLUMNS: { key: keyof MasterRow; label: string }[] = [
   { key: "welderName", label: "Welder" },
-  { key: "uid", label: "UID" },
   { key: "welderId", label: "Welder ID" },
   { key: "process", label: "Process" },
   { key: "standard", label: "Standard" },

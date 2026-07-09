@@ -97,7 +97,7 @@ function StandardCard({
       <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-silver pt-5">
         <PdfActions entry={entry} onViewPdf={onViewPdf} />
         {isLive ? (
-          <Badge tone="active">Available in WeldDoc</Badge>
+          <Badge tone="active">Available in Weld.Doc</Badge>
         ) : (
           <Badge tone="expiring">Coming soon</Badge>
         )}

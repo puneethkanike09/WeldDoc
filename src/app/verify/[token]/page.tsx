@@ -53,9 +53,9 @@ export default async function VerifyPage({
               <Logo />
               <span className="text-xs text-steel">Live operator ID</span>
             </div>
-            <WelderIdCardView {...view} showUid={false} />
+            <WelderIdCardView {...view} />
             <p className="mt-6 text-center text-xs text-steel">
-              Verified live via WeldDoc · {formatDate(new Date())}
+              Verified live via Weld.Doc · {formatDate(new Date())}
             </p>
           </div>
         </main>
@@ -75,10 +75,10 @@ export default async function VerifyPage({
           <span className="text-xs text-steel">Live welder ID</span>
         </div>
 
-        <WelderIdCardView {...view} showUid={false} />
+        <WelderIdCardView {...view} />
 
         <p className="mt-6 text-center text-xs text-steel">
-          Verified live via WeldDoc · {formatDate(new Date())}
+          Verified live via Weld.Doc · {formatDate(new Date())}
         </p>
       </div>
     </main>

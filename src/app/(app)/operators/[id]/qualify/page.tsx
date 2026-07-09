@@ -96,7 +96,7 @@ export default async function OperatorQualifyPage({
     <>
       <PageHeader
         title="Qualification workflow"
-        description={`${op.full_name} · ${op.uid}`}
+        description={`${op.full_name} · ${op.operator_id ?? "—"}`}
       />
       <div className="px-8 py-8">
         <Link

@@ -11,8 +11,14 @@ import { dirname, join } from "node:path";
 import {
   bucketFor,
   daysUntil,
+  inLeadWindow,
   orgDigestKind,
+  ORG_DIGEST_ALERT_TYPE,
 } from "../src/lib/expiry-alerts/cron-logic";
+import {
+  shouldSendOrgDigest,
+  usesRepeatingDigest,
+} from "../src/lib/expiry-alerts/frequency";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -50,7 +56,34 @@ function runLogicTests() {
   assert(orgDigestKind(0, 1) === "operator", "operator-only digest kind");
   assert(orgDigestKind(2, 3) === "mixed", "mixed digest kind");
 
-  console.log("✓ Logic tests passed (bucketFor, daysUntil, orgDigestKind)");
+  assert(inLeadWindow(31, [30, 7]) === false, "31 days outside 30 lead");
+  assert(inLeadWindow(30, [30, 7]) === true, "30 days inside lead");
+  assert(inLeadWindow(-1, [30, 7]) === true, "overdue inside lead");
+
+  const monday = new Date("2026-07-06T06:00:00Z");
+  assert(
+    shouldSendOrgDigest("weekly", monday, null) === true,
+    "weekly sends on Monday",
+  );
+  assert(
+    shouldSendOrgDigest("weekly", new Date("2026-07-07T06:00:00Z"), null) ===
+      false,
+    "weekly skips Tuesday",
+  );
+  assert(
+    shouldSendOrgDigest(
+      "every_2_days",
+      new Date("2026-07-08T06:00:00Z"),
+      new Date("2026-07-06T06:00:00Z"),
+    ) === true,
+    "every 2 days after last send",
+  );
+  assert(usesRepeatingDigest("daily") === true, "daily is repeating");
+  assert(usesRepeatingDigest("once") === false, "once is not repeating");
+
+  console.log(
+    "✓ Logic tests passed (bucketFor, daysUntil, orgDigestKind, frequency)",
+  );
 }
 
 async function testAuthGuard() {
@@ -107,10 +140,6 @@ async function runLiveHandler() {
   assert(res.status === 200, `Live handler should return 200, got ${res.status}`);
   assert(body.ok === true, "Response should include ok: true");
   assert(typeof body.totalSent === "number", "totalSent should be a number");
-  assert(
-    typeof body.individualEmailsSent === "number",
-    "individualEmailsSent should be a number",
-  );
   assert(typeof body.summary === "object", "summary should be an object");
 
   console.log("✓ Live handler response:", JSON.stringify(body, null, 2));

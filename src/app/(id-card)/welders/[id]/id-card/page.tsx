@@ -5,7 +5,6 @@ import { requireSession } from "@/lib/auth";
 import { loadWelderIdCardView } from "@/lib/id-card/view-data";
 import { IdCardPrintShell } from "@/components/verify/id-card-print-shell";
 import { WelderIdCardView } from "@/components/verify/welder-id-card-view";
-import { formatDate } from "@/lib/utils";
 import type { Welder } from "@/types/db";
 
 export async function generateMetadata({
@@ -53,9 +52,6 @@ export default async function WelderIdCardPage({
       showPrint={false}
     >
       <WelderIdCardView {...view} />
-      <p className="mt-6 text-center text-xs text-steel print:mt-4">
-        WeldDoc · {formatDate(new Date())}
-      </p>
     </IdCardPrintShell>
   );
 }

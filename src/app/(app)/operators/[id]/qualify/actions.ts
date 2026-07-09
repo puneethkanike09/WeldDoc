@@ -555,3 +555,23 @@ export async function saveOperatorValidation(
 
   revalidatePath(`/operators/${operatorId}`);
 }
+
+export async function setOperatorQualificationActive(
+  operatorId: string,
+  oqId: string,
+  isActive: boolean,
+) {
+  const { org } = await requireSession();
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("operator_qualifications")
+    .update({ is_active: isActive })
+    .eq("id", oqId)
+    .eq("operator_id", operatorId)
+    .eq("org_id", org.id);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath(`/operators/${operatorId}`);
+}

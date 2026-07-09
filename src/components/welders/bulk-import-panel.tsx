@@ -210,7 +210,7 @@ export function BulkImportPanel({
               Download the single-sheet template and fill one row per
               qualification, repeating the welder name and W# No on each of that
               welder&apos;s rows. Only the welder name and W# No are required.
-              If a W# already exists in WeldDoc, the qualification is attached
+              If a W# already exists in Weld.Doc, the qualification is attached
               to that welder; otherwise a new welder is created.
             </p>
             <p className="mt-2 text-sm text-graphite">
@@ -219,7 +219,7 @@ export function BulkImportPanel({
               <span className="font-medium text-charcoal">
                 continuity_last_verified
               </span>{" "}
-              from the current certificate — WeldDoc stores those dates as-is
+              from the current certificate — Weld.Doc stores those dates as-is
               and does not recalculate them from the original test date.
             </p>
             <p className="mt-2 text-sm text-graphite">

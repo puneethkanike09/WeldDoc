@@ -4,7 +4,7 @@ import { LegalPage } from "@/components/marketing/legal-page";
 export const metadata: Metadata = {
   title: "Security",
   description:
-    "How WeldDoc handles authentication, encryption, and organisation data isolation.",
+    "How Weld.Doc handles authentication, encryption, and organisation data isolation.",
 };
 
 export default function SecurityPage() {
@@ -16,7 +16,7 @@ export default function SecurityPage() {
       active="/security"
     >
       <p>
-        This page is maintained by the WeldDoc team to answer common questions
+        This page is maintained by the Weld.Doc team to answer common questions
         about how we handle security. It describes current practices, not a
         third-party certification.
       </p>
@@ -24,7 +24,7 @@ export default function SecurityPage() {
       <section>
         <h2>Authentication</h2>
         <p>
-          WeldDoc supports email-and-password sign-in. Sessions are managed by
+          Weld.Doc supports email-and-password sign-in. Sessions are managed by
           our authentication provider (Supabase Auth) and stored in secure,
           HTTP-only browser cookies. We recommend using a unique, strong
           password and signing out on shared devices.
@@ -34,8 +34,8 @@ export default function SecurityPage() {
       <section>
         <h2>Encryption in transit</h2>
         <p>
-          All traffic between your browser and WeldDoc is encrypted using TLS.
-          Connections between WeldDoc and the managed database and file storage
+          All traffic between your browser and Weld.Doc is encrypted using TLS.
+          Connections between Weld.Doc and the managed database and file storage
           are also encrypted.
         </p>
       </section>
@@ -80,7 +80,7 @@ export default function SecurityPage() {
       <section>
         <h2>Your responsibilities</h2>
         <ul>
-          <li>Keep your password private and unique to WeldDoc.</li>
+          <li>Keep your password private and unique to Weld.Doc.</li>
           <li>Sign out on shared devices.</li>
           <li>Review the email addresses on your account and alert settings regularly.</li>
           <li>
@@ -109,7 +109,7 @@ export default function SecurityPage() {
       </section>
 
       <p className="text-caption text-muted-slate">
-        Note: WeldDoc is in active development. This page describes current
+        Note: Weld.Doc is in active development. This page describes current
         security practices and will be updated as the product matures. It is
         not a certification or a legal warranty.
       </p>

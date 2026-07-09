@@ -7,6 +7,7 @@ import {
   qualListRange,
 } from "@/lib/qualify/profile-pagination";
 import { daysUntil } from "@/lib/operator-status";
+import { isActiveQualification } from "@/lib/qualification-active";
 import { operatorContinuityDue } from "@/lib/iso14732/expiry";
 import { resolveUrl } from "@/lib/storage";
 import { formatDate } from "@/lib/utils";
@@ -31,14 +32,15 @@ const OQ_TONE: Record<
 };
 
 function operatorQualListItem(q: OperatorQualification): QualListItem {
+  const inactive = !isActiveQualification(q);
   return {
     id: q.id,
     title: [processLabel(q.process), q.welding_mode, q.product_type]
       .filter(Boolean)
       .join(" · "),
     subtitle: `ISO 14732 · ${q.welding_type ?? "—"} · Method ${q.revalidation_method}`,
-    statusLabel: q.oq_status.replace("_", " "),
-    statusTone: OQ_TONE[q.oq_status] ?? "neutral",
+    statusLabel: inactive ? "Inactive" : q.oq_status.replace("_", " "),
+    statusTone: inactive ? "neutral" : (OQ_TONE[q.oq_status] ?? "neutral"),
     expiry: formatDate(q.expiry_date),
     daysToExpiry: daysUntil(q.expiry_date),
   };
@@ -54,10 +56,13 @@ function operatorQualDetailView(
   return {
     ...operatorQualListItem(q),
     status: q.oq_status,
+    isActive: isActiveQualification(q),
     isLegacy: q.is_legacy,
     isApproved: q.oq_status === "Approved",
     hasSignedCertificate: Boolean(q.signed_certificate_pdf_path),
-    canLogValidation: q.oq_status === "Approved" || q.oq_status === "Expired",
+    canLogValidation:
+      isActiveQualification(q) &&
+      (q.oq_status === "Approved" || q.oq_status === "Expired"),
     rangeSummary: ranges.get(q.id)?.summary ?? null,
     ndtRecords: ndtViewsFor(q),
     validations: (validationsByOq.get(q.id) ?? []).map((v) => ({

@@ -156,7 +156,7 @@ test("single-process designation stays one line", () => {
   });
   const lines = buildDesignation(wpq, range);
   assert.equal(lines.length, 1);
-  assert.match(lines[0], /^EN ISO 9606-1 111/);
+  assert.match(lines[0], /^ISO 9606-1 111/);
 });
 
 console.log("\nAll multi-process tests passed.\n");

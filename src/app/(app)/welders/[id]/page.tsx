@@ -9,7 +9,6 @@ import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import {
   normalizePlantWelderId,
-  plantWelderIdFromUid,
 } from "@/lib/welders/plant-id";
 import { resolveUrl } from "@/lib/storage";
 import { formatDate } from "@/lib/utils";
@@ -51,12 +50,11 @@ export default async function WelderProfilePage({
   const plantWelderId =
     normalizePlantWelderId(w.welder_id) ??
     w.welder_id?.trim() ??
-    plantWelderIdFromUid(w.uid) ??
-    w.uid;
+    "—";
 
   return (
     <>
-      <PageHeader title={w.full_name} description={`UID ${w.uid}`}>
+      <PageHeader title={w.full_name} description={plantWelderId}>
         <ButtonLink href={`/welders/${id}/edit`} variant="ghost" size="sm">
           <Pencil className="h-4 w-4" /> Edit
         </ButtonLink>
@@ -94,9 +92,8 @@ export default async function WelderProfilePage({
                   {summary.overall}
                 </Badge>
                 <p className="mt-2 font-mono text-[13px] text-charcoal">
-                  {w.uid}
+                  {plantWelderId}
                 </p>
-                <p className="text-xs text-steel">{plantWelderId}</p>
               </div>
             </div>
 
@@ -110,7 +107,6 @@ export default async function WelderProfilePage({
               <Detail label="ID number" value={w.id_number} />
               <Detail label="Employer" value={w.employer} />
               <Detail label="Branch" value={w.branch_location} />
-              {w.email ? <Detail label="Email" value={w.email} /> : null}
             </dl>
 
             <div className="lg:w-52 lg:shrink-0">

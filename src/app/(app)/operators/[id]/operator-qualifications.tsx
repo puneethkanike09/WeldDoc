@@ -17,6 +17,7 @@ import {
   deleteOq,
   deleteOperatorValidation,
   saveOperatorValidation,
+  setOperatorQualificationActive,
   uploadSignedOperatorCertificate,
 } from "./qualify/actions";
 import { Plus } from "lucide-react";
@@ -106,6 +107,9 @@ export function OperatorQualifications({
               fd.set("_oq_id", selected.id);
               return uploadSignedOperatorCertificate(fd);
             }}
+            onSetQualificationActive={(active) =>
+              setOperatorQualificationActive(operatorId, selected.id, active)
+            }
             continuityLabel="6-month continuity (6.2)"
             certificateHint="After logging continuity, re-download the certificate — the 6.2 confirmation table will include the new date."
             deleteQualDescription="This permanently removes the qualification, its range, NDT records, certificate, and every continuity/revalidation log and uploaded document. This cannot be undone."

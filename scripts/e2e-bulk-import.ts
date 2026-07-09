@@ -398,10 +398,10 @@ async function main() {
   }
 
   console.log("\nSummary:");
-  console.log(`  Welder-only: ${welderOnlyId} → ${welderOnly?.uid}`);
-  console.log(`  With qual:   ${welderQualId} → ${welderQual.uid}, WPQ ${wpqId}`);
-  console.log(`  Legacy:      ${welderLegacyId} → ${welderLegacy.uid}, expiry ${legacyExpiry}, continuity ${legacyContinuity}`);
-  console.log(`  Expired:     ${welderExpiredId} → ${welderExpired.uid}, expiry ${expiredExpiry}`);
+  console.log(`  Welder-only: ${welderOnlyId} → ${welderOnly?.welder_id}`);
+  console.log(`  With qual:   ${welderQualId} → ${welderQual.welder_id}, WPQ ${wpqId}`);
+  console.log(`  Legacy:      ${welderLegacyId} → ${welderLegacy.welder_id}, expiry ${legacyExpiry}, continuity ${legacyContinuity}`);
+  console.log(`  Expired:     ${welderExpiredId} → ${welderExpired.welder_id}, expiry ${expiredExpiry}`);
   console.log(`  Expiry:      ${expectedExpiry} (9.3b from ${today})`);
   console.log(`  Range:       ${range?.summary ?? "—"}`);
   console.log(`  NDT:         ${ndtMethods.join(", ") || "—"}`);

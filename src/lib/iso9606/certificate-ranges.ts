@@ -154,6 +154,7 @@ export function positionsRangeText(positions: string[]): string {
 /** One welding process on a qualification (primary or second). */
 export interface ProcessSlice {
   process: string;
+  position: string | null;
   filler_group: string | null;
   filler_designation: string | null;
   filler_type: string | null;
@@ -172,6 +173,7 @@ export { isMultiProcessQualification } from "@/lib/iso9606/constants";
 export function getProcessSlices(wpq: QualificationRecord): ProcessSlice[] {
   const primary: ProcessSlice = {
     process: wpq.process,
+    position: wpq.position,
     filler_group: wpq.filler_group,
     filler_designation: wpq.filler_designation,
     filler_type: wpq.filler_type,
@@ -187,6 +189,7 @@ export function getProcessSlices(wpq: QualificationRecord): ProcessSlice[] {
     primary,
     {
       process: wpq.process_2,
+      position: wpq.position_2 ?? wpq.position,
       filler_group: wpq.process2_filler_group,
       filler_designation: wpq.process2_filler_designation,
       filler_type: wpq.process2_filler_type,

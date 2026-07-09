@@ -121,20 +121,6 @@ export function OperatorForm({
               />
             </Field>
             <Field
-              label="Email"
-              hint="Used to send qualification expiry and continuity reminders."
-              error={fieldErrors.email}
-            >
-              <Input
-                name="email"
-                type="email"
-                defaultValue={operator?.email ?? ""}
-                placeholder="operator@example.com"
-                className={cn(fieldErrors.email && invalidBorder)}
-                onChange={() => clearError("email")}
-              />
-            </Field>
-            <Field
               label="Plant operator ID"
               hint={
                 fieldErrors.operator_id
@@ -292,7 +278,7 @@ export function OperatorForm({
 
       <div className="flex items-center justify-end gap-3">
         <Label className="mr-auto mb-0 text-steel">
-          UID &amp; QR code are generated automatically on save.
+          Plant operator ID and QR code are assigned automatically on save.
         </Label>
         <SubmitButton
           label={mode === "create" ? "Create operator" : "Save changes"}

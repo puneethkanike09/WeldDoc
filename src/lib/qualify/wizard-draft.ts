@@ -5,7 +5,7 @@ export function qualifyDraftKey(
   wpqId: string,
   step: number,
 ): string {
-  return `welddoc:qualify:${welderId}:${wpqId}:step${step}`;
+  return `Weld.Doc:qualify:${welderId}:${wpqId}:step${step}`;
 }
 
 export function operatorQualifyDraftKey(
@@ -13,11 +13,11 @@ export function operatorQualifyDraftKey(
   oqId: string,
   step: number,
 ): string {
-  return `welddoc:qualify:operator:${operatorId}:${oqId}:step${step}`;
+  return `Weld.Doc:qualify:operator:${operatorId}:${oqId}:step${step}`;
 }
 
 export function groupSessionDraftKey(sessionId: string, step: number): string {
-  return `welddoc:group-session:${sessionId}:step${step}`;
+  return `Weld.Doc:group-session:${sessionId}:step${step}`;
 }
 
 export function loadQualifyDraft(key: string): Record<string, string> | null {

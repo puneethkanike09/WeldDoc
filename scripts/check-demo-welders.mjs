@@ -41,7 +41,7 @@ for (const o of orgs ?? []) {
   const list = (welders ?? []).filter((w) => w.org_id === o.id);
   console.log(`\n${o.name} (${list.length} welders):`);
   for (const w of list) {
-    console.log(`  ${w.welder_id ?? "—"} | ${w.full_name} | ${w.uid}`);
+    console.log(`  ${w.welder_id ?? "—"} | ${w.full_name}`);
   }
 }
 

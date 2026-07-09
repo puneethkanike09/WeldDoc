@@ -58,18 +58,26 @@ export interface QualificationSessionMember {
   created_at: string;
 }
 
+export type AlertEmailFrequency =
+  | "once"
+  | "daily"
+  | "every_2_days"
+  | "weekly"
+  | "twice_weekly"
+  | "every_3_weeks";
+
 export interface Organization {
   id: string;
   name: string;
   logo_path: string | null;
   location_code: string | null;
-  uid_prefix: string;
   report_prefix: string;
   wpq_seq: number;
   welder_seq: number;
   operator_seq: number;
   alert_emails: string[];
   alert_lead_days: number[];
+  alert_email_frequency: AlertEmailFrequency;
   dashboard_widgets: DashboardWidgetsConfig | null;
   created_at: string;
 }
@@ -85,7 +93,6 @@ export interface Profile {
 export interface Welder {
   id: string;
   org_id: string;
-  uid: string;
   welder_id: string | null;
   full_name: string;
   date_of_birth: string | null;
@@ -95,7 +102,6 @@ export interface Welder {
   employer: string | null;
   branch_location: string | null;
   photo_path: string | null;
-  email: string | null;
   qr_token: string;
   status: WelderStatus;
   is_new_welder: boolean;
@@ -126,6 +132,7 @@ export interface QualificationRecord {
   joint_type: JointCategory;
   joint_type_extended: string | null;
   position: string | null;
+  position_2: string | null;
   product: ProductType;
   branch_connection: BranchConnection | null;
   base_material_group: string | null;
@@ -172,6 +179,9 @@ export interface QualificationRecord {
   supplementary_fillet_position: string | null;
   supplementary_fillet_thickness_mm: number | null;
   supplementary_fillet_process: string | null;
+  supplementary_fillet_2: boolean;
+  supplementary_fillet_2_position: string | null;
+  supplementary_fillet_2_thickness_mm: number | null;
   wps_reference: string | null;
   examiner_ref: string | null;
   examiner_name: string | null;
@@ -186,6 +196,7 @@ export interface QualificationRecord {
   legacy_document_paths: string[];
   continuity_last_verified: string | null;
   expiry_date: string | null;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -258,7 +269,6 @@ export type OqStatus = WpqStatus;
 export interface Operator {
   id: string;
   org_id: string;
-  uid: string;
   operator_id: string | null;
   full_name: string;
   date_of_birth: string | null;
@@ -268,7 +278,6 @@ export interface Operator {
   employer: string | null;
   branch_location: string | null;
   photo_path: string | null;
-  email: string | null;
   qr_token: string;
   status: WelderStatus;
   is_new_operator: boolean;
@@ -318,6 +327,7 @@ export interface OperatorQualification {
   signed_certificate_pdf_path: string | null;
   continuity_last_verified: string | null;
   expiry_date: string | null;
+  is_active: boolean;
   created_at: string;
 }
 

@@ -65,7 +65,7 @@ export default async function OperatorSignedCertificatePage({
   const [{ data: operator }, { data: oq }] = await Promise.all([
     supabase
       .from("operators")
-      .select("full_name, uid")
+      .select("full_name, operator_id")
       .eq("id", id)
       .eq("org_id", org.id)
       .single(),
@@ -80,7 +80,7 @@ export default async function OperatorSignedCertificatePage({
 
   if (!operator || !oq) notFound();
 
-  const o = operator as Pick<Operator, "full_name" | "uid">;
+  const o = operator as Pick<Operator, "full_name" | "operator_id">;
   const q = oq as Pick<
     OperatorQualification,
     | "id"
@@ -104,7 +104,7 @@ export default async function OperatorSignedCertificatePage({
     <>
       <PageHeader
         title="Signed certificate"
-        description={`${o.full_name} · ${o.uid} · ${qualLabel}`}
+        description={`${o.full_name} · ${o.operator_id ?? "—"} · ${qualLabel}`}
       />
       <div className="px-8 py-8">
         <PdfPreview

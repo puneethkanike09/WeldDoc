@@ -6,6 +6,7 @@ import { Input, Field } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
 import {
   inferMaterialLookupSource,
+  isManualMaterialLookup,
   listGradesForStandard,
   listMaterialStandards,
   lookupMaterialGroup,
@@ -76,10 +77,16 @@ export function MaterialGradeLookup({
   const displayTitle = title ?? config.title;
 
   const [lookupSource, setLookupSource] = useState<MaterialLookupSource | "">(
-    () => defaultLookupSource ?? inferMaterialLookupSource(defaultStandard),
+    () =>
+      defaultLookupSource ??
+      inferMaterialLookupSource(defaultStandard) ??
+      (defaultStandard.trim() || defaultGroup.trim() ? "Others" : ""),
   );
   const [standard, setStandard] = useState(defaultStandard);
   const [grade, setGrade] = useState(defaultGrade);
+  const [manualGroup, setManualGroup] = useState(defaultGroup);
+
+  const isOthers = isManualMaterialLookup(lookupSource);
 
   const standards = useMemo(
     () => (lookupSource ? listMaterialStandards(lookupSource) : []),
@@ -96,21 +103,22 @@ export function MaterialGradeLookup({
 
   const lookup = useMemo(
     () =>
-      grade && lookupSource
+      !isOthers && grade && lookupSource
         ? lookupMaterialGroup(grade, standard || undefined, lookupSource)
         : null,
-    [grade, standard, lookupSource],
+    [grade, standard, lookupSource, isOthers],
   );
 
-  const parentGroup =
-    lookup?.trGroup ??
-    (grade &&
-    standard &&
-    lookupSource &&
-    grade === defaultGrade &&
-    standard === defaultStandard
-      ? defaultGroup
-      : "");
+  const parentGroup = isOthers
+    ? manualGroup
+    : lookup?.trGroup ??
+      (grade &&
+      standard &&
+      lookupSource &&
+      grade === defaultGrade &&
+      standard === defaultStandard
+        ? defaultGroup
+        : "");
 
   const standardError =
     variant === 1 ? errors?.material_standard : errors?.material2_specification;
@@ -142,7 +150,11 @@ export function MaterialGradeLookup({
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="text-sm font-medium text-onyx">{displayTitle}</p>
-          <p className="mt-0.5 text-xs text-steel">{config.description}</p>
+          <p className="mt-0.5 text-xs text-steel">
+            {isOthers
+              ? "Enter material standard, grade and parent material group manually."
+              : config.description}
+          </p>
         </div>
         <div className="flex shrink-0 items-center gap-1">
           {lookupSource === "TR20172" ? <Tr20172PdfGlobe /> : null}
@@ -157,8 +169,17 @@ export function MaterialGradeLookup({
             onChange={(e) => {
               const next = e.target.value as MaterialLookupSource | "";
               setLookupSource(next);
-              setStandard("");
-              setGrade("");
+              if (next === "Others") {
+                setManualGroup((prev) => prev || defaultGroup);
+              } else if (next) {
+                setStandard("");
+                setGrade("");
+                setManualGroup("");
+              } else {
+                setStandard("");
+                setGrade("");
+                setManualGroup("");
+              }
               touch(config.standardName, config.gradeName, config.groupName);
             }}
           >
@@ -175,29 +196,51 @@ export function MaterialGradeLookup({
         </Field>
 
         <Field label="Material standard" required error={standardError}>
-          <Select
-            value={standard}
-            disabled={!lookupSource}
-            onChange={(e) => {
-              setStandard(e.target.value);
-              setGrade("");
-              touch(config.standardName, config.gradeName, config.groupName);
-            }}
-            className={cn(standardError && invalidBorder)}
-          >
-            <option value="">
-              {lookupSource ? "Select standard…" : "Select grouping table first…"}
-            </option>
-            {standards.map((s) => (
-              <option key={s} value={s}>
-                {s}
+          {isOthers ? (
+            <Input
+              value={standard}
+              onChange={(e) => {
+                setStandard(e.target.value);
+                touch(config.standardName);
+              }}
+              placeholder="e.g. Custom spec, EN 10025-2"
+              className={cn(standardError && invalidBorder)}
+            />
+          ) : (
+            <Select
+              value={standard}
+              disabled={!lookupSource}
+              onChange={(e) => {
+                setStandard(e.target.value);
+                setGrade("");
+                touch(config.standardName, config.gradeName, config.groupName);
+              }}
+              className={cn(standardError && invalidBorder)}
+            >
+              <option value="">
+                {lookupSource ? "Select standard…" : "Select grouping table first…"}
               </option>
-            ))}
-          </Select>
+              {standards.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </Select>
+          )}
         </Field>
 
         <Field label="Material grade / designation" required error={gradeError}>
-          {lookupSource && standard && grades.length > 0 ? (
+          {isOthers ? (
+            <Input
+              value={grade}
+              onChange={(e) => {
+                setGrade(e.target.value);
+                touch(config.gradeName);
+              }}
+              placeholder="e.g. S355J2, A/SA 516 Gr. 70"
+              className={cn(gradeError && invalidBorder)}
+            />
+          ) : lookupSource && standard && grades.length > 0 ? (
             <Select
               value={grade}
               onChange={(e) => {
@@ -241,22 +284,34 @@ export function MaterialGradeLookup({
           error={groupError}
           labelAccessory={<Iso9606TablePdfGlobe table="parentMaterial" />}
         >
-          <Input
-            readOnly
-            tabIndex={-1}
-            value={
-              parentGroup ? `Group ${parentGroup}` : grade ? "—" : ""
-            }
-            placeholder="From grade lookup"
-            className={cn(
-              "cursor-default bg-frost text-onyx",
-              groupError && invalidBorder,
-            )}
-          />
+          {isOthers ? (
+            <Input
+              value={manualGroup}
+              onChange={(e) => {
+                setManualGroup(e.target.value);
+                touch(config.groupName);
+              }}
+              placeholder="e.g. 1.2, 8.1, or descriptive group"
+              className={cn(groupError && invalidBorder)}
+            />
+          ) : (
+            <Input
+              readOnly
+              tabIndex={-1}
+              value={
+                parentGroup ? `Group ${parentGroup}` : grade ? "—" : ""
+              }
+              placeholder="From grade lookup"
+              className={cn(
+                "cursor-default bg-frost text-onyx",
+                groupError && invalidBorder,
+              )}
+            />
+          )}
         </Field>
       </div>
 
-      {lookup ? (
+      {!isOthers && lookup ? (
         <p className="text-xs text-graphite">
           {lookup.source === "TR20172" ? "TR 20172" : "TR 20173"}
           {" · ISO/TR 15608 group "}
@@ -273,7 +328,7 @@ export function MaterialGradeLookup({
             </>
           ) : null}
         </p>
-      ) : grade && lookupSource ? (
+      ) : !isOthers && grade && lookupSource ? (
         <p className="text-xs text-steel">
           No match in {lookupSource === "TR20172" ? "TR 20172" : "TR 20173"} —
           choose from the list or check the designation.

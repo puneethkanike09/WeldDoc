@@ -18,10 +18,15 @@ interface PlanProductJointFieldsProps {
   defaultJoint?: string;
   defaultBranchConnection?: BranchConnection | null;
   defaultPosition?: string;
+  defaultPosition2?: string;
+  showSecondPosition?: boolean;
+  process1Code?: string;
+  process2Code?: string;
   productError?: string;
   jointError?: string;
   branchError?: string;
   positionError?: string;
+  position2Error?: string;
   onFieldChange?: (key: string) => void;
   onJointChange?: (joint: string) => void;
 }
@@ -31,10 +36,15 @@ export function PlanProductJointFields({
   defaultJoint = "BW",
   defaultBranchConnection = "set_in",
   defaultPosition = "PF",
+  defaultPosition2 = "PF",
+  showSecondPosition = false,
+  process1Code,
+  process2Code,
   productError,
   jointError,
   branchError,
   positionError,
+  position2Error,
   onFieldChange,
   onJointChange,
 }: PlanProductJointFieldsProps) {
@@ -61,6 +71,10 @@ export function PlanProductJointFields({
     const ok = positionOptions.some((p) => p.value === defaultPosition);
     return ok ? defaultPosition : positionOptions[0]?.value ?? "PA";
   });
+  const [position2, setPosition2] = useState(() => {
+    const ok = positionOptions.some((p) => p.value === defaultPosition2);
+    return ok ? defaultPosition2 : positionOptions[0]?.value ?? "PA";
+  });
 
   const invalidBorder = "border-ember ring-1 ring-ember/20";
 
@@ -82,8 +96,10 @@ export function PlanProductJointFields({
     setJoint(value);
     const codes = value === "FW" ? FW_POSITIONS : BW_POSITIONS;
     setPosition((prev) => (codes.includes(prev as never) ? prev : codes[0]));
+    setPosition2((prev) => (codes.includes(prev as never) ? prev : codes[0]));
     onFieldChange?.("joint_type");
     onFieldChange?.("position");
+    onFieldChange?.("position_2");
     onJointChange?.(value);
   };
 
@@ -156,7 +172,11 @@ export function PlanProductJointFields({
       ) : null}
 
       <Field
-        label="Welding position"
+        label={
+          showSecondPosition && process1Code
+            ? `Welding position — process ${process1Code}`
+            : "Welding position"
+        }
         required
         error={positionError}
         labelAccessory={
@@ -182,6 +202,40 @@ export function PlanProductJointFields({
           ))}
         </Select>
       </Field>
+
+      {showSecondPosition ? (
+        <Field
+          label={
+            process2Code
+              ? `Welding position — process ${process2Code}`
+              : "Welding position (process 2)"
+          }
+          required
+          error={position2Error}
+          labelAccessory={
+            <Iso9606TablePdfGlobe
+              table={joint === "FW" ? "positionFw" : "positionBw"}
+            />
+          }
+        >
+          <Select
+            name="position_2"
+            value={position2}
+            required
+            className={cn(position2Error && invalidBorder)}
+            onChange={(e) => {
+              setPosition2(e.target.value);
+              onFieldChange?.("position_2");
+            }}
+          >
+            {positionOptions.map((p) => (
+              <option key={p.value} value={p.value}>
+                {p.label}
+              </option>
+            ))}
+          </Select>
+        </Field>
+      ) : null}
     </>
   );
 }

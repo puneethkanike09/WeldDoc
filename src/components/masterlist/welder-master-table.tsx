@@ -44,7 +44,6 @@ export function WelderMasterTable({ rows }: { rows: MasterRow[] }) {
       if (
         term &&
         !r.welderName.toLowerCase().includes(term) &&
-        !r.uid.toLowerCase().includes(term) &&
         !r.welderId.toLowerCase().includes(term) &&
         !r.process.toLowerCase().includes(term)
       )
@@ -63,7 +62,7 @@ export function WelderMasterTable({ rows }: { rows: MasterRow[] }) {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search welder, UID or process"
+            placeholder="Search welder, ID or process"
             className="pl-9"
           />
         </div>
@@ -114,7 +113,7 @@ export function WelderMasterTable({ rows }: { rows: MasterRow[] }) {
           <tbody>
             {filtered.map((r, i) => (
               <tr
-                key={`${r.uid}-${i}`}
+                key={`${r.welderId}-${i}`}
                 className="border-b border-silver/60 last:border-0 hover:bg-frost/50"
               >
                 <td className="whitespace-nowrap px-3 py-2.5 font-medium text-onyx">
@@ -125,8 +124,7 @@ export function WelderMasterTable({ rows }: { rows: MasterRow[] }) {
                     </Badge>
                   )}
                 </td>
-                <td className="px-3 py-2.5 font-mono text-[12px]">{r.uid}</td>
-                <td className="px-3 py-2.5">{r.welderId}</td>
+                <td className="px-3 py-2.5 font-mono text-[12px]">{r.welderId}</td>
                 <td className="whitespace-nowrap px-3 py-2.5">{r.process}</td>
                 <td className="px-3 py-2.5">{r.standard}</td>
                 <td className="px-3 py-2.5">{r.jointType}</td>

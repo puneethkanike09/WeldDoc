@@ -5,10 +5,11 @@ import type {
   OperatorQualification,
   OperatorRange,
 } from "@/types/db";
+import { isActiveRegistryStatus } from "@/lib/registry-status";
+import { isActiveQualification } from "@/lib/qualification-active";
 
 export interface OperatorMasterRow {
   operatorName: string;
-  uid: string;
   operatorId: string;
   process: string;
   standard: string;
@@ -53,13 +54,16 @@ export async function getOperatorMasterListRows(
     ((rangeRows ?? []) as OperatorRange[]).map((r) => [r.oq_id, r]),
   );
 
-  return oqs.map((q) => {
+  return oqs.flatMap((q) => {
     const operator = operators.get(q.operator_id);
+    if (!operator || !isActiveRegistryStatus(operator.status)) return [];
+    if (!isActiveQualification(q)) return [];
+
     const range = ranges.get(q.id);
-    return {
-      operatorName: operator?.full_name ?? "—",
-      uid: operator?.uid ?? "—",
-      operatorId: operator?.operator_id ?? "—",
+    return [
+      {
+        operatorName: operator.full_name,
+        operatorId: operator.operator_id ?? "—",
       process: processLabel(q.process),
       standard: "ISO 14732",
       weldingType: q.welding_type ?? "—",
@@ -72,7 +76,8 @@ export async function getOperatorMasterListRows(
       issued: q.certificate_issued_date ?? "—",
       expiry: q.expiry_date ?? "—",
       revalidation: q.revalidation_method,
-    };
+      },
+    ];
   });
 }
 
@@ -81,7 +86,6 @@ export const OPERATOR_MASTER_COLUMNS: {
   label: string;
 }[] = [
   { key: "operatorName", label: "Operator" },
-  { key: "uid", label: "UID" },
   { key: "operatorId", label: "Operator ID" },
   { key: "process", label: "Process" },
   { key: "standard", label: "Standard" },

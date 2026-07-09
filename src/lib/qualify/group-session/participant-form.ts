@@ -16,7 +16,6 @@ export function sliceNewPersonFormData(
     "id_number",
     "employer",
     "branch_location",
-    "email",
     "photo",
     "country",
     "state",

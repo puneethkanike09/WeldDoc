@@ -31,6 +31,7 @@ import {
   weldDetailsRangeText,
 } from "@/lib/iso9606/certificate-ranges";
 import { resolveJointTypes } from "@/lib/iso9606/joint-coverage";
+import { listSupplementaryFilletEntries } from "@/lib/iso9606/supplementary-fillet";
 import { fillerTypeCode } from "@/lib/iso9606/filler-types";
 import { displayJointType } from "@/lib/iso9606/product-dimensions";
 
@@ -77,14 +78,18 @@ function designationLine(
     dimension: string;
     weldDetails: string | null;
     layer: string | null;
+    /** Test positions for designation (e.g. PA/PC for multi-process). */
+    positions?: string | null;
   },
 ): string {
-  const positions = range?.approved_positions?.length
-    ? range.approved_positions.join("/")
-    : wpq.position ?? "";
+  const positions =
+    opts.positions ??
+    (range?.approved_positions?.length
+      ? range.approved_positions.join("/")
+      : wpq.position ?? "");
 
   return [
-    "EN ISO 9606-1",
+    "ISO 9606-1",
     opts.process,
     productCode(wpq.product),
     weldTypeCode(opts.jointTypes),
@@ -109,7 +114,8 @@ export function buildDesignation(
   range: RangeOfApproval | null,
 ): string[] {
   const jointTypes = resolveJointTypes(wpq, range);
-  const hasSuppFillet = wpq.supplementary_fillet && wpq.joint_type === "BW";
+  const suppEntries = listSupplementaryFilletEntries(wpq);
+  const hasSuppFillet = suppEntries.length > 0;
   const isFillet = wpq.joint_type === "FW";
   const multi = isMultiProcessQualification(wpq);
   const lines: string[] = [];
@@ -155,35 +161,37 @@ export function buildDesignation(
       dimension,
       weldDetails: wpq.weld_details,
       layer: wpq.layer_type,
+      positions:
+        multi && wpq.position_2 && wpq.position
+          ? `${wpq.position}/${wpq.position_2}`
+          : null,
     }),
   );
 
   if (hasSuppFillet) {
-    const filletProcess =
-      wpq.supplementary_fillet_process ?? wpq.process;
-    const filletSlice = getProcessSlices(wpq).find(
-      (s) => s.process === filletProcess,
-    );
-    const t = wpq.supplementary_fillet_thickness_mm;
-    const filletPos =
-      wpq.supplementary_fillet_position?.replace(/\//g, "&") ?? "PB";
+    const slices = getProcessSlices(wpq);
+    for (const entry of suppEntries) {
+      const filletSlice = slices.find((s) => s.process === entry.process);
+      const filletPos = entry.position.replace(/\//g, "&");
+      const t = entry.thickness_mm;
 
-    lines.push(
-      [
-        "EN ISO 9606-1",
-        filletProcess,
-        productCode(wpq.product),
-        "FW",
-        (filletSlice?.filler_group ?? wpq.filler_group) ?? "FM1",
-        fillerTypeCode(filletSlice?.filler_type ?? wpq.filler_type),
-        t != null ? `t${t}` : "",
-        filletPos,
-        filletSlice?.weld_details ?? wpq.weld_details ?? "ss nb",
-        layerCode(filletSlice?.layer_type ?? wpq.layer_type),
-      ]
-        .filter(Boolean)
-        .join(" "),
-    );
+      lines.push(
+        [
+          "ISO 9606-1",
+          entry.process,
+          productCode(wpq.product),
+          "FW",
+          (filletSlice?.filler_group ?? wpq.filler_group) ?? "FM1",
+          fillerTypeCode(filletSlice?.filler_type ?? wpq.filler_type),
+          t != null ? `t${t}` : "",
+          filletPos,
+          filletSlice?.weld_details ?? wpq.weld_details ?? "ss nb",
+          layerCode(filletSlice?.layer_type ?? wpq.layer_type),
+        ]
+          .filter(Boolean)
+          .join(" "),
+      );
+    }
   }
 
   return lines;
@@ -197,7 +205,7 @@ export function buildCertNo(
   const base = (org.report_prefix || "WPQ-")
     .replace(/WPQ-?$/i, "")
     .replace(/\/$/, "");
-  const ref = welder.welder_id || welder.uid;
+  const ref = welder.welder_id ?? "—";
   const pos = wpq.position ?? "PA";
   const mat = materialCode(wpq.base_material_group);
   const proc = wpq.process_2
@@ -213,7 +221,8 @@ export function buildCertRows(
 ): CertRow[] {
   const jointTypes = resolveJointTypes(wpq, range);
   const isFillet = wpq.joint_type === "FW";
-  const hasSuppFillet = wpq.supplementary_fillet && wpq.joint_type === "BW";
+  const suppEntries = listSupplementaryFilletEntries(wpq);
+  const hasSuppFillet = suppEntries.length > 0;
   const thickRange = formatThicknessRange(range);
   const slices = getProcessSlices(wpq);
   const multi = slices.length > 1;
@@ -224,10 +233,19 @@ export function buildCertRows(
       ? [wpq.position]
       : [];
 
+  const fwPositionRange = (position: string) =>
+    positionsRangeText(
+      (rules as { positionMapFw: Record<string, string[]> }).positionMapFw[
+        position
+      ] ?? [position],
+    );
+
   const materialThickTest = hasSuppFillet
-    ? wpq.supplementary_fillet_thickness_mm != null
-      ? String(wpq.supplementary_fillet_thickness_mm)
-      : "—"
+    ? suppEntries
+        .map((e) =>
+          e.thickness_mm != null ? `${e.process}: ${e.thickness_mm}` : `${e.process}: —`,
+        )
+        .join(" / ")
     : isFillet && wpq.test_thickness_mm != null
       ? String(wpq.test_thickness_mm)
       : "—";
@@ -235,22 +253,36 @@ export function buildCertRows(
   const materialThickRange = isFillet
     ? thickRange
     : hasSuppFillet
-      ? formatFilletMaterialRangeText(wpq.supplementary_fillet_thickness_mm)
+      ? suppEntries
+          .map((e) => `${e.process}: ${formatFilletMaterialRangeText(e.thickness_mm)}`)
+          .join(" / ")
       : "NA";
 
   const positionTest = hasSuppFillet
-    ? `BW: ${wpq.position ?? "—"} & FW: ${wpq.supplementary_fillet_position ?? "PB"}`
-    : (wpq.position ?? "—");
+    ? `BW: ${multi ? formatPerProcessTestValues(slices, (s) => s.position ?? "—") : (wpq.position ?? "—")} & ${suppEntries
+        .map((e) => `FW (${e.process}): ${e.position}`)
+        .join(" & ")}`
+    : multi
+      ? formatPerProcessTestValues(slices, (s) => s.position ?? "—")
+      : (wpq.position ?? "—");
 
   const positionRange = hasSuppFillet
-    ? `BW: ${positionsRangeText(positions)} & FW: ${positionsRangeText(
-        wpq.supplementary_fillet_position
-          ? ((rules as { positionMapFw: Record<string, string[]> }).positionMapFw[
-              wpq.supplementary_fillet_position
-            ] ?? [wpq.supplementary_fillet_position])
-          : [],
-      )}`
-    : positionsRangeText(positions);
+    ? `BW: ${positionsRangeText(positions)} & ${suppEntries
+        .map((e) => `FW (${e.process}): ${fwPositionRange(e.position)}`)
+        .join(" & ")}`
+    : multi
+      ? formatPerProcessPrefixed(slices, (s) =>
+          positionsRangeText(
+            (rules as { positionMapBw: Record<string, string[]> }).positionMapBw[
+              s.position ?? ""
+            ] ??
+              (rules as { positionMapFw: Record<string, string[]> }).positionMapFw[
+                s.position ?? ""
+              ] ??
+              (s.position ? [s.position] : []),
+          ),
+        )
+      : positionsRangeText(positions);
 
   const depositedTest = multi
     ? formatPerProcessTestValues(slices, (s) =>

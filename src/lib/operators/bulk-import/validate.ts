@@ -13,7 +13,6 @@ import {
 } from "@/lib/iso14732/constants";
 import { computeOperatorExpiry } from "@/lib/iso14732/expiry";
 import { normalizePlantOperatorId } from "@/lib/operators/plant-id";
-import { isValidEmailFormat, normalizeOptionalEmail } from "@/lib/utils";
 import {
   NDT_RESULT_COLUMN_BY_METHOD,
   OPERATOR_QUAL_REQUIRED_KEYS,
@@ -123,7 +122,6 @@ function operatorGroupKey(operator: OperatorImportFields): string {
 function operatorFingerprint(o: OperatorImportFields): string {
   return [
     o.fullName,
-    o.email ?? "",
     o.dateOfBirth,
     o.placeOfBirth,
     o.idMethod,
@@ -177,16 +175,6 @@ function parseOperator(
   const idMethod = str(raw, "id_method");
   const idNumber = str(raw, "id_number");
 
-  const emailRaw = str(raw, "email");
-  let email: string | null = null;
-  if (emailRaw) {
-    if (!isValidEmailFormat(emailRaw)) {
-      errors.push({ excelRow, column: "email", message: "email must be valid." });
-      return null;
-    }
-    email = normalizeOptionalEmail(emailRaw);
-  }
-
   const statusRaw = str(raw, "operator_status") ?? "Active";
   if (!STATUS_SET.has(statusRaw)) {
     errors.push({
@@ -200,7 +188,6 @@ function parseOperator(
   return {
     plantOperatorId,
     fullName,
-    email,
     dateOfBirth,
     placeOfBirth,
     idMethod,

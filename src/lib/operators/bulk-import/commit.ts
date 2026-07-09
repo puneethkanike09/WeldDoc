@@ -33,7 +33,6 @@ function operatorGroupKey(
   if (operator.plantOperatorId) return operator.plantOperatorId;
   return `__auto:${[
     operator.fullName,
-    operator.email ?? "",
     operator.dateOfBirth,
     operator.placeOfBirth,
     operator.idMethod,
@@ -107,28 +106,18 @@ export async function commitOperatorImport(
         continue;
       }
 
-      const { data: uid, error: uidErr } = await supabase.rpc(
-        "next_operator_uid",
-        { p_org: ctx.orgId },
-      );
-      if (uidErr || !uid) {
-        throw new Error(uidErr?.message ?? "Could not allocate UID.");
-      }
-
       await assertPlantOperatorIdAvailable(supabase, ctx.orgId, plantOperatorId);
 
       const { data: created, error } = await supabase
         .from("operators")
         .insert({
           org_id: ctx.orgId,
-          uid,
           operator_id: plantOperatorId,
           full_name: operator.fullName,
           date_of_birth: operator.dateOfBirth,
           place_of_birth: operator.placeOfBirth,
           id_method: operator.idMethod,
           id_number: operator.idNumber,
-          email: operator.email,
           employer: ctx.orgName,
           branch_location: ctx.orgLocation,
           status: operator.operatorStatus,

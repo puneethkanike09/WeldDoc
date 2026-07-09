@@ -7,6 +7,7 @@ import {
   qualListRange,
 } from "@/lib/qualify/profile-pagination";
 import { daysUntil } from "@/lib/welder-status";
+import { isActiveQualification } from "@/lib/qualification-active";
 import { continuityDue } from "@/lib/expiry";
 import { resolveUrl } from "@/lib/storage";
 import { formatDate } from "@/lib/utils";
@@ -34,6 +35,7 @@ function welderQualListItem(q: QualificationRecord): QualListItem {
   const position = q.position
     ? POSITION_LABELS[q.position] ?? q.position
     : "—";
+  const inactive = !isActiveQualification(q);
   return {
     id: q.id,
     title: `${qualificationProcessLabel(q.process, q.process_2)} · ${
@@ -41,8 +43,8 @@ function welderQualListItem(q: QualificationRecord): QualListItem {
     } · ${q.product}`,
     subtitle: `ISO 9606-1 · Position ${position} · Method ${q.revalidation_method}`,
     isMultiProcess: isMultiProcessQualification(q),
-    statusLabel: q.wpq_status.replace("_", " "),
-    statusTone: WPQ_TONE[q.wpq_status] ?? "neutral",
+    statusLabel: inactive ? "Inactive" : q.wpq_status.replace("_", " "),
+    statusTone: inactive ? "neutral" : (WPQ_TONE[q.wpq_status] ?? "neutral"),
     expiry: formatDate(q.expiry_date),
     daysToExpiry: daysUntil(q.expiry_date),
   };
@@ -58,11 +60,13 @@ function welderQualDetailView(
   return {
     ...welderQualListItem(q),
     status: q.wpq_status,
+    isActive: isActiveQualification(q),
     isLegacy: q.is_legacy,
     isApproved: q.wpq_status === "Approved",
     hasSignedCertificate: Boolean(q.signed_certificate_pdf_path),
     canLogValidation:
-      q.wpq_status === "Approved" || q.wpq_status === "Expired",
+      isActiveQualification(q) &&
+      (q.wpq_status === "Approved" || q.wpq_status === "Expired"),
     rangeSummary: ranges.get(q.id)?.summary ?? null,
     ndtRecords: ndtViewsFor(q.id),
     validations: (validationsByWpq.get(q.id) ?? []).map((v) => ({

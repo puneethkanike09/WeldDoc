@@ -65,7 +65,7 @@ export default async function WelderSignedCertificatePage({
   const [{ data: welder }, { data: wpq }] = await Promise.all([
     supabase
       .from("welders")
-      .select("full_name, uid")
+      .select("full_name, welder_id")
       .eq("id", id)
       .eq("org_id", org.id)
       .single(),
@@ -80,7 +80,7 @@ export default async function WelderSignedCertificatePage({
 
   if (!welder || !wpq) notFound();
 
-  const w = welder as Pick<Welder, "full_name" | "uid">;
+  const w = welder as Pick<Welder, "full_name" | "welder_id">;
   const q = wpq as Pick<
     QualificationRecord,
     | "id"
@@ -103,7 +103,7 @@ export default async function WelderSignedCertificatePage({
     <>
       <PageHeader
         title="Signed certificate"
-        description={`${w.full_name} · ${w.uid} · ${qualLabel}`}
+        description={`${w.full_name} · ${w.welder_id ?? "—"} · ${qualLabel}`}
       />
       <div className="px-8 py-8">
         <PdfPreview

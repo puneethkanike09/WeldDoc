@@ -33,7 +33,7 @@ export default async function SettingsPage({
             <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
               <Card>
                 <CardBody className="space-y-5">
-                  <CardTitle>Organisation &amp; alerts</CardTitle>
+                  <CardTitle>Organisation</CardTitle>
                   <OrgSettingsForm org={org} action={updateOrgSettings} />
                 </CardBody>
               </Card>
@@ -43,10 +43,14 @@ export default async function SettingsPage({
                   <CardTitle>How expiry alerts work</CardTitle>
                   <p className="text-sm text-graphite">
                     A daily job checks every approved welder and operator
-                    qualification. When a certificate or 6-month continuity falls
-                    within your lead days, a digest email is sent to the
-                    recipients above. People with an email on their profile also
-                    receive a personal reminder for their own qualifications.
+                    qualification. Configure recipients, lead days, and email
+                    frequency from the Welders or Operators page using{" "}
+                    <strong>Alert email configuration</strong>.
+                  </p>
+                  <p className="text-sm text-graphite">
+                    Repeating schedules (daily, weekly, etc.) send a status
+                    digest of everything in your lead windows. &quot;Once per lead
+                    window&quot; sends one email at each lead day and when overdue.
                   </p>
                   <p className="text-sm font-medium text-graphite">
                     Welders (ISO 9606-1)

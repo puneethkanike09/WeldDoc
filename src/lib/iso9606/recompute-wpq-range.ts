@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { computeRange } from "@/lib/range-engine/iso9606";
 import { branchPipeOdForRange } from "@/lib/iso9606/branch-deposited-thickness";
+import { hasAnySupplementaryFillet } from "@/lib/iso9606/supplementary-fillet";
 import { ndtJointCategory } from "@/lib/iso9606/qualification-fields";
 import { createClient } from "@/lib/supabase/server";
 import type { QualificationRecord } from "@/types/db";
@@ -73,13 +74,14 @@ export async function recomputeWpqRange(
     materialGroup: q.base_material_group,
     fillerGroup: q.filler_group,
     fillerType: q.filler_type,
-    supplementaryFillet: q.supplementary_fillet,
+    supplementaryFillet: hasAnySupplementaryFillet(q),
     jointTypeExtended: q.joint_type_extended,
     secondProcess: q.process_2
       ? {
           process: q.process_2,
           depositedThicknessMm: q.process2_deposited_thickness_mm,
           layer: q.process2_layer_type,
+          position: q.position_2,
         }
       : null,
   });

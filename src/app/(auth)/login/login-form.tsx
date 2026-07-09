@@ -177,7 +177,7 @@ export function LoginForm() {
       </form>
 
       <p className="mt-6 text-center text-sm text-graphite">
-        {mode === "signin" ? "New to WeldDoc? " : "Already have an account? "}
+        {mode === "signin" ? "New to Weld.Doc? " : "Already have an account? "}
         <button
           type="button"
           onClick={() => {

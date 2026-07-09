@@ -1,6 +1,6 @@
 import type { OperatorQualification } from "@/types/db";
 
-const KEY = "welddoc_operator_qualify_draft";
+const KEY = "Weld.Doc_operator_qualify_draft";
 
 export function operatorQualifyDraftKey(operatorId: string, oqId: string | null) {
   return `${KEY}:${operatorId}:${oqId ?? "new"}`;

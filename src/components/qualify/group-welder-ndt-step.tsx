@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { Fragment, useCallback, useMemo, useState } from "react";
 import { Card, CardBody } from "@/components/ui/card";
 import {
   GroupStepPreviousLink,
@@ -8,6 +8,7 @@ import {
   QualifySubmit,
 } from "@/components/qualify/wizard-chrome";
 import { Iso9606TablePdfGlobe } from "@/components/qualify/iso9606-pdf-drawer";
+import { GroupNdtCopyArrow } from "@/components/qualify/group-ndt-copy-arrow";
 import { NdtTestRow } from "@/app/(app)/welders/[id]/qualify/wizard";
 import { ALL_NDT_TESTS } from "@/lib/iso9606/constants";
 import {
@@ -18,6 +19,12 @@ import {
 import type { JointCategory, NdtDtRecord } from "@/types/db";
 import { ValidatedForm } from "@/lib/form-toast";
 import type { FieldErrors } from "@/lib/field-errors";
+import {
+  memberNdtScope,
+  ndtCopyFieldKeys,
+  snapshotNdtDateAndRef,
+  type NdtCopySnapshot,
+} from "@/lib/qualify/group-ndt-copy";
 import { Check } from "lucide-react";
 
 export interface GroupNdtMember {
@@ -65,6 +72,47 @@ export function GroupWelderNdtStep({
 
   const selectedOrdered = ALL_NDT_TESTS.filter((method) =>
     selected.includes(method),
+  );
+
+  const [memberCopyOverrides, setMemberCopyOverrides] = useState<
+    Record<string, NdtCopySnapshot>
+  >({});
+  const [memberRemountKeys, setMemberRemountKeys] = useState<
+    Record<string, number>
+  >({});
+
+  const copyFromPreviousMember = useCallback(
+    (
+      e: React.MouseEvent<HTMLButtonElement>,
+      sourceMember: GroupNdtMember,
+      targetMember: GroupNdtMember,
+      clearError: (key: string) => void,
+    ) => {
+      const form = e.currentTarget.closest("form");
+      if (!form) return;
+
+      const sourceScope = memberNdtScope(sourceMember.memberId);
+      const targetScope = memberNdtScope(targetMember.memberId);
+      const snapshot = snapshotNdtDateAndRef(
+        form,
+        sourceScope,
+        selectedOrdered,
+      );
+
+      setMemberCopyOverrides((prev) => ({
+        ...prev,
+        [targetMember.memberId]: snapshot,
+      }));
+      setMemberRemountKeys((prev) => ({
+        ...prev,
+        [targetMember.memberId]: (prev[targetMember.memberId] ?? 0) + 1,
+      }));
+
+      for (const key of ndtCopyFieldKeys(targetScope, selectedOrdered)) {
+        clearError(key);
+      }
+    },
+    [selectedOrdered],
   );
 
   const validate = useCallback(
@@ -155,38 +203,73 @@ export function GroupWelderNdtStep({
                   <span>Report / ref no.</span>
                   <span>Report PDF</span>
                 </div>
-                {members.map((member) => (
-                  <div key={member.memberId} className="space-y-3">
-                    <p className="px-3 font-display text-sm font-semibold text-onyx">
-                      {member.personName}
-                      {member.plantId ? (
-                        <span className="ml-2 font-mono text-xs font-normal text-steel">
-                          {member.plantId}
-                        </span>
-                      ) : null}
-                    </p>
-                    {!member.qualificationId ? (
-                      <p className="mx-3 rounded-[10px] bg-expiring/15 px-4 py-3 text-sm text-[#8a6a00]">
-                        Qualification record missing for this welder. Go back to
-                        step 1, save the plan again, then complete step 2 before
-                        entering NDT results.
-                      </p>
-                    ) : (
-                      selectedOrdered.map((method) => (
-                        <NdtTestRow
-                          key={`${member.memberId}-${method}`}
-                          method={method}
-                          required
-                          welderId={member.welderId}
-                          existing={ndtRecordForMethod(member.existingNdt, method)}
-                          fieldErrors={fieldErrors}
-                          clearError={clearError}
-                          nameScope={`member_${member.memberId}_`}
+                {members.map((member, index) => {
+                  const previousMember = index > 0 ? members[index - 1] : null;
+                  const showCopyArrow =
+                    previousMember &&
+                    previousMember.qualificationId &&
+                    member.qualificationId &&
+                    selectedOrdered.length > 0;
+                  const copyOverrides =
+                    memberCopyOverrides[member.memberId] ?? {};
+                  const remountKey = memberRemountKeys[member.memberId] ?? 0;
+
+                  return (
+                    <Fragment key={member.memberId}>
+                      {showCopyArrow ? (
+                        <GroupNdtCopyArrow
+                          fromName={previousMember.personName}
+                          onCopy={(e) =>
+                            copyFromPreviousMember(
+                              e,
+                              previousMember,
+                              member,
+                              clearError,
+                            )
+                          }
                         />
-                      ))
-                    )}
-                  </div>
-                ))}
+                      ) : null}
+                      <div
+                        key={`${member.memberId}-${remountKey}`}
+                        className="space-y-3"
+                      >
+                        <p className="px-3 font-display text-sm font-semibold text-onyx">
+                          {member.personName}
+                          {member.plantId ? (
+                            <span className="ml-2 font-mono text-xs font-normal text-steel">
+                              {member.plantId}
+                            </span>
+                          ) : null}
+                        </p>
+                        {!member.qualificationId ? (
+                          <p className="mx-3 rounded-[10px] bg-expiring/15 px-4 py-3 text-sm text-[#8a6a00]">
+                            Qualification record missing for this welder. Go back
+                            to step 1, save the plan again, then complete step 2
+                            before entering NDT results.
+                          </p>
+                        ) : (
+                          selectedOrdered.map((method) => (
+                            <NdtTestRow
+                              key={`${member.memberId}-${method}`}
+                              method={method}
+                              required
+                              welderId={member.welderId}
+                              existing={ndtRecordForMethod(
+                                member.existingNdt,
+                                method,
+                              )}
+                              fieldErrors={fieldErrors}
+                              clearError={clearError}
+                              nameScope={memberNdtScope(member.memberId)}
+                              dateDefault={copyOverrides[method]?.testDate}
+                              refDefault={copyOverrides[method]?.ref}
+                            />
+                          ))
+                        )}
+                      </div>
+                    </Fragment>
+                  );
+                })}
               </div>
             ) : (
               <p className="rounded-[10px] bg-frost px-4 py-3 text-sm text-graphite">

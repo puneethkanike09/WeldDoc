@@ -326,7 +326,7 @@ export function OperatorCertificateDocument({
 
   return (
     <Document
-      title={`Operator Certificate ${operator.uid}`}
+      title={`Operator Certificate ${operator.operator_id ?? operator.full_name}`}
       author={org.name}
     >
       <Page
@@ -378,8 +378,7 @@ export function OperatorCertificateDocument({
               marginBottom: 7,
             }}
           >
-            Example of a qualification test certificate for welding operators
-            and/or weld setters
+            Operator&apos;s Certificate
           </Text>
 
           <View
@@ -400,7 +399,7 @@ export function OperatorCertificateDocument({
               <RoleRow />
               <InfoRow
                 label="Identification:"
-                value={operator.operator_id ?? operator.uid}
+                value={operator.operator_id ?? "—"}
               />
               <InfoRow
                 label="Method of identification:"
@@ -736,7 +735,7 @@ export function OperatorCertificateDocument({
           }}
           fixed
         >
-          {org.name} · WeldDoc
+          {org.name} · Weld.Doc
         </Text>
       </Page>
     </Document>

@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
 import { AddOperatorButton } from "@/components/app/add-operator-button";
-import { GroupQualifyButton } from "@/components/app/group-qualify-button";
 import { ImportOperatorsButton } from "@/components/app/import-operators-button";
 import { BulkQrPrintButton } from "@/components/app/bulk-qr-print-button";
+import { AlertEmailConfigDialog } from "@/components/app/alert-email-config-dialog";
+import { updateAlertEmailSettings } from "@/app/(app)/settings/actions";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { summarizeOperator } from "@/lib/operator-status";
+import { normalizePlantOperatorId } from "@/lib/operators/plant-id";
 import { filterOperatorRows } from "@/lib/operators/filter-rows";
 import {
   parseRegistryListPage,
@@ -54,8 +56,8 @@ export default async function OperatorsPage({
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const allRows: OperatorRow[] = ((operators ?? []) as Operator[]).map((o) => ({
     id: o.id,
-    uid: o.uid,
-    operator_id: o.operator_id,
+    operator_id:
+      normalizePlantOperatorId(o.operator_id) ?? o.operator_id?.trim() ?? "—",
     full_name: o.full_name,
     photoUrl: o.photo_path
       ? `${supabaseUrl}/storage/v1/object/public/welder-photos/${o.photo_path}`
@@ -76,7 +78,8 @@ export default async function OperatorsPage({
 
   const qrEntries = ((operators ?? []) as Operator[]).map((o) => ({
     qrToken: o.qr_token,
-    plantWelderId: o.operator_id ?? o.uid,
+    plantWelderId:
+      normalizePlantOperatorId(o.operator_id) ?? o.operator_id?.trim() ?? "—",
   }));
 
   return (
@@ -87,7 +90,7 @@ export default async function OperatorsPage({
       >
         <div className="flex flex-wrap items-center gap-2">
           <BulkQrPrintButton entries={qrEntries} />
-          <GroupQualifyButton href="/operators/qualify/group/new" />
+          <AlertEmailConfigDialog org={org} action={updateAlertEmailSettings} />
           <ImportOperatorsButton />
           <AddOperatorButton />
         </div>

@@ -23,7 +23,7 @@ export default async function NewWelderPage() {
     <>
       <PageHeader
         title="Add welder"
-        description="Create a permanent welder profile. System UID, plant welder ID, and QR code are issued automatically."
+        description="Create a permanent welder profile. Plant welder ID and QR code are issued automatically."
       />
       <div className="px-8 py-8">
         <Link

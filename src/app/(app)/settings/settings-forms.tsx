@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Input, Textarea, Field } from "@/components/ui/input";
+import { Input, Field } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FileDropzone } from "@/components/ui/file-dropzone";
 import { useFormSubmit } from "@/lib/form-toast";
@@ -59,9 +59,6 @@ export function OrgSettingsForm({
   const validate = useCallback((formData: FormData) => {
     const errors: FieldErrors = {};
     if (!str(formData.get("name"))) errors.name = "Company name is required.";
-    if (!str(formData.get("uid_prefix"))) {
-      errors.uid_prefix = "Welder UID prefix is required.";
-    }
     if (!str(formData.get("report_prefix"))) {
       errors.report_prefix = "Report number prefix is required.";
     }
@@ -85,14 +82,6 @@ export function OrgSettingsForm({
         <Field label="Location code" hint="e.g. PLT-A">
           <Input name="location_code" defaultValue={org.location_code ?? ""} />
         </Field>
-        <Field label="Welder UID prefix" required error={fieldErrors.uid_prefix}>
-          <Input
-            name="uid_prefix"
-            defaultValue={org.uid_prefix}
-            className={cn(fieldErrors.uid_prefix && invalidBorder)}
-            onChange={() => clearError("uid_prefix")}
-          />
-        </Field>
         <Field
           label="Report number prefix"
           hint="e.g. ACME/PLT-A/WPQ-"
@@ -106,27 +95,7 @@ export function OrgSettingsForm({
             onChange={() => clearError("report_prefix")}
           />
         </Field>
-        <Field
-          label="Alert lead days"
-          hint="Comma-separated, e.g. 30,7"
-        >
-          <Input
-            name="alert_lead_days"
-            defaultValue={(org.alert_lead_days ?? [30, 7]).join(",")}
-          />
-        </Field>
       </div>
-      <Field
-        label="Alert recipients"
-        hint="One email per line or comma-separated"
-      >
-        <Textarea
-          name="alert_emails"
-          rows={3}
-          defaultValue={(org.alert_emails ?? []).join("\n")}
-          placeholder="engineer@plant.com"
-        />
-      </Field>
       <Field
         label="Company logo"
         hint="Shown on certificates and master list exports (PNG/JPG)"

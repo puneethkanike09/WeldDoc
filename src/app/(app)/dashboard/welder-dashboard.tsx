@@ -12,6 +12,7 @@ import {
   type DashboardWidgetId,
 } from "@/lib/dashboard/widgets";
 import { summarizeWelder, daysUntil } from "@/lib/welder-status";
+import { activeQualifications, isActiveQualification } from "@/lib/qualification-active";
 import type { QualificationRecord, RangeOfApproval, Welder } from "@/types/db";
 
 export function WelderDashboard({
@@ -26,8 +27,10 @@ export function WelderDashboard({
   ranges: Map<string, RangeOfApproval>;
 }) {
   const widgets = new Set(order);
+  const activeWpqs = activeQualifications(wpqs);
+  const inactiveQuals = wpqs.filter((w) => !isActiveQualification(w)).length;
   const wpqByWelder = new Map<string, QualificationRecord[]>();
-  for (const w of wpqs) {
+  for (const w of activeWpqs) {
     const arr = wpqByWelder.get(w.welder_id) ?? [];
     arr.push(w);
     wpqByWelder.set(w.welder_id, arr);
@@ -42,7 +45,7 @@ export function WelderDashboard({
     ([name, value]) => ({ name, value }),
   );
 
-  const approved = wpqs.filter((w) => w.wpq_status === "Approved");
+  const approved = activeWpqs.filter((w) => w.wpq_status === "Approved");
   const masterCharts = aggregateWelderMasterCharts(approved, ranges);
 
   const expiring = approved
@@ -81,6 +84,18 @@ export function WelderDashboard({
           label="Active qualifications"
           value={activeQuals}
           hint={`${approved.length} approved on record`}
+        />
+      ),
+    },
+    {
+      id: "kpi_inactive_qualifications",
+      el: (
+        <DashboardStat
+          key="kpi_inactive_qualifications"
+          tone="brand"
+          label="Inactive qualifications"
+          value={inactiveQuals}
+          hint="Hidden from master list and alerts"
         />
       ),
     },

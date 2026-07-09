@@ -14,12 +14,15 @@ export interface IdCardData {
   rows: IdCardQualRow[];
   status: string;
   expiry: string | null;
+  statusNotice?: string | null;
   /** Defaults to "WELDER ID CARD". */
   cardHeading?: string;
   /** Defaults to "WELDER ID". */
   plantIdLabel?: string;
   /** Defaults to `Welder ID {welderNo}`. */
   documentTitle?: string;
+  /** Defaults to EN ISO 9606-1:2017. */
+  standardLabel?: string;
 }
 
 /** Landscape badge — header, body (photo + info), qualification footer. */
@@ -49,6 +52,10 @@ function statusStyle(status: string): { bg: string; fg: string; label: string } 
       return { bg: "#fde8e4", fg: COLORS.ember, label: "EXPIRED" };
     case "Pending":
       return { bg: "#e8eef8", fg: COLORS.sapphire, label: "PENDING" };
+    case "Inactive":
+      return { bg: COLORS.frost, fg: COLORS.graphite, label: "INACTIVE" };
+    case "Suspended":
+      return { bg: "#fde8e4", fg: COLORS.ember, label: "SUSPENDED" };
     default:
       return { bg: COLORS.frost, fg: COLORS.graphite, label: status.toUpperCase() };
   }
@@ -224,9 +231,11 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
     rows,
     status,
     expiry,
+    statusNotice = null,
     cardHeading = "WELDER ID CARD",
     plantIdLabel = "WELDER ID",
     documentTitle,
+    standardLabel = "EN ISO 9606-1:2017",
   } = data;
 
   const badge = statusStyle(status);
@@ -345,9 +354,6 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
                 <View style={{ flex: 1 }}>
                   <PersonalField label={plantIdLabel} value={welderNo} bold />
                 </View>
-                <View style={{ flex: 1 }}>
-                  <PersonalField label="UID" value={welder.uid} />
-                </View>
               </View>
               {(welder.employer || site !== "—") && (
                 <View style={{ flexDirection: "row", gap: 14, marginTop: 1 }}>
@@ -391,14 +397,47 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
                   </Text>
                 </View>
                 <Text style={{ fontSize: 5.5, color: COLORS.graphite }}>
-                  Valid {expiry ?? "—"}
+                  {statusNotice ?? `Valid ${expiry ?? "—"}`}
                 </Text>
               </View>
             </View>
           </View>
 
-          {/* Footer — qualifications */}
+          {/* Footer — qualifications or registry notice */}
           <View style={{ backgroundColor: COLORS.frost }}>
+            {statusNotice ? (
+              <View
+                style={{
+                  paddingHorizontal: 12,
+                  paddingVertical: 16,
+                  alignItems: "center",
+                  backgroundColor: "#fde8e4",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 7,
+                    fontFamily: "Helvetica-Bold",
+                    color: COLORS.ember,
+                    letterSpacing: 0.5,
+                    marginBottom: 4,
+                  }}
+                >
+                  {status === "Suspended" ? "SUSPENDED" : "INACTIVE"}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 6,
+                    color: COLORS.charcoal,
+                    textAlign: "center",
+                    lineHeight: 1.35,
+                  }}
+                >
+                  {statusNotice}
+                </Text>
+              </View>
+            ) : (
+              <>
             <View
               style={{
                 backgroundColor: COLORS.charcoal,
@@ -414,13 +453,15 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
                   letterSpacing: 0.5,
                 }}
               >
-                EN ISO 9606-1:2017
+                {standardLabel}
               </Text>
             </View>
             <TableHeader />
             {rows.map((row, i) => (
               <TableRow key={i} row={row} alt={i % 2 === 1} />
             ))}
+              </>
+            )}
           </View>
         </View>
       </Page>

@@ -42,7 +42,7 @@ export function WeldersTable({
         status={status}
         process={process}
         processOptions={processOptions}
-        searchPlaceholder="Search by name, UID or welder ID"
+        searchPlaceholder="Search by name or welder ID"
         pendingClassName="opacity-60"
       />
 
@@ -51,7 +51,7 @@ export function WeldersTable({
           <thead>
             <tr className="border-b border-silver bg-frost text-[12px] uppercase tracking-wide text-steel">
               <th className="px-5 py-3 font-medium">Welder</th>
-              <th className="px-5 py-3 font-medium">UID</th>
+              <th className="px-5 py-3 font-medium">Welder ID</th>
               <th className="px-5 py-3 font-medium">Qualifications</th>
               <th className="px-5 py-3 font-medium">By process</th>
               <th className="px-5 py-3 font-medium">Status</th>
@@ -73,14 +73,11 @@ export function WeldersTable({
                     <Avatar name={r.full_name} url={r.photoUrl} />
                     <div>
                       <p className="font-medium text-onyx">{r.full_name}</p>
-                      {r.welder_id && (
-                        <p className="text-xs text-steel">{r.welder_id}</p>
-                      )}
                     </div>
                   </Link>
                 </td>
                 <td className="px-5 py-3 font-mono text-[13px] text-charcoal">
-                  {r.uid}
+                  {r.welder_id}
                 </td>
                 <td className="px-5 py-3">
                   <QualCountLights counts={r.summary.qualCounts} />
