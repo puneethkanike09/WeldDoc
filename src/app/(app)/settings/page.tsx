@@ -42,9 +42,9 @@ export default async function SettingsPage({
                 <CardBody className="space-y-3">
                   <CardTitle>How expiry alerts work</CardTitle>
                   <p className="text-sm text-graphite">
-                    A daily job checks every approved welder and operator
-                    qualification. Configure recipients, lead days, and email
-                    frequency from the Welders or Operators page using{" "}
+                    A scheduled job checks every approved welder and operator
+                    qualification. Configure recipients, lead days, send time,
+                    and email frequency from the Welders or Operators page using{" "}
                     <strong>Alert email configuration</strong>.
                   </p>
                   <p className="text-sm text-graphite">

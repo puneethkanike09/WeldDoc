@@ -19,6 +19,10 @@ import {
   shouldSendOrgDigest,
   usesRepeatingDigest,
 } from "../src/lib/expiry-alerts/frequency";
+import {
+  isWithinSendWindow,
+  parseAlertEmailTime,
+} from "../src/lib/expiry-alerts/send-time";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -62,11 +66,11 @@ function runLogicTests() {
 
   const monday = new Date("2026-07-06T06:00:00Z");
   assert(
-    shouldSendOrgDigest("weekly", monday, null) === true,
+    shouldSendOrgDigest("weekly", monday, null, "UTC") === true,
     "weekly sends on Monday",
   );
   assert(
-    shouldSendOrgDigest("weekly", new Date("2026-07-07T06:00:00Z"), null) ===
+    shouldSendOrgDigest("weekly", new Date("2026-07-07T06:00:00Z"), null, "UTC") ===
       false,
     "weekly skips Tuesday",
   );
@@ -75,11 +79,33 @@ function runLogicTests() {
       "every_2_days",
       new Date("2026-07-08T06:00:00Z"),
       new Date("2026-07-06T06:00:00Z"),
+      "UTC",
     ) === true,
     "every 2 days after last send",
   );
+  assert(
+    shouldSendOrgDigest(
+      "daily",
+      new Date("2026-07-08T12:00:00Z"),
+      new Date("2026-07-08T06:00:00Z"),
+      "UTC",
+    ) === false,
+    "daily skips same calendar day",
+  );
   assert(usesRepeatingDigest("daily") === true, "daily is repeating");
   assert(usesRepeatingDigest("once") === false, "once is not repeating");
+
+  const istMorning = new Date("2026-07-01T06:00:00Z"); // 11:30 IST
+  assert(
+    isWithinSendWindow(istMorning, "11:30", "Asia/Kolkata") === true,
+    "11:30 IST within 11:30 window",
+  );
+  assert(
+    isWithinSendWindow(new Date("2026-07-01T05:00:00Z"), "11:30", "Asia/Kolkata") ===
+      false,
+    "10:30 IST outside 11:30 window",
+  );
+  assert(parseAlertEmailTime("8:05") === "08:05", "parseAlertEmailTime pads hour");
 
   console.log(
     "✓ Logic tests passed (bucketFor, daysUntil, orgDigestKind, frequency)",

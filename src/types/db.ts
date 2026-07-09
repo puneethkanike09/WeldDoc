@@ -78,6 +78,8 @@ export interface Organization {
   alert_emails: string[];
   alert_lead_days: number[];
   alert_email_frequency: AlertEmailFrequency;
+  alert_email_time: string;
+  alert_email_timezone: string;
   dashboard_widgets: DashboardWidgetsConfig | null;
   created_at: string;
 }

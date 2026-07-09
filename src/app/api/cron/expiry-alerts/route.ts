@@ -21,6 +21,11 @@ import {
   shouldSendOrgDigest,
   usesRepeatingDigest,
 } from "@/lib/expiry-alerts/frequency";
+import {
+  isWithinSendWindow,
+  parseAlertEmailTime,
+  parseAlertEmailTimezone,
+} from "@/lib/expiry-alerts/send-time";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -121,15 +126,19 @@ export async function GET(request: NextRequest) {
     const maxLead = Math.max(...leadDays);
     const recipients: string[] = org.alert_emails ?? [];
     const frequency = normalizeFrequency(org.alert_email_frequency);
+    const sendTime = parseAlertEmailTime(org.alert_email_time);
+    const timeZone = parseAlertEmailTimezone(org.alert_email_timezone);
     const repeating = usesRepeatingDigest(frequency);
 
     if (recipients.length === 0) continue;
+
+    if (!isWithinSendWindow(now, sendTime, timeZone)) continue;
 
     const lastSentAt = repeating
       ? await lastOrgDigestSentAt(supabase, org.id)
       : null;
 
-    if (!shouldSendOrgDigest(frequency, now, lastSentAt)) continue;
+    if (!shouldSendOrgDigest(frequency, now, lastSentAt, timeZone)) continue;
 
     const welderAlerts: BuiltAlert[] = [];
     const welders = new Map<

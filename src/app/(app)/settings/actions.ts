@@ -11,6 +11,10 @@ import {
 } from "@/lib/dashboard/widgets";
 import type { StandardSlug } from "@/lib/standards/catalog";
 import { parseAlertEmailFrequency } from "@/lib/expiry-alerts/frequency";
+import {
+  parseAlertEmailTime,
+  parseAlertEmailTimezone,
+} from "@/lib/expiry-alerts/send-time";
 
 function str(v: FormDataEntryValue | null): string | null {
   const s = typeof v === "string" ? v.trim() : "";
@@ -61,6 +65,10 @@ export async function updateAlertEmailSettings(formData: FormData) {
   const frequency = parseAlertEmailFrequency(
     str(formData.get("alert_email_frequency")),
   );
+  const sendTime = parseAlertEmailTime(str(formData.get("alert_email_time")));
+  const timezone = parseAlertEmailTimezone(
+    str(formData.get("alert_email_timezone")),
+  );
 
   const { error } = await supabase
     .from("organizations")
@@ -68,6 +76,8 @@ export async function updateAlertEmailSettings(formData: FormData) {
       alert_emails: emails,
       alert_lead_days: leadDays.length ? leadDays : [30, 7],
       alert_email_frequency: frequency,
+      alert_email_time: sendTime,
+      alert_email_timezone: timezone,
     })
     .eq("id", org.id);
 

@@ -1,33 +1,11 @@
 import type { AlertEmailFrequency } from "@/types/db";
+import {
+  isoWeekdayInTimezone,
+  localDateKey,
+  weeksSinceEpochMondayForTz,
+} from "@/lib/expiry-alerts/send-time";
 
 const DAY_MS = 1000 * 60 * 60 * 24;
-
-/** UTC date key YYYY-MM-DD for schedule comparisons. */
-export function utcDateKey(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
-
-/** Monday = 1 … Sunday = 7 (ISO weekday). */
-function isoWeekday(d: Date): number {
-  const day = d.getUTCDay();
-  return day === 0 ? 7 : day;
-}
-
-/** Monday of the ISO week containing `d` (UTC). */
-function mondayOfWeek(d: Date): Date {
-  const copy = new Date(
-    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()),
-  );
-  const wd = isoWeekday(copy);
-  copy.setUTCDate(copy.getUTCDate() - (wd - 1));
-  return copy;
-}
-
-/** Weeks since Unix epoch Monday — stable cadence for every-3-weeks. */
-function weeksSinceEpochMonday(d: Date): number {
-  const mon = mondayOfWeek(d);
-  return Math.floor(mon.getTime() / (7 * DAY_MS));
-}
 
 export const ALERT_FREQUENCY_OPTIONS: {
   value: AlertEmailFrequency;
@@ -86,14 +64,17 @@ export function shouldSendOrgDigest(
   frequency: AlertEmailFrequency,
   now = new Date(),
   lastSentAt: Date | null,
+  timeZone = "Asia/Kolkata",
 ): boolean {
   switch (frequency) {
     case "once":
       // Gating handled per-qualification; org digest sends whenever fresh alerts exist.
       return true;
 
-    case "daily":
-      return true;
+    case "daily": {
+      if (!lastSentAt) return true;
+      return localDateKey(lastSentAt, timeZone) !== localDateKey(now, timeZone);
+    }
 
     case "every_2_days": {
       if (!lastSentAt) return true;
@@ -102,23 +83,23 @@ export function shouldSendOrgDigest(
     }
 
     case "weekly": {
-      if (isoWeekday(now) !== 1) return false;
+      if (isoWeekdayInTimezone(now, timeZone) !== 1) return false;
       if (!lastSentAt) return true;
-      return utcDateKey(lastSentAt) !== utcDateKey(now);
+      return localDateKey(lastSentAt, timeZone) !== localDateKey(now, timeZone);
     }
 
     case "twice_weekly": {
-      const wd = isoWeekday(now);
+      const wd = isoWeekdayInTimezone(now, timeZone);
       if (wd !== 1 && wd !== 4) return false;
       if (!lastSentAt) return true;
-      return utcDateKey(lastSentAt) !== utcDateKey(now);
+      return localDateKey(lastSentAt, timeZone) !== localDateKey(now, timeZone);
     }
 
     case "every_3_weeks": {
-      if (isoWeekday(now) !== 1) return false;
-      if (weeksSinceEpochMonday(now) % 3 !== 0) return false;
+      if (isoWeekdayInTimezone(now, timeZone) !== 1) return false;
+      if (weeksSinceEpochMondayForTz(now, timeZone) % 3 !== 0) return false;
       if (!lastSentAt) return true;
-      return utcDateKey(lastSentAt) !== utcDateKey(now);
+      return localDateKey(lastSentAt, timeZone) !== localDateKey(now, timeZone);
     }
 
     default:

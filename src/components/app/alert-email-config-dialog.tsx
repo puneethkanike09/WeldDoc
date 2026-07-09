@@ -9,6 +9,10 @@ import { Select } from "@/components/sui/select";
 import { useFormSubmit } from "@/lib/form-toast";
 import { toast } from "sonner";
 import { ALERT_FREQUENCY_OPTIONS } from "@/lib/expiry-alerts/frequency";
+import {
+  ALERT_TIMEZONE_OPTIONS,
+  parseAlertEmailTime,
+} from "@/lib/expiry-alerts/send-time";
 import type { Organization } from "@/types/db";
 
 /** Radix Select portals its listbox outside Dialog.Content; without this, dismissing the dropdown can close the dialog too. */
@@ -113,6 +117,32 @@ export function AlertEmailConfigDialog({
                 }
               </p>
             </Field>
+
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field
+                label="Send time"
+                hint="Digest is sent around this time each scheduled day (±15 min)."
+              >
+                <Input
+                  type="time"
+                  name="alert_email_time"
+                  defaultValue={parseAlertEmailTime(org.alert_email_time)}
+                />
+              </Field>
+
+              <Field label="Timezone">
+                <Select
+                  name="alert_email_timezone"
+                  defaultValue={org.alert_email_timezone ?? "Asia/Kolkata"}
+                >
+                  {ALERT_TIMEZONE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            </div>
 
             <Field
               label="Alert recipients"
