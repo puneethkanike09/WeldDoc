@@ -22,8 +22,8 @@ export default function AuthLayout({
       {/* Editorial right panel */}
       <div className="relative hidden overflow-hidden bg-onyx lg:block">
         <div className="grain absolute inset-0 opacity-40" />
-        <div className="relative flex h-full flex-col justify-between p-12">
-          <div>
+        <div className="relative flex h-full flex-col p-12">
+          <div className="flex flex-1 flex-col justify-center">
             <blockquote className="font-display text-[30px] font-semibold leading-[1.2] tracking-tight text-white">
               “Every welder, every qualification, every expiry — in one place
               an auditor can verify with a single scan.”
@@ -32,7 +32,7 @@ export default function AuthLayout({
               Weld.Doc — welder qualification document management.
             </p>
           </div>
-          <div className="flex gap-6 text-steel">
+          <div className="flex shrink-0 gap-6 text-steel">
             <span className="text-sm">Registry</span>
             <span className="text-sm">Certificates</span>
             <span className="text-sm">QR verify</span>
