@@ -25,6 +25,7 @@ import {
   isWithinSendWindow,
   parseAlertEmailTime,
   parseAlertEmailTimezone,
+  ALERT_CRON_IS_DAILY,
 } from "@/lib/expiry-alerts/send-time";
 
 export const runtime = "nodejs";
@@ -132,7 +133,12 @@ export async function GET(request: NextRequest) {
 
     if (recipients.length === 0) continue;
 
-    if (!isWithinSendWindow(now, sendTime, timeZone)) continue;
+    if (
+      !ALERT_CRON_IS_DAILY &&
+      !isWithinSendWindow(now, sendTime, timeZone)
+    ) {
+      continue;
+    }
 
     const lastSentAt = repeating
       ? await lastOrgDigestSentAt(supabase, org.id)

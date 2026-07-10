@@ -125,7 +125,7 @@ export function AlertEmailConfigDialog({
             <div className="grid gap-5 sm:grid-cols-2">
               <Field
                 label="Send time"
-                hint="Digest is sent around this time each scheduled day (±15 min)."
+                hint="Vercel runs this once daily (~11:30 AM IST). Your chosen time is saved for when sub-daily scheduling is available."
               >
                 <Input
                   type="time"

@@ -1,4 +1,10 @@
-/** Must match vercel.json cron interval (every 15 minutes). */
+/**
+ * Vercel Hobby allows one cron invocation per day. Set to false and use a
+ * sub-daily vercel.json schedule (e.g. every 15 min) on Pro/Enterprise.
+ */
+export const ALERT_CRON_IS_DAILY = true;
+
+/** Window when ALERT_CRON_IS_DAILY is false — must match vercel.json cadence. */
 export const ALERT_CRON_WINDOW_MINUTES = 15;
 
 export const ALERT_TIMEZONE_OPTIONS: { value: string; label: string }[] = [
@@ -96,7 +102,7 @@ export function weeksSinceEpochMondayForTz(d: Date, timeZone: string): number {
 
 /**
  * True when the current moment falls in [configured time, configured time + window).
- * Used with a 15-minute Vercel cron so each org gets its digest near the chosen clock time.
+ * Used when ALERT_CRON_IS_DAILY is false (Pro+ sub-daily cron).
  */
 export function isWithinSendWindow(
   now: Date,
