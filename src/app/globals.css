@@ -1,23 +1,23 @@
 @import "tailwindcss";
 @import "react-datepicker/dist/react-datepicker.css";
 
-/* Admin dashboard theme tokens — "Forge Steel" palette (navy anchor + amber accent).
+/* Admin dashboard theme tokens — navy #132537 + orange #e59527.
    Scoped via html[data-app-theme] so portaled UI (dialogs, selects) stays in sync */
 :root {
   --theme-canvas: #f5f0e8;
   --theme-panel: #ffffff;
   --theme-muted: #efe8dc;
   --theme-border: #e0d8ca;
-  --theme-text: #1c2b3a;
-  --theme-text-strong: #16222e;
+  --theme-text: #132537;
+  --theme-text-strong: #0f1c2a;
   --theme-text-secondary: #3c4a57;
   --theme-text-muted: #7d8896;
-  --theme-inverse-bg: #1c2b3a;
+  --theme-inverse-bg: #132537;
   --theme-inverse-fg: #f5f0e8;
   --theme-segment-active-bg: var(--theme-inverse-bg);
   --theme-segment-active-fg: var(--theme-inverse-fg);
   --theme-segment-active-border: var(--theme-inverse-bg);
-  --theme-scrollbar: #1c2b3a;
+  --theme-scrollbar: #132537;
   --theme-scrollbar-hover: #2e4a63;
   --theme-control-accent: var(--color-onyx);
   --status-active: #2dc47a;
@@ -25,14 +25,14 @@
   --status-active-soft: rgb(45 196 122 / 0.14);
   --status-expired: #e85a30;
   --status-expired-ink: #b23a15;
-  --status-warning-ink: #16222e;
+  --status-warning-ink: #132537;
   --status-expiring-ink: #8a6400;
 }
 
 html[data-app-theme="dark"] {
   --theme-canvas: #0e1720;
   --theme-panel: #16222e;
-  --theme-muted: #1c2b3a;
+  --theme-muted: #132537;
   --theme-border: #2e4a63;
   --theme-text: #eef1f4;
   --theme-text-strong: #f7f9fb;
@@ -40,7 +40,7 @@ html[data-app-theme="dark"] {
   --theme-text-muted: #7d8896;
   /* Inverse = contrast surface: navy pill in light UI, warm-white pill in dark UI */
   --theme-inverse-bg: #f5f0e8;
-  --theme-inverse-fg: #1c2b3a;
+  --theme-inverse-fg: #132537;
   --theme-segment-active-bg: var(--theme-inverse-bg);
   --theme-segment-active-fg: var(--theme-inverse-fg);
   --theme-segment-active-border: var(--theme-inverse-bg);
@@ -51,24 +51,24 @@ html[data-app-theme="dark"] {
   --status-active-soft: rgb(45 196 122 / 0.18);
   --status-expired: #e8794f;
   --status-expired-ink: #f6b39b;
-  --status-warning-ink: #16222e;
+  --status-warning-ink: #132537;
   --status-expiring-ink: #f7cf6b;
 
   --background: #16222e;
   --foreground: #eef1f4;
   --card: #16222e;
   --card-foreground: #eef1f4;
-  --popover: #1c2b3a;
+  --popover: #132537;
   --popover-foreground: #eef1f4;
-  --secondary: #1c2b3a;
+  --secondary: #132537;
   --secondary-foreground: #eef1f4;
-  --muted: #1c2b3a;
+  --muted: #132537;
   --muted-foreground: #aab8c6;
   --accent: #2e4a63;
   --accent-foreground: #eef1f4;
   --border: #2e4a63;
   --input: #2e4a63;
-  --ring: #e8a030;
+  --ring: #e59527;
 
   color-scheme: dark;
 }
@@ -83,7 +83,7 @@ html[data-app-theme="dark"] .step-done {
 }
 
 @theme {
-  /* Weld.Doc brand palette (Weld. red + Doc black) */
+  /* Weld.Doc brand palette — navy #132537 + orange #e59527 */
   /* Surfaces — remapped for admin dark mode */
   --color-parchment: var(--theme-canvas);
   --color-white: #ffffff;
@@ -100,11 +100,11 @@ html[data-app-theme="dark"] .step-done {
   --color-segment-active-bg: var(--theme-segment-active-bg);
   --color-segment-active-fg: var(--theme-segment-active-fg);
   --color-segment-active-border: var(--theme-segment-active-border);
-  --color-midnight: #1c2b3a;
+  --color-midnight: #132537;
 
-  /* Signature + secondary accents (Forge Steel — navy + amber) */
-  --color-ember: #e8a030;
-  --color-ember-soft: #f7dfb4;
+  /* Signature + secondary accents (navy + orange) */
+  --color-ember: #e59527;
+  --color-ember-soft: #f6e2c0;
   --color-sapphire: #2e4a63;
   --color-cobalt: #3a5f80;
 
@@ -117,9 +117,9 @@ html[data-app-theme="dark"] .step-done {
   --color-expired-ink: var(--status-expired-ink);
   --color-expiring-ink: var(--status-expiring-ink);
 
-  /* Chart categorical hues (Forge Steel — navy/amber/steel family) */
-  --color-chart-1: #1c2b3a;
-  --color-chart-2: #e8a030;
+  /* Chart categorical hues (navy / orange / steel family) */
+  --color-chart-1: #132537;
+  --color-chart-2: #e59527;
   --color-chart-3: #2e4a63;
   --color-chart-4: #2dc47a;
   --color-chart-5: #b0bec5;
@@ -130,7 +130,7 @@ html[data-app-theme="dark"] .step-done {
   /* Surfaces */
   --color-pale-sky: #c7e5f2;
   --color-petal: #fa91e0;
-  --color-marigold: #fcb42a;
+  --color-marigold: #e59527;
 
   /* Typography */
   --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
@@ -149,24 +149,24 @@ html[data-app-theme="dark"] .step-done {
   --shadow-card: rgba(15, 48, 106, 0.05) 0px 0px 20px 0px;
   --shadow-lift: rgba(24, 29, 38, 0.08) 0px 8px 24px -8px;
 
-  /* Marketing surfaces — rebranded to red/black */
-  --color-cohere-black: #161616;
-  --color-deep-green: #161616;
-  --color-dark-navy: #161616;
+  /* Marketing surfaces — navy + orange brand */
+  --color-cohere-black: #132537;
+  --color-deep-green: #132537;
+  --color-dark-navy: #132537;
   --color-action-blue: #1863dc;
-  --color-coral: #f90a08;
-  --color-soft-coral: #ffbbb4;
+  --color-coral: #e59527;
+  --color-soft-coral: #f5d4a0;
   --color-canvas: #ffffff;
   --color-soft-stone: #f1f1f2;
-  --color-pale-green: #fff4f3;
+  --color-pale-green: #fef7ec;
   --color-pale-blue: #f1f5ff;
   --color-card-border: #ececec;
-  --color-ink: #161616;
+  --color-ink: #132537;
   --color-muted-slate: #9a9a9a;
   --color-slate: #686868;
   --color-hairline: #dcdcde;
   --color-border-light: #e7e7e9;
-  --color-focus-blue: #e8a030;
+  --color-focus-blue: #e59527;
 
   --radius-xs: 4px;
   --radius-sm: 8px;
@@ -177,38 +177,38 @@ html[data-app-theme="dark"] .step-done {
 
   --font-ds-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
 
-  /* Weld.Doc brand palette (Weld. red + Doc black) — order as supplied */
-  --color-brand-red: #f90a08;
-  --color-brand-red-deep: #de181a;
+  /* Brand aliases (token names kept for existing class usage) */
+  --color-brand-red: #e59527;
+  --color-brand-red-deep: #c47d1c;
   --color-brand-offwhite: #f8faf9;
-  --color-brand-coral: #f48789;
-  --color-brand-black: #161616;
+  --color-brand-coral: #f0b56a;
+  --color-brand-black: #132537;
   --color-brand-gray: #686868;
-  --color-brand-red-muted: #d43c3b;
-  --color-brand-pink: #ffbbb4;
+  --color-brand-red-muted: #d48620;
+  --color-brand-pink: #f5d4a0;
 }
 
-/* shadcn/ui token layer — mapped to the "Forge Steel" navy + amber palette */
+/* shadcn/ui token layer — mapped to navy #132537 + orange #e59527 */
 :root {
   --background: #f5f0e8;
-  --foreground: #1c2b3a;
+  --foreground: #132537;
   --card: #ffffff;
-  --card-foreground: #1c2b3a;
+  --card-foreground: #132537;
   --popover: #ffffff;
-  --popover-foreground: #1c2b3a;
-  --primary: #1c2b3a;
+  --popover-foreground: #132537;
+  --primary: #132537;
   --primary-foreground: #f5f0e8;
   --secondary: #efe8dc;
-  --secondary-foreground: #1c2b3a;
+  --secondary-foreground: #132537;
   --muted: #efe8dc;
   --muted-foreground: #6b7c8c;
-  --accent: #e8a030;
-  --accent-foreground: #1c2b3a;
+  --accent: #e59527;
+  --accent-foreground: #132537;
   --destructive: #e85a30;
   --destructive-foreground: #ffffff;
   --border: #e0d8ca;
   --input: #e0d8ca;
-  --ring: #e8a030;
+  --ring: #e59527;
 }
 
 @theme inline {
@@ -288,13 +288,13 @@ html[data-app-theme="dark"] .step-done {
 
 .welddoc-datepicker .react-datepicker__day--selected,
 .welddoc-datepicker .react-datepicker__day--keyboard-selected {
-  background: #1c2b3a !important;
+  background: #132537 !important;
   color: #f5f0e8 !important;
   border-radius: 8px;
 }
 
 .welddoc-datepicker .react-datepicker__day--today {
-  color: #b8801f;
+  color: #c47d1c;
   font-weight: 600;
 }
 
@@ -304,7 +304,7 @@ html[data-app-theme="dark"] .step-done {
 }
 
 .welddoc-datepicker .react-datepicker__navigation-icon::before {
-  border-color: #1c2b3a;
+  border-color: #132537;
 }
 
 .welddoc-datepicker .react-datepicker__month-dropdown-container select,
@@ -322,7 +322,7 @@ html[data-app-theme="dark"] .step-done {
 
 .welddoc-datepicker .react-datepicker__month-read-view,
 .welddoc-datepicker .react-datepicker__year-read-view {
-  color: #1c2b3a;
+  color: #132537;
   font-weight: 600;
 }
 

@@ -97,8 +97,8 @@ export function Landing() {
             speed={0.48}
             scale={1.45}
             brightness={0.82}
-            color1="#f48789"
-            color2="#ffbbb4"
+            color1="#f0b56a"
+            color2="#f5d4a0"
             bandHeight={0.58}
             bandSpread={1.05}
             noiseFrequency={2.8}

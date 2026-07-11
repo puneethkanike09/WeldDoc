@@ -71,10 +71,10 @@ const EMAIL = {
   canvas: "#f5f0e8",
   panel: "#ffffff",
   border: "#e0d8ca",
-  navy: "#1c2b3a",
+  navy: "#132537",
   parchment: "#f5f0e8",
-  ember: "#e8a030",
-  text: "#1c2b3a",
+  ember: "#e59527",
+  text: "#132537",
   textSecondary: "#3c4a57",
   muted: "#7d8896",
   dueSoon: "#8a6400",
@@ -85,7 +85,7 @@ function emailHeader(): string {
   return `
         <div style="background:${EMAIL.navy};padding:18px 24px">
           <span style="font-family:Helvetica,Arial,sans-serif;font-size:18px;font-weight:700">
-            <span style="color:${EMAIL.parchment}">Weld</span><span style="color:${EMAIL.ember}">.Doc</span>
+            <span style="color:#ffffff">Weld</span><span style="color:${EMAIL.ember}">.</span><span style="color:#ffffff">Doc</span>
           </span>
         </div>`;
 }

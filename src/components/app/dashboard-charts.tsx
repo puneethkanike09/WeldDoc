@@ -19,10 +19,10 @@ export interface Slice {
   value: number;
 }
 
-/** Forge Steel categorical palette — navy anchor, amber accent, steel supporting hues. */
+/** Brand categorical palette — navy #132537, orange #e59527, steel supporting hues. */
 const CHART_COLORS_LIGHT = [
-  "#1c2b3a",
-  "#e8a030",
+  "#132537",
+  "#e59527",
   "#2e4a63",
   "#2dc47a",
   "#6b7c8c",
@@ -33,7 +33,7 @@ const CHART_COLORS_LIGHT = [
 
 const CHART_COLORS_DARK = [
   "#7fa8cf",
-  "#f0b24a",
+  "#e59527",
   "#5b7d9c",
   "#6ee7a8",
   "#9aa8b6",
@@ -76,7 +76,7 @@ export function DonutCard({
   const isDark = resolvedTheme === "dark";
   const statusColors = isDark ? STATUS_COLORS_DARK : STATUS_COLORS_LIGHT;
   const chartColors = isDark ? CHART_COLORS_DARK : CHART_COLORS_LIGHT;
-  const tooltipFg = isDark ? "#eef1f4" : "#1c2b3a";
+  const tooltipFg = isDark ? "#eef1f4" : "#132537";
   const legendFg = isDark ? "#aab8c6" : "#3c4a57";
 
   return (
@@ -145,12 +145,12 @@ export function DonutCard({
 }
 
 function chartTooltipStyle(isDark: boolean) {
-  const tooltipFg = isDark ? "#eef1f4" : "#1c2b3a";
+  const tooltipFg = isDark ? "#eef1f4" : "#132537";
   return {
     contentStyle: {
       borderRadius: 10,
       border: isDark ? "1px solid #2e4a63" : "1px solid #e0d8ca",
-      backgroundColor: isDark ? "#1c2b3a" : "#ffffff",
+      backgroundColor: isDark ? "#132537" : "#ffffff",
       color: tooltipFg,
       fontSize: 13,
       fontFamily: "var(--font-inter)",
