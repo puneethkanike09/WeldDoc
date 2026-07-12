@@ -1,6 +1,7 @@
 "use client";
 
 import { Eye, Trash2 } from "lucide-react";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { toast } from "sonner";
 import { ConfirmDeleteButton } from "@/components/app/confirm-delete-button";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -33,6 +34,7 @@ export function GroupSessionRowActions({
             try {
               await deleteAction(sessionId);
             } catch (err) {
+              if (isRedirectError(err)) throw err;
               toast.error(
                 err instanceof Error ? err.message : "Could not delete session.",
               );
