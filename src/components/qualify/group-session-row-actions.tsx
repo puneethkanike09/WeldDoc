@@ -1,8 +1,6 @@
 "use client";
 
 import { Eye, Trash2 } from "lucide-react";
-import { isRedirectError } from "next/dist/client/components/redirect-error";
-import { toast } from "sonner";
 import { ConfirmDeleteButton } from "@/components/app/confirm-delete-button";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { deleteWelderGroupSession } from "@/app/(app)/welders/qualify/group/actions";
@@ -30,16 +28,7 @@ export function GroupSessionRowActions({
       </ButtonLink>
       {canDelete ? (
         <ConfirmDeleteButton
-          action={async () => {
-            try {
-              await deleteAction(sessionId);
-            } catch (err) {
-              if (isRedirectError(err)) throw err;
-              toast.error(
-                err instanceof Error ? err.message : "Could not delete session.",
-              );
-            }
-          }}
+          action={() => deleteAction(sessionId)}
           title="Delete this group session?"
           description="The session and any draft qualifications created for its participants will be removed. Sessions with issued certificates cannot be deleted. This cannot be undone."
           confirmLabel="Delete session"

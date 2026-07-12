@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Card, CardBody } from "@/components/ui/card";
 import { Input, Field } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
@@ -122,6 +123,7 @@ export function GroupOperatorNdtStep({
       for (const key of ndtCopyFieldKeys(targetScope, ndtMethods)) {
         clearError(key);
       }
+      toast.success("Test date and reference copied.");
     },
     [ndtMethods],
   );

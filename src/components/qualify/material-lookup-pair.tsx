@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
+import { toast } from "sonner";
 import {
   MaterialGradeLookup,
   type MaterialLookupErrors,
@@ -130,6 +131,7 @@ export function MaterialLookupPair({
       onFieldChange?.("material2_grade");
       onFieldChange?.("material2_group");
       onFieldChange?.("material2_lookup_source");
+      toast.success("Material 1 copied to Material 2.");
     },
     [onFieldChange],
   );

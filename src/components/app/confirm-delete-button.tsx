@@ -15,6 +15,7 @@ import {
 } from "@/components/sui/alert-dialog";
 import { buttonVariants } from "@/components/sui/button";
 import { cn } from "@/lib/utils";
+import { runAsyncAction } from "@/lib/form-toast";
 
 /**
  * Generic destructive-confirm button. Pass the trigger element (e.g. a Button)
@@ -25,12 +26,14 @@ export function ConfirmDeleteButton({
   title,
   description,
   confirmLabel = "Delete",
+  successMessage,
   trigger,
 }: {
   action: () => Promise<void>;
   title: string;
   description: ReactNode;
   confirmLabel?: string;
+  successMessage?: string;
   trigger: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -39,7 +42,7 @@ export function ConfirmDeleteButton({
   const handleConfirm = () => {
     startTransition(async () => {
       try {
-        await action();
+        await runAsyncAction(action, { successMessage });
       } finally {
         setOpen(false);
       }

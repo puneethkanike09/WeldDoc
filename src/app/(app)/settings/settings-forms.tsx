@@ -155,7 +155,12 @@ export function OrgSettingsForm({
     return errors;
   }, []);
 
-  const { onSubmit, pending } = useFormSubmit(action, validate);
+  const { onSubmit, pending } = useFormSubmit(
+    action,
+    validate,
+    undefined,
+    "Settings saved.",
+  );
   const branding = parseCertificateBranding(org.certificate_branding);
 
   return (

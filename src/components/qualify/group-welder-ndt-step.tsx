@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Card, CardBody } from "@/components/ui/card";
 import {
   GroupStepPreviousLink,
@@ -111,6 +112,7 @@ export function GroupWelderNdtStep({
       for (const key of ndtCopyFieldKeys(targetScope, selectedOrdered)) {
         clearError(key);
       }
+      toast.success("Test date and reference copied.");
     },
     [selectedOrdered],
   );

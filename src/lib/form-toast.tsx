@@ -31,9 +31,29 @@ export function useFormPending() {
 export async function runServerAction(
   action: (formData: FormData) => void | Promise<unknown>,
   formData: FormData,
+  options?: { successMessage?: string },
 ) {
   try {
     await action(formData);
+    if (options?.successMessage) {
+      toast.success(options.successMessage);
+    }
+  } catch (err) {
+    if (isRedirectError(err)) throw err;
+    toast.error(err instanceof Error ? err.message : "Something went wrong.");
+  }
+}
+
+/** Non-form server actions (status toggles, deletes, etc.). */
+export async function runAsyncAction(
+  action: () => void | Promise<unknown>,
+  options?: { successMessage?: string },
+) {
+  try {
+    await action();
+    if (options?.successMessage) {
+      toast.success(options.successMessage);
+    }
   } catch (err) {
     if (isRedirectError(err)) throw err;
     toast.error(err instanceof Error ? err.message : "Something went wrong.");
@@ -44,6 +64,7 @@ export function useFormSubmit(
   action: (formData: FormData) => void | Promise<unknown>,
   validate?: (formData: FormData) => FieldErrors,
   prepare?: (formData: FormData) => void,
+  successMessage?: string,
 ) {
   const [pending, startTransition] = useTransition();
 
@@ -55,10 +76,10 @@ export function useFormSubmit(
       const fieldErrors = validate?.(formData) ?? {};
       if (hasFieldErrors(fieldErrors)) return;
       startTransition(() => {
-        void runServerAction(action, formData);
+        void runServerAction(action, formData, { successMessage });
       });
     },
-    [action, validate, prepare],
+    [action, validate, prepare, successMessage],
   );
 
   return { onSubmit, pending };

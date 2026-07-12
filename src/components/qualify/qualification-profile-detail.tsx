@@ -348,6 +348,7 @@ export function QualificationProfileDetail({
                       )}
                       <ConfirmDeleteButton
                         action={() => onDeleteValidation(v.id)}
+                        successMessage="Log entry deleted."
                         title="Delete this log entry?"
                         description="This removes the continuity/revalidation entry and its uploaded document. The qualification's current expiry date is not recalculated."
                         confirmLabel="Delete entry"

@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { Select } from "@/components/sui/select";
 import { Loader2 } from "lucide-react";
+import { runAsyncAction } from "@/lib/form-toast";
 
 export function QualificationActiveControl({
   isActive,
@@ -21,9 +22,16 @@ export function QualificationActiveControl({
       <Select
         value={isActive ? "Active" : "Inactive"}
         disabled={pending || disabled}
-        onChange={(e) =>
-          startTransition(() => onSetActive(e.target.value === "Active"))
-        }
+        onChange={(e) => {
+          const active = e.target.value === "Active";
+          startTransition(() =>
+            runAsyncAction(() => onSetActive(active), {
+              successMessage: active
+                ? "Qualification marked active."
+                : "Qualification marked inactive.",
+            }),
+          );
+        }}
         className="h-9 w-36 text-[13px]"
         aria-label="Qualification status"
       >

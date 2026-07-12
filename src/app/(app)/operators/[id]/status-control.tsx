@@ -5,6 +5,7 @@ import { Select } from "@/components/sui/select";
 import { setOperatorStatus } from "../actions";
 import type { WelderStatus } from "@/types/db";
 import { Loader2 } from "lucide-react";
+import { runAsyncAction } from "@/lib/form-toast";
 
 export function StatusControl({
   operatorId,
@@ -21,11 +22,14 @@ export function StatusControl({
       <Select
         value={status}
         disabled={pending}
-        onChange={(e) =>
+        onChange={(e) => {
+          const next = e.target.value as WelderStatus;
           startTransition(() =>
-            setOperatorStatus(operatorId, e.target.value as WelderStatus),
-          )
-        }
+            runAsyncAction(() => setOperatorStatus(operatorId, next), {
+              successMessage: `Status updated to ${next}.`,
+            }),
+          );
+        }}
         className="h-9 w-36 text-[13px]"
       >
         <option value="Active">Active</option>

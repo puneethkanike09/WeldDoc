@@ -45,7 +45,12 @@ export function ValidationForm({
     [validatedOn],
   );
 
-  const { onSubmit, pending } = useFormSubmit(action, validate, prepare);
+  const { onSubmit, pending } = useFormSubmit(
+    action,
+    validate,
+    prepare,
+    "Continuity / revalidation logged.",
+  );
 
   return (
     <details className="mt-3 rounded-[10px] border border-silver">

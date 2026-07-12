@@ -24,7 +24,14 @@ export function SignedCertificateForm({
     return errors;
   }, []);
 
-  const { onSubmit, pending } = useFormSubmit(action, validate);
+  const { onSubmit, pending } = useFormSubmit(
+    action,
+    validate,
+    undefined,
+    hasSignedCertificate
+      ? "Signed certificate replaced."
+      : "Signed certificate uploaded.",
+  );
 
   return (
     <details className="mt-4 rounded-[10px] border border-silver">

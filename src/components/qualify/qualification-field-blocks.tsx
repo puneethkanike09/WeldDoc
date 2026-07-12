@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { ArrowDown } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Input, Field } from "@/components/ui/input";
 import type { JointCategory, ProductType } from "@/types/db";
@@ -233,6 +234,7 @@ export function ProductDimensions({
       }
       setM2Values((prev) => ({ ...prev, ...next }));
       setM2Key((k) => k + 1);
+      toast.success("Material 1 dimensions copied to Material 2.");
     },
     [blocks, onFieldChange],
   );
