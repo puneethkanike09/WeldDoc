@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { uploadFile } from "@/lib/storage";
-import { computeExpiry, extendExpiry } from "@/lib/expiry";
+import { computeExpiry, computeRevalidationExpiry } from "@/lib/expiry";
 import { recomputeWpqRange } from "@/lib/iso9606/recompute-wpq-range";
 import { VISUAL_TEST_METHOD } from "@/lib/iso9606/constants";
 import {
@@ -572,14 +572,10 @@ export async function saveValidation(
     `${org.id}/${wpqId}/validations`,
   );
 
-  // Continuity (9.2) resets the 6-month clock; revalidation extends expiry.
+  // Continuity (9.2) and revalidation both reset the 6-month clock; revalidation sets expiry from its date.
   let newExpiry = q.expiry_date;
   if (kind === "revalidation") {
-    const base =
-      q.expiry_date && new Date(q.expiry_date) > new Date()
-        ? q.expiry_date
-        : validatedOn;
-    newExpiry = extendExpiry(q.revalidation_method, base);
+    newExpiry = computeRevalidationExpiry(q.revalidation_method, validatedOn);
   }
 
   const { error: insertError } = await supabase
@@ -602,7 +598,9 @@ export async function saveValidation(
     .from("qualification_records")
     .update({
       continuity_last_verified:
-        kind === "continuity" ? validatedOn : q.continuity_last_verified,
+        kind === "continuity" || kind === "revalidation"
+          ? validatedOn
+          : q.continuity_last_verified,
       expiry_date: newExpiry,
       certificate_pdf_path: null,
       wpq_status:

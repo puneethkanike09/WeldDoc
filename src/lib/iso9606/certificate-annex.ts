@@ -1,5 +1,5 @@
 import type { NdtDtRecord, QualificationRecord, ValidationRecord } from "@/types/db";
-import { REVALIDATION_MONTHS } from "@/lib/expiry";
+import { computeExpiry } from "@/lib/expiry";
 
 export interface CertTableRow {
   date: string;
@@ -90,10 +90,7 @@ export function initialValidUntil(
   if (wpq.expiry_date) return fmt(wpq.expiry_date);
   if (!wpq.certificate_issued_date && !wpq.date_of_welding) return "";
   const base = wpq.certificate_issued_date ?? wpq.date_of_welding!;
-  const months = REVALIDATION_MONTHS[wpq.revalidation_method];
-  const d = new Date(base.includes("T") ? base : `${base}T00:00:00`);
-  d.setMonth(d.getMonth() + months);
-  return fmt(d.toISOString().slice(0, 10));
+  return fmt(computeExpiry(wpq.revalidation_method, base));
 }
 
 export function annexTestResult(

@@ -1,3 +1,4 @@
+import { addPeriodFromISODate, parseISODate, formatISODate } from "@/lib/date-periods";
 import type { RevalidationMethod } from "@/types/db";
 
 /**
@@ -12,38 +13,50 @@ export const REVALIDATION_MONTHS: Record<RevalidationMethod, number> = {
   "9.3c": 6,
 };
 
-function addMonths(date: Date, months: number): Date {
-  const d = new Date(date);
-  d.setMonth(d.getMonth() + months);
-  return d;
-}
+const CONTINUITY_MONTHS = 6;
 
-function toISODate(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
-
+/**
+ * Initial certificate expiry from test / issue date.
+ * Client rule: period ends one calendar day before the anniversary.
+ */
 export function computeExpiry(
   method: RevalidationMethod,
   fromDate: string | Date,
 ): string {
-  const base = typeof fromDate === "string" ? new Date(fromDate) : fromDate;
-  return toISODate(addMonths(base, REVALIDATION_MONTHS[method]));
+  const iso =
+    typeof fromDate === "string" ? fromDate : formatISODate(parseISODate(fromDate));
+  return addPeriodFromISODate(iso, REVALIDATION_MONTHS[method], true);
 }
 
-/** Extend an existing expiry by the method's interval (revalidation event). */
+/**
+ * Expiry after a revalidation event — counted from the revalidation date,
+ * full calendar months (no minus-one day).
+ */
+export function computeRevalidationExpiry(
+  method: RevalidationMethod,
+  validatedOn: string,
+): string {
+  return addPeriodFromISODate(isoDateOnly(validatedOn), REVALIDATION_MONTHS[method], false);
+}
+
+/** @deprecated Prefer computeRevalidationExpiry — kept for call-site clarity. */
 export function extendExpiry(
   method: RevalidationMethod,
-  currentExpiry: string | Date,
+  validatedOn: string | Date,
 ): string {
-  const base =
-    typeof currentExpiry === "string"
-      ? new Date(currentExpiry)
-      : currentExpiry;
-  return toISODate(addMonths(base, REVALIDATION_MONTHS[method]));
+  const iso =
+    typeof validatedOn === "string"
+      ? isoDateOnly(validatedOn)
+      : formatISODate(parseISODate(validatedOn));
+  return computeRevalidationExpiry(method, iso);
 }
 
-/** Continuity verification (clause 9.2) is on a 6-month cycle. */
+/** Continuity verification (clause 9.2) — 6 months from last continuity or revalidation. */
 export function continuityDue(lastVerified: string | null): string | null {
   if (!lastVerified) return null;
-  return toISODate(addMonths(new Date(lastVerified), 6));
+  return addPeriodFromISODate(isoDateOnly(lastVerified), CONTINUITY_MONTHS, false);
+}
+
+function isoDateOnly(value: string): string {
+  return value.includes("T") ? value.slice(0, 10) : value;
 }

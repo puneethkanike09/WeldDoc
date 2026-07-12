@@ -70,19 +70,22 @@ function operatorQualDetailView(
       (q.oq_status === "Approved" || q.oq_status === "Expired"),
     rangeSummary: ranges.get(q.id)?.summary ?? null,
     ndtRecords: ndtViewsFor(q),
-    validations: (validationsByOq.get(q.id) ?? []).map((v) => ({
-      id: v.id,
-      kind: v.kind,
-      validatedOn: formatDate(v.validated_on),
-      validatorName: v.validator_name,
-      note: v.note,
-      newExpiry: v.new_expiry_date ? formatDate(v.new_expiry_date) : null,
-      nextContinuityDue:
-        v.kind === "continuity"
-          ? formatDate(operatorContinuityDue(v.validated_on))
-          : null,
-      docUrl: docUrlById.get(v.id) ?? null,
-    })),
+    validations: (validationsByOq.get(q.id) ?? []).map((v) => {
+      const nextContIso =
+        v.kind === "continuity" || v.kind === "revalidation"
+          ? operatorContinuityDue(v.validated_on)
+          : null;
+      return {
+        id: v.id,
+        kind: v.kind,
+        validatedOn: formatDate(v.validated_on),
+        validatorName: v.validator_name,
+        note: v.note,
+        newExpiry: v.new_expiry_date ? formatDate(v.new_expiry_date) : null,
+        nextContinuityDue: nextContIso ? formatDate(nextContIso) : null,
+        docUrl: docUrlById.get(v.id) ?? null,
+      };
+    }),
   };
 }
 

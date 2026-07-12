@@ -76,19 +76,22 @@ function welderQualDetailView(
     rangeSummary:
       effectiveRangeForWpq(q, ranges.get(q.id) ?? null).summary ?? null,
     ndtRecords: ndtViewsFor(q.id),
-    validations: (validationsByWpq.get(q.id) ?? []).map((v) => ({
-      id: v.id,
-      kind: v.kind,
-      validatedOn: formatDate(v.validated_on),
-      validatorName: v.validator_name,
-      note: v.note,
-      newExpiry: v.new_expiry_date ? formatDate(v.new_expiry_date) : null,
-      nextContinuityDue:
-        v.kind === "continuity"
-          ? formatDate(continuityDue(v.validated_on))
-          : null,
-      docUrl: docUrlById.get(v.id) ?? null,
-    })),
+    validations: (validationsByWpq.get(q.id) ?? []).map((v) => {
+      const nextContIso =
+        v.kind === "continuity" || v.kind === "revalidation"
+          ? continuityDue(v.validated_on)
+          : null;
+      return {
+        id: v.id,
+        kind: v.kind,
+        validatedOn: formatDate(v.validated_on),
+        validatorName: v.validator_name,
+        note: v.note,
+        newExpiry: v.new_expiry_date ? formatDate(v.new_expiry_date) : null,
+        nextContinuityDue: nextContIso ? formatDate(nextContIso) : null,
+        docUrl: docUrlById.get(v.id) ?? null,
+      };
+    }),
   };
 }
 

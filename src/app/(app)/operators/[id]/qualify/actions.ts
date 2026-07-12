@@ -5,7 +5,10 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { uploadFile } from "@/lib/storage";
-import { computeOperatorExpiry, extendOperatorExpiry } from "@/lib/iso14732/expiry";
+import {
+  computeOperatorExpiry,
+  computeOperatorRevalidationExpiry,
+} from "@/lib/iso14732/expiry";
 import { recomputeOperatorRange } from "@/lib/iso14732/recompute-operator-range";
 import { canDiscardOq } from "@/lib/operator-status";
 import {
@@ -511,12 +514,8 @@ export async function saveOperatorValidation(
 
   let newExpiry = oq.expiry_date;
   if (kind === "revalidation") {
-    const base =
-      oq.expiry_date && new Date(oq.expiry_date) > new Date()
-        ? oq.expiry_date
-        : validatedOn;
-    newExpiry = extendOperatorExpiry(
-      base,
+    newExpiry = computeOperatorRevalidationExpiry(
+      validatedOn,
       oq.revalidation_method as OperatorRevalidationMethod,
     );
   }
@@ -541,7 +540,9 @@ export async function saveOperatorValidation(
     .from("operator_qualifications")
     .update({
       continuity_last_verified:
-        kind === "continuity" ? validatedOn : oq.continuity_last_verified,
+        kind === "continuity" || kind === "revalidation"
+          ? validatedOn
+          : oq.continuity_last_verified,
       expiry_date: newExpiry,
       certificate_pdf_path: null,
       oq_status:
