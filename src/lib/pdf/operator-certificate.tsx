@@ -1,4 +1,4 @@
-import { Document, Page, View, Text, Image } from "@react-pdf/renderer";
+import { Document, Page, View, Text, Image, Svg, Path } from "@react-pdf/renderer";
 import { COLORS } from "./styles";
 import {
   buildAnnexCVariableRows,
@@ -35,8 +35,8 @@ function RoleTickBox({ checked }: { checked: boolean }) {
   return (
     <View
       style={{
-        width: 8,
-        height: 8,
+        width: 9,
+        height: 9,
         borderWidth: HAIR,
         borderColor: BORDER,
         marginLeft: 3,
@@ -46,7 +46,14 @@ function RoleTickBox({ checked }: { checked: boolean }) {
       }}
     >
       {checked ? (
-        <Text style={{ fontSize: 7, fontFamily: "Helvetica-Bold" }}>X</Text>
+        <Svg width={7} height={7} viewBox="0 0 10 10">
+          <Path
+            d="M1.8 5.2 L4.2 7.6 L8.2 2.4"
+            stroke={COLORS.charcoal}
+            strokeWidth={1.3}
+            fill="none"
+          />
+        </Svg>
       ) : null}
     </View>
   );
