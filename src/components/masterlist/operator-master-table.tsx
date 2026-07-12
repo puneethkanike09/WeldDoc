@@ -8,25 +8,12 @@ import { MasterListExportButton } from "@/components/masterlist/masterlist-expor
 import { TableScrollArea } from "@/components/ui/table-scroll-area";
 import { formatDate } from "@/lib/utils";
 import {
-  OPERATOR_MASTER_COLUMNS,
+  formatOperatorMasterRowExport,
+  type OperatorMasterColumnKey,
   type OperatorMasterRow,
 } from "@/lib/operator-masterlist";
 import { WELDING_TYPES } from "@/lib/iso14732/constants";
 import { Search } from "lucide-react";
-
-function formatOperatorExportCell(
-  key: keyof OperatorMasterRow,
-  row: OperatorMasterRow,
-  _rowIndex: number,
-): string {
-  if (key === "issued" || key === "expiry") {
-    return formatDate(row[key] === "—" ? null : row[key]);
-  }
-  if (key === "status") {
-    return row.status.replace("_", " ");
-  }
-  return String(row[key] ?? "");
-}
 
 const STATUS_TONE: Record<
   string,
@@ -40,7 +27,65 @@ const STATUS_TONE: Record<
   Superseded: "neutral",
 };
 
-export function OperatorMasterTable({ rows }: { rows: OperatorMasterRow[] }) {
+function renderOperatorCell(
+  key: OperatorMasterColumnKey,
+  row: OperatorMasterRow,
+  slNo: number,
+) {
+  if (key === "slNo") return slNo;
+  if (key === "operatorName") {
+    return (
+      <>
+        {row.operatorName}
+        {row.isLegacy && (
+          <Badge tone="outline" className="ml-1.5">
+            Legacy
+          </Badge>
+        )}
+      </>
+    );
+  }
+  if (key === "operatorId") {
+    return <span className="font-mono text-[12px]">{row.operatorId}</span>;
+  }
+  if (key === "rangeSummary") {
+    return <span className="text-graphite">{row.rangeSummary}</span>;
+  }
+  if (key === "status") {
+    return (
+      <Badge tone={STATUS_TONE[row.status] ?? "neutral"}>
+        {row.status.replace("_", " ")}
+      </Badge>
+    );
+  }
+  if (key === "issued" || key === "expiry") {
+    return formatDate(row[key] === "—" ? null : row[key]);
+  }
+  return row[key] ?? "—";
+}
+
+function cellClassName(key: OperatorMasterColumnKey): string {
+  const base = "px-3 py-2.5";
+  if (key === "slNo") return `${base} text-steel`;
+  if (key === "operatorName") return `${base} whitespace-nowrap font-medium text-onyx`;
+  if (
+    key === "process" ||
+    key === "issued" ||
+    key === "expiry" ||
+    key === "rangeSummary"
+  ) {
+    return key === "rangeSummary" ? `${base} max-w-xs` : `${base} whitespace-nowrap`;
+  }
+  return base;
+}
+
+export function OperatorMasterTable({
+  rows,
+  columns,
+}: {
+  rows: OperatorMasterRow[];
+  columns: { key: OperatorMasterColumnKey; label: string }[];
+}) {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
   const [weldingType, setWeldingType] = useState("all");
@@ -99,21 +144,21 @@ export function OperatorMasterTable({ rows }: { rows: OperatorMasterRow[] }) {
         </Select>
         <div className="flex flex-wrap gap-2">
           <MasterListExportButton
-            columns={OPERATOR_MASTER_COLUMNS}
+            columns={columns}
             rows={filtered}
             filenamePrefix="operator-master-list"
             formatCell={(key, row, rowIndex) =>
-              formatOperatorExportCell(key as keyof OperatorMasterRow, row, rowIndex)
+              formatOperatorMasterRowExport(key, row, rowIndex)
             }
           />
         </div>
       </div>
 
       <TableScrollArea className="mt-5">
-        <table className="w-full min-w-[1200px] text-left text-[13px]">
+        <table className="w-full min-w-[960px] text-left text-[13px]">
           <thead>
             <tr className="border-b border-silver bg-frost text-[11px] uppercase tracking-wide text-steel">
-              {OPERATOR_MASTER_COLUMNS.map((c) => (
+              {columns.map((c) => (
                 <th key={c.key} className="whitespace-nowrap px-3 py-3 font-medium">
                   {c.label}
                 </th>
@@ -126,40 +171,17 @@ export function OperatorMasterTable({ rows }: { rows: OperatorMasterRow[] }) {
                 key={`${r.operatorId}-${i}`}
                 className="border-b border-silver/60 last:border-0 hover:bg-frost/50"
               >
-                <td className="whitespace-nowrap px-3 py-2.5 font-medium text-onyx">
-                  {r.operatorName}
-                  {r.isLegacy && (
-                    <Badge tone="outline" className="ml-1.5">
-                      Legacy
-                    </Badge>
-                  )}
-                </td>
-                <td className="px-3 py-2.5 font-mono text-[12px]">{r.operatorId}</td>
-                <td className="whitespace-nowrap px-3 py-2.5">{r.process}</td>
-                <td className="px-3 py-2.5">{r.standard}</td>
-                <td className="px-3 py-2.5">{r.weldingType}</td>
-                <td className="px-3 py-2.5">{r.productType}</td>
-                <td className="px-3 py-2.5">{r.jointType}</td>
-                <td className="px-3 py-2.5">{r.weldingMode}</td>
-                <td className="max-w-xs px-3 py-2.5 text-graphite">{r.rangeSummary}</td>
-                <td className="px-3 py-2.5">
-                  <Badge tone={STATUS_TONE[r.status] ?? "neutral"}>
-                    {r.status.replace("_", " ")}
-                  </Badge>
-                </td>
-                <td className="whitespace-nowrap px-3 py-2.5">
-                  {formatDate(r.issued === "—" ? null : r.issued)}
-                </td>
-                <td className="whitespace-nowrap px-3 py-2.5">
-                  {formatDate(r.expiry === "—" ? null : r.expiry)}
-                </td>
-                <td className="px-3 py-2.5">{r.revalidation}</td>
+                {columns.map((c) => (
+                  <td key={c.key} className={cellClassName(c.key)}>
+                    {renderOperatorCell(c.key, r, i + 1)}
+                  </td>
+                ))}
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
                 <td
-                  colSpan={OPERATOR_MASTER_COLUMNS.length}
+                  colSpan={Math.max(columns.length, 1)}
                   className="px-3 py-12 text-center text-graphite"
                 >
                   No qualifications match your filters.

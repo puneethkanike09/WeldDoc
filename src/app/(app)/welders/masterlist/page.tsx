@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
 import { WelderMasterTable } from "@/components/masterlist/welder-master-table";
-import { CustomizeWelderMasterListButton } from "@/components/masterlist/customize-welder-masterlist";
+import { CustomizeMasterListColumnsButton } from "@/components/masterlist/customize-masterlist-columns";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { requireWelderWorkspace } from "@/lib/standards/active-standard.server";
 import {
   getMasterListRows,
-  masterListColumnDefs,
-  orderedMasterListColumns,
+  welderMasterListColumnDefs,
+  orderedWelderMasterListColumns,
 } from "@/lib/masterlist";
+import {
+  ALL_WELDER_MASTER_EXPORT_KEYS,
+  WELDER_MASTER_LIST_COLUMN_CATALOG,
+} from "@/lib/masterlist/columns";
 import { updateWelderMasterListColumns } from "@/app/(app)/welders/masterlist/actions";
 
 export const metadata: Metadata = { title: "Welder master list" };
@@ -19,8 +23,8 @@ export default async function WelderMasterListPage() {
   const { org } = await requireSession();
   const supabase = await createClient();
   const rows = await getMasterListRows(supabase, org.id);
-  const columnOrder = orderedMasterListColumns(org.masterlist_columns);
-  const columns = masterListColumnDefs(org.masterlist_columns);
+  const columnOrder = orderedWelderMasterListColumns(org.masterlist_columns);
+  const columns = welderMasterListColumnDefs(org.masterlist_columns);
 
   return (
     <>
@@ -28,9 +32,12 @@ export default async function WelderMasterListPage() {
         title="Master list"
         description="Every welder qualification with its computed range of approval. Export to Excel."
       >
-        <CustomizeWelderMasterListButton
+        <CustomizeMasterListColumnsButton
           action={updateWelderMasterListColumns}
           initialColumns={columnOrder}
+          catalog={WELDER_MASTER_LIST_COLUMN_CATALOG}
+          allKeys={ALL_WELDER_MASTER_EXPORT_KEYS}
+          scopeLabel="welder master list"
         />
       </PageHeader>
       <div className="page-content">

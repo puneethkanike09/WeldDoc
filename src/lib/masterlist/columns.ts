@@ -1,4 +1,11 @@
 import type { StandardSlug } from "@/lib/standards/catalog";
+import {
+  columnDefsFromCatalog,
+  columnMetaFromCatalog,
+  mergeMasterListColumnsConfig,
+  normalizeColumnOrder,
+  type MasterListColumnsConfig,
+} from "@/lib/masterlist/column-config";
 
 export const WELDER_MASTER_LIST_COLUMN_CATALOG = [
   { key: "slNo", label: "SL. NO.", description: "Sequential row number" },
@@ -73,75 +80,39 @@ export const MASTER_EXPORT_COLUMNS = WELDER_MASTER_LIST_COLUMN_CATALOG.map(
   (c) => ({ key: c.key, label: c.label }),
 );
 
-export type MasterListColumnsConfig = Partial<
-  Record<StandardSlug, MasterExportKey[]>
->;
+const WELDER_SLUG = "iso9606-1" as const satisfies StandardSlug;
 
-const WELDER_SLUG = "iso9606-1" as const;
-
-function isMasterExportKey(v: string): v is MasterExportKey {
-  return (ALL_WELDER_MASTER_EXPORT_KEYS as string[]).includes(v);
-}
-
-export function parseMasterListColumnsConfig(
+export function orderedWelderMasterListColumns(
   raw: unknown,
-): MasterListColumnsConfig {
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
-  const out: MasterListColumnsConfig = {};
-  for (const [key, value] of Object.entries(raw)) {
-    if (!Array.isArray(value)) continue;
-    const enabled = value.filter(
-      (v): v is MasterExportKey =>
-        typeof v === "string" && isMasterExportKey(v),
-    );
-    if (enabled.length > 0) {
-      out[key as StandardSlug] = enabled;
-    }
-  }
-  return out;
-}
-
-export function orderedMasterListColumns(
-  raw: unknown,
-  slug: StandardSlug = WELDER_SLUG,
 ): MasterExportKey[] {
-  const allowed = new Set<string>(ALL_WELDER_MASTER_EXPORT_KEYS);
-  const defaults = DEFAULT_WELDER_MASTERLIST_COLUMNS;
-  if (slug !== WELDER_SLUG) return [...defaults];
-
-  const config = parseMasterListColumnsConfig(raw);
-  const stored = config[slug];
-  if (!stored) return [...defaults];
-
-  const enabled = stored.filter((id) => allowed.has(id));
-  return enabled.length > 0 ? enabled : [...defaults];
+  return normalizeColumnOrder(
+    raw,
+    WELDER_SLUG,
+    ALL_WELDER_MASTER_EXPORT_KEYS,
+  ) as MasterExportKey[];
 }
 
-export function mergeMasterListColumnsConfig(
-  raw: unknown,
-  slug: StandardSlug,
-  enabled: MasterExportKey[],
-): MasterListColumnsConfig {
-  return {
-    ...parseMasterListColumnsConfig(raw),
-    [slug]: enabled,
-  };
+export function welderMasterListColumnDefs(raw: unknown) {
+  return columnDefsFromCatalog(
+    orderedWelderMasterListColumns(raw),
+    WELDER_MASTER_LIST_COLUMN_CATALOG,
+  );
 }
 
-export function masterListColumnDefs(
-  raw: unknown,
-  slug: StandardSlug = WELDER_SLUG,
-): { key: MasterExportKey; label: string }[] {
-  const labelByKey = Object.fromEntries(
-    WELDER_MASTER_LIST_COLUMN_CATALOG.map((c) => [c.key, c.label]),
-  ) as Record<MasterExportKey, string>;
-
-  return orderedMasterListColumns(raw, slug).map((key) => ({
-    key,
-    label: labelByKey[key],
-  }));
+export function welderMasterListColumnMeta(key: MasterExportKey) {
+  return columnMetaFromCatalog(key, WELDER_MASTER_LIST_COLUMN_CATALOG);
 }
 
-export function masterListColumnMeta(key: MasterExportKey) {
-  return WELDER_MASTER_LIST_COLUMN_CATALOG.find((c) => c.key === key);
-}
+export {
+  mergeMasterListColumnsConfig,
+  type MasterListColumnsConfig,
+};
+
+/** @deprecated Use orderedWelderMasterListColumns */
+export const orderedMasterListColumns = orderedWelderMasterListColumns;
+
+/** @deprecated Use welderMasterListColumnDefs */
+export const masterListColumnDefs = welderMasterListColumnDefs;
+
+/** @deprecated Use welderMasterListColumnMeta */
+export const masterListColumnMeta = welderMasterListColumnMeta;

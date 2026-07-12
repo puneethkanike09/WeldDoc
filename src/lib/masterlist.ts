@@ -15,6 +15,8 @@ import { formatDate } from "@/lib/utils";
 export {
   MASTER_EXPORT_COLUMNS,
   type MasterExportKey,
+  orderedWelderMasterListColumns,
+  welderMasterListColumnDefs,
   orderedMasterListColumns,
   masterListColumnDefs,
 } from "@/lib/masterlist/columns";

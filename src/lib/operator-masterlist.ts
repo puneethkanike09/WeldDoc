@@ -7,6 +7,16 @@ import type {
 } from "@/types/db";
 import { isActiveRegistryStatus } from "@/lib/registry-status";
 import { isActiveQualification } from "@/lib/qualification-active";
+import { formatDate } from "@/lib/utils";
+import type { OperatorMasterColumnKey } from "@/lib/masterlist/operator-columns";
+
+export {
+  OPERATOR_MASTER_LIST_COLUMN_CATALOG,
+  ALL_OPERATOR_MASTER_COLUMN_KEYS,
+  orderedOperatorMasterListColumns,
+  operatorMasterListColumnDefs,
+  type OperatorMasterColumnKey,
+} from "@/lib/masterlist/operator-columns";
 
 export interface OperatorMasterRow {
   operatorName: string;
@@ -64,38 +74,32 @@ export async function getOperatorMasterListRows(
       {
         operatorName: operator.full_name,
         operatorId: operator.operator_id ?? "—",
-      process: processLabel(q.process),
-      standard: "ISO 14732",
-      weldingType: q.welding_type ?? "—",
-      productType: q.product_type ?? "—",
-      jointType: q.joint_type ?? "—",
-      weldingMode: q.welding_mode ?? "—",
-      rangeSummary: range?.summary ?? "—",
-      status: q.oq_status,
-      isLegacy: q.is_legacy,
-      issued: q.certificate_issued_date ?? "—",
-      expiry: q.expiry_date ?? "—",
-      revalidation: q.revalidation_method,
+        process: processLabel(q.process),
+        standard: "ISO 14732",
+        weldingType: q.welding_type ?? "—",
+        productType: q.product_type ?? "—",
+        jointType: q.joint_type ?? "—",
+        weldingMode: q.welding_mode ?? "—",
+        rangeSummary: range?.summary ?? "—",
+        status: q.oq_status,
+        isLegacy: q.is_legacy,
+        issued: q.certificate_issued_date ?? "—",
+        expiry: q.expiry_date ?? "—",
+        revalidation: q.revalidation_method,
       },
     ];
   });
 }
 
-export const OPERATOR_MASTER_COLUMNS: {
-  key: keyof OperatorMasterRow;
-  label: string;
-}[] = [
-  { key: "operatorName", label: "Operator" },
-  { key: "operatorId", label: "Operator ID" },
-  { key: "process", label: "Process" },
-  { key: "standard", label: "Standard" },
-  { key: "weldingType", label: "Welding type" },
-  { key: "productType", label: "Product" },
-  { key: "jointType", label: "Joint" },
-  { key: "weldingMode", label: "Mode" },
-  { key: "rangeSummary", label: "Range of qualification" },
-  { key: "status", label: "Status" },
-  { key: "issued", label: "Issued" },
-  { key: "expiry", label: "Expiry" },
-  { key: "revalidation", label: "Reval." },
-];
+export function formatOperatorMasterRowExport(
+  key: OperatorMasterColumnKey,
+  row: OperatorMasterRow,
+  slNo: number,
+): string {
+  if (key === "slNo") return String(slNo);
+  if (key === "issued" || key === "expiry") {
+    return formatDate(row[key] === "—" ? null : row[key]);
+  }
+  if (key === "status") return row.status.replace("_", " ");
+  return String(row[key] ?? "");
+}

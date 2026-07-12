@@ -1,5 +1,5 @@
 import type { DashboardWidgetsConfig } from "@/lib/dashboard/widgets";
-import type { MasterListColumnsConfig } from "@/lib/masterlist/columns";
+import type { MasterListColumnsConfig } from "@/lib/masterlist/column-config";
 import type { CertificateBranding } from "@/lib/certificate/branding";
 
 export type WelderStatus = "Active" | "Inactive" | "Suspended";

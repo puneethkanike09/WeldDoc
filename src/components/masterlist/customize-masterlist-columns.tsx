@@ -6,11 +6,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
-  ALL_WELDER_MASTER_EXPORT_KEYS,
-  masterListColumnMeta,
-  type MasterExportKey,
-} from "@/lib/masterlist/columns";
-import {
   Eye,
   EyeOff,
   GripVertical,
@@ -20,29 +15,41 @@ import {
   X,
 } from "lucide-react";
 
-type ItemState = { id: MasterExportKey; enabled: boolean };
+type ColumnCatalogItem = {
+  key: string;
+  label: string;
+  description: string;
+};
 
-function initColumnState(initialOrder: MasterExportKey[]): ItemState[] {
-  const enabledOrdered = initialOrder.filter((id) =>
-    (ALL_WELDER_MASTER_EXPORT_KEYS as string[]).includes(id),
-  );
-  const hidden = ALL_WELDER_MASTER_EXPORT_KEYS.filter(
-    (id) => !initialOrder.includes(id),
-  );
+type ItemState = { id: string; enabled: boolean };
+
+function initColumnState(
+  initialOrder: string[],
+  allKeys: readonly string[],
+): ItemState[] {
+  const enabledOrdered = initialOrder.filter((id) => allKeys.includes(id));
+  const hidden = allKeys.filter((id) => !initialOrder.includes(id));
   return [
     ...enabledOrdered.map((id) => ({ id, enabled: true })),
     ...hidden.map((id) => ({ id, enabled: false })),
   ];
 }
 
-export function CustomizeWelderMasterListButton({
+export function CustomizeMasterListColumnsButton({
   action,
   initialColumns,
+  catalog,
+  allKeys,
+  scopeLabel,
 }: {
   action: (fd: FormData) => Promise<void>;
-  initialColumns: MasterExportKey[];
+  initialColumns: string[];
+  catalog: readonly ColumnCatalogItem[];
+  allKeys: readonly string[];
+  scopeLabel: string;
 }) {
   const [open, setOpen] = useState(false);
+  const labelByKey = Object.fromEntries(catalog.map((c) => [c.key, c.label]));
 
   return (
     <>
@@ -54,6 +61,10 @@ export function CustomizeWelderMasterListButton({
         <CustomizeDialog
           action={action}
           initialColumns={initialColumns}
+          allKeys={allKeys}
+          labelByKey={labelByKey}
+          metaByKey={Object.fromEntries(catalog.map((c) => [c.key, c]))}
+          scopeLabel={scopeLabel}
           onClose={() => setOpen(false)}
         />
       ) : null}
@@ -64,21 +75,29 @@ export function CustomizeWelderMasterListButton({
 function CustomizeDialog({
   action,
   initialColumns,
+  allKeys,
+  labelByKey,
+  metaByKey,
+  scopeLabel,
   onClose,
 }: {
   action: (fd: FormData) => Promise<void>;
-  initialColumns: MasterExportKey[];
+  initialColumns: string[];
+  allKeys: readonly string[];
+  labelByKey: Record<string, string>;
+  metaByKey: Record<string, ColumnCatalogItem>;
+  scopeLabel: string;
   onClose: () => void;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [items, setItems] = useState<ItemState[]>(() =>
-    initColumnState(initialColumns),
+    initColumnState(initialColumns, allKeys),
   );
   const [error, setError] = useState<string | null>(null);
-  const dragId = useRef<MasterExportKey | null>(null);
+  const dragId = useRef<string | null>(null);
 
-  const toggle = useCallback((id: MasterExportKey) => {
+  const toggle = useCallback((id: string) => {
     setError(null);
     setItems((prev) =>
       prev.map((item) =>
@@ -87,7 +106,7 @@ function CustomizeDialog({
     );
   }, []);
 
-  const reorder = useCallback((fromId: MasterExportKey, toId: MasterExportKey) => {
+  const reorder = useCallback((fromId: string, toId: string) => {
     if (fromId === toId) return;
     setItems((prev) => {
       const next = [...prev];
@@ -144,8 +163,8 @@ function CustomizeDialog({
               Customise master list columns
             </h2>
             <p className="mt-1 text-sm text-graphite">
-              Show, hide, and drag to reorder the columns in your welder master
-              list and exports. Applies to everyone in your organisation.
+              Show, hide, and drag to reorder the columns in your {scopeLabel}{" "}
+              and exports. Applies to everyone in your organisation.
             </p>
           </div>
           <button
@@ -160,7 +179,7 @@ function CustomizeDialog({
 
         <div className="sleek-scroll min-h-0 flex-1 space-y-1.5 overflow-y-auto px-6 py-5">
           {items.map((item) => {
-            const meta = masterListColumnMeta(item.id);
+            const meta = metaByKey[item.id];
             return (
               <div
                 key={item.id}
@@ -188,7 +207,7 @@ function CustomizeDialog({
                 <GripVertical className="h-4 w-4 shrink-0 text-steel" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[14px] font-medium text-onyx">
-                    {meta?.label ?? item.id}
+                    {labelByKey[item.id] ?? item.id}
                   </p>
                   <p className="truncate text-xs text-steel">
                     {meta?.description ?? ""}
@@ -198,8 +217,8 @@ function CustomizeDialog({
                   type="button"
                   aria-label={
                     item.enabled
-                      ? `Hide ${meta?.label ?? item.id}`
-                      : `Show ${meta?.label ?? item.id}`
+                      ? `Hide ${labelByKey[item.id] ?? item.id}`
+                      : `Show ${labelByKey[item.id] ?? item.id}`
                   }
                   title={item.enabled ? "Hide" : "Show"}
                   onClick={() => toggle(item.id)}
