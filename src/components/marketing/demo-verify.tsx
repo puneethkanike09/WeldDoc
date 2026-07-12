@@ -18,7 +18,7 @@ const DEMO_ROWS: IdCardQualRow[] = [
   },
 ];
 
-/** Static auditor view for the marketing-site demo QR (`/verify/demo`). */
+/** Static demo view for the marketing-site demo QR (`/verify/demo`). */
 export function DemoVerifyPage() {
   return (
     <main className="min-h-screen bg-parchment px-4 py-8">

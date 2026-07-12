@@ -69,14 +69,14 @@ const workflow = [
   {
     n: "04",
     title: "Verify",
-    body: "Auditors scan the QR and see live status. No login.",
+    body: "Site teams scan the QR and see live status. No login.",
   },
 ];
 
 const comparison = [
   { label: "Purpose-built, done simply", others: "Buried in multi-standard ERPs" },
   { label: "Auto range-of-approval engine", others: true },
-  { label: "Instant QR auditor verification", others: "Partial" },
+  { label: "Instant QR on-site verification", others: "Partial" },
   { label: "Batch qualification report (BW + FW)", others: false },
   { label: "Built for the Indian market & price", others: false },
   { label: "Onboard in an afternoon", others: false },
@@ -113,8 +113,8 @@ export function Landing() {
             </h1>
             <p className="text-body-large mx-auto mt-8 max-w-[560px] text-ink">
               Register welders, auto-calculate the range of approval, generate
-              stamped certificates and let auditors verify status with a single
-              QR scan.
+              stamped certificates, and share live qualification status with a
+              single QR scan.
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-6">
               <DsButtonLink href="/login">Get started</DsButtonLink>
@@ -278,8 +278,8 @@ export function Landing() {
               Scan the badge. See the truth.
             </h2>
             <p className="text-body-large mt-5 text-slate">
-              Every welder ID carries a QR code. An auditor points their phone
-              and instantly sees qualified or not, for which processes, valid
+              Every welder ID carries a QR code. Anyone on the shop floor can
+              scan and instantly see qualified or not, for which processes, valid
               until when — no login required.
             </p>
             <p className="mt-8">
@@ -419,7 +419,7 @@ export function Landing() {
           <div className="rounded-lg bg-dark-navy p-8 sm:p-12 lg:p-16">
             <div className="max-w-[520px]">
               <h2 className="text-section-heading text-white">
-                Ready for your next audit?
+                Ready to run qualifications properly?
               </h2>
               <p className="text-body-large mt-5 text-white/70">
                 Set up your plant, register your first welders and issue a

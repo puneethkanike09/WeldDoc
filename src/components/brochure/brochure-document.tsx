@@ -222,7 +222,7 @@ export function BrochureDocument({ region = "inr" }: { region?: BrochureRegion }
           <p className="brochure-lead brochure-lead-sm">
             Big platforms charge for weld mapping, ERP connectors and features most shops never
             touch. Weld.Doc does one thing really well — keeps your welders qualified and your
-            records audit-ready. That's it. Honest pricing, fast setup, no training course needed.
+            records compliance-ready. That's it. Honest pricing, fast setup, no training course needed.
           </p>
         </header>
 

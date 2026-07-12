@@ -26,10 +26,11 @@ export default function AuthLayout({
           <div className="flex flex-1 flex-col justify-center">
             <blockquote className="font-display text-[30px] font-semibold leading-[1.2] tracking-tight text-white">
               “Every welder, every qualification, every expiry — in one place
-              an auditor can verify with a single scan.”
+              your welding team stays qualified, traceable, and in control.”
             </blockquote>
             <p className="mt-6 text-[15px] text-steel">
-              Weld.Doc — welder qualification document management.
+              Weld.Doc — built for welding engineers, QC teams, and fabrication
+              shops.
             </p>
           </div>
           <div className="flex shrink-0 gap-6 text-steel">

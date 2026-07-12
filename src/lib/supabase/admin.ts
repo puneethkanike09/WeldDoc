@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 
 /**
  * Service-role client. SERVER ONLY — never import into client components.
- * Bypasses RLS; used for the public auditor verification page, PDF generation,
+ * Bypasses RLS; used for the public QR verification page, PDF generation,
  * and the cron alert job.
  */
 export function createAdminClient() {

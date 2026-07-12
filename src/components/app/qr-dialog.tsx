@@ -42,7 +42,7 @@ export function QrDialog({
       <DialogContent className="max-w-xs text-center">
         <DialogHeader className="text-center">
           <DialogCloseButton />
-          <DialogTitle className="text-base">Auditor QR code</DialogTitle>
+          <DialogTitle className="text-base">Verification QR code</DialogTitle>
           <DialogDescription className="sr-only">
             Scan this code to verify the welder&apos;s live qualification
             status. Choose a print color before printing.

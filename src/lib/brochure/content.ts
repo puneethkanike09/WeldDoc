@@ -28,7 +28,7 @@ export const BROCHURE_HERO_PHOTO = "/images/welding-hero.jpg";
 
 export const BROCHURE_PROOF_STATS = [
   { value: "3 min",   label: "Certificate generated"  },
-  { value: "30 sec",  label: "QR audit verify"        },
+  { value: "30 sec",  label: "QR on-site verify"        },
   { value: "0 paper", label: "Complete digital trail" },
 ] as const;
 
@@ -45,7 +45,7 @@ export const BROCHURE_ABOUT =
   "Most welding shops run on a mix of spreadsheets, paper folders and memory. That works until the inspection  arrives. Weld.Doc replaces that chaos with one simple system: every welder registered, every certificate generated, every expiry tracked. No folders. No last-minute panic. Just clean records, ready when you need them.";
 
 export const BROCHURE_CHALLENGES = [
-  "Paper certificates that go missing before an audit",
+  "Paper certificates that go missing when you need them",
   "Revalidation deadlines discovered only after they pass",
   "No way to prove qualification without being in the office",
 ] as const;
@@ -53,7 +53,7 @@ export const BROCHURE_CHALLENGES = [
 export const BROCHURE_SOLUTIONS = [
   "One registry — every welder, every document, always current",
   "Certificates in 3 minutes, not 3 days — ISO-compliant PDFs",
-  "QR link lets auditors verify on the spot. No account needed.",
+  "QR link lets site teams verify on the spot. No account needed.",
 ] as const;
 
 export const BROCHURE_FEATURES = [
@@ -79,7 +79,7 @@ export const BROCHURE_WORKFLOW = [
 ] as const;
 
 export const BROCHURE_CALLOUTS = [
-  { text: "Know who's expiring before the auditor does" },
+  { text: "Know who's expiring before continuity lapses" },
   { text: "Full history — qualifications, docs, approval range" },
   { text: "Scan the QR code. Qualification confirmed in seconds." },
   { text: "Works on phone, tablet or desktop — no installation" },
@@ -111,11 +111,12 @@ export const BROCHURE_PERSONAS = [
   },
   {
     role: "Quality Manager",
-    description: "You're responsible when the auditor shows up. Weld.Doc means you're always ready.",
+    description:
+      "You're responsible for qualification compliance. Weld.Doc keeps every record current.",
     points: [
       "Full qualification records with supporting documents, one click",
-      "Export master lists for client or third-party audits instantly",
-      "Every change logged — complete audit trail, always",
+      "Export master lists for clients or inspections instantly",
+      "Every change logged — full traceability, always",
     ],
   },
   {
@@ -123,7 +124,7 @@ export const BROCHURE_PERSONAS = [
     description: "You need to know compliance status — not read a 50-page spreadsheet to find it.",
     points: [
       "Dashboard shows active, expiring and expired at a glance",
-      "No audit surprises — team is always working from live data",
+      "No compliance surprises — team is always working from live data",
       "Manage multiple sites from one login",
     ],
   },
@@ -132,9 +133,9 @@ export const BROCHURE_PERSONAS = [
 export const BROCHURE_BENEFITS = [
   "Hours saved per qualification",
   "No more paper chasing",
-  "Audit-ready every day",
+  "Compliance-ready every day",
   "All branches, one login",
-  "Audits that finish fast",
+  "Inspections that finish fast",
 ] as const;
 
 export const BROCHURE_SECURITY = [
