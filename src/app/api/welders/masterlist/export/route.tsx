@@ -3,8 +3,9 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { createClient } from "@/lib/supabase/server";
 import {
   getMasterListRows,
-  MASTER_COLUMNS,
-  type MasterRow,
+  MASTER_EXPORT_COLUMNS,
+  formatMasterRowExport,
+  type MasterExportKey,
 } from "@/lib/masterlist";
 import { MasterListDocument } from "@/lib/pdf/masterlist";
 
@@ -53,12 +54,12 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  const header = MASTER_COLUMNS.map((c) => csvEscape(c.label)).join(",");
+  const header = MASTER_EXPORT_COLUMNS.map((c) => csvEscape(c.label)).join(",");
   const body = rows
-    .map((r) =>
-      MASTER_COLUMNS.map((c) => csvEscape(String(r[c.key as keyof MasterRow] ?? ""))).join(
-        ",",
-      ),
+    .map((r, i) =>
+      MASTER_EXPORT_COLUMNS.map((c) =>
+        csvEscape(formatMasterRowExport(c.key as MasterExportKey, r, i + 1)),
+      ).join(","),
     )
     .join("\n");
   const csv = `\uFEFF${header}\n${body}`;

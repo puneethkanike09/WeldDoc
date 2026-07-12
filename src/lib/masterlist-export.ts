@@ -8,16 +8,16 @@ function csvEscape(v: string): string {
   return v;
 }
 
-export function buildMasterListCsv<T extends object, K extends keyof T & string>(
+export function buildMasterListCsv<T extends object, K extends string>(
   rows: T[],
-  columns: MasterListColumn<K>[],
-  formatCell: (key: K, row: T) => string,
+  columns: readonly MasterListColumn<K>[],
+  formatCell: (key: K, row: T, rowIndex: number) => string,
 ): string {
   const header = columns.map((c) => csvEscape(c.label)).join(",");
   const body = rows
-    .map((row) =>
+    .map((row, rowIndex) =>
       columns
-        .map((c) => csvEscape(formatCell(c.key, row)))
+        .map((c) => csvEscape(formatCell(c.key, row, rowIndex + 1)))
         .join(","),
     )
     .join("\n");

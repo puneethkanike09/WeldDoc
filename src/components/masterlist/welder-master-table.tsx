@@ -1,43 +1,26 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
 import { Badge } from "@/components/ui/badge";
 import { MasterListExportButton } from "@/components/masterlist/masterlist-export-button";
 import { TableScrollArea } from "@/components/ui/table-scroll-area";
 import { formatDate } from "@/lib/utils";
-import { MASTER_COLUMNS, type MasterRow } from "@/lib/masterlist";
+import {
+  MASTER_COLUMNS,
+  MASTER_EXPORT_COLUMNS,
+  formatMasterRowExport,
+  type MasterExportKey,
+  type MasterRow,
+} from "@/lib/masterlist";
+import { matchesJointFilter } from "@/lib/masterlist/joint-filter";
 import { Search } from "lucide-react";
-
-function formatWelderExportCell(key: keyof MasterRow, row: MasterRow): string {
-  if (key === "issued" || key === "expiry") {
-    return formatDate(row[key] === "—" ? null : row[key]);
-  }
-  if (key === "status") {
-    return row.status.replace("_", " ");
-  }
-  return String(row[key] ?? "");
-}
-
-const STATUS_TONE: Record<
-  string,
-  "active" | "expiring" | "expired" | "neutral" | "sapphire"
-> = {
-  Approved: "active",
-  Draft: "neutral",
-  Pending_NDT: "sapphire",
-  Failed: "expired",
-  Expired: "expired",
-  Superseded: "neutral",
-};
 
 export function WelderMasterTable({ rows }: { rows: MasterRow[] }) {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
-  const [joint, setJoint] = useState("all");
-
-  const formatCell = useCallback(formatWelderExportCell, []);
+  const [joint, setJoint] = useState<"all" | "BW" | "FW">("all");
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -45,12 +28,12 @@ export function WelderMasterTable({ rows }: { rows: MasterRow[] }) {
       if (
         term &&
         !r.welderName.toLowerCase().includes(term) &&
-        !r.welderId.toLowerCase().includes(term) &&
+        !r.welderNo.toLowerCase().includes(term) &&
         !r.process.toLowerCase().includes(term)
       )
         return false;
       if (status !== "all" && r.status !== status) return false;
-      if (joint !== "all" && r.jointType !== joint) return false;
+      if (!matchesJointFilter(r.jointType, joint)) return false;
       return true;
     });
   }, [rows, q, status, joint]);
@@ -81,7 +64,7 @@ export function WelderMasterTable({ rows }: { rows: MasterRow[] }) {
         </Select>
         <Select
           value={joint}
-          onChange={(e) => setJoint(e.target.value)}
+          onChange={(e) => setJoint(e.target.value as "all" | "BW" | "FW")}
           className="lg:w-36"
         >
           <option value="all">All joints</option>
@@ -90,20 +73,23 @@ export function WelderMasterTable({ rows }: { rows: MasterRow[] }) {
         </Select>
         <div className="flex flex-wrap gap-2">
           <MasterListExportButton
-            columns={MASTER_COLUMNS}
+            columns={MASTER_EXPORT_COLUMNS}
             rows={filtered}
             filteredCount={filtered.length}
             totalCount={rows.length}
             filenamePrefix="welder-master-list"
-            formatCell={formatCell}
+            formatCell={(key, row, rowIndex) =>
+              formatMasterRowExport(key as MasterExportKey, row, rowIndex)
+            }
           />
         </div>
       </div>
 
       <TableScrollArea className="mt-5">
-        <table className="w-full min-w-[1100px] text-left text-[13px]">
+        <table className="w-full min-w-[1600px] text-left text-[13px]">
           <thead>
             <tr className="border-b border-silver bg-frost text-[11px] uppercase tracking-wide text-steel">
+              <th className="whitespace-nowrap px-3 py-3 font-medium">SL. NO.</th>
               {MASTER_COLUMNS.map((c) => (
                 <th key={c.key} className="whitespace-nowrap px-3 py-3 font-medium">
                   {c.label}
@@ -114,9 +100,10 @@ export function WelderMasterTable({ rows }: { rows: MasterRow[] }) {
           <tbody>
             {filtered.map((r, i) => (
               <tr
-                key={`${r.welderId}-${i}`}
+                key={`${r.welderNo}-${r.process}-${i}`}
                 className="border-b border-silver/60 last:border-0 hover:bg-frost/50"
               >
+                <td className="px-3 py-2.5 text-steel">{i + 1}</td>
                 <td className="whitespace-nowrap px-3 py-2.5 font-medium text-onyx">
                   {r.welderName}
                   {r.isLegacy && (
@@ -125,33 +112,32 @@ export function WelderMasterTable({ rows }: { rows: MasterRow[] }) {
                     </Badge>
                   )}
                 </td>
-                <td className="px-3 py-2.5 font-mono text-[12px]">{r.welderId}</td>
+                <td className="px-3 py-2.5 font-mono text-[12px]">{r.welderNo}</td>
                 <td className="whitespace-nowrap px-3 py-2.5">{r.process}</td>
-                <td className="px-3 py-2.5">{r.standard}</td>
                 <td className="px-3 py-2.5">{r.jointType}</td>
-                <td className="px-3 py-2.5">{r.product}</td>
-                <td className="px-3 py-2.5">{r.position}</td>
-                <td className="px-3 py-2.5">{r.materialGroups}</td>
-                <td className="whitespace-nowrap px-3 py-2.5">{r.thicknessRange}</td>
-                <td className="whitespace-nowrap px-3 py-2.5">{r.pipeOdRange}</td>
-                <td className="px-3 py-2.5">
-                  <Badge tone={STATUS_TONE[r.status] ?? "neutral"}>
-                    {r.status.replace("_", " ")}
-                  </Badge>
+                <td className="px-3 py-2.5">{r.actualBwPosition}</td>
+                <td className="px-3 py-2.5">{r.actualFwPosition}</td>
+                <td className="px-3 py-2.5">{r.qualifiedBwPosition}</td>
+                <td className="px-3 py-2.5">{r.qualifiedFwPosition}</td>
+                <td className="px-3 py-2.5">{r.fmGroup}</td>
+                <td className="whitespace-nowrap px-3 py-2.5">{r.qualifiedDia}</td>
+                <td className="whitespace-nowrap px-3 py-2.5">{r.qualifiedBwThk}</td>
+                <td className="whitespace-nowrap px-3 py-2.5">{r.qualifiedFwThk}</td>
+                <td className="whitespace-nowrap px-3 py-2.5">
+                  {formatDate(r.testDate)}
                 </td>
                 <td className="whitespace-nowrap px-3 py-2.5">
-                  {formatDate(r.issued === "—" ? null : r.issued)}
+                  {formatDate(r.continuityExpiry)}
                 </td>
                 <td className="whitespace-nowrap px-3 py-2.5">
-                  {formatDate(r.expiry === "—" ? null : r.expiry)}
+                  {formatDate(r.revalidationExpiry)}
                 </td>
-                <td className="px-3 py-2.5">{r.revalidation}</td>
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
                 <td
-                  colSpan={MASTER_COLUMNS.length}
+                  colSpan={MASTER_COLUMNS.length + 1}
                   className="px-3 py-12 text-center text-graphite"
                 >
                   No qualifications match your filters.

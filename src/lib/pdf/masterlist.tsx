@@ -1,21 +1,30 @@
 import { Document, Page, View, Text } from "@react-pdf/renderer";
 import { COLORS } from "./styles";
-import type { MasterRow } from "@/lib/masterlist";
+import {
+  MASTER_EXPORT_COLUMNS,
+  formatMasterRowExport,
+  type MasterExportKey,
+  type MasterRow,
+} from "@/lib/masterlist";
 
-const COLS: { key: keyof MasterRow; label: string; w: number }[] = [
-  { key: "welderName", label: "Welder", w: 90 },
-  { key: "welderId", label: "Welder ID", w: 48 },
-  { key: "process", label: "Process", w: 60 },
-  { key: "jointType", label: "Joint", w: 32 },
-  { key: "position", label: "Pos.", w: 34 },
-  { key: "materialGroups", label: "Mat. grp", w: 50 },
-  { key: "thicknessRange", label: "Thickness", w: 64 },
-  { key: "pipeOdRange", label: "Pipe OD", w: 52 },
-  { key: "status", label: "Status", w: 54 },
-  { key: "issued", label: "Issued", w: 56 },
-  { key: "expiry", label: "Expiry", w: 56 },
-  { key: "revalidation", label: "Reval", w: 36 },
-];
+const COL_WIDTHS: Record<MasterExportKey, number> = {
+  slNo: 16,
+  welderName: 52,
+  welderNo: 28,
+  process: 44,
+  jointType: 22,
+  actualBwPosition: 26,
+  actualFwPosition: 26,
+  qualifiedBwPosition: 34,
+  qualifiedFwPosition: 34,
+  fmGroup: 22,
+  qualifiedDia: 30,
+  qualifiedBwThk: 34,
+  qualifiedFwThk: 34,
+  testDate: 38,
+  continuityExpiry: 38,
+  revalidationExpiry: 38,
+};
 
 const HAIR = 0.5;
 
@@ -31,7 +40,7 @@ export function MasterListDocument({
       <Page
         size="A4"
         orientation="landscape"
-        style={{ padding: 22, fontFamily: "Helvetica" }}
+        style={{ padding: 16, fontFamily: "Helvetica" }}
       >
         <View
           style={{
@@ -55,11 +64,8 @@ export function MasterListDocument({
         </View>
 
         <View style={{ flexDirection: "row", backgroundColor: COLORS.frost }}>
-          <Cell w={20} header>
-            #
-          </Cell>
-          {COLS.map((c) => (
-            <Cell key={c.key} w={c.w} header>
+          {MASTER_EXPORT_COLUMNS.map((c) => (
+            <Cell key={c.key} w={COL_WIDTHS[c.key]} header>
               {c.label}
             </Cell>
           ))}
@@ -67,10 +73,9 @@ export function MasterListDocument({
 
         {rows.map((r, i) => (
           <View key={i} style={{ flexDirection: "row" }} wrap={false}>
-            <Cell w={20}>{String(i + 1)}</Cell>
-            {COLS.map((c) => (
-              <Cell key={c.key} w={c.w}>
-                {String(r[c.key] ?? "—")}
+            {MASTER_EXPORT_COLUMNS.map((c) => (
+              <Cell key={c.key} w={COL_WIDTHS[c.key]}>
+                {formatMasterRowExport(c.key, r, i + 1)}
               </Cell>
             ))}
           </View>
@@ -97,14 +102,14 @@ function Cell({
     <View
       style={{
         width: w,
-        padding: 2.5,
+        padding: 2,
         borderWidth: HAIR,
         borderColor: COLORS.silver,
       }}
     >
       <Text
         style={{
-          fontSize: 6.5,
+          fontSize: header ? 5.2 : 5,
           fontFamily: header ? "Helvetica-Bold" : "Helvetica",
           color: header ? COLORS.graphite : COLORS.onyx,
         }}

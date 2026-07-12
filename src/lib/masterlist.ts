@@ -1,5 +1,4 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { processLabel } from "@/lib/iso9606/constants";
 import type {
   QualificationRecord,
   RangeOfApproval,
@@ -7,42 +6,15 @@ import type {
 } from "@/types/db";
 import { isActiveRegistryStatus } from "@/lib/registry-status";
 import { isActiveQualification } from "@/lib/qualification-active";
+import {
+  buildWelderMasterListFields,
+  type WelderMasterListFields,
+} from "@/lib/masterlist/welder-row-format";
+import { formatDate } from "@/lib/utils";
 
-export interface MasterRow {
+export interface MasterRow extends WelderMasterListFields {
   welderName: string;
-  welderId: string;
-  process: string;
-  standard: string;
-  jointType: string;
-  product: string;
-  position: string;
-  materialGroups: string;
-  thicknessRange: string;
-  pipeOdRange: string;
-  status: string;
-  isLegacy: boolean;
-  issued: string;
-  expiry: string;
-  revalidation: string;
-}
-
-function thicknessText(r: RangeOfApproval | undefined): string {
-  if (!r) return "—";
-  if (r.thickness_unlimited && r.thickness_min_mm != null)
-    return `≥ ${r.thickness_min_mm} mm`;
-  if (r.thickness_min_mm != null && r.thickness_max_mm != null)
-    return `${r.thickness_min_mm}–${r.thickness_max_mm} mm`;
-  return "—";
-}
-
-function pipeText(r: RangeOfApproval | undefined): string {
-  if (!r || r.pipe_od_min_mm == null) return "—";
-  if (r.pipe_od_max_mm != null) {
-    return `${r.pipe_od_min_mm}–${r.pipe_od_max_mm} mm`;
-  }
-  return r.pipe_od_unlimited
-    ? `≥ ${r.pipe_od_min_mm} mm`
-    : `≥ ${r.pipe_od_min_mm} mm`;
+  welderNo: string;
 }
 
 export async function getMasterListRows(
@@ -79,45 +51,56 @@ export async function getMasterListRows(
     if (!welder || !isActiveRegistryStatus(welder.status)) return [];
     if (!isActiveQualification(q)) return [];
 
-    const range = ranges.get(q.id);
+    const fields = buildWelderMasterListFields(q, ranges.get(q.id));
     return [
       {
+        ...fields,
         welderName: welder.full_name,
-        welderId: welder.welder_id ?? "—",
-      process: processLabel(q.process),
-      standard: "ISO 9606-1",
-      jointType: q.joint_type,
-      product: q.product,
-      position: q.position ?? "—",
-      materialGroups:
-        range?.approved_material_groups?.join(", ") ??
-        q.base_material_group ??
-        "—",
-      thicknessRange: thicknessText(range),
-      pipeOdRange: pipeText(range),
-      status: q.wpq_status,
-      isLegacy: q.is_legacy,
-      issued: q.certificate_issued_date ?? "—",
-      expiry: q.expiry_date ?? "—",
-      revalidation: q.revalidation_method,
+        welderNo: welder.welder_id ?? "—",
       },
     ];
   });
 }
 
-export const MASTER_COLUMNS: { key: keyof MasterRow; label: string }[] = [
-  { key: "welderName", label: "Welder" },
-  { key: "welderId", label: "Welder ID" },
-  { key: "process", label: "Process" },
-  { key: "standard", label: "Standard" },
-  { key: "jointType", label: "Joint" },
-  { key: "product", label: "Product" },
-  { key: "position", label: "Position" },
-  { key: "materialGroups", label: "Material groups" },
-  { key: "thicknessRange", label: "Thickness range" },
-  { key: "pipeOdRange", label: "Pipe OD range" },
-  { key: "status", label: "Status" },
-  { key: "issued", label: "Issued" },
-  { key: "expiry", label: "Expiry" },
-  { key: "revalidation", label: "Reval." },
-];
+export const MASTER_COLUMNS = [
+  { key: "welderName", label: "WELDER NAME" },
+  { key: "welderNo", label: "W#NO" },
+  { key: "process", label: "PROCESS" },
+  { key: "jointType", label: "JOINT TYPE" },
+  { key: "actualBwPosition", label: "Actual BW POSITION" },
+  { key: "actualFwPosition", label: "Actual FW POSITION" },
+  { key: "qualifiedBwPosition", label: "Qualified BW POSITION" },
+  { key: "qualifiedFwPosition", label: "Qualified FW POSITION" },
+  { key: "fmGroup", label: "FM Group" },
+  { key: "qualifiedDia", label: "Qualified Dia" },
+  { key: "qualifiedBwThk", label: "Qualified BW(THK)" },
+  { key: "qualifiedFwThk", label: "Qualified FW(THK)" },
+  { key: "testDate", label: "TEST DATE" },
+  { key: "continuityExpiry", label: "6month validity Expiry Date" },
+  { key: "revalidationExpiry", label: "2yr/3yr Revalidation Expiry Date" },
+] as const;
+
+export type MasterColumnKey = (typeof MASTER_COLUMNS)[number]["key"];
+
+export const MASTER_EXPORT_COLUMNS = [
+  { key: "slNo", label: "SL. NO." },
+  ...MASTER_COLUMNS,
+] as const;
+
+export type MasterExportKey = (typeof MASTER_EXPORT_COLUMNS)[number]["key"];
+
+export function formatMasterRowExport(
+  key: MasterExportKey,
+  row: MasterRow,
+  slNo: number,
+): string {
+  if (key === "slNo") return String(slNo);
+  if (
+    key === "testDate" ||
+    key === "continuityExpiry" ||
+    key === "revalidationExpiry"
+  ) {
+    return formatDate(row[key]);
+  }
+  return String(row[key] ?? "");
+}

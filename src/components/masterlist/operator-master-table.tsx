@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import { Search } from "lucide-react";
 function formatOperatorExportCell(
   key: keyof OperatorMasterRow,
   row: OperatorMasterRow,
+  _rowIndex: number,
 ): string {
   if (key === "issued" || key === "expiry") {
     return formatDate(row[key] === "—" ? null : row[key]);
@@ -43,8 +44,6 @@ export function OperatorMasterTable({ rows }: { rows: OperatorMasterRow[] }) {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
   const [weldingType, setWeldingType] = useState("all");
-
-  const formatCell = useCallback(formatOperatorExportCell, []);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -105,7 +104,9 @@ export function OperatorMasterTable({ rows }: { rows: OperatorMasterRow[] }) {
             filteredCount={filtered.length}
             totalCount={rows.length}
             filenamePrefix="operator-master-list"
-            formatCell={formatCell}
+            formatCell={(key, row, rowIndex) =>
+              formatOperatorExportCell(key as keyof OperatorMasterRow, row, rowIndex)
+            }
           />
         </div>
       </div>

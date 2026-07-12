@@ -22,7 +22,7 @@ import {
 
 export function MasterListExportButton<
   T extends object,
-  K extends keyof T & string,
+  K extends string,
 >({
   columns,
   rows,
@@ -31,12 +31,12 @@ export function MasterListExportButton<
   filenamePrefix,
   formatCell,
 }: {
-  columns: MasterListColumn<K>[];
+  columns: readonly MasterListColumn<K>[];
   rows: T[];
   filteredCount: number;
   totalCount: number;
   filenamePrefix: string;
-  formatCell: (key: K, row: T) => string;
+  formatCell: (key: K, row: T, rowIndex: number) => string;
 }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(

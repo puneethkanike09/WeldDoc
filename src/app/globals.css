@@ -534,30 +534,44 @@ html[data-app-theme="dark"] .welddoc-datepicker select {
 
   /* Slim scrollbar for inner scroll areas — black in light mode, white in dark mode. */
   .sleek-scroll,
+  .table-scroll-area,
   .app-shell main,
   .app-shell aside nav {
     scrollbar-width: thin;
     scrollbar-color: var(--theme-scrollbar) transparent;
+  }
+  .sleek-scroll,
+  .app-shell main,
+  .app-shell aside nav {
     overscroll-behavior: contain;
   }
+  /* Horizontal table strips: scroll sideways locally, pass vertical wheel to page. */
+  .table-scroll-area {
+    overscroll-behavior-x: contain;
+    overscroll-behavior-y: auto;
+  }
   .sleek-scroll::-webkit-scrollbar,
+  .table-scroll-area::-webkit-scrollbar,
   .app-shell main::-webkit-scrollbar,
   .app-shell aside nav::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
   .sleek-scroll::-webkit-scrollbar-track,
+  .table-scroll-area::-webkit-scrollbar-track,
   .app-shell main::-webkit-scrollbar-track,
   .app-shell aside nav::-webkit-scrollbar-track {
     background: transparent;
   }
   .sleek-scroll::-webkit-scrollbar-thumb,
+  .table-scroll-area::-webkit-scrollbar-thumb,
   .app-shell main::-webkit-scrollbar-thumb,
   .app-shell aside nav::-webkit-scrollbar-thumb {
     background-color: var(--theme-scrollbar);
     border-radius: 9999px;
   }
   .sleek-scroll:hover::-webkit-scrollbar-thumb,
+  .table-scroll-area:hover::-webkit-scrollbar-thumb,
   .app-shell main:hover::-webkit-scrollbar-thumb,
   .app-shell aside nav:hover::-webkit-scrollbar-thumb {
     background-color: var(--theme-scrollbar-hover);

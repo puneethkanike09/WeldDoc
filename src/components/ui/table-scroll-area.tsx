@@ -11,7 +11,7 @@ export function TableScrollArea({
   return (
     <div
       className={cn(
-        "sleek-scroll min-w-0 max-w-full overflow-x-auto overscroll-x-contain rounded-[var(--radius-card)] border border-silver bg-panel [-webkit-overflow-scrolling:touch]",
+        "table-scroll-area min-w-0 max-w-full overflow-x-auto rounded-[var(--radius-card)] border border-silver bg-panel [-webkit-overflow-scrolling:touch]",
         className,
       )}
     >
