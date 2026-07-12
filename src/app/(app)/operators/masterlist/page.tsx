@@ -12,17 +12,51 @@ import {
   OPERATOR_MASTER_LIST_COLUMN_CATALOG,
   ALL_OPERATOR_MASTER_COLUMN_KEYS,
 } from "@/lib/operator-masterlist";
+import {
+  filterOperatorMasterRows,
+  parseOperatorMasterListFilters,
+} from "@/lib/masterlist/filter-operator-rows";
+import {
+  parseRegistryListPage,
+  registryListRange,
+} from "@/lib/registry/list-pagination";
 import { updateOperatorMasterListColumns } from "@/app/(app)/operators/masterlist/actions";
 
 export const metadata: Metadata = { title: "Operator master list" };
 
-export default async function OperatorMasterListPage() {
+type SearchParams = {
+  page?: string;
+  q?: string;
+  status?: string;
+  weldingType?: string;
+};
+
+export default async function OperatorMasterListPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   await requireOperatorWorkspace();
+  const sp = await searchParams;
+  const filters = parseOperatorMasterListFilters(sp);
+  const requestedPage = parseRegistryListPage(sp.page);
+
   const { org } = await requireSession();
   const supabase = await createClient();
-  const rows = await getOperatorMasterListRows(supabase, org.id);
+  const allRows = await getOperatorMasterListRows(supabase, org.id);
   const columnOrder = orderedOperatorMasterListColumns(org.masterlist_columns);
   const columns = operatorMasterListColumnDefs(org.masterlist_columns);
+
+  const weldingTypeOptions = Array.from(
+    new Set(allRows.map((r) => r.weldingType).filter((t) => t && t !== "—")),
+  ).sort();
+
+  const filtered = filterOperatorMasterRows(allRows, filters);
+  const { safePage, from, to } = registryListRange(
+    requestedPage,
+    filtered.length,
+  );
+  const pageRows = filtered.slice(from, to);
 
   return (
     <>
@@ -39,13 +73,25 @@ export default async function OperatorMasterListPage() {
         />
       </PageHeader>
       <div className="page-content">
-        {rows.length === 0 ? (
+        {allRows.length === 0 ? (
           <div className="rounded-[var(--radius-card)] border border-dashed border-silver bg-panel px-6 py-16 text-center text-graphite">
             No qualification records yet. Qualify an operator to populate the
             master list.
           </div>
         ) : (
-          <OperatorMasterTable rows={rows} columns={columns} />
+          <OperatorMasterTable
+            rows={pageRows}
+            exportRows={filtered}
+            columns={columns}
+            page={safePage}
+            rowOffset={from}
+            filteredCount={filtered.length}
+            totalCount={allRows.length}
+            q={filters.q ?? ""}
+            status={filters.status ?? "all"}
+            weldingType={filters.weldingType ?? "all"}
+            weldingTypeOptions={weldingTypeOptions}
+          />
         )}
       </div>
     </>

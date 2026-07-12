@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/sui/select";
+import { Suspense } from "react";
 import { Badge } from "@/components/ui/badge";
 import { MasterListExportButton } from "@/components/masterlist/masterlist-export-button";
+import { OperatorMasterListFilters } from "@/components/masterlist/master-list-filters";
+import { RegistryListPagination } from "@/components/app/registry-list-pagination";
 import { TableScrollArea } from "@/components/ui/table-scroll-area";
 import { formatDate } from "@/lib/utils";
 import {
@@ -12,8 +12,6 @@ import {
   type OperatorMasterColumnKey,
   type OperatorMasterRow,
 } from "@/lib/operator-masterlist";
-import { WELDING_TYPES } from "@/lib/iso14732/constants";
-import { Search } from "lucide-react";
 
 const STATUS_TONE: Record<
   string,
@@ -81,78 +79,48 @@ function cellClassName(key: OperatorMasterColumnKey): string {
 
 export function OperatorMasterTable({
   rows,
+  exportRows,
   columns,
+  page,
+  rowOffset,
+  filteredCount,
+  totalCount,
+  q,
+  status,
+  weldingType,
+  weldingTypeOptions,
 }: {
   rows: OperatorMasterRow[];
+  exportRows: OperatorMasterRow[];
   columns: { key: OperatorMasterColumnKey; label: string }[];
+  page: number;
+  rowOffset: number;
+  filteredCount: number;
+  totalCount: number;
+  q: string;
+  status: string;
+  weldingType: string;
+  weldingTypeOptions: string[];
 }) {
-  const [q, setQ] = useState("");
-  const [status, setStatus] = useState("all");
-  const [weldingType, setWeldingType] = useState("all");
-
-  const filtered = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    return rows.filter((r) => {
-      if (
-        term &&
-        !r.operatorName.toLowerCase().includes(term) &&
-        !r.operatorId.toLowerCase().includes(term) &&
-        !r.process.toLowerCase().includes(term)
-      )
-        return false;
-      if (status !== "all" && r.status !== status) return false;
-      if (weldingType !== "all" && r.weldingType !== weldingType) return false;
-      return true;
-    });
-  }, [rows, q, status, weldingType]);
-
   return (
-    <div>
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-steel" />
-          <Input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search operator, ID or process"
-            className="pl-9"
-          />
-        </div>
-        <Select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="lg:w-40"
-        >
-          <option value="all">All statuses</option>
-          <option value="Approved">Approved</option>
-          <option value="Pending_NDT">Pending NDT</option>
-          <option value="Draft">Draft</option>
-          <option value="Expired">Expired</option>
-          <option value="Failed">Failed</option>
-        </Select>
-        <Select
-          value={weldingType}
-          onChange={(e) => setWeldingType(e.target.value)}
-          className="lg:w-40"
-        >
-          <option value="all">All welding types</option>
-          {WELDING_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </Select>
-        <div className="flex flex-wrap gap-2">
+    <div className="min-w-0">
+      <OperatorMasterListFilters
+        basePath="/operators/masterlist"
+        q={q}
+        status={status}
+        weldingType={weldingType}
+        weldingTypeOptions={weldingTypeOptions}
+        trailing={
           <MasterListExportButton
             columns={columns}
-            rows={filtered}
+            rows={exportRows}
             filenamePrefix="operator-master-list"
             formatCell={(key, row, rowIndex) =>
               formatOperatorMasterRowExport(key, row, rowIndex)
             }
           />
-        </div>
-      </div>
+        }
+      />
 
       <TableScrollArea className="mt-5">
         <table className="w-full min-w-[960px] text-left text-[13px]">
@@ -166,19 +134,19 @@ export function OperatorMasterTable({
             </tr>
           </thead>
           <tbody>
-            {filtered.map((r, i) => (
+            {rows.map((r, i) => (
               <tr
-                key={`${r.operatorId}-${i}`}
+                key={`${r.operatorId}-${rowOffset + i}`}
                 className="border-b border-silver/60 last:border-0 hover:bg-frost/50"
               >
                 {columns.map((c) => (
                   <td key={c.key} className={cellClassName(c.key)}>
-                    {renderOperatorCell(c.key, r, i + 1)}
+                    {renderOperatorCell(c.key, r, rowOffset + i + 1)}
                   </td>
                 ))}
               </tr>
             ))}
-            {filtered.length === 0 && (
+            {rows.length === 0 && (
               <tr>
                 <td
                   colSpan={Math.max(columns.length, 1)}
@@ -191,9 +159,22 @@ export function OperatorMasterTable({
           </tbody>
         </table>
       </TableScrollArea>
-      <p className="mt-3 text-sm text-steel">
-        {filtered.length} of {rows.length} qualification records
-      </p>
+
+      <Suspense fallback={null}>
+        <RegistryListPagination
+          basePath="/operators/masterlist"
+          page={page}
+          totalCount={filteredCount}
+          entityLabel="qualification records"
+        />
+      </Suspense>
+
+      {filteredCount <= 10 ? (
+        <p className="mt-3 text-sm text-steel">
+          {filteredCount} of {totalCount} qualification records
+          {filteredCount !== totalCount ? " matching your filters" : ""}
+        </p>
+      ) : null}
     </div>
   );
 }
