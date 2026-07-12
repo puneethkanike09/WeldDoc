@@ -1,4 +1,5 @@
 import type { DashboardWidgetsConfig } from "@/lib/dashboard/widgets";
+import type { MasterListColumnsConfig } from "@/lib/masterlist/columns";
 import type { CertificateBranding } from "@/lib/certificate/branding";
 
 export type WelderStatus = "Active" | "Inactive" | "Suspended";
@@ -83,6 +84,7 @@ export interface Organization {
   alert_email_timezone: string;
   certificate_branding: CertificateBranding;
   dashboard_widgets: DashboardWidgetsConfig | null;
+  masterlist_columns: MasterListColumnsConfig | null;
   created_at: string;
 }
 

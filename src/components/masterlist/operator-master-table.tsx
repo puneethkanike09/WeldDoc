@@ -101,8 +101,6 @@ export function OperatorMasterTable({ rows }: { rows: OperatorMasterRow[] }) {
           <MasterListExportButton
             columns={OPERATOR_MASTER_COLUMNS}
             rows={filtered}
-            filteredCount={filtered.length}
-            totalCount={rows.length}
             filenamePrefix="operator-master-list"
             formatCell={(key, row, rowIndex) =>
               formatOperatorExportCell(key as keyof OperatorMasterRow, row, rowIndex)

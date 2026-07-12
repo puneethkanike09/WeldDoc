@@ -8,8 +8,6 @@ import { MasterListExportButton } from "@/components/masterlist/masterlist-expor
 import { TableScrollArea } from "@/components/ui/table-scroll-area";
 import { formatDate } from "@/lib/utils";
 import {
-  MASTER_COLUMNS,
-  MASTER_EXPORT_COLUMNS,
   formatMasterRowExport,
   type MasterExportKey,
   type MasterRow,
@@ -17,7 +15,62 @@ import {
 import { matchesJointFilter } from "@/lib/masterlist/joint-filter";
 import { Search } from "lucide-react";
 
-export function WelderMasterTable({ rows }: { rows: MasterRow[] }) {
+function renderMasterCell(
+  key: MasterExportKey,
+  row: MasterRow,
+  slNo: number,
+) {
+  if (key === "slNo") return slNo;
+  if (key === "welderName") {
+    return (
+      <>
+        {row.welderName}
+        {row.isLegacy && (
+          <Badge tone="outline" className="ml-1.5">
+            Legacy
+          </Badge>
+        )}
+      </>
+    );
+  }
+  if (
+    key === "testDate" ||
+    key === "continuityExpiry" ||
+    key === "revalidationExpiry"
+  ) {
+    return formatDate(row[key]);
+  }
+  if (key === "welderNo") {
+    return <span className="font-mono text-[12px]">{row.welderNo}</span>;
+  }
+  return row[key] ?? "—";
+}
+
+function cellClassName(key: MasterExportKey): string {
+  const base = "px-3 py-2.5";
+  if (key === "slNo") return `${base} text-steel`;
+  if (key === "welderName") return `${base} whitespace-nowrap font-medium text-onyx`;
+  if (
+    key === "process" ||
+    key === "qualifiedDia" ||
+    key === "qualifiedBwThk" ||
+    key === "qualifiedFwThk" ||
+    key === "testDate" ||
+    key === "continuityExpiry" ||
+    key === "revalidationExpiry"
+  ) {
+    return `${base} whitespace-nowrap`;
+  }
+  return base;
+}
+
+export function WelderMasterTable({
+  rows,
+  columns,
+}: {
+  rows: MasterRow[];
+  columns: { key: MasterExportKey; label: string }[];
+}) {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
   const [joint, setJoint] = useState<"all" | "BW" | "FW">("all");
@@ -73,25 +126,25 @@ export function WelderMasterTable({ rows }: { rows: MasterRow[] }) {
         </Select>
         <div className="flex flex-wrap gap-2">
           <MasterListExportButton
-            columns={MASTER_EXPORT_COLUMNS}
+            columns={columns}
             rows={filtered}
-            filteredCount={filtered.length}
-            totalCount={rows.length}
             filenamePrefix="welder-master-list"
             formatCell={(key, row, rowIndex) =>
-              formatMasterRowExport(key as MasterExportKey, row, rowIndex)
+              formatMasterRowExport(key, row, rowIndex)
             }
           />
         </div>
       </div>
 
       <TableScrollArea className="mt-5">
-        <table className="w-full min-w-[1600px] text-left text-[13px]">
+        <table className="w-full min-w-[960px] text-left text-[13px]">
           <thead>
             <tr className="border-b border-silver bg-frost text-[11px] uppercase tracking-wide text-steel">
-              <th className="whitespace-nowrap px-3 py-3 font-medium">SL. NO.</th>
-              {MASTER_COLUMNS.map((c) => (
-                <th key={c.key} className="whitespace-nowrap px-3 py-3 font-medium">
+              {columns.map((c) => (
+                <th
+                  key={c.key}
+                  className="whitespace-nowrap px-3 py-3 font-medium"
+                >
                   {c.label}
                 </th>
               ))}
@@ -103,41 +156,17 @@ export function WelderMasterTable({ rows }: { rows: MasterRow[] }) {
                 key={`${r.welderNo}-${r.process}-${i}`}
                 className="border-b border-silver/60 last:border-0 hover:bg-frost/50"
               >
-                <td className="px-3 py-2.5 text-steel">{i + 1}</td>
-                <td className="whitespace-nowrap px-3 py-2.5 font-medium text-onyx">
-                  {r.welderName}
-                  {r.isLegacy && (
-                    <Badge tone="outline" className="ml-1.5">
-                      Legacy
-                    </Badge>
-                  )}
-                </td>
-                <td className="px-3 py-2.5 font-mono text-[12px]">{r.welderNo}</td>
-                <td className="whitespace-nowrap px-3 py-2.5">{r.process}</td>
-                <td className="px-3 py-2.5">{r.jointType}</td>
-                <td className="px-3 py-2.5">{r.actualBwPosition}</td>
-                <td className="px-3 py-2.5">{r.actualFwPosition}</td>
-                <td className="px-3 py-2.5">{r.qualifiedBwPosition}</td>
-                <td className="px-3 py-2.5">{r.qualifiedFwPosition}</td>
-                <td className="px-3 py-2.5">{r.fmGroup}</td>
-                <td className="whitespace-nowrap px-3 py-2.5">{r.qualifiedDia}</td>
-                <td className="whitespace-nowrap px-3 py-2.5">{r.qualifiedBwThk}</td>
-                <td className="whitespace-nowrap px-3 py-2.5">{r.qualifiedFwThk}</td>
-                <td className="whitespace-nowrap px-3 py-2.5">
-                  {formatDate(r.testDate)}
-                </td>
-                <td className="whitespace-nowrap px-3 py-2.5">
-                  {formatDate(r.continuityExpiry)}
-                </td>
-                <td className="whitespace-nowrap px-3 py-2.5">
-                  {formatDate(r.revalidationExpiry)}
-                </td>
+                {columns.map((c) => (
+                  <td key={c.key} className={cellClassName(c.key)}>
+                    {renderMasterCell(c.key, r, i + 1)}
+                  </td>
+                ))}
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
                 <td
-                  colSpan={MASTER_COLUMNS.length + 1}
+                  colSpan={Math.max(columns.length, 1)}
                   className="px-3 py-12 text-center text-graphite"
                 >
                   No qualifications match your filters.

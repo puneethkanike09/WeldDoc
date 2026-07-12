@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
 import { WelderMasterTable } from "@/components/masterlist/welder-master-table";
+import { CustomizeWelderMasterListButton } from "@/components/masterlist/customize-welder-masterlist";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { requireWelderWorkspace } from "@/lib/standards/active-standard.server";
-import { getMasterListRows } from "@/lib/masterlist";
+import {
+  getMasterListRows,
+  masterListColumnDefs,
+  orderedMasterListColumns,
+} from "@/lib/masterlist";
+import { updateWelderMasterListColumns } from "@/app/(app)/welders/masterlist/actions";
 
 export const metadata: Metadata = { title: "Welder master list" };
 
@@ -13,13 +19,20 @@ export default async function WelderMasterListPage() {
   const { org } = await requireSession();
   const supabase = await createClient();
   const rows = await getMasterListRows(supabase, org.id);
+  const columnOrder = orderedMasterListColumns(org.masterlist_columns);
+  const columns = masterListColumnDefs(org.masterlist_columns);
 
   return (
     <>
       <PageHeader
         title="Master list"
         description="Every welder qualification with its computed range of approval. Export to Excel."
-      />
+      >
+        <CustomizeWelderMasterListButton
+          action={updateWelderMasterListColumns}
+          initialColumns={columnOrder}
+        />
+      </PageHeader>
       <div className="page-content">
         {rows.length === 0 ? (
           <div className="rounded-[var(--radius-card)] border border-dashed border-silver bg-panel px-6 py-16 text-center text-graphite">
@@ -27,7 +40,7 @@ export default async function WelderMasterListPage() {
             master list.
           </div>
         ) : (
-          <WelderMasterTable rows={rows} />
+          <WelderMasterTable rows={rows} columns={columns} />
         )}
       </div>
     </>

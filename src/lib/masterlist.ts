@@ -12,6 +12,15 @@ import {
 } from "@/lib/masterlist/welder-row-format";
 import { formatDate } from "@/lib/utils";
 
+export {
+  MASTER_EXPORT_COLUMNS,
+  type MasterExportKey,
+  orderedMasterListColumns,
+  masterListColumnDefs,
+} from "@/lib/masterlist/columns";
+
+import type { MasterExportKey } from "@/lib/masterlist/columns";
+
 export interface MasterRow extends WelderMasterListFields {
   welderName: string;
   welderNo: string;
@@ -61,33 +70,6 @@ export async function getMasterListRows(
     ];
   });
 }
-
-export const MASTER_COLUMNS = [
-  { key: "welderName", label: "WELDER NAME" },
-  { key: "welderNo", label: "W#NO" },
-  { key: "process", label: "PROCESS" },
-  { key: "jointType", label: "JOINT TYPE" },
-  { key: "actualBwPosition", label: "Actual BW POSITION" },
-  { key: "actualFwPosition", label: "Actual FW POSITION" },
-  { key: "qualifiedBwPosition", label: "Qualified BW POSITION" },
-  { key: "qualifiedFwPosition", label: "Qualified FW POSITION" },
-  { key: "fmGroup", label: "FM Group" },
-  { key: "qualifiedDia", label: "Qualified Dia" },
-  { key: "qualifiedBwThk", label: "Qualified BW(THK)" },
-  { key: "qualifiedFwThk", label: "Qualified FW(THK)" },
-  { key: "testDate", label: "TEST DATE" },
-  { key: "continuityExpiry", label: "6month validity Expiry Date" },
-  { key: "revalidationExpiry", label: "2yr/3yr Revalidation Expiry Date" },
-] as const;
-
-export type MasterColumnKey = (typeof MASTER_COLUMNS)[number]["key"];
-
-export const MASTER_EXPORT_COLUMNS = [
-  { key: "slNo", label: "SL. NO." },
-  ...MASTER_COLUMNS,
-] as const;
-
-export type MasterExportKey = (typeof MASTER_EXPORT_COLUMNS)[number]["key"];
 
 export function formatMasterRowExport(
   key: MasterExportKey,
