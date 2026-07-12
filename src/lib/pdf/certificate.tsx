@@ -21,6 +21,10 @@ import {
 import { hasAnySupplementaryFillet } from "@/lib/iso9606/supplementary-fillet";
 import { certificateLocationText } from "@/lib/certificate/branding";
 import { CertificateBrandingHeader } from "@/lib/pdf/certificate-branding-header";
+import {
+  CertificateHeaderFieldRow,
+  CompoundCertificateFrame,
+} from "@/lib/pdf/certificate-layout";
 import type {
   NdtDtRecord,
   Organization,
@@ -55,52 +59,6 @@ function fmt(d: string | null): string {
 }
 
 const HAIR = 0.75;
-const BORDER = COLORS.border;
-
-function InfoRow({
-  label,
-  value,
-  bold,
-}: {
-  label: string;
-  value: string;
-  bold?: boolean;
-}) {
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        borderTopWidth: HAIR,
-        borderColor: COLORS.charcoal,
-      }}
-    >
-      <View
-        style={{
-          width: 128,
-          paddingVertical: 3,
-          paddingHorizontal: 4,
-          borderRightWidth: HAIR,
-          borderColor: COLORS.charcoal,
-        }}
-      >
-        <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 7.5 }}>
-          {label}
-        </Text>
-      </View>
-      <View style={{ flex: 1, paddingVertical: 3, paddingHorizontal: 4 }}>
-        <Text
-          style={{
-            fontSize: bold ? 9.5 : 8,
-            fontFamily: bold ? "Helvetica-Bold" : "Helvetica",
-            color: COLORS.onyx,
-          }}
-        >
-          {value}
-        </Text>
-      </View>
-    </View>
-  );
-}
 
 function TripleRow({ row }: { row: CertRow }) {
   return (
@@ -257,14 +215,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
           color: COLORS.charcoal,
         }}
       >
-        <View
-          style={{
-            flex: 1,
-            borderWidth: 1.2,
-            borderColor: BORDER,
-            padding: 10,
-          }}
-        >
+        <CompoundCertificateFrame>
           <CertificateBrandingHeader
             branding={org.certificate_branding}
             orgName={org.name}
@@ -299,29 +250,26 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
             Certificate No.: {certNo}
           </Text>
 
-          <View
-            style={{
-              borderWidth: HAIR,
-              borderColor: COLORS.charcoal,
-              flexDirection: "row",
-            }}
-          >
+          <View style={{ flexDirection: "row", marginBottom: 4 }}>
             <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: "row" }}>
-                <View
-                  style={{
-                    width: 128,
-                    paddingVertical: 3,
-                    paddingHorizontal: 4,
-                    borderRightWidth: HAIR,
-                    borderColor: COLORS.charcoal,
-                  }}
-                >
-                  <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 7.5 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  paddingVertical: 2,
+                  paddingHorizontal: 2,
+                }}
+              >
+                <View style={{ width: 128 }}>
+                  <Text
+                    style={{
+                      fontFamily: "Helvetica-Bold",
+                      fontSize: 7.5,
+                    }}
+                  >
                     Designation(s):
                   </Text>
                 </View>
-                <View style={{ flex: 1, paddingVertical: 3, paddingHorizontal: 4 }}>
+                <View style={{ flex: 1 }}>
                   {designations.map((line, i) => (
                     <Text
                       key={i}
@@ -337,36 +285,51 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
                   ))}
                 </View>
               </View>
-              <InfoRow label="WPS Reference:" value={wpq.wps_reference ?? "—"} />
-              <InfoRow label="Welder Name:" value={welder.full_name} bold />
-              <InfoRow
+              <CertificateHeaderFieldRow
+                label="WPS Reference:"
+                value={wpq.wps_reference ?? "—"}
+              />
+              <CertificateHeaderFieldRow
+                label="Welder Name:"
+                value={welder.full_name}
+                bold
+              />
+              <CertificateHeaderFieldRow
                 label="Identification:"
                 value={welder.welder_id ?? "—"}
               />
-              <InfoRow
+              <CertificateHeaderFieldRow
                 label="Method of Identification:"
                 value={welder.id_method ?? "—"}
               />
-              <InfoRow
+              <CertificateHeaderFieldRow
                 label="Date and Place of Birth:"
                 value={`${fmt(welder.date_of_birth)}${welder.place_of_birth ? ` & ${welder.place_of_birth}` : ""}`}
               />
-              <InfoRow label="Employer:" value={welder.employer ?? org.name} />
-              <InfoRow
+              <CertificateHeaderFieldRow
+                label="Employer:"
+                value={welder.employer ?? org.name}
+              />
+              <CertificateHeaderFieldRow
                 label="Code/Testing Standard:"
                 value={testingStandardLabel(wpq)}
               />
-              <InfoRow label="Material 1:" value={materialOneText(wpq)} />
-              <InfoRow label="Material 2:" value={materialTwoText(wpq)} />
+              <CertificateHeaderFieldRow
+                label="Material 1:"
+                value={materialOneText(wpq)}
+              />
+              <CertificateHeaderFieldRow
+                label="Material 2:"
+                value={materialTwoText(wpq)}
+              />
             </View>
             <View
               style={{
                 width: 94,
-                borderLeftWidth: HAIR,
-                borderColor: COLORS.charcoal,
                 alignItems: "center",
-                justifyContent: "center",
+                justifyContent: "flex-start",
                 padding: 4,
+                paddingTop: 2,
               }}
             >
               {/* Photo only — QR verification is on the welder ID card */}
@@ -391,7 +354,12 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
           <View style={{ flexDirection: "row", marginTop: 4, marginBottom: 3 }}>
             <Text style={{ fontSize: 7.5 }}>Job Knowledge: </Text>
             {jobOk ? (
-              <Text style={{ fontSize: 7.5, fontFamily: "Helvetica-Bold" }}>
+              <Text
+                style={{
+                  fontSize: 7.5,
+                  fontFamily: "Helvetica-Bold",
+                }}
+              >
                 Acceptable
               </Text>
             ) : null}
@@ -655,7 +623,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
               minRows={6}
             />
           </View>
-        </View>
+        </CompoundCertificateFrame>
 
         <Text
           style={{

@@ -14,10 +14,9 @@ import {
   type AnnexCVariableRow,
   type CertTableRow,
 } from "@/lib/iso14732/certificate-annex";
-import {
-  operatorCertificateLocationText,
-} from "@/lib/certificate/branding";
+import { operatorCertificateLocationText } from "@/lib/certificate/branding";
 import { CertificateBrandingHeader } from "@/lib/pdf/certificate-branding-header";
+import { CompoundCertificateFrame, CertificateHeaderFieldRow } from "@/lib/pdf/certificate-layout";
 
 const HAIR = 0.75;
 const BORDER = COLORS.charcoal;
@@ -31,35 +30,6 @@ function fmt(d: string | null | undefined): string {
     month: "short",
     year: "numeric",
   });
-}
-
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        borderTopWidth: HAIR,
-        borderColor: BORDER,
-      }}
-    >
-      <View
-        style={{
-          width: 132,
-          paddingVertical: 3,
-          paddingHorizontal: 4,
-          borderRightWidth: HAIR,
-          borderColor: BORDER,
-        }}
-      >
-        <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 7.5 }}>
-          {label}
-        </Text>
-      </View>
-      <View style={{ flex: 1, paddingVertical: 3, paddingHorizontal: 4 }}>
-        <Text style={{ fontSize: 8, color: COLORS.onyx }}>{value}</Text>
-      </View>
-    </View>
-  );
 }
 
 function RoleTickBox({ checked }: { checked: boolean }) {
@@ -88,19 +58,11 @@ function RoleRow() {
     <View
       style={{
         flexDirection: "row",
-        borderTopWidth: HAIR,
-        borderColor: BORDER,
+        paddingVertical: 2,
+        paddingHorizontal: 2,
       }}
     >
-      <View
-        style={{
-          width: 132,
-          paddingVertical: 3,
-          paddingHorizontal: 4,
-          borderRightWidth: HAIR,
-          borderColor: BORDER,
-        }}
-      >
+      <View style={{ width: 132 }}>
         <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 7.5 }}>
           Role:
         </Text>
@@ -110,8 +72,6 @@ function RoleRow() {
           flex: 1,
           flexDirection: "row",
           alignItems: "center",
-          paddingVertical: 3,
-          paddingHorizontal: 4,
         }}
       >
         <Text style={{ fontSize: 7.5 }}>welding operator</Text>
@@ -346,14 +306,7 @@ export function OperatorCertificateDocument({
           color: COLORS.charcoal,
         }}
       >
-        <View
-          style={{
-            flex: 1,
-            borderWidth: 1.2,
-            borderColor: BORDER,
-            padding: 10,
-          }}
-        >
+        <CompoundCertificateFrame>
           <CertificateBrandingHeader
             branding={org.certificate_branding}
             orgName={org.name}
@@ -361,99 +314,72 @@ export function OperatorCertificateDocument({
             logoUrl={logoUrl ?? null}
           />
 
-          <Text
-            style={{
-              fontSize: 9,
-              textAlign: "center",
-              fontFamily: "Helvetica-Bold",
-              marginBottom: 1,
-            }}
-          >
-            ISO 14732:2025(en)
-          </Text>
-          <Text
-            style={{
-              fontSize: 9,
-              textAlign: "center",
-              fontFamily: "Helvetica-Bold",
-            }}
-          >
-            Annex C
-          </Text>
-          <Text
-            style={{ fontSize: 8.5, textAlign: "center", marginBottom: 2 }}
-          >
-            (informative)
-          </Text>
-          <Text
-            style={{
-              fontSize: 10,
-              textAlign: "center",
-              fontFamily: "Helvetica-Bold",
-              marginBottom: 7,
-            }}
-          >
-            Operator&apos;s Certificate
-          </Text>
+          <View style={{ alignItems: "center", marginBottom: 5 }}>
+            <Text
+              style={{
+                fontFamily: "Helvetica-Bold",
+                fontSize: 10,
+                color: COLORS.onyx,
+                textDecoration: "underline",
+              }}
+            >
+              Operator&apos;s Certificate
+            </Text>
+          </View>
 
-          <View
-            style={{
-              borderLeftWidth: HAIR,
-              borderRightWidth: HAIR,
-              borderBottomWidth: HAIR,
-              borderColor: BORDER,
-              flexDirection: "row",
-            }}
-          >
+          <View style={{ flexDirection: "row", marginBottom: 4 }}>
             <View style={{ flex: 1 }}>
-              <InfoRow
+              <CertificateHeaderFieldRow
                 label="Manufacturer's pWPS or WPS reference No.:"
                 value={oq.wps_reference ?? "—"}
+                labelWidth={132}
               />
-              <InfoRow label="Name:" value={operator.full_name} />
+              <CertificateHeaderFieldRow
+                label="Name:"
+                value={operator.full_name}
+                bold
+                labelWidth={132}
+              />
               <RoleRow />
-              <InfoRow
+              <CertificateHeaderFieldRow
                 label="Identification:"
                 value={operator.operator_id ?? "—"}
+                labelWidth={132}
               />
-              <InfoRow
+              <CertificateHeaderFieldRow
                 label="Method of identification:"
                 value={operator.id_method ?? "—"}
+                labelWidth={132}
               />
-              <InfoRow
+              <CertificateHeaderFieldRow
                 label="Employer:"
                 value={operator.employer ?? org.name}
+                labelWidth={132}
               />
-              <InfoRow
+              <CertificateHeaderFieldRow
                 label="Code/testing standard:"
                 value={testingStandardLabel()}
+                labelWidth={132}
               />
-              <InfoRow
+              <CertificateHeaderFieldRow
                 label="Functional knowledge test reference:"
                 value={oq.functional_knowledge_ref ?? "—"}
+                labelWidth={132}
               />
-              <InfoRow
+              <CertificateHeaderFieldRow
                 label="Welding technology knowledge:"
                 value={`${techOk ? "acceptable" : technologyKnowledgeLabel(oq.welding_technology_knowledge)}${!techOk ? " / not tested" : ""} (delete as necessary)`}
+                labelWidth={132}
               />
             </View>
 
             <View
               style={{
                 width: 130,
-                borderLeftWidth: HAIR,
-                borderColor: BORDER,
+                paddingLeft: 4,
               }}
             >
-              <View
-                style={{
-                  paddingVertical: 3,
-                  paddingHorizontal: 4,
-                  borderTopWidth: HAIR,
-                  borderBottomWidth: HAIR,
-                  borderColor: BORDER,
-                }}
-              >
+              <View style={{ paddingVertical: 2, paddingHorizontal: 2, marginBottom: 4 }}>
                 <Text
                   style={{
                     fontFamily: "Helvetica-Bold",
@@ -467,14 +393,7 @@ export function OperatorCertificateDocument({
                   {oq.examiner_name ?? "—"}
                 </Text>
               </View>
-              <View
-                style={{
-                  paddingVertical: 3,
-                  paddingHorizontal: 4,
-                  borderBottomWidth: HAIR,
-                  borderColor: BORDER,
-                }}
-              >
+              <View style={{ paddingVertical: 2, paddingHorizontal: 2, marginBottom: 4 }}>
                 <Text
                   style={{
                     fontFamily: "Helvetica-Bold",
@@ -490,10 +409,10 @@ export function OperatorCertificateDocument({
               </View>
               <View
                 style={{
-                  flex: 1,
                   alignItems: "center",
-                  justifyContent: "center",
-                  padding: 6,
+                  justifyContent: "flex-start",
+                  padding: 4,
+                  paddingTop: 2,
                 }}
               >
                 {photoUrl ? (
@@ -736,7 +655,7 @@ export function OperatorCertificateDocument({
           <Text style={{ fontSize: 7, marginTop: 6, textAlign: "right" }}>
             Date of issue: {issueDate}
           </Text>
-        </View>
+        </CompoundCertificateFrame>
 
         <Text
           style={{
