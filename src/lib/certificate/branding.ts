@@ -14,7 +14,7 @@ export interface CertificateBranding {
 export const DEFAULT_LOGO_SIZE_PX = 28;
 export const DEFAULT_NAME_SIZE_PX = 13;
 export const MIN_LOGO_SIZE_PX = 16;
-export const MAX_LOGO_SIZE_PX = 80;
+export const MAX_LOGO_SIZE_PX = 62;
 export const MIN_NAME_SIZE_PX = 8;
 export const MAX_NAME_SIZE_PX = 24;
 
