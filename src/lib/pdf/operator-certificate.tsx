@@ -334,7 +334,7 @@ export function OperatorCertificateDocument({
           <View style={{ flexDirection: "row", marginBottom: 4 }}>
             <View style={{ flex: 1 }}>
               <CertificateHeaderFieldRow
-                label="Manufacturer's pWPS or WPS reference No.:"
+                label={"Manufacturer's pWPS or WPS\nReference No.:"}
                 value={oq.wps_reference ?? "—"}
                 labelWidth={132}
               />
@@ -372,7 +372,7 @@ export function OperatorCertificateDocument({
               />
               <CertificateHeaderFieldRow
                 label="Welding technology knowledge:"
-                value={`${techOk ? "acceptable" : technologyKnowledgeLabel(oq.welding_technology_knowledge)}${!techOk ? " / not tested" : ""} (delete as necessary)`}
+                value={`${techOk ? "acceptable" : technologyKnowledgeLabel(oq.welding_technology_knowledge)}${!techOk ? " / not tested" : ""}`}
                 labelWidth={132}
               />
             </View>
