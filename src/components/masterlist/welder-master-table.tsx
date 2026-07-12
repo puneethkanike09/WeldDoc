@@ -13,6 +13,18 @@ import {
   type MasterRow,
 } from "@/lib/masterlist";
 
+const STATUS_TONE: Record<
+  string,
+  "active" | "expiring" | "expired" | "neutral" | "sapphire"
+> = {
+  Approved: "active",
+  Draft: "neutral",
+  Pending_NDT: "sapphire",
+  Failed: "expired",
+  Expired: "expired",
+  Superseded: "neutral",
+};
+
 function renderMasterCell(
   key: MasterExportKey,
   row: MasterRow,
@@ -40,6 +52,13 @@ function renderMasterCell(
   }
   if (key === "welderNo") {
     return <span className="font-mono text-[12px]">{row.welderNo}</span>;
+  }
+  if (key === "status") {
+    return (
+      <Badge tone={STATUS_TONE[row.status] ?? "neutral"}>
+        {row.status.replace("_", " ")}
+      </Badge>
+    );
   }
   return row[key] ?? "—";
 }

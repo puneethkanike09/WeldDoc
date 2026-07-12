@@ -58,6 +58,7 @@ export interface WelderMasterListFields {
   continuityExpiry: string | null;
   revalidationExpiry: string | null;
   status: string;
+  revalidationMethod: string;
   isLegacy: boolean;
 }
 
@@ -186,6 +187,7 @@ export function buildWelderMasterListFields(
     continuityExpiry: continuityDue(q.continuity_last_verified),
     revalidationExpiry: q.expiry_date,
     status: q.wpq_status,
+    revalidationMethod: q.revalidation_method,
     isLegacy: q.is_legacy,
   };
 }

@@ -86,5 +86,6 @@ export function formatMasterRowExport(
   ) {
     return formatDate(row[key]);
   }
+  if (key === "status") return row.status.replace("_", " ");
   return String(row[key] ?? "");
 }

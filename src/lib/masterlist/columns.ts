@@ -3,7 +3,7 @@ import {
   columnDefsFromCatalog,
   columnMetaFromCatalog,
   mergeMasterListColumnsConfig,
-  normalizeColumnOrder,
+  parseMasterListColumnsConfig,
   type MasterListColumnsConfig,
 } from "@/lib/masterlist/column-config";
 
@@ -64,6 +64,12 @@ export const WELDER_MASTER_LIST_COLUMN_CATALOG = [
     label: "2yr/3yr Revalidation Expiry Date",
     description: "Certificate revalidation expiry",
   },
+  { key: "status", label: "Status", description: "Qualification status" },
+  {
+    key: "revalidationMethod",
+    label: "Revalidation method",
+    description: "ISO 9606 revalidation method (9.3a / 9.3b / 9.3c)",
+  },
 ] as const;
 
 export type MasterExportKey =
@@ -85,11 +91,16 @@ const WELDER_SLUG = "iso9606-1" as const satisfies StandardSlug;
 export function orderedWelderMasterListColumns(
   raw: unknown,
 ): MasterExportKey[] {
-  return normalizeColumnOrder(
-    raw,
-    WELDER_SLUG,
-    ALL_WELDER_MASTER_EXPORT_KEYS,
-  ) as MasterExportKey[];
+  const config = parseMasterListColumnsConfig(raw);
+  const stored = config[WELDER_SLUG];
+  if (!stored) return [...DEFAULT_WELDER_MASTERLIST_COLUMNS];
+
+  const allowed = new Set<string>(ALL_WELDER_MASTER_EXPORT_KEYS);
+  const enabled = stored.filter((id) => allowed.has(id)) as MasterExportKey[];
+  if (enabled.length === 0) return [...DEFAULT_WELDER_MASTERLIST_COLUMNS];
+
+  const missing = ALL_WELDER_MASTER_EXPORT_KEYS.filter((k) => !enabled.includes(k));
+  return [...enabled, ...missing];
 }
 
 export function welderMasterListColumnDefs(raw: unknown) {
