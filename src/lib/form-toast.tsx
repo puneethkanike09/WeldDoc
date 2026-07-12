@@ -91,6 +91,16 @@ export function ServerActionForm({
   );
 }
 
+function formSnapshot(form: HTMLFormElement): string {
+  const fd = new FormData(form);
+  const pairs: string[] = [];
+  for (const [key, value] of fd.entries()) {
+    if (value instanceof File) continue;
+    pairs.push(`${key}=${String(value)}`);
+  }
+  return pairs.sort().join("&");
+}
+
 /** Like ServerActionForm but exposes fieldErrors to children for inline validation UI. */
 export function ValidatedForm({
   action,
@@ -111,11 +121,14 @@ export function ValidatedForm({
     fieldErrors: FieldErrors;
     clearError: (key: string) => void;
     draftRevision: number;
+    dirty: boolean;
   }) => ReactNode;
 }) {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [draftRevision, setDraftRevision] = useState(0);
+  const [dirty, setDirty] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const baselineRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!draftStorageKey || !formRef.current) return;
@@ -124,6 +137,16 @@ export function ValidatedForm({
     applyQualifyDraft(formRef.current, draft);
     setDraftRevision(1);
   }, [draftStorageKey]);
+
+  useEffect(() => {
+    if (!formRef.current) return;
+    const id = requestAnimationFrame(() => {
+      if (!formRef.current) return;
+      baselineRef.current = formSnapshot(formRef.current);
+      setDirty(false);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [draftRevision, draftStorageKey, stepNumber]);
 
   const wrappedValidate = useCallback(
     (formData: FormData) => {
@@ -156,6 +179,12 @@ export function ValidatedForm({
     saveQualifyDraft(draftStorageKey, formRef.current);
   }, [draftStorageKey]);
 
+  const onFormChange = useCallback(() => {
+    persistDraft();
+    if (!formRef.current || baselineRef.current === null) return;
+    setDirty(formSnapshot(formRef.current) !== baselineRef.current);
+  }, [persistDraft]);
+
   const { onSubmit, pending } = useFormSubmit(
     action,
     wrappedValidate,
@@ -167,14 +196,14 @@ export function ValidatedForm({
       <form
         ref={formRef}
         onSubmit={onSubmit}
-        onChange={persistDraft}
+        onChange={onFormChange}
         className={className}
         noValidate
         {...(stepNumber != null
           ? { "data-qualify-step": String(stepNumber) }
           : {})}
       >
-        {children({ fieldErrors, clearError, draftRevision })}
+        {children({ fieldErrors, clearError, draftRevision, dirty })}
       </form>
     </FormPendingContext.Provider>
   );

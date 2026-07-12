@@ -1,12 +1,12 @@
 import type { IdCardQualRow } from "@/lib/iso9606/id-card-model";
+import type { OperatorIdCardQualRow } from "@/lib/iso14732/id-card-model";
 
-export interface WelderIdCardViewProps {
+type IdCardViewBase = {
   orgName: string;
   welderName: string;
   welderNo: string;
   photoUrl: string | null;
   logoUrl: string | null;
-  rows: IdCardQualRow[];
   status: string;
   expiry: string | null;
   statusNotice?: string | null;
@@ -15,7 +15,13 @@ export interface WelderIdCardViewProps {
   cardHeading?: string;
   plantIdLabel?: string;
   standardLabel?: string;
-}
+};
+
+export type WelderIdCardViewProps = IdCardViewBase &
+  (
+    | { tableVariant?: "welder"; rows: IdCardQualRow[] }
+    | { tableVariant: "operator"; rows: OperatorIdCardQualRow[] }
+  );
 
 function statusBadge(status: string): { bg: string; fg: string; label: string } {
   switch (status) {
@@ -61,6 +67,128 @@ function PersonalField({
   );
 }
 
+function WelderQualTable({ rows }: { rows: IdCardQualRow[] }) {
+  return (
+    <div className="overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
+      <table className="w-full min-w-[680px] border-collapse text-center text-xs text-charcoal">
+        <thead className="bg-frost text-graphite">
+          <tr className="border-b border-silver">
+            <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
+              Process
+            </th>
+            <th className="border-r border-silver px-2 py-2 font-semibold" colSpan={2}>
+              Position
+            </th>
+            <th className="border-r border-silver px-2 py-2 font-semibold" colSpan={2}>
+              Thickness
+            </th>
+            <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
+              OD
+            </th>
+            <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
+              Joint type
+            </th>
+            <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
+              FM GROUP
+            </th>
+            <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
+              Test date
+            </th>
+            <th className="px-2 py-2 font-semibold" rowSpan={2}>
+              Valid upto
+            </th>
+          </tr>
+          <tr className="border-b border-silver">
+            <th className="border-r border-silver px-2 py-1.5 font-semibold">BW</th>
+            <th className="border-r border-silver px-2 py-1.5 font-semibold">FW</th>
+            <th className="border-r border-silver px-2 py-1.5 font-semibold">BW</th>
+            <th className="border-r border-silver px-2 py-1.5 font-semibold">FW</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr
+              key={i}
+              className={`border-b border-silver last:border-b-0 ${i % 2 === 1 ? "bg-white/80" : "bg-white"}`}
+            >
+              <td className="whitespace-nowrap border-r border-silver px-2 py-2 font-semibold text-onyx">
+                {row.process}
+              </td>
+              <td className="whitespace-pre-line border-r border-silver px-2 py-2">
+                {row.positionBw}
+              </td>
+              <td className="whitespace-pre-line border-r border-silver px-2 py-2">
+                {row.positionFw}
+              </td>
+              <td className="whitespace-nowrap border-r border-silver px-2 py-2">
+                {row.thicknessBw}
+              </td>
+              <td className="whitespace-nowrap border-r border-silver px-2 py-2">
+                {row.thicknessFw}
+              </td>
+              <td className="whitespace-nowrap border-r border-silver px-2 py-2">
+                {row.od}
+              </td>
+              <td className="whitespace-nowrap border-r border-silver px-2 py-2">
+                {row.jointType}
+              </td>
+              <td className="whitespace-pre-line border-r border-silver px-2 py-2">
+                {row.fmGroup}
+              </td>
+              <td className="whitespace-nowrap border-r border-silver px-2 py-2">
+                {row.testDate}
+              </td>
+              <td className="whitespace-nowrap px-2 py-2">{row.validUpto}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function OperatorQualTable({ rows }: { rows: OperatorIdCardQualRow[] }) {
+  return (
+    <div className="overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
+      <table className="w-full min-w-[520px] border-collapse text-center text-xs text-charcoal">
+        <thead className="bg-frost text-graphite">
+          <tr className="border-b border-silver">
+            <th className="border-r border-silver px-2 py-2 font-semibold">Process</th>
+            <th className="border-r border-silver px-2 py-2 font-semibold">
+              Welding equipment type
+            </th>
+            <th className="border-r border-silver px-2 py-2 font-semibold">Joint type</th>
+            <th className="border-r border-silver px-2 py-2 font-semibold">Test date</th>
+            <th className="px-2 py-2 font-semibold">Valid upto</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr
+              key={i}
+              className={`border-b border-silver last:border-b-0 ${i % 2 === 1 ? "bg-white/80" : "bg-white"}`}
+            >
+              <td className="whitespace-nowrap border-r border-silver px-2 py-2 font-semibold text-onyx">
+                {row.process}
+              </td>
+              <td className="whitespace-nowrap border-r border-silver px-2 py-2">
+                {row.weldingEquipmentType}
+              </td>
+              <td className="whitespace-nowrap border-r border-silver px-2 py-2">
+                {row.jointType}
+              </td>
+              <td className="whitespace-nowrap border-r border-silver px-2 py-2">
+                {row.testDate}
+              </td>
+              <td className="whitespace-nowrap px-2 py-2">{row.validUpto}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function WelderIdCardView({
   orgName,
   welderName,
@@ -76,6 +204,7 @@ export function WelderIdCardView({
   cardHeading = "Welder ID card",
   plantIdLabel = "Welder ID",
   standardLabel = "EN ISO 9606-1:2017",
+  tableVariant = "welder",
 }: WelderIdCardViewProps) {
   const badge = statusBadge(status);
 
@@ -152,81 +281,11 @@ export function WelderIdCardView({
         <div className="bg-charcoal py-1.5 text-center text-[11px] font-semibold tracking-wide text-white">
           {standardLabel}
         </div>
-        <div className="overflow-x-auto overscroll-x-contain [-webkit-overflow-scrolling:touch]">
-          <table className="w-full min-w-[680px] border-collapse text-center text-xs text-charcoal">
-            <thead className="bg-frost text-graphite">
-              <tr className="border-b border-silver">
-                <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
-                  Process
-                </th>
-                <th className="border-r border-silver px-2 py-2 font-semibold" colSpan={2}>
-                  Position
-                </th>
-                <th className="border-r border-silver px-2 py-2 font-semibold" colSpan={2}>
-                  Thickness
-                </th>
-                <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
-                  OD
-                </th>
-                <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
-                  Joint type
-                </th>
-                <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
-                  FM GROUP
-                </th>
-                <th className="border-r border-silver px-2 py-2 font-semibold" rowSpan={2}>
-                  Test date
-                </th>
-                <th className="px-2 py-2 font-semibold" rowSpan={2}>
-                  Valid upto
-                </th>
-              </tr>
-              <tr className="border-b border-silver">
-                <th className="border-r border-silver px-2 py-1.5 font-semibold">BW</th>
-                <th className="border-r border-silver px-2 py-1.5 font-semibold">FW</th>
-                <th className="border-r border-silver px-2 py-1.5 font-semibold">BW</th>
-                <th className="border-r border-silver px-2 py-1.5 font-semibold">FW</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, i) => (
-                <tr
-                  key={i}
-                  className={`border-b border-silver last:border-b-0 ${i % 2 === 1 ? "bg-white/80" : "bg-white"}`}
-                >
-                  <td className="whitespace-nowrap border-r border-silver px-2 py-2 font-semibold text-onyx">
-                    {row.process}
-                  </td>
-                  <td className="whitespace-pre-line border-r border-silver px-2 py-2">
-                    {row.positionBw}
-                  </td>
-                  <td className="whitespace-pre-line border-r border-silver px-2 py-2">
-                    {row.positionFw}
-                  </td>
-                  <td className="whitespace-nowrap border-r border-silver px-2 py-2">
-                    {row.thicknessBw}
-                  </td>
-                  <td className="whitespace-nowrap border-r border-silver px-2 py-2">
-                    {row.thicknessFw}
-                  </td>
-                  <td className="whitespace-nowrap border-r border-silver px-2 py-2">
-                    {row.od}
-                  </td>
-                  <td className="whitespace-nowrap border-r border-silver px-2 py-2">
-                    {row.jointType}
-                  </td>
-                  <td className="whitespace-pre-line border-r border-silver px-2 py-2">
-                    {row.fmGroup}
-                  </td>
-                  <td className="whitespace-nowrap border-r border-silver px-2 py-2">
-                    {row.testDate}
-                  </td>
-                  <td className="whitespace-nowrap px-2 py-2">{row.validUpto}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {tableVariant === "operator" ? (
+          <OperatorQualTable rows={rows as OperatorIdCardQualRow[]} />
+        ) : (
+          <WelderQualTable rows={rows as IdCardQualRow[]} />
+        )}
           </>
         )}
       </div>

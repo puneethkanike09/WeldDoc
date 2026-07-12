@@ -1,7 +1,10 @@
 import { Document, Page, View, Text, Image } from "@react-pdf/renderer";
 import { COLORS } from "./styles";
 import type { IdCardQualRow } from "@/lib/iso9606/id-card-model";
+import type { OperatorIdCardQualRow } from "@/lib/iso14732/id-card-model";
 import type { Organization, Welder } from "@/types/db";
+
+export type IdCardTableVariant = "welder" | "operator";
 
 export interface IdCardData {
   org: Organization;
@@ -11,7 +14,7 @@ export interface IdCardData {
   qrDataUrl: string | null;
   welderName: string;
   welderNo: string;
-  rows: IdCardQualRow[];
+  rows: IdCardQualRow[] | OperatorIdCardQualRow[];
   status: string;
   expiry: string | null;
   statusNotice?: string | null;
@@ -23,6 +26,8 @@ export interface IdCardData {
   documentTitle?: string;
   /** Defaults to EN ISO 9606-1:2017. */
   standardLabel?: string;
+  /** Defaults to welder table layout. */
+  tableVariant?: IdCardTableVariant;
 }
 
 /** Landscape badge — header, body (photo + info), qualification footer. */
@@ -187,7 +192,7 @@ function TableHeader() {
   );
 }
 
-function TableRow({ row, alt }: { row: IdCardQualRow; alt: boolean }) {
+function WelderTableRow({ row, alt }: { row: IdCardQualRow; alt: boolean }) {
   const bg = alt ? COLORS.frost : COLORS.white;
   return (
     <View style={{ flexDirection: "row", ...border, borderTopWidth: 0, backgroundColor: bg }}>
@@ -219,6 +224,66 @@ function TableRow({ row, alt }: { row: IdCardQualRow; alt: boolean }) {
   );
 }
 
+const OP_COL = {
+  process: 1,
+  equipment: 1.35,
+  joint: 0.9,
+  testDate: 1.1,
+  validUpto: 1.1,
+} as const;
+
+function OperatorTableHeader() {
+  const bg = COLORS.frost;
+  return (
+    <View style={{ flexDirection: "row", backgroundColor: bg, ...border, borderTopWidth: 0 }}>
+      <TableCell flex={OP_COL.process} header bg={bg}>
+        Process
+      </TableCell>
+      <TableCell flex={OP_COL.equipment} header bg={bg}>
+        {"Welding\nequipment type"}
+      </TableCell>
+      <TableCell flex={OP_COL.joint} header bg={bg}>
+        Joint type
+      </TableCell>
+      <TableCell flex={OP_COL.testDate} header bg={bg}>
+        Test date
+      </TableCell>
+      <TableCell flex={OP_COL.validUpto} header bg={bg} last>
+        Valid upto
+      </TableCell>
+    </View>
+  );
+}
+
+function OperatorTableRow({
+  row,
+  alt,
+}: {
+  row: OperatorIdCardQualRow;
+  alt: boolean;
+}) {
+  const bg = alt ? COLORS.frost : COLORS.white;
+  return (
+    <View style={{ flexDirection: "row", ...border, borderTopWidth: 0, backgroundColor: bg }}>
+      <TableCell flex={OP_COL.process} bg={bg} bold>
+        {row.process}
+      </TableCell>
+      <TableCell flex={OP_COL.equipment} bg={bg}>
+        {row.weldingEquipmentType}
+      </TableCell>
+      <TableCell flex={OP_COL.joint} bg={bg}>
+        {row.jointType}
+      </TableCell>
+      <TableCell flex={OP_COL.testDate} bg={bg}>
+        {row.testDate}
+      </TableCell>
+      <TableCell flex={OP_COL.validUpto} bg={bg} last>
+        {row.validUpto}
+      </TableCell>
+    </View>
+  );
+}
+
 export function IdCardDocument({ data }: { data: IdCardData }) {
   const {
     org,
@@ -236,6 +301,7 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
     plantIdLabel = "WELDER ID",
     documentTitle,
     standardLabel = "EN ISO 9606-1:2017",
+    tableVariant = "welder",
   } = data;
 
   const badge = statusStyle(status);
@@ -456,10 +522,21 @@ export function IdCardDocument({ data }: { data: IdCardData }) {
                 {standardLabel}
               </Text>
             </View>
-            <TableHeader />
-            {rows.map((row, i) => (
-              <TableRow key={i} row={row} alt={i % 2 === 1} />
-            ))}
+            {tableVariant === "operator" ? (
+              <>
+                <OperatorTableHeader />
+                {(rows as OperatorIdCardQualRow[]).map((row, i) => (
+                  <OperatorTableRow key={i} row={row} alt={i % 2 === 1} />
+                ))}
+              </>
+            ) : (
+              <>
+                <TableHeader />
+                {(rows as IdCardQualRow[]).map((row, i) => (
+                  <WelderTableRow key={i} row={row} alt={i % 2 === 1} />
+                ))}
+              </>
+            )}
               </>
             )}
           </View>

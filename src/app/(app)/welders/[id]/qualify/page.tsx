@@ -8,6 +8,7 @@ import {
   ndtJointCategory,
   wpqReadyForCertificate,
 } from "@/lib/iso9606/qualification-fields";
+import { welderQualifyMaxStep } from "@/lib/qualify/workflow-step";
 import { effectiveRangeForWpq } from "@/lib/iso9606/effective-range";
 import {
   savePlan,
@@ -80,6 +81,7 @@ export default async function QualifyPage({
   }
 
   const step = Math.min(Math.max(Number(sp.step) || 1, 1), 4);
+  const maxStep = welderQualifyMaxStep(wpq, ndt);
   const certReady = wpq ? wpqReadyForCertificate(wpq, ndt) : false;
   const rangeSummary = wpq
     ? (effectiveRangeForWpq(wpq, range).summary ?? null)
@@ -100,7 +102,12 @@ export default async function QualifyPage({
           <ArrowLeft className="h-4 w-4" /> Back to profile
         </Link>
 
-        <Stepper step={step} wpqId={wpq?.id ?? null} welderId={id} />
+        <Stepper
+          step={step}
+          maxStep={maxStep}
+          wpqId={wpq?.id ?? null}
+          welderId={id}
+        />
 
         {step === 4 && wpq && !certReady && (
           <p className="mb-4 rounded-[10px] bg-expiring/15 px-4 py-3 text-sm text-[#8a6a00]">
@@ -116,6 +123,7 @@ export default async function QualifyPage({
             orgName={org.name}
             orgLocation={org.location_code}
             welderId={id}
+            maxStep={maxStep}
           />
         )}
 
@@ -125,6 +133,7 @@ export default async function QualifyPage({
             welderId={id}
             wpq={wpq}
             rangePreview={rangeSummary}
+            maxStep={maxStep}
           />
         )}
 
@@ -135,6 +144,7 @@ export default async function QualifyPage({
             wpqId={wpq.id}
             jointType={ndtJointCategory(wpq.joint_type)}
             existing={ndt}
+            maxStep={maxStep}
           />
         )}
 

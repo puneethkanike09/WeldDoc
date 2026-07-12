@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useFormPending } from "@/lib/form-toast";
-import { ArrowLeft, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export const QUALIFY_STEPS = [
@@ -47,11 +47,13 @@ export function QualifySubmit({
 
 export function QualifyStepper({
   step,
+  maxStep,
   recordId,
   qualifyHref,
   recordQueryKey = "oq",
 }: {
   step: number;
+  maxStep: number;
   recordId: string | null;
   qualifyHref: string;
   recordQueryKey?: string;
@@ -60,9 +62,9 @@ export function QualifyStepper({
     <div className="mb-8 flex items-center gap-2">
       {QUALIFY_STEPS.map((label, i) => {
         const n = i + 1;
-        const done = n < step;
         const active = n === step;
-        const reachable = recordId !== null && n <= step;
+        const done = recordId !== null && n <= maxStep && n !== step;
+        const reachable = recordId !== null && n <= maxStep && n !== step;
         const content = (
           <div className="flex items-center gap-2.5">
             <span
@@ -105,6 +107,71 @@ export function QualifyStepper({
           </div>
         );
       })}
+    </div>
+  );
+}
+
+export function QualifyContinueLink({
+  qualifyHref,
+  recordId,
+  currentStep,
+  maxStep,
+  recordQueryKey = "oq",
+}: {
+  qualifyHref: string;
+  recordId: string;
+  currentStep: number;
+  maxStep: number;
+  recordQueryKey?: string;
+}) {
+  const next = currentStep + 1;
+  if (next > maxStep || next > QUALIFY_STEPS.length) return null;
+  return (
+    <ButtonLink
+      href={`${qualifyHref}?${recordQueryKey}=${recordId}&step=${next}`}
+      variant="ghost"
+    >
+      Continue
+      <ArrowRight className="h-4 w-4" />
+    </ButtonLink>
+  );
+}
+
+export function QualifyStepActions({
+  qualifyHref,
+  recordId,
+  currentStep,
+  maxStep,
+  dirty,
+  recordQueryKey = "oq",
+  saveLabel = "Save & continue",
+  saveIcon: SaveIcon,
+}: {
+  qualifyHref: string;
+  recordId: string | null;
+  currentStep: number;
+  maxStep: number;
+  dirty: boolean;
+  recordQueryKey?: string;
+  saveLabel?: string;
+  saveIcon: LucideIcon;
+}) {
+  const canContinue =
+    recordId !== null && currentStep < maxStep && !dirty;
+
+  return (
+    <div className="flex flex-wrap items-center justify-end gap-3">
+      {canContinue ? (
+        <QualifyContinueLink
+          qualifyHref={qualifyHref}
+          recordId={recordId!}
+          currentStep={currentStep}
+          maxStep={maxStep}
+          recordQueryKey={recordQueryKey}
+        />
+      ) : (
+        <QualifySubmit label={saveLabel} icon={SaveIcon} />
+      )}
     </div>
   );
 }
@@ -169,9 +236,11 @@ export const GROUP_SESSION_STEPS = [
 
 export function GroupSessionStepper({
   step,
+  maxStep,
   baseHref,
 }: {
   step: number;
+  maxStep: number;
   baseHref: string;
 }) {
   const labels = GROUP_SESSION_STEPS.slice(1);
@@ -180,9 +249,9 @@ export function GroupSessionStepper({
     <div className="mb-8 flex items-center gap-2">
       {labels.map((label, i) => {
         const n = i + 1;
-        const done = n < step;
         const active = n === step;
-        const reachable = n <= step;
+        const done = n <= maxStep && n !== step;
+        const reachable = n <= maxStep && n !== step;
         const content = (
           <div className="flex items-center gap-2.5">
             <span

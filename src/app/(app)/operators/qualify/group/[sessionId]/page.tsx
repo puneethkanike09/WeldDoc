@@ -32,6 +32,7 @@ import {
   OperatorPlanStep,
   OperatorTestStep,
 } from "@/app/(app)/operators/[id]/qualify/wizard";
+import { operatorGroupMaxStep } from "@/lib/qualify/workflow-step";
 import { groupSessionDraftKey } from "@/lib/qualify/wizard-draft";
 
 export const metadata: Metadata = { title: "Group qualification" };
@@ -167,6 +168,14 @@ export default async function OperatorGroupSessionPage({
       };
     });
 
+  const templateNdt = templateOq ? (ndtByOq.get(templateOq.id) ?? []) : [];
+  const maxStep = operatorGroupMaxStep(
+    session.shared_plan as Record<string, unknown>,
+    session.shared_test_piece as Record<string, unknown>,
+    templateOq,
+    templateNdt,
+  );
+
   const certMembers = activeMembers
     .filter((m) => m.operator_id)
     .map((m) => {
@@ -216,7 +225,7 @@ export default async function OperatorGroupSessionPage({
           <ArrowLeft className="h-4 w-4" /> Back to sessions
         </Link>
 
-        <GroupSessionStepper step={step} baseHref={baseHref} />
+        <GroupSessionStepper step={step} maxStep={maxStep} baseHref={baseHref} />
 
         <GroupSessionParticipants participants={participantStrip} />
 
@@ -227,6 +236,7 @@ export default async function OperatorGroupSessionPage({
             operator={firstOperator}
             orgName={org.name}
             orgLocation={org.location_code}
+            maxStep={maxStep}
             draftStorageKeyOverride={groupSessionDraftKey(sessionId, 1)}
           />
         )}
@@ -241,6 +251,7 @@ export default async function OperatorGroupSessionPage({
             operatorId={firstMember.operator_id}
             oq={templateOq}
             rangePreview={rangePreview}
+            maxStep={maxStep}
             draftStorageKeyOverride={groupSessionDraftKey(sessionId, 2)}
           />
         )}

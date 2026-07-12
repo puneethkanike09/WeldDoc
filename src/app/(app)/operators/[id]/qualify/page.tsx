@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/app/page-header";
 import { QualifyStepper } from "@/components/qualify/wizard-chrome";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
+import { operatorQualifyMaxStep } from "@/lib/qualify/workflow-step";
 import { operatorNdtReady } from "@/lib/iso14732/qualification-fields";
 import { canDiscardOq } from "@/lib/operator-status";
 import type {
@@ -90,6 +91,7 @@ export default async function OperatorQualifyPage({
 
   const step = Math.min(4, Math.max(1, parseInt(stepParam ?? "1", 10) || 1));
   const qualifyHref = `/operators/${id}/qualify`;
+  const maxStep = operatorQualifyMaxStep(oq, ndt);
   const certReady = oq ? operatorNdtReady(oq, ndt) : false;
 
   return (
@@ -108,6 +110,7 @@ export default async function OperatorQualifyPage({
 
         <QualifyStepper
           step={step}
+          maxStep={maxStep}
           recordId={oq?.id ?? null}
           qualifyHref={qualifyHref}
         />
@@ -132,6 +135,7 @@ export default async function OperatorQualifyPage({
             operator={op}
             orgName={org.name}
             orgLocation={org.location_code}
+            maxStep={maxStep}
           />
         )}
 
@@ -141,6 +145,7 @@ export default async function OperatorQualifyPage({
             operatorId={id}
             oq={oq}
             rangePreview={range?.summary ?? null}
+            maxStep={maxStep}
           />
         )}
 
@@ -150,6 +155,7 @@ export default async function OperatorQualifyPage({
             operatorId={id}
             oq={oq}
             ndt={ndt}
+            maxStep={maxStep}
           />
         )}
 

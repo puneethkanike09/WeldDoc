@@ -36,6 +36,7 @@ import {
   saveWelderGroupTestPiece,
 } from "../actions";
 import { PlanStep, TestStep } from "@/app/(app)/welders/[id]/qualify/wizard";
+import { welderGroupMaxStep } from "@/lib/qualify/workflow-step";
 import { groupSessionDraftKey } from "@/lib/qualify/wizard-draft";
 
 export const metadata: Metadata = { title: "Group qualification" };
@@ -200,6 +201,14 @@ export default async function WelderGroupSessionPage({
       };
     });
 
+  const templateNdt = templateWpq ? (ndtByWpq.get(templateWpq.id) ?? []) : [];
+  const maxStep = welderGroupMaxStep(
+    session.shared_plan as Record<string, unknown>,
+    session.shared_test_piece as Record<string, unknown>,
+    templateWpq,
+    templateNdt,
+  );
+
   const participantStrip = activeMembers
     .filter((m) => m.welder_id)
     .map((m) => {
@@ -227,7 +236,7 @@ export default async function WelderGroupSessionPage({
           <ArrowLeft className="h-4 w-4" /> Back to sessions
         </Link>
 
-        <GroupSessionStepper step={step} baseHref={baseHref} />
+        <GroupSessionStepper step={step} maxStep={maxStep} baseHref={baseHref} />
 
         <GroupSessionParticipants participants={participantStrip} />
 
@@ -238,6 +247,7 @@ export default async function WelderGroupSessionPage({
             orgName={org.name}
             orgLocation={org.location_code}
             welderId={draftWelderId}
+            maxStep={maxStep}
             draftStorageKeyOverride={groupSessionDraftKey(sessionId, 1)}
           />
         )}
@@ -250,6 +260,7 @@ export default async function WelderGroupSessionPage({
               wpqTemplate.id !== "session-template" ? wpqTemplate : templateWpq
             }
             rangePreview={rangePreview}
+            maxStep={maxStep}
             draftStorageKeyOverride={groupSessionDraftKey(sessionId, 2)}
           />
         )}

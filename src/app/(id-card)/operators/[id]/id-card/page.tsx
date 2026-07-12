@@ -49,6 +49,7 @@ export default async function OperatorIdCardPage({
       backHref={`/operators/${id}`}
       backLabel="Back to profile"
       badge="Operator ID card"
+      showPrint={false}
     >
       <WelderIdCardView {...view} />
     </IdCardPrintShell>

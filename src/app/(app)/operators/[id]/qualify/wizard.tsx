@@ -11,6 +11,7 @@ import {
   QualifyHiddenIds,
   QualifyHeader,
   QualifyStepPreviousLink,
+  QualifyStepActions,
   QualifySubmit,
   RangePreviewBox,
   invalidBorder,
@@ -70,6 +71,7 @@ export function OperatorPlanStep({
   operator,
   orgName,
   orgLocation,
+  maxStep,
   draftStorageKeyOverride,
 }: {
   action: (fd: FormData) => void;
@@ -77,6 +79,7 @@ export function OperatorPlanStep({
   operator: Operator;
   orgName: string;
   orgLocation: string | null;
+  maxStep: number;
   draftStorageKeyOverride?: string;
 }) {
   const [weldingType, setWeldingType] = useState<OperatorWeldingType | "">(
@@ -103,6 +106,7 @@ export function OperatorPlanStep({
   const draftKey =
     draftStorageKeyOverride ??
     (oq?.id ? operatorQualifyDraftKey(operator.id, oq.id, 1) : null);
+  const qualifyHref = `/operators/${operator.id}/qualify`;
 
   return (
     <ValidatedForm
@@ -111,11 +115,12 @@ export function OperatorPlanStep({
       draftStorageKey={draftKey}
       stepNumber={1}
     >
-      {({ fieldErrors, clearError, draftRevision }) => {
+      {({ fieldErrors, clearError, draftRevision, dirty }) => {
         const draft =
           draftRevision > 0 && draftKey ? loadQualifyDraft(draftKey) : null;
         const revalidationDefault =
-          draft?.revalidation_method ?? oq?.revalidation_method ?? "6.3b";
+          draft?.revalidation_method ?? oq?.revalidation_method ?? null;
+        const showRevalidationPicker = !oq?.revalidation_method;
 
         return (
         <Card>
@@ -347,41 +352,54 @@ export function OperatorPlanStep({
                   onChange={() => clearError("examiner_name")}
                 />
               </Field>
-              <Field
-                label="Confirmation of revalidation"
-                required
-                error={fieldErrors.revalidation_method}
-                className="sm:col-span-2"
-                labelAccessory={<Iso14732RevalidationPdfDrawer />}
-              >
-                <div
-                  className="flex flex-col gap-3 pt-1 sm:flex-row sm:flex-wrap sm:gap-4"
-                  role="radiogroup"
-                  aria-label="Confirmation of revalidation"
+              {showRevalidationPicker ? (
+                <Field
+                  label="Confirmation of revalidation"
+                  required
+                  error={fieldErrors.revalidation_method}
+                  className="sm:col-span-2"
+                  labelAccessory={<Iso14732RevalidationPdfDrawer />}
                 >
-                  {REVALIDATION_METHODS.map((m, index) => (
-                    <label
-                      key={m.code}
-                      className="inline-flex cursor-pointer items-center gap-2 text-sm text-charcoal"
-                    >
-                      <input
-                        type="radio"
-                        name="revalidation_method"
-                        value={m.code}
-                        defaultChecked={revalidationDefault === m.code}
-                        required={index === 0}
-                        className="form-check"
-                        onChange={() => clearError("revalidation_method")}
-                      />
-                      {m.label}
-                    </label>
-                  ))}
-                </div>
-              </Field>
+                  <div
+                    className="flex flex-col gap-3 pt-1 sm:flex-row sm:flex-wrap sm:gap-4"
+                    role="radiogroup"
+                    aria-label="Confirmation of revalidation"
+                  >
+                    {REVALIDATION_METHODS.map((m, index) => (
+                      <label
+                        key={m.code}
+                        className="inline-flex cursor-pointer items-center gap-2 text-sm text-charcoal"
+                      >
+                        <input
+                          type="radio"
+                          name="revalidation_method"
+                          value={m.code}
+                          defaultChecked={revalidationDefault === m.code}
+                          required={index === 0}
+                          className="form-check"
+                          onChange={() => clearError("revalidation_method")}
+                        />
+                        {m.label}
+                      </label>
+                    ))}
+                  </div>
+                </Field>
+              ) : (
+                <input
+                  type="hidden"
+                  name="revalidation_method"
+                  value={oq!.revalidation_method!}
+                />
+              )}
             </div>
-            <div className="flex justify-end">
-              <QualifySubmit label="Save & continue" icon={Save} />
-            </div>
+            <QualifyStepActions
+              qualifyHref={qualifyHref}
+              recordId={oq?.id ?? null}
+              currentStep={1}
+              maxStep={maxStep}
+              dirty={dirty}
+              saveIcon={Save}
+            />
           </CardBody>
         </Card>
         );
@@ -395,12 +413,14 @@ export function OperatorTestStep({
   operatorId,
   oq,
   rangePreview,
+  maxStep,
   draftStorageKeyOverride,
 }: {
   action: (fd: FormData) => void;
   operatorId: string;
   oq: OperatorQualification;
   rangePreview: string | null;
+  maxStep: number;
   draftStorageKeyOverride?: string;
 }) {
   const [backing, setBacking] = useState(oq.material_backing ?? "");
@@ -423,7 +443,7 @@ export function OperatorTestStep({
       draftStorageKey={draftKey}
       stepNumber={2}
     >
-      {({ fieldErrors, clearError }) => (
+      {({ fieldErrors, clearError, dirty }) => (
         <Card>
           <CardBody className="space-y-5">
             <QualifyHiddenIds operatorId={operatorId} oqId={oq.id} />
@@ -710,7 +730,14 @@ export function OperatorTestStep({
                 recordId={oq.id}
                 step={2}
               />
-              <QualifySubmit label="Save & continue" icon={Save} />
+              <QualifyStepActions
+                qualifyHref={qualifyHref}
+                recordId={oq.id}
+                currentStep={2}
+                maxStep={maxStep}
+                dirty={dirty}
+                saveIcon={Save}
+              />
             </div>
           </CardBody>
         </Card>
@@ -831,11 +858,13 @@ export function OperatorNdtStep({
   operatorId,
   oq,
   ndt,
+  maxStep,
 }: {
   action: (fd: FormData) => void;
   operatorId: string;
   oq: OperatorQualification;
   ndt: OperatorNdtRecord[];
+  maxStep: number;
 }) {
   const [ndtMethod, setNdtMethod] = useState(
     oq.qualification_test_method ?? "",
@@ -874,7 +903,7 @@ export function OperatorNdtStep({
 
   return (
     <ValidatedForm action={action} validate={validate}>
-      {({ fieldErrors, clearError }) => (
+      {({ fieldErrors, clearError, dirty }) => (
         <Card>
           <CardBody className="space-y-5">
             <QualifyHiddenIds operatorId={operatorId} oqId={oq.id} />
@@ -978,7 +1007,15 @@ export function OperatorNdtStep({
                 recordId={oq.id}
                 step={3}
               />
-              <QualifySubmit label="Save results" icon={Check} />
+              <QualifyStepActions
+                qualifyHref={qualifyHref}
+                recordId={oq.id}
+                currentStep={3}
+                maxStep={maxStep}
+                dirty={dirty}
+                saveLabel="Save results"
+                saveIcon={Check}
+              />
             </div>
           </CardBody>
         </Card>
@@ -1008,7 +1045,7 @@ export function OperatorCertificateStep({
 
   return (
     <ValidatedForm action={action} validate={validate}>
-      {({ fieldErrors, clearError }) => (
+      {({ fieldErrors, clearError, dirty }) => (
         <Card>
           <CardBody className="space-y-5">
             <QualifyHiddenIds operatorId={operatorId} oqId={oq.id} />

@@ -69,6 +69,7 @@ export async function GET(
     cardHeading: "OPERATOR ID CARD",
     plantIdLabel: "OPERATOR ID",
     standardLabel: "ISO 14732:2025",
+    tableVariant: "operator" as const,
     documentTitle: `Operator ID ${plantId}`,
   };
 

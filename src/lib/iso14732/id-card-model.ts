@@ -1,24 +1,26 @@
 import type { OperatorQualification } from "@/types/db";
-import type { IdCardQualRow } from "@/lib/iso9606/id-card-model";
 import { processLabel } from "@/lib/iso14732/constants";
 import { isActiveQualification } from "@/lib/qualification-active";
 import { formatDate } from "@/lib/utils";
 
+export interface OperatorIdCardQualRow {
+  process: string;
+  weldingEquipmentType: string;
+  jointType: string;
+  testDate: string;
+  validUpto: string;
+}
+
 export function buildOperatorIdCardRows(
   oqs: OperatorQualification[],
-): IdCardQualRow[] {
+): OperatorIdCardQualRow[] {
   return oqs
     .filter((q) => isActiveQualification(q))
     .filter((q) => q.oq_status === "Approved")
     .map((q) => ({
       process: processLabel(q.process),
-      positionBw: q.welding_mode ?? "—",
-      positionFw: q.product_type ?? "—",
-      thicknessBw: q.joint_type ?? "—",
-      thicknessFw: q.welding_type ?? "—",
-      od: "—",
+      weldingEquipmentType: q.welding_mode ?? "—",
       jointType: q.joint_type ?? "—",
-      fmGroup: q.revalidation_method ?? "—",
       testDate: formatDate(q.certificate_issued_date ?? q.date_of_welding),
       validUpto: formatDate(q.expiry_date),
     }));

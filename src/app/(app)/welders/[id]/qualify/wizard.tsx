@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Input, Textarea, Field } from "@/components/ui/input";
 import { Select } from "@/components/sui/select";
 import { DatePicker } from "@/components/sui/date-picker";
@@ -45,6 +45,7 @@ import {
   qualifyDraftKey,
   loadQualifyDraft,
 } from "@/lib/qualify/wizard-draft";
+import { QualifyStepActions } from "@/components/qualify/wizard-chrome";
 import { PlanProductJointFields } from "@/components/qualify/plan-product-joint-fields";
 import { ProductDimensions } from "@/components/qualify/qualification-field-blocks";
 import { Iso9606RevalidationPdfDrawer, Iso9606TablePdfGlobe } from "@/components/qualify/iso9606-pdf-drawer";
@@ -106,10 +107,12 @@ function StepPreviousLink({
 
 export function Stepper({
   step,
+  maxStep,
   wpqId,
   welderId,
 }: {
   step: number;
+  maxStep: number;
   wpqId: string | null;
   welderId: string;
 }) {
@@ -117,9 +120,9 @@ export function Stepper({
     <div className="mb-8 flex items-center gap-2">
       {STEPS.map((label, i) => {
         const n = i + 1;
-        const done = n < step;
         const active = n === step;
-        const reachable = wpqId !== null && n <= step;
+        const done = wpqId !== null && n <= maxStep && n !== step;
+        const reachable = wpqId !== null && n <= maxStep && n !== step;
         const content = (
           <div className="flex items-center gap-2.5">
             <span
@@ -171,6 +174,7 @@ export function PlanStep({
   orgName,
   orgLocation,
   welderId,
+  maxStep,
   draftStorageKeyOverride,
 }: {
   action: (fd: FormData) => void;
@@ -178,6 +182,7 @@ export function PlanStep({
   orgName: string;
   orgLocation: string | null;
   welderId: string;
+  maxStep: number;
   draftStorageKeyOverride?: string;
 }) {
   const defaultJoint = displayJointType(
@@ -195,6 +200,7 @@ export function PlanStep({
   const draftKey =
     draftStorageKeyOverride ??
     (wpq?.id ? qualifyDraftKey(welderId, wpq.id, 1) : null);
+  const qualifyHref = `/welders/${welderId}/qualify`;
 
   return (
     <ValidatedForm
@@ -203,11 +209,12 @@ export function PlanStep({
       draftStorageKey={draftKey}
       stepNumber={1}
     >
-      {({ fieldErrors, clearError, draftRevision }) => {
+      {({ fieldErrors, clearError, draftRevision, dirty }) => {
         const draft =
           draftRevision > 0 && draftKey ? loadQualifyDraft(draftKey) : null;
         const revalidationDefault =
           draft?.revalidation_method ?? wpq?.revalidation_method ?? null;
+        const showRevalidationPicker = !wpq?.revalidation_method;
         return (
         <Card>
           <CardBody className="space-y-5">
@@ -411,44 +418,58 @@ export function PlanStep({
                   onChange={() => clearError("examiner_name")}
                 />
               </Field>
-              <Field
-                label="Confirmation of revalidation"
-                required
-                error={fieldErrors.revalidation_method}
-                labelAccessory={<Iso9606RevalidationPdfDrawer />}
-              >
-                <div
-                  key={`revalidation-${draftRevision}`}
-                  className="flex flex-col gap-3 pt-1 sm:flex-row sm:flex-wrap sm:gap-4"
-                  role="radiogroup"
-                  aria-label="Confirmation of revalidation"
+              {showRevalidationPicker ? (
+                <Field
+                  label="Confirmation of revalidation"
+                  required
+                  error={fieldErrors.revalidation_method}
+                  labelAccessory={<Iso9606RevalidationPdfDrawer />}
                 >
-                  {REVALIDATION_METHODS.map((m, index) => (
-                    <label
-                      key={m.code}
-                      className="inline-flex cursor-pointer items-center gap-2 text-sm text-charcoal"
-                    >
-                      <input
-                        type="radio"
-                        name="revalidation_method"
-                        value={m.code}
-                        defaultChecked={
-                          revalidationDefault != null &&
-                          revalidationDefault === m.code
-                        }
-                        required={index === 0}
-                        className="form-check"
-                        onChange={() => clearError("revalidation_method")}
-                      />
-                      {m.label}
-                    </label>
-                  ))}
-                </div>
-              </Field>
+                  <div
+                    key={`revalidation-${draftRevision}`}
+                    className="flex flex-col gap-3 pt-1 sm:flex-row sm:flex-wrap sm:gap-4"
+                    role="radiogroup"
+                    aria-label="Confirmation of revalidation"
+                  >
+                    {REVALIDATION_METHODS.map((m, index) => (
+                      <label
+                        key={m.code}
+                        className="inline-flex cursor-pointer items-center gap-2 text-sm text-charcoal"
+                      >
+                        <input
+                          type="radio"
+                          name="revalidation_method"
+                          value={m.code}
+                          defaultChecked={
+                            revalidationDefault != null &&
+                            revalidationDefault === m.code
+                          }
+                          required={index === 0}
+                          className="form-check"
+                          onChange={() => clearError("revalidation_method")}
+                        />
+                        {m.label}
+                      </label>
+                    ))}
+                  </div>
+                </Field>
+              ) : (
+                <input
+                  type="hidden"
+                  name="revalidation_method"
+                  value={wpq!.revalidation_method!}
+                />
+              )}
             </div>
-            <div className="flex justify-end">
-              <Submit label="Save & continue" icon={Save} />
-            </div>
+            <QualifyStepActions
+              qualifyHref={qualifyHref}
+              recordId={wpq?.id ?? null}
+              currentStep={1}
+              maxStep={maxStep}
+              dirty={dirty}
+              recordQueryKey="wpq"
+              saveIcon={Save}
+            />
           </CardBody>
         </Card>
         );
@@ -707,12 +728,14 @@ export function TestStep({
   welderId,
   wpq,
   rangePreview,
+  maxStep,
   draftStorageKeyOverride,
 }: {
   action: (fd: FormData) => void;
   welderId: string;
   wpq: QualificationRecord;
   rangePreview: string | null;
+  maxStep: number;
   draftStorageKeyOverride?: string;
 }) {
   const jointLabel = displayJointType(wpq);
@@ -740,6 +763,7 @@ export function TestStep({
 
   const draftKey =
     draftStorageKeyOverride ?? qualifyDraftKey(welderId, wpq.id, 2);
+  const qualifyHref = `/welders/${welderId}/qualify`;
 
   return (
     <ValidatedForm
@@ -748,7 +772,7 @@ export function TestStep({
       draftStorageKey={draftKey}
       stepNumber={2}
     >
-      {({ fieldErrors, clearError, draftRevision }) => {
+      {({ fieldErrors, clearError, draftRevision, dirty }) => {
         const draft =
           draftRevision > 0 ? loadQualifyDraft(draftKey) : null;
         return (
@@ -865,7 +889,15 @@ export function TestStep({
 
             <div className="flex flex-wrap items-center justify-between gap-3">
               <StepPreviousLink welderId={welderId} wpqId={wpq.id} step={2} />
-              <Submit label="Save & continue" icon={Save} />
+              <QualifyStepActions
+                qualifyHref={qualifyHref}
+                recordId={wpq.id}
+                currentStep={2}
+                maxStep={maxStep}
+                dirty={dirty}
+                recordQueryKey="wpq"
+                saveIcon={Save}
+              />
             </div>
           </CardBody>
         </Card>
@@ -881,16 +913,20 @@ export function NdtStep({
   wpqId,
   jointType,
   existing,
+  maxStep,
 }: {
   action: (fd: FormData) => void;
   welderId: string;
   wpqId: string;
   jointType: JointCategory;
   existing: NdtDtRecord[];
+  maxStep: number;
 }) {
-  const [selected, setSelected] = useState<string[]>(() =>
-    initialSelectedNdtTests(jointType, existing),
+  const initialSelected = useMemo(
+    () => initialSelectedNdtTests(jointType, existing),
+    [jointType, existing],
   );
+  const [selected, setSelected] = useState<string[]>(initialSelected);
 
   const validate = useCallback(
     (formData: FormData) => getNdtFieldErrors(formData, jointType),
@@ -908,10 +944,13 @@ export function NdtStep({
   const selectedOrdered = ALL_NDT_TESTS.filter((method) =>
     selected.includes(method),
   );
+  const testsChanged =
+    [...selected].sort().join(",") !== [...initialSelected].sort().join(",");
+  const qualifyHref = `/welders/${welderId}/qualify`;
 
   return (
     <ValidatedForm action={action} validate={validate}>
-      {({ fieldErrors, clearError }) => (
+      {({ fieldErrors, clearError, dirty }) => (
         <Card>
           <CardBody className="space-y-5">
             <Header
@@ -986,7 +1025,16 @@ export function NdtStep({
 
             <div className="flex flex-wrap items-center justify-between gap-3">
               <StepPreviousLink welderId={welderId} wpqId={wpqId} step={3} />
-              <Submit label="Save results" icon={Check} />
+              <QualifyStepActions
+                qualifyHref={qualifyHref}
+                recordId={wpqId}
+                currentStep={3}
+                maxStep={maxStep}
+                dirty={dirty || testsChanged}
+                recordQueryKey="wpq"
+                saveLabel="Save results"
+                saveIcon={Check}
+              />
             </div>
           </CardBody>
         </Card>
