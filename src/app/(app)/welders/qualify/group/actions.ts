@@ -30,6 +30,11 @@ import {
   reloadSessionMembers,
   sessionHasApprovedMember,
 } from "@/lib/qualify/group-session";
+import { deleteGroupSession } from "@/lib/qualify/group-session/delete";
+import {
+  formatGroupSessionLabel,
+  syncGroupSessionLabel,
+} from "@/lib/qualify/group-session/label";
 import { welderJointLabelFromPlan } from "@/lib/qualify/group-session/welder";
 import {
   createWelderRecord,
@@ -69,7 +74,6 @@ export async function createWelderGroupSession(formData: FormData) {
 
   const existingIds = parseIds(formData, "existing_ids");
   const prefixes = parseNewPersonPrefixes(formData);
-  const label = formStr(formData.get("label"));
   const expectedCount = Number.parseInt(
     formStr(formData.get("participant_count")) ?? "",
     10,
@@ -105,7 +109,6 @@ export async function createWelderGroupSession(formData: FormData) {
       .insert({
         org_id: org.id,
         standard: "ISO_9606_1",
-        label,
         created_by: userId,
       })
       .select("id")
@@ -123,6 +126,24 @@ export async function createWelderGroupSession(formData: FormData) {
       .from("qualification_session_members")
       .insert(memberRows);
     if (memberErr) throw new Error(memberErr.message);
+
+    const { data: welderRows } = await supabase
+      .from("welders")
+      .select("welder_id")
+      .in("id", allPersonIds);
+    const label = formatGroupSessionLabel(
+      null,
+      (welderRows ?? []).map(
+        (row) => (row as { welder_id: string | null }).welder_id,
+      ),
+      "welder",
+    );
+    if (label) {
+      await supabase
+        .from("qualification_sessions")
+        .update({ label })
+        .eq("id", session.id);
+    }
 
     revalidatePath("/welders");
     revalidatePath("/welders/qualify/group");
@@ -160,6 +181,15 @@ export async function saveWelderGroupPlan(sessionId: string, formData: FormData)
     ...session,
     shared_plan: sharedPlan,
   }, freshMembers);
+
+  await syncGroupSessionLabel(
+    supabase,
+    org.id,
+    sessionId,
+    { ...session, shared_plan: sharedPlan },
+    freshMembers,
+    "welder",
+  );
 
   revalidatePath(`/welders/qualify/group/${sessionId}`);
   redirect(`/welders/qualify/group/${sessionId}?step=2`);
@@ -435,4 +465,23 @@ export async function issueWelderGroupMemberCertificate(
   revalidatePath(`/welders/${member.welder_id}`);
   revalidatePath(`/welders/qualify/group/${sessionId}`);
   revalidatePath("/welders/masterlist");
+}
+
+export async function deleteWelderGroupSession(sessionId: string) {
+  await requireWelderWorkspace();
+  const { org } = await requireSession();
+  const supabase = await createClient();
+
+  const loaded = await loadSession(supabase, org.id, sessionId, "ISO_9606_1");
+  if (!loaded) throw new Error("Session not found.");
+
+  await deleteGroupSession(supabase, org.id, sessionId, "ISO_9606_1");
+
+  for (const member of loaded.members) {
+    if (member.welder_id) revalidatePath(`/welders/${member.welder_id}`);
+  }
+  revalidatePath("/welders/qualify/group");
+  revalidatePath("/welders");
+  revalidatePath("/welders/masterlist");
+  redirect("/welders/qualify/group");
 }

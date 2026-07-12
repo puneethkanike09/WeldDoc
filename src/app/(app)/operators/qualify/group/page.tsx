@@ -4,6 +4,7 @@ import { NewGroupSessionButton } from "@/components/app/group-qualify-button";
 import { GroupSessionsList } from "@/components/qualify/group-sessions-list";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
+import { buildGroupSessionListMeta } from "@/lib/qualify/group-session/list-meta";
 import { requireOperatorWorkspace } from "@/lib/standards/active-standard.server";
 import type { QualificationSession } from "@/types/db";
 
@@ -25,15 +26,16 @@ export default async function OperatorGroupSessionsPage() {
   const { data: memberRows } = sessionIds.length
     ? await supabase
         .from("qualification_session_members")
-        .select("session_id")
+        .select("session_id, member_status, operators(operator_id)")
         .in("session_id", sessionIds)
     : { data: [] };
 
-  const countBySession = new Map<string, number>();
-  for (const m of memberRows ?? []) {
-    const sid = (m as { session_id: string }).session_id;
-    countBySession.set(sid, (countBySession.get(sid) ?? 0) + 1);
-  }
+  const { countBySession, canDeleteBySession, displayLabelBySession } =
+    buildGroupSessionListMeta(
+      (sessions ?? []) as QualificationSession[],
+      memberRows ?? [],
+      "operator",
+    );
 
   const baseHref = "/operators/qualify/group";
 
@@ -49,8 +51,11 @@ export default async function OperatorGroupSessionsPage() {
         <GroupSessionsList
           sessions={(sessions ?? []) as QualificationSession[]}
           countBySession={countBySession}
+          displayLabelBySession={displayLabelBySession}
+          canDeleteBySession={canDeleteBySession}
           baseHref={baseHref}
           participantLabel="Operators"
+          participantKind="operator"
           emptyDescription="Start a group session when several operators take the same test together."
         />
       </div>

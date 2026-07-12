@@ -28,6 +28,11 @@ import {
   reloadSessionMembers,
   sessionHasApprovedMember,
 } from "@/lib/qualify/group-session";
+import { deleteGroupSession } from "@/lib/qualify/group-session/delete";
+import {
+  formatGroupSessionLabel,
+  syncGroupSessionLabel,
+} from "@/lib/qualify/group-session/label";
 import { createOperatorRecord } from "@/lib/operators/create-record";
 import {
   parseNewPersonPrefixes,
@@ -64,7 +69,6 @@ export async function createOperatorGroupSession(formData: FormData) {
 
   const existingIds = parseIds(formData, "existing_ids");
   const prefixes = parseNewPersonPrefixes(formData);
-  const label = formStr(formData.get("label"));
   const expectedCount = Number.parseInt(
     formStr(formData.get("participant_count")) ?? "",
     10,
@@ -100,7 +104,6 @@ export async function createOperatorGroupSession(formData: FormData) {
       .insert({
         org_id: org.id,
         standard: "ISO_14732",
-        label,
         created_by: userId,
       })
       .select("id")
@@ -118,6 +121,24 @@ export async function createOperatorGroupSession(formData: FormData) {
       .from("qualification_session_members")
       .insert(memberRows);
     if (memberErr) throw new Error(memberErr.message);
+
+    const { data: operatorRows } = await supabase
+      .from("operators")
+      .select("operator_id")
+      .in("id", allPersonIds);
+    const label = formatGroupSessionLabel(
+      null,
+      (operatorRows ?? []).map(
+        (row) => (row as { operator_id: string | null }).operator_id,
+      ),
+      "operator",
+    );
+    if (label) {
+      await supabase
+        .from("qualification_sessions")
+        .update({ label })
+        .eq("id", session.id);
+    }
 
     revalidatePath("/operators");
     revalidatePath("/operators/qualify/group");
@@ -155,6 +176,15 @@ export async function saveOperatorGroupPlan(sessionId: string, formData: FormDat
     ...session,
     shared_plan: sharedPlan,
   }, freshMembers);
+
+  await syncGroupSessionLabel(
+    supabase,
+    org.id,
+    sessionId,
+    { ...session, shared_plan: sharedPlan },
+    freshMembers,
+    "operator",
+  );
 
   revalidatePath(`/operators/qualify/group/${sessionId}`);
   redirect(`/operators/qualify/group/${sessionId}?step=2`);
@@ -433,4 +463,23 @@ export async function issueOperatorGroupMemberCertificate(
   revalidatePath(`/operators/${member.operator_id}`);
   revalidatePath(`/operators/qualify/group/${sessionId}`);
   revalidatePath("/operators/masterlist");
+}
+
+export async function deleteOperatorGroupSession(sessionId: string) {
+  await requireOperatorWorkspace();
+  const { org } = await requireSession();
+  const supabase = await createClient();
+
+  const loaded = await loadSession(supabase, org.id, sessionId, "ISO_14732");
+  if (!loaded) throw new Error("Session not found.");
+
+  await deleteGroupSession(supabase, org.id, sessionId, "ISO_14732");
+
+  for (const member of loaded.members) {
+    if (member.operator_id) revalidatePath(`/operators/${member.operator_id}`);
+  }
+  revalidatePath("/operators/qualify/group");
+  revalidatePath("/operators");
+  revalidatePath("/operators/masterlist");
+  redirect("/operators/qualify/group");
 }

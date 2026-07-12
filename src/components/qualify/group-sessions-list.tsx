@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { ButtonLink } from "@/components/ui/button";
 import { TableScrollArea } from "@/components/ui/table-scroll-area";
+import { GroupSessionRowActions } from "@/components/qualify/group-session-row-actions";
 import { formatDate } from "@/lib/utils";
-import { Eye } from "lucide-react";
 import type {
   QualificationSession,
   QualificationSessionStatus,
@@ -25,14 +24,20 @@ function formatSessionStatus(status: QualificationSessionStatus): string {
 export function GroupSessionsList({
   sessions,
   countBySession,
+  displayLabelBySession,
+  canDeleteBySession,
   baseHref,
   participantLabel,
+  participantKind,
   emptyDescription,
 }: {
   sessions: QualificationSession[];
   countBySession: Map<string, number>;
+  displayLabelBySession: Map<string, string>;
+  canDeleteBySession: Map<string, boolean>;
   baseHref: string;
   participantLabel: string;
+  participantKind: "welder" | "operator";
   emptyDescription: string;
 }) {
   if (sessions.length === 0) {
@@ -69,7 +74,9 @@ export function GroupSessionsList({
                   href={`${baseHref}/${s.id}?step=1`}
                   className="font-medium text-onyx hover:text-ember"
                 >
-                  {s.label ?? `Session ${s.id.slice(0, 8)}`}
+                  {displayLabelBySession.get(s.id) ??
+                    s.label ??
+                    `Session ${s.id.slice(0, 8)}`}
                 </Link>
               </td>
               <td className="px-5 py-3">
@@ -84,14 +91,12 @@ export function GroupSessionsList({
                 {formatDate(s.created_at)}
               </td>
               <td className="px-5 py-3 text-right">
-                <ButtonLink
-                  href={`${baseHref}/${s.id}?step=1`}
-                  variant="primary"
-                  size="sm"
-                >
-                  <Eye className="h-4 w-4" />
-                  Open
-                </ButtonLink>
+                <GroupSessionRowActions
+                  sessionId={s.id}
+                  baseHref={baseHref}
+                  canDelete={canDeleteBySession.get(s.id) ?? true}
+                  kind={participantKind}
+                />
               </td>
             </tr>
           ))}
