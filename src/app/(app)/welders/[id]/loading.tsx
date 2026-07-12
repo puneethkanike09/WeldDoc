@@ -1,8 +1,4 @@
-import {
-  BackLinkSkeleton,
-  QualificationPanelSkeleton,
-  Skeleton,
-} from "@/components/app/skeletons";
+import { BackLinkSkeleton, Skeleton } from "@/components/app/skeletons";
 
 export default function WelderProfileLoading() {
   return (
@@ -48,10 +44,6 @@ export default function WelderProfileLoading() {
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="px-8 pb-8">
-        <QualificationPanelSkeleton />
       </div>
 
       <span className="sr-only">Loading welder profile…</span>
