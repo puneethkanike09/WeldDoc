@@ -1,6 +1,10 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Logo } from "@/components/brand/logo";
 import { LegalNavLinks } from "@/components/marketing/legal-nav-links";
+import { NOINDEX_METADATA } from "@/lib/seo/metadata";
+
+export const metadata: Metadata = NOINDEX_METADATA;
 
 export default function AuthLayout({
   children,

@@ -14,7 +14,6 @@ import {
   type AnnexCVariableRow,
   type CertTableRow,
 } from "@/lib/iso14732/certificate-annex";
-import { operatorCertificateLocationText } from "@/lib/certificate/branding";
 import { CertificateBrandingHeader } from "@/lib/pdf/certificate-branding-header";
 import { CompoundCertificateFrame, CertificateHeaderFieldRow } from "@/lib/pdf/certificate-layout";
 
@@ -287,10 +286,6 @@ export function OperatorCertificateDocument({
   const checks = clause4MethodChecks(oq);
   const techOk = oq.welding_technology_knowledge === "Acceptable";
   const issueDate = fmt(oq.certificate_issued_date ?? oq.date_of_welding);
-  const headerLocation = operatorCertificateLocationText(
-    oq.employer_branch,
-    org.location_code,
-  );
 
   return (
     <Document
@@ -310,7 +305,6 @@ export function OperatorCertificateDocument({
           <CertificateBrandingHeader
             branding={org.certificate_branding}
             orgName={org.name}
-            locationText={headerLocation}
             logoUrl={logoUrl ?? null}
           />
 
@@ -562,10 +556,6 @@ export function OperatorCertificateDocument({
                   [
                     "Date of welding of test piece",
                     fmt(oq.date_of_welding),
-                  ],
-                  [
-                    "Location",
-                    oq.employer_branch ?? org.location_code ?? "",
                   ],
                   ["Validity of qualification until", validityLabel(oq)],
                 ] as const

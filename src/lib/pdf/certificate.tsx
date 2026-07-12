@@ -19,7 +19,6 @@ import {
   type CertTableRow,
 } from "@/lib/iso9606/certificate-annex";
 import { hasAnySupplementaryFillet } from "@/lib/iso9606/supplementary-fillet";
-import { certificateLocationText } from "@/lib/certificate/branding";
 import { CertificateBrandingHeader } from "@/lib/pdf/certificate-branding-header";
 import {
   CertificateHeaderFieldRow,
@@ -219,10 +218,6 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
           <CertificateBrandingHeader
             branding={org.certificate_branding}
             orgName={org.name}
-            locationText={certificateLocationText(
-              welder.branch_location,
-              org.location_code,
-            )}
             logoUrl={logoUrl}
           />
 
@@ -581,9 +576,6 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
               </Text>
               <Text style={{ fontSize: 7.5 }}>
                 Date of welding: {fmt(wpq.date_of_welding)}
-              </Text>
-              <Text style={{ fontSize: 7.5 }}>
-                Location: {welder.branch_location || org.location_code || "—"}
               </Text>
               <Text style={{ fontSize: 7.5 }}>
                 Examining Body: {wpq.examiner_ref ?? "—"}

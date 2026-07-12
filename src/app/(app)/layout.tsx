@@ -1,8 +1,12 @@
 import Script from "next/script";
+import type { Metadata } from "next";
 import { requireSession } from "@/lib/auth";
 import { Providers } from "@/components/providers";
 import { AppShell } from "@/components/app/app-shell";
 import { AppThemeProvider } from "@/components/app/app-theme-provider";
+import { NOINDEX_METADATA } from "@/lib/seo/metadata";
+
+export const metadata: Metadata = NOINDEX_METADATA;
 
 const APP_THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("welddoc-theme");var d=t==="dark"||(t==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);if(d)document.documentElement.setAttribute("data-app-theme","dark");}catch(e){}})();`;
 

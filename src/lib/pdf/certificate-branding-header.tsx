@@ -19,20 +19,17 @@ function textAlign(align: CertificateBrandingAlign) {
 export function CertificateBrandingHeader({
   branding,
   orgName,
-  locationText,
   logoUrl,
 }: {
   branding: CertificateBranding | unknown;
   orgName: string;
-  locationText: string;
   logoUrl: string | null;
 }) {
   const config = parseCertificateBranding(branding);
   const showLogo = config.logo.enabled && Boolean(logoUrl);
   const showName = config.name.enabled && Boolean(orgName.trim());
-  const showLocation = config.location.enabled && Boolean(locationText.trim());
 
-  if (!showLogo && !showName && !showLocation) return null;
+  if (!showLogo && !showName) return null;
 
   return (
     <View style={{ marginBottom: 5, width: "100%" }}>
@@ -41,7 +38,7 @@ export function CertificateBrandingHeader({
         <Image
           src={logoUrl!}
           style={{
-            height: 28,
+            height: config.logo.sizePx,
             objectFit: "contain",
             alignSelf: imageAlignSelf(config.logo.align),
             marginBottom: 4,
@@ -52,25 +49,13 @@ export function CertificateBrandingHeader({
         <Text
           style={{
             fontFamily: "Helvetica-Bold",
-            fontSize: 13,
+            fontSize: config.name.sizePx,
             color: COLORS.onyx,
             width: "100%",
             textAlign: textAlign(config.name.align),
           }}
         >
           {orgName}
-        </Text>
-      ) : null}
-      {showLocation ? (
-        <Text
-          style={{
-            fontSize: 8,
-            color: COLORS.graphite,
-            width: "100%",
-            textAlign: textAlign(config.location.align),
-          }}
-        >
-          {locationText}
         </Text>
       ) : null}
     </View>

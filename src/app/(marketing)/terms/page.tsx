@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/marketing/legal-page";
+import { createPageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Terms of Service",
   description:
-    "Terms that govern your use of Weld.Doc for welder and operator qualification management.",
-};
+    "Terms that govern your use of Weld.Doc for welder and operator qualification management, certificates, and QR verification.",
+  path: "/terms",
+});
 
 export default function TermsPage() {
   return (

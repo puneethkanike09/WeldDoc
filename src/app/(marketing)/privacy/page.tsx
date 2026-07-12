@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/marketing/legal-page";
+import { createPageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Privacy Policy",
   description:
-    "How Weld.Doc collects, uses, and protects your organisation's welder and operator qualification data.",
-};
+    "How Weld.Doc collects, uses, and protects your organisation's welder and operator qualification data — built for fabrication shops and QC teams.",
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
   return (

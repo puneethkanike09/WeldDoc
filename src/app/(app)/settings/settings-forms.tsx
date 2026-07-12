@@ -12,6 +12,10 @@ import type { LucideIcon } from "lucide-react";
 import type { Organization } from "@/types/db";
 import { Select } from "@/components/sui/select";
 import {
+  MAX_LOGO_SIZE_PX,
+  MAX_NAME_SIZE_PX,
+  MIN_LOGO_SIZE_PX,
+  MIN_NAME_SIZE_PX,
   parseCertificateBranding,
   type CertificateBrandingAlign,
 } from "@/lib/certificate/branding";
@@ -57,16 +61,24 @@ function CertificateBrandingFieldRow({
   hint,
   enabled,
   align,
+  sizePx,
+  sizeLabel,
+  sizeMin,
+  sizeMax,
 }: {
-  id: "logo" | "name" | "location";
+  id: "logo" | "name";
   label: string;
   hint?: string;
   enabled: boolean;
   align: CertificateBrandingAlign;
+  sizePx: number;
+  sizeLabel: string;
+  sizeMin: number;
+  sizeMax: number;
 }) {
   return (
-    <div className="grid gap-3 rounded-[10px] border border-silver bg-frost/40 px-4 py-3 sm:grid-cols-[1fr_9rem] sm:items-end">
-      <div>
+    <div className="grid gap-3 rounded-[10px] border border-silver bg-frost/40 px-4 py-3 sm:grid-cols-[1fr_9rem_7rem] sm:items-start">
+      <div className="sm:pt-6.5">
         <label
           htmlFor={`cert_brand_${id}_enabled`}
           className="inline-flex w-fit max-w-full cursor-pointer items-center gap-2.5 text-sm font-medium text-onyx"
@@ -83,7 +95,7 @@ function CertificateBrandingFieldRow({
         </label>
         {hint ? <p className="mt-1 text-xs text-steel">{hint}</p> : null}
       </div>
-      <Field label="Alignment" className="sm:w-36">
+      <Field label="Alignment" className="sm:w-36" reserveMessageSpace>
         <Select
           name={`cert_brand_${id}_align`}
           defaultValue={align}
@@ -95,6 +107,22 @@ function CertificateBrandingFieldRow({
             </option>
           ))}
         </Select>
+      </Field>
+      <Field
+        label={sizeLabel}
+        hint={`${sizeMin}–${sizeMax} px`}
+        className="sm:w-28"
+        reserveMessageSpace
+      >
+        <Input
+          type="number"
+          name={`cert_brand_${id}_size_px`}
+          defaultValue={sizePx}
+          min={sizeMin}
+          max={sizeMax}
+          step={1}
+          aria-label={`${label} size in pixels`}
+        />
       </Field>
     </div>
   );
@@ -174,8 +202,8 @@ export function OrgSettingsForm({
         <div>
           <p className="text-sm font-medium text-onyx">Certificate branding</p>
           <p className="mt-1 text-xs text-steel">
-            Control whether logo, company name, and location appear on welder and
-            operator certificates, and how each is aligned.
+            Control whether logo and company name appear on welder and operator
+            certificates, how each is aligned, and the size in pixels.
           </p>
         </div>
         <CertificateBrandingFieldRow
@@ -184,19 +212,20 @@ export function OrgSettingsForm({
           hint="Requires a logo upload above."
           enabled={branding.logo.enabled}
           align={branding.logo.align}
+          sizePx={branding.logo.sizePx}
+          sizeLabel="Logo height (px)"
+          sizeMin={MIN_LOGO_SIZE_PX}
+          sizeMax={MAX_LOGO_SIZE_PX}
         />
         <CertificateBrandingFieldRow
           id="name"
           label="Company name"
           enabled={branding.name.enabled}
           align={branding.name.align}
-        />
-        <CertificateBrandingFieldRow
-          id="location"
-          label="Location"
-          hint="Uses branch/employer location on the qualification, or organisation location code."
-          enabled={branding.location.enabled}
-          align={branding.location.align}
+          sizePx={branding.name.sizePx}
+          sizeLabel="Font size (px)"
+          sizeMin={MIN_NAME_SIZE_PX}
+          sizeMax={MAX_NAME_SIZE_PX}
         />
       </div>
 
