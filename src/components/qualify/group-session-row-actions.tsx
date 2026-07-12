@@ -1,22 +1,9 @@
 "use client";
 
-import { useTransition } from "react";
-import { Eye, Loader2, Trash2 } from "lucide-react";
+import { Eye, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { ButtonLink } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from "@/components/sui/alert-dialog";
-import { buttonVariants } from "@/components/sui/button";
-import { cn } from "@/lib/utils";
+import { ConfirmDeleteButton } from "@/components/app/confirm-delete-button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { deleteWelderGroupSession } from "@/app/(app)/welders/qualify/group/actions";
 import { deleteOperatorGroupSession } from "@/app/(app)/operators/qualify/group/actions";
 
@@ -31,21 +18,8 @@ export function GroupSessionRowActions({
   canDelete: boolean;
   kind: "welder" | "operator";
 }) {
-  const [pending, startTransition] = useTransition();
   const deleteAction =
     kind === "welder" ? deleteWelderGroupSession : deleteOperatorGroupSession;
-
-  const handleDelete = () => {
-    startTransition(async () => {
-      try {
-        await deleteAction(sessionId);
-      } catch (err) {
-        toast.error(
-          err instanceof Error ? err.message : "Could not delete session.",
-        );
-      }
-    });
-  };
 
   return (
     <div className="flex items-center justify-end gap-2">
@@ -54,54 +28,30 @@ export function GroupSessionRowActions({
         Open
       </ButtonLink>
       {canDelete ? (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <button
+        <ConfirmDeleteButton
+          action={async () => {
+            try {
+              await deleteAction(sessionId);
+            } catch (err) {
+              toast.error(
+                err instanceof Error ? err.message : "Could not delete session.",
+              );
+            }
+          }}
+          title="Delete this group session?"
+          description="The session and any draft qualifications created for its participants will be removed. Sessions with issued certificates cannot be deleted. This cannot be undone."
+          confirmLabel="Delete session"
+          trigger={
+            <Button
               type="button"
-              disabled={pending}
-              className={cn(
-                buttonVariants({ variant: "ghost", size: "sm" }),
-                "text-ember hover:text-ember",
-              )}
+              variant="ghost"
+              size="sm"
+              className="text-ember hover:bg-ember/10 hover:text-ember"
             >
-              <Trash2 className="h-4 w-4" />
-              Delete
-            </button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete this group session?</AlertDialogTitle>
-              <AlertDialogDescription>
-                The session and any draft qualifications created for its
-                participants will be removed. Issued certificates are kept and
-                block deletion. This cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                disabled={pending}
-                className={cn(buttonVariants({ variant: "destructive" }))}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleDelete();
-                }}
-              >
-                {pending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Deleting…
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="h-4 w-4" />
-                    Delete session
-                  </>
-                )}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+              <Trash2 className="h-4 w-4" /> Delete
+            </Button>
+          }
+        />
       ) : null}
     </div>
   );
