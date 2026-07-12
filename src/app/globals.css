@@ -517,6 +517,14 @@ html[data-app-theme="dark"] .welddoc-datepicker select {
     padding-bottom: clamp(64px, 10vw, 120px);
   }
 
+  /* Fixed marketing nav (h-16) — anchor links land below the header */
+  #features,
+  #workflow,
+  #compare,
+  #pricing {
+    scroll-margin-top: 4.5rem;
+  }
+
   .page-content {
     min-width: 0;
     max-width: 100%;
