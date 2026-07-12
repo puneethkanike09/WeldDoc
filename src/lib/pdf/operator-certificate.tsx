@@ -31,22 +31,33 @@ function fmt(d: string | null | undefined): string {
   });
 }
 
-function RoleTickBox({ checked }: { checked: boolean }) {
+function PdfTickBox({
+  checked,
+  boxSize = 9,
+  marginLeft,
+  marginRight,
+}: {
+  checked: boolean;
+  boxSize?: number;
+  marginLeft?: number;
+  marginRight?: number;
+}) {
+  const markSize = Math.max(6, boxSize - 2);
   return (
     <View
       style={{
-        width: 9,
-        height: 9,
+        width: boxSize,
+        height: boxSize,
         borderWidth: HAIR,
         borderColor: BORDER,
-        marginLeft: 3,
-        marginRight: 5,
+        marginLeft,
+        marginRight,
         alignItems: "center",
         justifyContent: "center",
       }}
     >
       {checked ? (
-        <Svg width={7} height={7} viewBox="0 0 10 10">
+        <Svg width={markSize} height={markSize} viewBox="0 0 10 10">
           <Path
             d="M1.8 5.2 L4.2 7.6 L8.2 2.4"
             stroke={COLORS.charcoal}
@@ -56,6 +67,12 @@ function RoleTickBox({ checked }: { checked: boolean }) {
         </Svg>
       ) : null}
     </View>
+  );
+}
+
+function RoleTickBox({ checked }: { checked: boolean }) {
+  return (
+    <PdfTickBox checked={checked} marginLeft={3} marginRight={5} />
   );
 }
 
@@ -94,21 +111,7 @@ function Checkbox({ checked, label }: { checked: boolean; label: string }) {
     <View
       style={{ flexDirection: "row", alignItems: "center", marginBottom: 2 }}
     >
-      <View
-        style={{
-          width: 8,
-          height: 8,
-          borderWidth: HAIR,
-          borderColor: BORDER,
-          marginRight: 4,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {checked ? (
-          <Text style={{ fontSize: 7, fontFamily: "Helvetica-Bold" }}>X</Text>
-        ) : null}
-      </View>
+      <PdfTickBox checked={checked} boxSize={8} marginRight={4} />
       <Text style={{ fontSize: 7.5 }}>{label}</Text>
     </View>
   );
