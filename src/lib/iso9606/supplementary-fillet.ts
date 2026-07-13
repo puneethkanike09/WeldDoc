@@ -30,9 +30,9 @@ export function listSupplementaryFilletEntries(
     });
   }
 
-  if (wpq.supplementary_fillet_2 && wpq.process_2) {
+  if (wpq.supplementary_fillet_2) {
     entries.push({
-      process: wpq.process_2,
+      process: wpq.process_2?.trim() || wpq.process,
       position: wpq.supplementary_fillet_2_position ?? "PB",
       thickness_mm: wpq.supplementary_fillet_2_thickness_mm,
     });

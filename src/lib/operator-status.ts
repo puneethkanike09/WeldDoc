@@ -52,32 +52,36 @@ const STATE_PRIORITY: Record<QualState, number> = {
   expired: 1,
 };
 
+const EMPTY_QUAL_BREAKDOWN: {
+  qualCounts: QualCounts;
+  processStatuses: ProcessStatus[];
+} = {
+  qualCounts: { current: 0, expiring: 0, expired: 0 },
+  processStatuses: [],
+};
+
 function buildOperatorQualBreakdown(
   oqs: OperatorQualification[],
   expiringWindowDays: number,
 ): { qualCounts: QualCounts; processStatuses: ProcessStatus[] } {
   const qualCounts: QualCounts = { current: 0, expiring: 0, expired: 0 };
-  const bestByProcess = new Map<string, QualState>();
+  const processStatuses: ProcessStatus[] = [];
 
   for (const o of oqs) {
     const state = classifyOq(o, expiringWindowDays);
     if (!state) continue;
     qualCounts[state] += 1;
-
-    const label = processLabel(o.process);
-    const prev = bestByProcess.get(label);
-    if (!prev || STATE_PRIORITY[state] > STATE_PRIORITY[prev]) {
-      bestByProcess.set(label, state);
-    }
+    processStatuses.push({
+      label: processLabel(o.process ?? "—"),
+      state,
+    });
   }
 
-  const processStatuses = Array.from(bestByProcess.entries())
-    .map(([label, state]) => ({ label, state }))
-    .sort(
-      (a, b) =>
-        STATE_PRIORITY[b.state] - STATE_PRIORITY[a.state] ||
-        a.label.localeCompare(b.label),
-    );
+  processStatuses.sort(
+    (a, b) =>
+      STATE_PRIORITY[b.state] - STATE_PRIORITY[a.state] ||
+      a.label.localeCompare(b.label),
+  );
 
   return { qualCounts, processStatuses };
 }
@@ -98,9 +102,9 @@ export function summarizeOperator(
       overall: operator.status,
       nearestExpiry: null,
       daysToExpiry: null,
-      processes,
+      processes: [],
       approvedCount: 0,
-      ...breakdown,
+      ...EMPTY_QUAL_BREAKDOWN,
     };
   }
 

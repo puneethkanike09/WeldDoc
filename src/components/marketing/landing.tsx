@@ -128,7 +128,7 @@ export function Landing() {
           <div className="mt-20 grid gap-5 xl:grid-cols-[1.4fr_0.6fr] xl:gap-6">
             <div className="relative aspect-16/10 overflow-hidden rounded-lg border border-hairline bg-white shadow-(--shadow-lift) xl:aspect-auto xl:min-h-[420px]">
               <Image
-                src="/images/desktopnew.png"
+                src="/images/landing-dashboard-desktop.png"
                 alt="Weld.Doc dashboard on desktop — welder registry, KPIs and charts in dark mode"
                 fill
                 priority
@@ -138,8 +138,8 @@ export function Landing() {
             </div>
             <div className="relative hidden aspect-3/4 overflow-hidden rounded-lg border border-hairline bg-white shadow-(--shadow-lift) xl:block xl:aspect-auto xl:min-h-[420px]">
               <Image
-                src="/images/mobilenew.png"
-                alt="Weld.Doc dashboard on mobile — KPIs and qualification charts in dark mode"
+                src="/images/landing-masterlist-mobile.png"
+                alt="Weld.Doc welder master list on mobile — filterable register with Excel export"
                 fill
                 sizes="360px"
                 className="object-cover object-top"

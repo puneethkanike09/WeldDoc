@@ -234,4 +234,44 @@ test("designation uses test position code, not expanded range positions", () => 
   assert.doesNotMatch(line, /PA&PC&PE&PF/);
 });
 
+test("FW multi-process emits one designation line per process", () => {
+  const wpq = baseWpq({
+    joint_type: "FW",
+    process: "135",
+    process_2: "136",
+    position: "PF",
+    position_2: "PB",
+    test_thickness_mm: 8,
+    deposited_thickness_mm: null,
+    process2_deposited_thickness_mm: 6,
+    supplementary_fillet: false,
+  });
+  const lines = buildDesignation(wpq, range);
+  assert.equal(lines.length, 2);
+  assert.match(lines[0], /ISO 9606-1 135/);
+  assert.match(lines[0], /FW/);
+  assert.match(lines[0], /t8/);
+  assert.match(lines[0], / PF /);
+  assert.match(lines[1], /ISO 9606-1 136/);
+  assert.match(lines[1], /t6/);
+  assert.match(lines[1], / PB /);
+});
+
+test("supplementary fillet 2 without process_2 still appears on certificate", () => {
+  const wpq = baseWpq({
+    process: "135",
+    process_2: null,
+    supplementary_fillet: true,
+    supplementary_fillet_process: "135",
+    supplementary_fillet_position: "PF",
+    supplementary_fillet_thickness_mm: 10,
+    supplementary_fillet_2: true,
+    supplementary_fillet_2_position: "PB",
+    supplementary_fillet_2_thickness_mm: 8,
+  });
+  const lines = buildDesignation(wpq, range);
+  assert.equal(lines.length, 3);
+  assert.ok(lines.some((line) => line.includes("t8") && line.includes("FW")));
+});
+
 console.log("\nAll multi-process tests passed.\n");

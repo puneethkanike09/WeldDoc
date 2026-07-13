@@ -73,6 +73,14 @@ function weldTypeCode(jointTypes: string[]): string {
   return hasBW ? "BW" : "FW";
 }
 
+function filletTestThicknessMm(
+  wpq: QualificationRecord,
+  process: string,
+): number | null {
+  if (process === wpq.process) return wpq.test_thickness_mm;
+  return wpq.process2_deposited_thickness_mm ?? wpq.test_thickness_mm;
+}
+
 function designationLine(
   wpq: QualificationRecord,
   _range: RangeOfApproval | null,
@@ -151,6 +159,27 @@ export function buildDesignation(
         layer: wpq.layer_type,
       }),
     );
+    return lines;
+  }
+
+  if (isFillet && multi) {
+    const slices = getProcessSlices(wpq);
+    for (const slice of slices) {
+      const thickness = filletTestThicknessMm(wpq, slice.process);
+      const dimension = thickness != null ? `t${thickness}` : "";
+      lines.push(
+        designationLine(wpq, range, {
+          process: slice.process,
+          jointTypes: ["FW"],
+          fillerGroup: slice.filler_group,
+          fillerType: slice.filler_type,
+          dimension,
+          weldDetails: slice.weld_details,
+          layer: slice.layer_type,
+          positions: slice.position,
+        }),
+      );
+    }
     return lines;
   }
 
@@ -273,6 +302,11 @@ export function buildCertRows(
           }),
         )
         .join(" & ")
+    : isFillet && multi
+      ? formatPerProcessTestValues(slices, (s) => {
+          const t = filletTestThicknessMm(wpq, s.process);
+          return t != null ? formatMaterialThicknessTest(t) : "—";
+        })
     : isFillet && wpq.test_thickness_mm != null
       ? formatMaterialThicknessTest(wpq.test_thickness_mm)
       : "—";
@@ -289,6 +323,8 @@ export function buildCertRows(
     ? `BW: ${multi ? formatPerProcessTestValues(slices, (s) => s.position ?? "—") : (wpq.position ?? "—")} & ${suppEntries
         .map((e) => `FW (${e.process}): ${e.position}`)
         .join(" & ")}`
+    : isFillet && multi
+      ? formatPerProcessTestValues(slices, (s) => s.position ?? "—")
     : multi
       ? formatPerProcessTestValues(slices, (s) => s.position ?? "—")
       : (wpq.position ?? "—");
@@ -297,6 +333,10 @@ export function buildCertRows(
     ? `BW: ${positionsRangeText(positions)} & ${suppEntries
         .map((e) => `FW (${e.process}): ${fwPositionRange(e.position)}`)
         .join(" & ")}`
+    : isFillet && multi
+      ? formatPerProcessPrefixed(slices, (s) =>
+          fwPositionRange(s.position ?? ""),
+        )
     : multi
       ? formatPerProcessPrefixed(slices, (s) =>
           positionsRangeText(
