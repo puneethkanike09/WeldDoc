@@ -92,10 +92,10 @@ All JSON responses:
 
 | Key | Limit |
 |-----|-------|
-| `signup:ip:{ip}` | 5 / hour |
-| `verify:email:{email}` | 3 / hour |
+| `signup:ip:{ip}` | 10 / hour |
+| `verify:email:{email}` | 15 / hour |
 | `verify:cooldown:{email}` | 1 / 60s |
-| `reset:email:{email}` | 3 / hour |
+| `reset:email:{email}` | 15 / hour |
 | `reset:cooldown:{email}` | 1 / 60s |
 
 ## Email templates

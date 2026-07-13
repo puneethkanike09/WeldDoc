@@ -32,7 +32,7 @@ describe("signup", () => {
 
   it("rate limits by IP", async () => {
     const deps = makeDeps();
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 10; i++) {
       await signup(
         {
           fullName: "Alex",

@@ -18,9 +18,9 @@ export const HOUR_MS = 60 * 60 * 1000;
 export const COOLDOWN_MS = 60 * 1000;
 
 export const RATE_LIMITS = {
-  signupPerIp: { max: 5, windowMs: HOUR_MS },
-  verifyPerEmail: { max: 3, windowMs: HOUR_MS },
+  signupPerIp: { max: 10, windowMs: HOUR_MS },
+  verifyPerEmail: { max: 15, windowMs: HOUR_MS },
   verifyCooldown: { max: 1, windowMs: COOLDOWN_MS },
-  resetPerEmail: { max: 3, windowMs: HOUR_MS },
+  resetPerEmail: { max: 15, windowMs: HOUR_MS },
   resetCooldown: { max: 1, windowMs: COOLDOWN_MS },
 } as const;
