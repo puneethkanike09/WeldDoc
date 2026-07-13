@@ -15,14 +15,19 @@ export async function updateOperatorMasterListColumns(formData: FormData) {
   const slug = "iso-14732" as const;
   const allowed = new Set<string>(ALL_OPERATOR_MASTER_COLUMN_KEYS);
 
-  const ordered = formData
+  const enabled = formData
     .getAll("columns")
     .map(String)
     .filter((id): id is OperatorMasterColumnKey => allowed.has(id));
 
-  if (ordered.length === 0) {
+  if (enabled.length === 0) {
     throw new Error("Keep at least one column visible.");
   }
+
+  const enabledSet = new Set(enabled);
+  const ordered = ALL_OPERATOR_MASTER_COLUMN_KEYS.filter((key) =>
+    enabledSet.has(key),
+  );
 
   const masterlist_columns = mergeMasterListColumnsConfig(
     org.masterlist_columns,

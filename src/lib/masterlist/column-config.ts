@@ -40,9 +40,11 @@ export function normalizeColumnOrder(
   const stored = config[slug];
   if (!stored) return defaults;
 
-  const allowed = new Set<string>(allKeys);
-  const enabled = stored.filter((id) => allowed.has(id));
-  return enabled.length > 0 ? enabled : defaults;
+  const enabledSet = new Set(
+    stored.filter((id) => (allKeys as readonly string[]).includes(id)),
+  );
+  const ordered = allKeys.filter((key) => enabledSet.has(key));
+  return ordered.length > 0 ? ordered : defaults;
 }
 
 export function columnDefsFromCatalog<

@@ -46,7 +46,7 @@ const CHIP_TITLES: Record<QualState, string> = {
   expired: "Expired",
 };
 
-/** Process chips, each coloured by the welder's best live qualification for it. */
+/** Process chips, one per issued qualification (multi-process uses +). */
 export function ProcessStatusChips({
   statuses,
 }: {
@@ -57,9 +57,9 @@ export function ProcessStatusChips({
   }
   return (
     <div className="flex flex-wrap gap-1.5">
-      {statuses.map((p) => (
+      {statuses.map((p, index) => (
         <span
-          key={p.label}
+          key={`${p.label}-${p.state}-${index}`}
           title={`${p.label} — ${CHIP_TITLES[p.state]}`}
           className={cn(
             "inline-flex items-center rounded-[var(--radius-tag)] border px-2 py-0.5 text-xs font-medium font-display tracking-tight",

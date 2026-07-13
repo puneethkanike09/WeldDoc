@@ -1,5 +1,8 @@
 import type { QualificationRecord, Welder, WpqStatus } from "@/types/db";
-import { processLabel } from "@/lib/iso9606/constants";
+import {
+  processLabel,
+  qualificationProcessLabel,
+} from "@/lib/iso9606/constants";
 import { activeQualifications } from "@/lib/qualification-active";
 
 export type OverallStatus =
@@ -32,7 +35,7 @@ export interface WelderSummary {
   approvedCount: number;
   /** Traffic-light counts across the welder's issued qualifications. */
   qualCounts: QualCounts;
-  /** One chip per distinct process, coloured by its best live qualification. */
+  /** One chip per issued qualification, including multi-process labels. */
   processStatuses: ProcessStatus[];
 }
 
@@ -63,33 +66,37 @@ const STATE_PRIORITY: Record<QualState, number> = {
   expired: 1,
 };
 
-/** Traffic-light counts + per-process best state from a welder's WPQs. */
+function processLabelsForFilter(
+  w: Pick<QualificationRecord, "process" | "process_2">,
+): string[] {
+  const labels = [processLabel(w.process)];
+  if (w.process_2?.trim()) labels.push(processLabel(w.process_2));
+  return labels;
+}
+
+/** Traffic-light counts + per-qualification process chips from a welder's WPQs. */
 export function buildQualBreakdown(
   wpqs: QualificationRecord[],
   expiringWindowDays: number,
 ): { qualCounts: QualCounts; processStatuses: ProcessStatus[] } {
   const qualCounts: QualCounts = { current: 0, expiring: 0, expired: 0 };
-  const bestByProcess = new Map<string, QualState>();
+  const processStatuses: ProcessStatus[] = [];
 
   for (const w of wpqs) {
     const state = classifyWpq(w, expiringWindowDays);
     if (!state) continue;
     qualCounts[state] += 1;
-
-    const label = processLabel(w.process);
-    const prev = bestByProcess.get(label);
-    if (!prev || STATE_PRIORITY[state] > STATE_PRIORITY[prev]) {
-      bestByProcess.set(label, state);
-    }
+    processStatuses.push({
+      label: qualificationProcessLabel(w.process, w.process_2),
+      state,
+    });
   }
 
-  const processStatuses = Array.from(bestByProcess.entries())
-    .map(([label, state]) => ({ label, state }))
-    .sort(
-      (a, b) =>
-        STATE_PRIORITY[b.state] - STATE_PRIORITY[a.state] ||
-        a.label.localeCompare(b.label),
-    );
+  processStatuses.sort(
+    (a, b) =>
+      STATE_PRIORITY[b.state] - STATE_PRIORITY[a.state] ||
+      a.label.localeCompare(b.label),
+  );
 
   return { qualCounts, processStatuses };
 }
@@ -101,7 +108,7 @@ export function summarizeWelder(
 ): WelderSummary {
   wpqs = activeQualifications(wpqs);
   const processes = Array.from(
-    new Set(wpqs.map((w) => processLabel(w.process))),
+    new Set(wpqs.flatMap((w) => processLabelsForFilter(w))),
   );
   const breakdown = buildQualBreakdown(wpqs, expiringWindowDays);
 

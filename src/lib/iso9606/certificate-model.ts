@@ -71,7 +71,7 @@ function weldTypeCode(jointTypes: string[]): string {
 
 function designationLine(
   wpq: QualificationRecord,
-  range: RangeOfApproval | null,
+  _range: RangeOfApproval | null,
   opts: {
     process: string;
     jointTypes: string[];
@@ -84,11 +84,9 @@ function designationLine(
     positions?: string | null;
   },
 ): string {
-  const positions =
-    opts.positions ??
-    (range?.approved_positions?.length
-      ? range.approved_positions.join("/")
-      : wpq.position ?? "");
+  // Designation uses the test position code (e.g. H-L045), not the expanded
+  // range of approved positions (e.g. PA/PC/PE/PF) — those belong in Annex A.
+  const positions = opts.positions ?? wpq.position ?? "";
 
   return [
     "ISO 9606-1",

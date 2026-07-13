@@ -316,8 +316,10 @@ export async function saveNdt(
     .eq("org_id", org.id);
 
   revalidatePath(`/welders/${welderId}`);
-  const nextStep = anyFail ? 3 : 4;
-  redirect(`/welders/${welderId}/qualify?wpq=${wpqId}&step=${nextStep}`);
+  const ndtFlash = anyFail ? "failed" : "saved";
+  redirect(
+    `/welders/${welderId}/qualify?wpq=${wpqId}&step=4&ndt=${ndtFlash}`,
+  );
 }
 
 export async function issueCertificate(

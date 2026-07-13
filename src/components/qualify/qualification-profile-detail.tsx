@@ -13,6 +13,7 @@ import {
   certificateExpiryHeading,
   continuityExpiryHeading,
   continuityExpiryTone,
+  relativeDueInLabel,
 } from "@/lib/qualify/expiry-display";
 import { useStandardPdfDrawer } from "@/components/qualify/iso9606-pdf-drawer";
 import { FileText, Trash2, Workflow } from "lucide-react";
@@ -178,7 +179,7 @@ export function QualificationProfileDetail({
               selected.daysToExpiry >= 0 &&
               selected.daysToExpiry <= 60 && (
                 <p className="text-xs text-[#8a6a00]">
-                  in {selected.daysToExpiry} days
+                  {relativeDueInLabel(selected.daysToExpiry)}
                 </p>
               )}
           </div>
@@ -214,7 +215,7 @@ export function QualificationProfileDetail({
                 selected.daysToContinuityDue >= 0 &&
                 selected.daysToContinuityDue <= 60 && (
                   <p className="text-xs text-[#8a6a00]">
-                    in {selected.daysToContinuityDue} days
+                    {relativeDueInLabel(selected.daysToContinuityDue)}
                   </p>
                 )}
             </div>
