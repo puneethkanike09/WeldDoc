@@ -5,7 +5,7 @@
     "bands": [
       { "max": 3, "note": "s to max(3, 2s) — implemented in computeTable6DepositedRange" },
       { "min": 3, "max": 12, "note": "3 to 2s — implemented in computeTable6DepositedRange" },
-      { "min": 12, "note": "≥ 3 with ml — implemented in computeTable6DepositedRange" }
+      { "min": 12, "note": "≥ 3 — implemented in computeTable6DepositedRange" }
     ]
   },
   "filletMaterial": {

@@ -69,10 +69,6 @@ function round(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-function isMultiLayer(layer: string | null | undefined): boolean {
-  return Boolean(layer && !/single|sl/i.test(layer));
-}
-
 /** Table 6 — range of qualification for deposited thickness s (butt welds). */
 export function computeTable6DepositedRange(
   s: number,
@@ -83,11 +79,9 @@ export function computeTable6DepositedRange(
   const is311 = opts?.process === "311";
 
   if (s >= 12) {
-    if (isMultiLayer(opts?.layer)) {
-      return { min: 3, max: null, unlimited: true };
-    }
-    const max = is311 ? round(1.5 * s) : round(2 * s);
-    return { min: 3, max, unlimited: false };
+    // Table 6 row s ≥ 12: qualified range is ≥ 3 mm (footnote e: test welded
+    // in ≥3 layers; footnote f: per-process s for multi-process).
+    return { min: 3, max: null, unlimited: true };
   }
 
   if (s >= 3) {

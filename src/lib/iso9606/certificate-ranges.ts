@@ -5,6 +5,7 @@
 
 import type { QualificationRecord, RangeOfApproval } from "@/types/db";
 import { isMultiProcessQualification } from "@/lib/iso9606/constants";
+import { fillerTypeCode } from "@/lib/iso9606/filler-types";
 import { branchPipeOdTestMm, isBranchQualification } from "@/lib/iso9606/branch-deposited-thickness";
 import { fillerTypeQualificationRange } from "@/lib/iso9606/filler-types";
 import { displayJointType } from "@/lib/iso9606/product-dimensions";
@@ -96,8 +97,46 @@ export function layerRangeText(layer: string | null): string {
   return r.layerRanges[code] ?? code;
 }
 
+/** Annex A layer range — supplementary fillet qualifies sl and ml (FW). */
+export function layerRangeTextWithSupplementary(
+  layer: string | null,
+  supplementaryFillet: boolean,
+): string {
+  if (supplementaryFillet) return "sl & ml";
+  return layerRangeText(layer);
+}
+
 export function layerCode(layer: string | null): string {
   return !layer || /single|sl/i.test(layer) ? "sl" : "ml";
+}
+
+/** Designation weld-detail token without spaces (e.g. ss nb → ssnb). */
+export function compactWeldDetailsCode(details: string | null | undefined): string {
+  if (!details?.trim()) return "ssnb";
+  return details.replace(/\s+/g, "");
+}
+
+/** Multi-process designation filler codes, e.g. S/P. */
+export function combinedDesignationFillerTypes(
+  slices: ProcessSlice[],
+): string {
+  const codes = slices
+    .map((s) => fillerTypeCode(s.filler_type))
+    .filter(Boolean);
+  return codes.length > 1 ? codes.join("/") : (codes[0] ?? "");
+}
+
+/** Multi-process designation weld details, e.g. ssnb/ssmb. */
+export function combinedDesignationWeldDetails(
+  slices: ProcessSlice[],
+): string {
+  const codes = slices.map((s) => compactWeldDetailsCode(s.weld_details));
+  return codes.length > 1 ? codes.join("/") : (codes[0] ?? "ssnb");
+}
+
+/** Designation position text — slashes become spaced ampersands. */
+export function designationPositionText(positions: string): string {
+  return positions.replace(/\//g, " & ");
 }
 
 export function transferModeRangeText(
@@ -286,12 +325,8 @@ export function formatPerProcessPrefixed(
 export function formatPerProcessDepositedRange(slices: ProcessSlice[]): string {
   if (slices.length === 1) return perProcessDepositedRangeText(slices[0]);
   return slices
-    .map((s) => {
-      const r = perProcessDepositedRangeText(s);
-      return r === "—" ? null : `${r} (${s.process})`;
-    })
-    .filter(Boolean)
-    .join(" & ");
+    .map((s) => `${s.process}: ${perProcessDepositedRangeText(s)}`)
+    .join("; ");
 }
 
 export function shieldingGasDisplay(stored: string | null | undefined): string {

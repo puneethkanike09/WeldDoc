@@ -22,7 +22,11 @@ import {
   isMultiProcessQualification,
   jointTypeRangeText,
   layerCode,
-  layerRangeText,
+  layerRangeTextWithSupplementary,
+  combinedDesignationFillerTypes,
+  combinedDesignationWeldDetails,
+  compactWeldDetailsCode,
+  designationPositionText,
   materialGroupRangeText,
   positionsRangeText,
   processDisplayText,
@@ -82,26 +86,39 @@ function designationLine(
     layer: string | null;
     /** Test positions for designation (e.g. PA/PC for multi-process). */
     positions?: string | null;
+    /** Pre-combined filler code for multi-process (e.g. S/P). */
+    fillerTypeLabel?: string;
+    /** Pre-combined weld details for multi-process (e.g. ssnb/ssmb). */
+    weldDetailsLabel?: string;
+    /** BW + supplementary fillet: layer belongs on the FW line only. */
+    omitLayer?: boolean;
   },
 ): string {
   // Designation uses the test position code (e.g. H-L045), not the expanded
   // range of approved positions (e.g. PA/PC/PE/PF) — those belong in Annex A.
   const positions = opts.positions ?? wpq.position ?? "";
+  const fillerToken =
+    opts.fillerTypeLabel ?? fillerTypeCode(opts.fillerType);
+  const weldToken =
+    opts.weldDetailsLabel ?? opts.weldDetails ?? "ss nb";
 
-  return [
+  const parts = [
     "ISO 9606-1",
     opts.process,
     productCode(wpq.product),
     weldTypeCode(opts.jointTypes),
     opts.fillerGroup ?? "FM1",
-    fillerTypeCode(opts.fillerType),
+    fillerToken,
     opts.dimension,
-    positions.replace(/\//g, "&"),
-    opts.weldDetails ?? "ss nb",
-    layerCode(opts.layer),
-  ]
-    .filter(Boolean)
-    .join(" ");
+    designationPositionText(positions),
+    weldToken,
+  ];
+
+  if (!opts.omitLayer) {
+    parts.push(layerCode(opts.layer));
+  }
+
+  return parts.filter(Boolean).join(" ");
 }
 
 /**
@@ -141,6 +158,8 @@ export function buildDesignation(
     ? `${wpq.process}/${wpq.process_2}`
     : wpq.process;
 
+  const slices = multi ? getProcessSlices(wpq) : [];
+
   let dimension = "";
   if (multi) {
     const s1 = wpq.deposited_thickness_mm;
@@ -163,16 +182,19 @@ export function buildDesignation(
       layer: wpq.layer_type,
       positions:
         multi && wpq.position_2 && wpq.position
-          ? `${wpq.position}/${wpq.position_2}`
+          ? `${wpq.position} & ${wpq.position_2}`
           : null,
+      fillerTypeLabel: multi ? combinedDesignationFillerTypes(slices) : undefined,
+      weldDetailsLabel: multi ? combinedDesignationWeldDetails(slices) : undefined,
+      omitLayer: hasSuppFillet,
     }),
   );
 
   if (hasSuppFillet) {
-    const slices = getProcessSlices(wpq);
+    const processSlices = getProcessSlices(wpq);
     for (const entry of suppEntries) {
-      const filletSlice = slices.find((s) => s.process === entry.process);
-      const filletPos = entry.position.replace(/\//g, "&");
+      const filletSlice = processSlices.find((s) => s.process === entry.process);
+      const filletPos = designationPositionText(entry.position);
       const t = entry.thickness_mm;
 
       lines.push(
@@ -185,7 +207,9 @@ export function buildDesignation(
           fillerTypeCode(filletSlice?.filler_type ?? wpq.filler_type),
           t != null ? `t${t}` : "",
           filletPos,
-          filletSlice?.weld_details ?? wpq.weld_details ?? "ss nb",
+          compactWeldDetailsCode(
+            filletSlice?.weld_details ?? wpq.weld_details,
+          ),
           layerCode(filletSlice?.layer_type ?? wpq.layer_type),
         ]
           .filter(Boolean)
@@ -433,9 +457,15 @@ export function buildCertRows(
         : layerCode(wpq.layer_type),
       range: multi
         ? formatPerProcessPrefixed(slices, (s) =>
-            layerRangeText(s.layer_type),
+            layerRangeTextWithSupplementary(
+              s.layer_type,
+              hasSuppFillet,
+            ),
           )
-        : layerRangeText(wpq.layer_type),
+        : layerRangeTextWithSupplementary(
+            wpq.layer_type,
+            hasSuppFillet,
+          ),
     },
   ];
 }

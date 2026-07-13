@@ -122,9 +122,54 @@ test("buildDesignation returns two lines for multi-process + supplementary fille
   assert.equal(lines.length, 2);
   assert.match(lines[0], /111\/141/);
   assert.match(lines[0], /s8\/3/);
+  assert.match(lines[0], /C\/S/);
+  assert.match(lines[0], /ssnb\/ssmb/);
+  assert.doesNotMatch(lines[0], /\bml\b/);
+  assert.doesNotMatch(lines[0], /\bsl\b/);
   assert.match(lines[1], /111/);
   assert.match(lines[1], /FW/);
   assert.match(lines[1], /t12/);
+  assert.match(lines[1], /\bml\b/);
+});
+
+test("buildCertRows layer range includes sl & ml when supplementary fillet", () => {
+  const rows = buildCertRows(baseWpq(), range);
+  const layerRow = rows.find((r) => r.label === "Multi-layer / single layer");
+  assert.ok(layerRow);
+  assert.match(layerRow!.range, /sl & ml/);
+  assert.match(layerRow!.range, /111/);
+  assert.match(layerRow!.range, /141/);
+});
+
+test("135+136 multi-process BW designation matches client format", () => {
+  const wpq = baseWpq({
+    process: "135",
+    process_2: "136",
+    position: "PF",
+    position_2: "PF",
+    product: "Plate",
+    deposited_thickness_mm: 12,
+    process2_deposited_thickness_mm: 12,
+    filler_type: "Solid wire/rod (S)",
+    process2_filler_type: "Flux-cored (P)",
+    weld_details: "ss nb",
+    process2_weld_details: "ss mb",
+    layer_type: "Single layer (sl)",
+    process2_layer_type: "Single layer (sl)",
+    supplementary_fillet: true,
+    supplementary_fillet_process: "135",
+    supplementary_fillet_position: "PF",
+    supplementary_fillet_thickness_mm: 12,
+    supplementary_fillet_2: true,
+    supplementary_fillet_2_position: "PF",
+    supplementary_fillet_2_thickness_mm: 12,
+  });
+  const line = buildDesignation(wpq, range)[0]!;
+  assert.match(
+    line,
+    /ISO 9606-1 135\/136 P BW FM1 S\/P s12\/12 PF & PF ssnb\/ssmb/,
+  );
+  assert.doesNotMatch(line, /\bsl\b/);
 });
 
 test("buildCertRows shows per-process deposited thickness", () => {
@@ -132,8 +177,8 @@ test("buildCertRows shows per-process deposited thickness", () => {
   const deposited = rows.find((r) => r.label === "Deposited thickness (mm)");
   assert.ok(deposited);
   assert.match(deposited!.test, /\(BW\) 8\(111\) & 3\(141\)/);
-  assert.match(deposited!.range, /\(111\)/);
-  assert.match(deposited!.range, /\(141\)/);
+  assert.match(deposited!.range, /111: 3 – 16 mm/);
+  assert.match(deposited!.range, /141: 3 – 6 mm/);
 });
 
 test("getProcessSlices returns two entries", () => {
@@ -142,8 +187,21 @@ test("getProcessSlices returns two entries", () => {
 
 test("formatPerProcessDepositedRange matches Table 6 per process", () => {
   const text = formatPerProcessDepositedRange(getProcessSlices(baseWpq()));
-  assert.match(text, /3 – 16 mm \(111\)/);
-  assert.match(text, /3 – 6 mm \(141\)/);
+  assert.match(text, /111: 3 – 16 mm/);
+  assert.match(text, /141: 3 – 6 mm/);
+});
+
+test("formatPerProcessDepositedRange lists each process when ranges match", () => {
+  const wpq = baseWpq({
+    process: "135",
+    process_2: "136",
+    deposited_thickness_mm: 12,
+    process2_deposited_thickness_mm: 12,
+    layer_type: "Single layer (sl)",
+    process2_layer_type: "Single layer (sl)",
+  });
+  const text = formatPerProcessDepositedRange(getProcessSlices(wpq));
+  assert.equal(text, "135: >= 3 mm; 136: >= 3 mm");
 });
 
 test("single-process designation stays one line", () => {
