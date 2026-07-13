@@ -15,9 +15,12 @@ import type {
 export function ImportPreviewTable({
   rows,
   errors,
+  compact = false,
 }: {
   rows: ValidatedImportRow[];
   errors: ImportValidationError[];
+  /** When true, omit the heading (parent already labelled the section). */
+  compact?: boolean;
 }) {
   if (!rows.length) return null;
 
@@ -28,12 +31,20 @@ export function ImportPreviewTable({
 
   return (
     <div>
-      <h4 className="text-sm font-medium text-charcoal">Data preview</h4>
-      <p className="mt-1 text-xs text-steel">
-        This is what will be imported. Rows highlighted in red have problems —
-        fix them in your Excel file and upload again.
-      </p>
-      <div className="sleek-scroll mt-3 max-h-128 overflow-auto rounded-[10px] border border-silver">
+      {!compact && (
+        <>
+          <h4 className="text-sm font-medium text-charcoal">
+            What will be imported
+          </h4>
+          <p className="mt-1 text-xs text-steel">
+            Rows highlighted in red have problems — fix them in your spreadsheet
+            and upload again.
+          </p>
+        </>
+      )}
+      <div
+        className={`sleek-scroll max-h-128 overflow-auto rounded-[10px] border border-silver ${compact ? "" : "mt-3"}`}
+      >
         <table className="min-w-full text-left text-xs">
           <thead className="sticky top-0 z-10 bg-frost">
             <tr className="border-b border-silver text-[10px] uppercase tracking-wide text-steel">
