@@ -39,6 +39,8 @@
     "node_modules",
     "example",
     "project",
-    "scripts"
+    "scripts",
+    "vitest.config.ts",
+    "**/*.test.ts"
   ]
 }
