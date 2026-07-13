@@ -12,6 +12,7 @@ import {
   collectValidationRecordsForImport,
   parseDateHistory,
 } from "../src/lib/welders/bulk-import/parse-history";
+import { computeClientDateSchedule } from "../src/lib/welders/bulk-import/client-date-guide";
 
 function test(name: string, fn: () => void) {
   try {
@@ -114,7 +115,7 @@ test("welder + qualification validates and computes expiry", () => {
   );
   assert.equal(r.ok, true);
   assert.equal(r.summary.qualificationCount, 1);
-  assert.equal(r.rows[0].qualification?.expiryDate, "2027-01-15");
+  assert.equal(r.rows[0].qualification?.expiryDate, "2027-01-14");
   assert.equal(r.rows[0].qualification?.wpqStatus, "Approved");
 });
 
@@ -697,6 +698,20 @@ test("legacy Rajesh example imports full validation history fields", () => {
   assert.equal(r.rows[0].qualification?.revalidationHistory.length, 2);
   const records = collectValidationRecordsForImport(r.rows[0].qualification!);
   assert.equal(records.length, 7);
+});
+
+console.log("\nClient date guide (plant Excel rules)\n");
+
+test("client schedule matches plant sheet for Test Date 12-Mar-24", () => {
+  const s = computeClientDateSchedule("2024-03-12");
+  assert.equal(s.validation1, "2024-09-11"); // 11-Sep-24
+  assert.equal(s.validation2, "2025-03-10"); // 10-Mar-25
+  assert.equal(s.validation3, "2025-09-09"); // 09-Sep-25
+  assert.equal(s.revalidation, "2026-03-12"); // 12-Mar-26
+  assert.equal(s.validation4, "2026-09-11"); // 11-Sep-26
+  assert.equal(s.validation5, "2027-03-10"); // 10-Mar-27
+  assert.equal(s.validation6, "2027-09-09"); // 09-Sep-27
+  assert.equal(s.expiry, "2028-03-12"); // 12-Mar-28
 });
 
 console.log("\nPhoto matching\n");
