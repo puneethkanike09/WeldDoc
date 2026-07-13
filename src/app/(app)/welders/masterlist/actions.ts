@@ -15,14 +15,19 @@ export async function updateWelderMasterListColumns(formData: FormData) {
   const slug = "iso9606-1" as const;
   const allowed = new Set<string>(ALL_WELDER_MASTER_EXPORT_KEYS);
 
-  const ordered = formData
+  const enabled = formData
     .getAll("columns")
     .map(String)
     .filter((id): id is MasterExportKey => allowed.has(id));
 
-  if (ordered.length === 0) {
+  if (enabled.length === 0) {
     throw new Error("Keep at least one column visible.");
   }
+
+  const enabledSet = new Set(enabled);
+  const ordered = ALL_WELDER_MASTER_EXPORT_KEYS.filter((key) =>
+    enabledSet.has(key),
+  );
 
   const masterlist_columns = mergeMasterListColumnsConfig(
     org.masterlist_columns,

@@ -3,7 +3,7 @@ import {
   columnDefsFromCatalog,
   columnMetaFromCatalog,
   mergeMasterListColumnsConfig,
-  parseMasterListColumnsConfig,
+  normalizeColumnOrder,
   type MasterListColumnsConfig,
 } from "@/lib/masterlist/column-config";
 
@@ -91,16 +91,11 @@ const WELDER_SLUG = "iso9606-1" as const satisfies StandardSlug;
 export function orderedWelderMasterListColumns(
   raw: unknown,
 ): MasterExportKey[] {
-  const config = parseMasterListColumnsConfig(raw);
-  const stored = config[WELDER_SLUG];
-  if (!stored) return [...DEFAULT_WELDER_MASTERLIST_COLUMNS];
-
-  const allowed = new Set<string>(ALL_WELDER_MASTER_EXPORT_KEYS);
-  const enabled = stored.filter((id) => allowed.has(id)) as MasterExportKey[];
-  if (enabled.length === 0) return [...DEFAULT_WELDER_MASTERLIST_COLUMNS];
-
-  const missing = ALL_WELDER_MASTER_EXPORT_KEYS.filter((k) => !enabled.includes(k));
-  return [...enabled, ...missing];
+  return normalizeColumnOrder(
+    raw,
+    WELDER_SLUG,
+    ALL_WELDER_MASTER_EXPORT_KEYS,
+  ) as MasterExportKey[];
 }
 
 export function welderMasterListColumnDefs(raw: unknown) {

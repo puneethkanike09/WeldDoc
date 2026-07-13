@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import {
   Eye,
   EyeOff,
-  GripVertical,
   Loader2,
   Save as SaveIcon,
   SlidersHorizontal,
@@ -24,15 +23,18 @@ type ColumnCatalogItem = {
 type ItemState = { id: string; enabled: boolean };
 
 function initColumnState(
-  initialOrder: string[],
+  initialEnabledOrder: string[],
   allKeys: readonly string[],
 ): ItemState[] {
-  const enabledOrdered = initialOrder.filter((id) => allKeys.includes(id));
-  const hidden = allKeys.filter((id) => !initialOrder.includes(id));
-  return [
-    ...enabledOrdered.map((id) => ({ id, enabled: true })),
-    ...hidden.map((id) => ({ id, enabled: false })),
-  ];
+  const enabledSet = new Set(initialEnabledOrder);
+  const allEnabled =
+    initialEnabledOrder.length === 0 ||
+    initialEnabledOrder.length >= allKeys.length;
+
+  return allKeys.map((id) => ({
+    id,
+    enabled: allEnabled || enabledSet.has(id),
+  }));
 }
 
 export function CustomizeMasterListColumnsButton({
@@ -95,7 +97,6 @@ function CustomizeDialog({
     initColumnState(initialColumns, allKeys),
   );
   const [error, setError] = useState<string | null>(null);
-  const dragId = useRef<string | null>(null);
 
   const toggle = useCallback((id: string) => {
     setError(null);
@@ -104,19 +105,6 @@ function CustomizeDialog({
         item.id === id ? { ...item, enabled: !item.enabled } : item,
       ),
     );
-  }, []);
-
-  const reorder = useCallback((fromId: string, toId: string) => {
-    if (fromId === toId) return;
-    setItems((prev) => {
-      const next = [...prev];
-      const fromIdx = next.findIndex((i) => i.id === fromId);
-      const toIdx = next.findIndex((i) => i.id === toId);
-      if (fromIdx === -1 || toIdx === -1) return prev;
-      const [moved] = next.splice(fromIdx, 1);
-      next.splice(toIdx, 0, moved);
-      return next;
-    });
   }, []);
 
   const save = useCallback(() => {
@@ -163,8 +151,8 @@ function CustomizeDialog({
               Customise master list columns
             </h2>
             <p className="mt-1 text-sm text-graphite">
-              Show, hide, and drag to reorder the columns in your {scopeLabel}{" "}
-              and exports. Applies to everyone in your organisation.
+              Show or hide columns in your {scopeLabel} and exports. Applies to
+              everyone in your organisation.
             </p>
           </div>
           <button
@@ -183,28 +171,13 @@ function CustomizeDialog({
             return (
               <div
                 key={item.id}
-                draggable
-                onDragStart={(e) => {
-                  dragId.current = item.id;
-                  e.dataTransfer.effectAllowed = "move";
-                }}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  const dragging = dragId.current;
-                  if (!dragging) return;
-                  reorder(dragging, item.id);
-                }}
-                onDragEnd={() => {
-                  dragId.current = null;
-                }}
                 className={cn(
-                  "flex cursor-grab items-center gap-3 rounded-[10px] border px-3 py-2.5 transition-colors active:cursor-grabbing",
+                  "flex items-center gap-3 rounded-[10px] border px-3 py-2.5 transition-colors",
                   item.enabled
                     ? "border-silver bg-panel"
                     : "border-dashed border-silver/80 bg-frost/40 opacity-60",
                 )}
               >
-                <GripVertical className="h-4 w-4 shrink-0 text-steel" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[14px] font-medium text-onyx">
                     {labelByKey[item.id] ?? item.id}
@@ -258,7 +231,7 @@ function CustomizeDialog({
               ) : (
                 <SaveIcon className="h-4 w-4" />
               )}
-              Save layout
+              Save
             </Button>
           </div>
         </div>
