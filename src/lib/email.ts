@@ -100,6 +100,91 @@ function emailShell(body: string, maxWidth = 640): string {
     </div>`;
 }
 
+const SUPPORT_EMAIL = "hello@welddoc.in";
+
+function ctaButton(label: string, href: string): string {
+  return `
+    <a href="${href}" style="display:inline-block;background:${EMAIL.ember};color:#132537;text-decoration:none;font-weight:700;font-size:14px;padding:12px 22px;border-radius:10px">
+      ${label}
+    </a>`;
+}
+
+function fallbackLink(href: string): string {
+  return `
+    <p style="color:${EMAIL.muted};font-size:12px;margin:18px 0 0;line-height:1.5;word-break:break-all">
+      If the button does not work, copy and paste this link into your browser:<br />
+      <a href="${href}" style="color:${EMAIL.navy}">${href}</a>
+    </p>`;
+}
+
+function emailFooter(): string {
+  return `
+    <p style="color:${EMAIL.muted};font-size:12px;margin:18px 0 0">
+      This link expires in about 24 hours. Need help? Contact
+      <a href="mailto:${SUPPORT_EMAIL}" style="color:${EMAIL.navy}">${SUPPORT_EMAIL}</a>.
+    </p>`;
+}
+
+export function verificationEmailHtml(input: {
+  fullName: string;
+  actionLink: string;
+}): string {
+  const name = input.fullName.trim() || "there";
+  return emailShell(
+    `
+          <h1 style="font-family:Helvetica,Arial,sans-serif;font-size:18px;color:${EMAIL.text};margin:0 0 12px">Verify your email</h1>
+          <p style="color:${EMAIL.textSecondary};margin:0 0 16px;line-height:1.5">
+            Welcome to Weld.Doc, ${name}. Confirm your email address to activate your account and start managing welder qualifications.
+          </p>
+          <p style="margin:0 0 8px">${ctaButton("Verify Email", input.actionLink)}</p>
+          ${fallbackLink(input.actionLink)}
+          ${emailFooter()}
+  `,
+    560,
+  );
+}
+
+export function passwordResetEmailHtml(input: { actionLink: string }): string {
+  return emailShell(
+    `
+          <h1 style="font-family:Helvetica,Arial,sans-serif;font-size:18px;color:${EMAIL.text};margin:0 0 12px">Reset your password</h1>
+          <p style="color:${EMAIL.textSecondary};margin:0 0 16px;line-height:1.5">
+            We received a request to reset your Weld.Doc password. Click the button below to choose a new one.
+          </p>
+          <p style="margin:0 0 8px">${ctaButton("Reset Password", input.actionLink)}</p>
+          ${fallbackLink(input.actionLink)}
+          <p style="color:${EMAIL.muted};font-size:12px;margin:18px 0 0">
+            If you did not request this, you can ignore this email.
+          </p>
+          ${emailFooter()}
+  `,
+    560,
+  );
+}
+
+export async function sendVerificationEmail(input: {
+  to: string;
+  fullName: string;
+  actionLink: string;
+}): Promise<{ sent: boolean; error?: string; id?: string }> {
+  return sendEmail({
+    to: [input.to],
+    subject: "Weld.Doc — verify your email",
+    html: verificationEmailHtml(input),
+  });
+}
+
+export async function sendPasswordResetEmail(input: {
+  to: string;
+  actionLink: string;
+}): Promise<{ sent: boolean; error?: string; id?: string }> {
+  return sendEmail({
+    to: [input.to],
+    subject: "Weld.Doc — reset your password",
+    html: passwordResetEmailHtml(input),
+  });
+}
+
 export interface ExpiryAlert {
   welderName: string;
   plantWelderId: string;

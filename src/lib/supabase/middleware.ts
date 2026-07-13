@@ -50,7 +50,12 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && pathname === "/login") {
+  // Allow recovery sessions to reach the reset-password page.
+  if (
+    user &&
+    pathname === "/login" &&
+    !request.nextUrl.searchParams.has("verified")
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
