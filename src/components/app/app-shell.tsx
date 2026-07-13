@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import Link from "next/link";
 import { Menu } from "lucide-react";
-import { Logo } from "@/components/brand/logo";
 import { Sidebar } from "@/components/app/sidebar";
 import { useAppTheme } from "@/components/app/app-theme-provider";
 import { cn } from "@/lib/utils";
@@ -78,9 +76,6 @@ export function AppShell({
           >
             <Menu className="h-5 w-5" />
           </button>
-          <Link href="/dashboard" aria-label="Weld.Doc home">
-            <Logo onDark={resolvedTheme === "dark"} />
-          </Link>
         </header>
 
         <main className="sleek-scroll min-h-0 min-w-0 max-w-full flex-1 overflow-x-hidden overflow-y-auto">
