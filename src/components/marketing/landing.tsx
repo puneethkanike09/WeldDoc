@@ -20,13 +20,21 @@ import { TrustMarquee } from "@/components/marketing/trust-marquee";
 const products = [
   {
     icon: QrCode,
-    title: "Welder registry + QR",
-    points: ["Permanent digital profile", "Plant welder ID (W#01)", "Live QR status link"],
+    title: "Welder & operator registry",
+    points: [
+      "Permanent digital profiles",
+      "Plant IDs (W#01, O#01)",
+      "Live QR status link",
+    ],
   },
   {
     icon: FileCheck2,
     title: "Certificate generation",
-    points: ["Auto range of approval", "Stamp & signature applied"],
+    points: [
+      "Auto range of approval",
+      "ISO-compliant PDF layout",
+      "Upload hand-signed copy",
+    ],
   },
   {
     icon: IdCard,
@@ -36,17 +44,25 @@ const products = [
   {
     icon: BellRing,
     title: "Expiry alerts",
-    points: ["6-month continuity", "2-year revalidation", "Email digests"],
+    points: [
+      "Continuity & revalidation tracking",
+      "Configurable lead windows",
+      "Email digests",
+    ],
   },
   {
     icon: Table2,
     title: "Master list",
-    points: ["Filterable register", "PDF export", "Excel export"],
+    points: ["Filterable register", "PDF export", "CSV export"],
   },
   {
     icon: PieChart,
     title: "Status dashboard",
-    points: ["By process & joint type", "Category-gap flags", "Expiry widgets"],
+    points: [
+      "By process & joint type",
+      "Customisable KPI widgets",
+      "Expiry & overdue counts",
+    ],
   },
 ];
 
@@ -64,7 +80,7 @@ const workflow = [
   {
     n: "03",
     title: "Certify",
-    body: "Range of approval computed. Stamped certificate generated.",
+    body: "Range of approval computed. Print-ready certificate PDF issued.",
   },
   {
     n: "04",
@@ -75,9 +91,10 @@ const workflow = [
 
 const comparison = [
   { label: "Purpose-built, done simply", others: "Buried in multi-standard ERPs" },
+  { label: "ISO 9606-1 + ISO 14732 in one platform", others: "Partial" },
   { label: "Auto range-of-approval engine", others: true },
   { label: "Instant QR on-site verification", others: "Partial" },
-  { label: "Batch qualification report (BW + FW)", others: false },
+  { label: "Group qualification sessions", others: false },
   { label: "Built for the Indian market & price", others: false },
   { label: "Onboard in an afternoon", others: false },
 ];
@@ -112,9 +129,9 @@ export function Landing() {
               Welder qualification, finally under control.
             </h1>
             <p className="text-body-large mx-auto mt-8 max-w-[560px] text-ink">
-              Register welders, auto-calculate the range of approval, generate
-              stamped certificates, and share live qualification status with a
-              single QR scan.
+              Register welders and operators, auto-calculate the range of
+              approval, generate compliant certificates, and share live
+              qualification status with a single QR scan.
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-6">
               <DsButtonLink href="/login">Get started</DsButtonLink>
@@ -139,7 +156,7 @@ export function Landing() {
             <div className="relative hidden aspect-3/4 overflow-hidden rounded-lg border border-hairline bg-white shadow-(--shadow-lift) xl:block xl:aspect-auto xl:min-h-[420px]">
               <Image
                 src="/images/landing-masterlist-mobile.png"
-                alt="Weld.Doc welder master list on mobile — filterable register with Excel export"
+                alt="Weld.Doc master list on mobile — filterable register with CSV export"
                 fill
                 sizes="360px"
                 className="object-cover object-top"
@@ -163,11 +180,11 @@ export function Landing() {
       <section id="features" className="section-y bg-canvas">
         <div className="mx-auto max-w-[1280px] px-6">
           <h2 className="text-section-heading max-w-[640px]">
-            Six tools for the ISO 9606-1 lifecycle
+            Six tools for ISO 9606-1 & ISO 14732
           </h2>
           <p className="text-body-large mt-5 max-w-[520px] text-slate">
-            A focused toolkit — not a sprawling ERP — from registration to
-            on-site verification.
+            A focused toolkit — not a sprawling ERP — from registration and
+            group qualify through certificates to on-site verification.
           </p>
           <div className="mt-16 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:auto-rows-[minmax(186px,auto)]">
             {products.map((p, i) => {
@@ -278,9 +295,9 @@ export function Landing() {
               Scan the badge. See the truth.
             </h2>
             <p className="text-body-large mt-5 text-slate">
-              Every welder ID carries a QR code. Anyone on the shop floor can
-              scan and instantly see qualified or not, for which processes, valid
-              until when — no login required.
+              Every welder and operator ID carries a QR code. Anyone on the shop
+              floor can scan and instantly see qualified or not, for which
+              processes, valid until when — no login required.
             </p>
             <p className="mt-8">
               <DsButtonLink href="/login" variant="secondary">
@@ -349,7 +366,8 @@ export function Landing() {
             <h2 className="text-section-heading mt-4">Focused beats bloated</h2>
             <p className="text-body-large mt-5 text-slate">
               WeldEye, WeldTrace and WeldNote are broad enterprise platforms.
-              For a shop on ISO 9606-1, Weld.Doc is faster and easier to adopt.
+              For a shop on ISO 9606-1 or ISO 14732, Weld.Doc is faster and
+              easier to adopt.
             </p>
           </div>
 
@@ -422,7 +440,7 @@ export function Landing() {
                 Ready to run qualifications properly?
               </h2>
               <p className="text-body-large mt-5 text-white/70">
-                Set up your plant, register your first welders and issue a
+                Set up your plant, register welders and operators, and issue a
                 compliant certificate today.
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-6">
