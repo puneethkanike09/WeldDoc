@@ -1,5 +1,18 @@
 import type { QualListItem } from "@/components/qualify/qualification-sidebar";
 
+/** e.g. "today", "in 1 day", "in 14 days" */
+export function relativeDueInLabel(days: number): string {
+  if (days === 0) return "today";
+  if (days === 1) return "in 1 day";
+  return `in ${days} days`;
+}
+
+/** Compact list hint: "today", "1d", "14d" */
+export function relativeDueCompact(days: number): string {
+  if (days === 0) return "today";
+  return `${days}d`;
+}
+
 export function isCertificateExpired(
   statusTone: QualListItem["statusTone"],
   daysToExpiry: number | null,

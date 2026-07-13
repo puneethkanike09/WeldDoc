@@ -449,6 +449,9 @@ export function wpqReadyForCertificate(
   ndtRecords: Pick<NdtDtRecord, "test_method" | "result">[],
 ): boolean {
   if (wpq.wpq_status === "Failed") return false;
-  if (wpq.wpq_status !== "Pending_NDT") return false;
+  // Approved quals can re-issue after revisiting the workflow (e.g. position edit).
+  if (wpq.wpq_status !== "Pending_NDT" && wpq.wpq_status !== "Approved") {
+    return false;
+  }
   return ndtTestsComplete(ndtJointCategory(wpq.joint_type), ndtRecords);
 }

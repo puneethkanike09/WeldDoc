@@ -158,4 +158,22 @@ test("single-process designation stays one line", () => {
   assert.match(lines[0], /^ISO 9606-1 111/);
 });
 
+test("designation uses test position code, not expanded range positions", () => {
+  const wpq = baseWpq({
+    process: "141",
+    process_2: null,
+    position: "H-L045",
+    deposited_thickness_mm: 11.99,
+    supplementary_fillet: false,
+    supplementary_fillet_process: null,
+  });
+  const hl045Range: RangeOfApproval = {
+    ...range,
+    approved_positions: ["PA", "PC", "PE", "PF"],
+  };
+  const line = buildDesignation(wpq, hl045Range)[0]!;
+  assert.match(line, /H-L045/);
+  assert.doesNotMatch(line, /PA&PC&PE&PF/);
+});
+
 console.log("\nAll multi-process tests passed.\n");

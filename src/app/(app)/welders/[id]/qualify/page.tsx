@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
+import { QualifyWorkflowNotice } from "@/components/qualify/qualify-workflow-notice";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import {
@@ -95,6 +97,9 @@ export default async function QualifyPage({
       />
 
       <div className="page-content">
+        <Suspense fallback={null}>
+          <QualifyWorkflowNotice />
+        </Suspense>
         <Link
           href={`/welders/${id}`}
           className="mb-6 inline-flex items-center gap-1.5 text-sm text-graphite hover:text-onyx"
@@ -109,7 +114,14 @@ export default async function QualifyPage({
           welderId={id}
         />
 
-        {step === 4 && wpq && !certReady && (
+        {step === 4 && wpq && wpq.wpq_status === "Failed" && (
+          <p className="mb-4 rounded-[10px] bg-ember/10 px-4 py-3 text-sm text-ember">
+            One or more NDT tests failed. Go back to step 3 and update results
+            before issuing a certificate.
+          </p>
+        )}
+
+        {step === 4 && wpq && wpq.wpq_status !== "Failed" && !certReady && (
           <p className="mb-4 rounded-[10px] bg-expiring/15 px-4 py-3 text-sm text-[#8a6a00]">
             Add NDT tests on step 3 with Pass results before issuing a
             certificate, or go back to step 3 to update them.

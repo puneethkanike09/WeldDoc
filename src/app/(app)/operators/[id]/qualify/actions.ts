@@ -227,8 +227,9 @@ export async function saveOperatorNdt(formData: FormData) {
     .eq("id", oqId);
 
   revalidatePath(`/operators/${operatorId}`);
+  const ndtFlash = anyFail ? "failed" : "saved";
   redirect(
-    `/operators/${operatorId}/qualify?oq=${oqId}&step=${anyFail ? 3 : 4}`,
+    `/operators/${operatorId}/qualify?oq=${oqId}&step=4&ndt=${ndtFlash}`,
   );
 }
 

@@ -8,6 +8,7 @@ import { RegistryListFilters } from "@/components/app/registry-list-filters";
 import { RegistryListPagination } from "@/components/app/registry-list-pagination";
 import { TableScrollArea } from "@/components/ui/table-scroll-area";
 import { formatDate } from "@/lib/utils";
+import { relativeDueCompact } from "@/lib/qualify/expiry-display";
 import { STATUS_TONE } from "@/lib/operator-status";
 import type { OperatorRow } from "@/lib/operators/registry-row";
 import {
@@ -97,7 +98,7 @@ export function OperatorsTable({
                     r.summary.daysToExpiry >= 0 &&
                     r.summary.daysToExpiry <= 60 && (
                       <span className="ml-2 text-xs text-[#8a6a00]">
-                        {r.summary.daysToExpiry}d
+                        {relativeDueCompact(r.summary.daysToExpiry)}
                       </span>
                     )}
                 </td>

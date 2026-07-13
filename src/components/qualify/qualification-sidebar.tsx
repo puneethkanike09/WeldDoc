@@ -7,6 +7,7 @@ import {
   certificateExpiryHeading,
   continuityExpiryHeading,
   continuityExpiryTone,
+  relativeDueCompact,
 } from "@/lib/qualify/expiry-display";
 import { ButtonLink } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
@@ -153,7 +154,7 @@ export function QualificationSidebar({
                       q.daysToExpiry >= 0 &&
                       q.daysToExpiry <= 60 && (
                         <span className="ml-1 text-[#8a6a00]">
-                          · {q.daysToExpiry}d
+                          · {relativeDueCompact(q.daysToExpiry)}
                         </span>
                       )}
                   </p>
@@ -174,7 +175,9 @@ export function QualificationSidebar({
                       {q.daysToContinuityDue !== null &&
                         q.daysToContinuityDue >= 0 &&
                         q.daysToContinuityDue <= 60 && (
-                          <span className="ml-1">· {q.daysToContinuityDue}d</span>
+                          <span className="ml-1">
+                            · {relativeDueCompact(q.daysToContinuityDue)}
+                          </span>
                         )}
                     </p>
                   ) : null}
