@@ -1,12 +1,12 @@
 /**
  * When true, Vercel Hobby once-daily cron is enough (ignores per-org send clock).
- * When false, a sub-daily caller (GitHub Actions every 15 min) is required so
+ * When false, a sub-daily caller (GitHub Actions every 10 min) is required so
  * each org's alert_email_time + timezone window can be respected.
  */
 export const ALERT_CRON_IS_DAILY = false;
 
 /** Send window half-open [configured time, configured time + window). Match cron cadence. */
-export const ALERT_CRON_WINDOW_MINUTES = 15;
+export const ALERT_CRON_WINDOW_MINUTES = 10;
 
 export const ALERT_TIMEZONE_OPTIONS: { value: string; label: string }[] = [
   { value: "Asia/Kolkata", label: "India (IST)" },

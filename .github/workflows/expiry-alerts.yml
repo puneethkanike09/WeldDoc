@@ -1,4 +1,4 @@
-# Calls production expiry-alert cron every 15 minutes (UTC).
+# Calls production expiry-alert cron every 10 minutes (UTC).
 # Secrets (repo Settings → Secrets and variables → Actions):
 #   CRON_SECRET  — same value as Vercel / .env.local CRON_SECRET
 #   CRON_BASE_URL — production origin, e.g. https://welddoc.in
@@ -7,7 +7,7 @@ name: Expiry alerts cron
 
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "*/10 * * * *"
   workflow_dispatch:
 
 concurrency:
