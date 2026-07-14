@@ -59,9 +59,10 @@ export function getImportFieldKind(column: ImportColumnKey): ImportFieldKind {
     case "plant_welder_id":
     case "full_name":
     case "place_of_birth":
-    case "id_number":
     case "photo_filename":
       return { type: "text" };
+    case "id_number":
+      return { type: "number", step: "1" };
     case "date_of_birth":
     case "date_of_welding":
     case "expiry_date":

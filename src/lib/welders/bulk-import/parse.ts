@@ -4,6 +4,7 @@ import {
   IMPORT_SHEET_NAME,
   MAX_IMPORT_ROWS,
 } from "./columns";
+import { idNumberFromWorksheetCell } from "./id-number";
 import type { RawImportRow } from "./types";
 
 function cellToString(value: unknown): string | null {
@@ -73,6 +74,10 @@ export function parseImportWorkbook(buffer: ArrayBuffer): {
     if (canonical) recognizedHeaders.set(index, canonical);
   }
 
+  const idNumberColIndex = [...recognizedHeaders.entries()].find(
+    ([, key]) => key === "id_number",
+  )?.[0];
+
   if (!recognizedHeaders.size) {
     return {
       rows: [],
@@ -97,7 +102,13 @@ export function parseImportWorkbook(buffer: ArrayBuffer): {
     let hasValue = false;
 
     for (const [colIndex, key] of recognizedHeaders) {
-      const val = cellToString(line[colIndex]);
+      let val: string | null;
+      if (key === "id_number" && idNumberColIndex != null) {
+        const addr = XLSX.utils.encode_cell({ r, c: colIndex });
+        val = idNumberFromWorksheetCell(sheet[addr]);
+      } else {
+        val = cellToString(line[colIndex]);
+      }
       if (val != null) hasValue = true;
       raw[key] = val;
     }

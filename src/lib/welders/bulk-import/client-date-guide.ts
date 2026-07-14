@@ -3,6 +3,7 @@
  * schedule) + WeldDoc Import sheet ready to fill.
  */
 import * as XLSX from "xlsx";
+import { applyImportSheetFormats } from "./xlsx-formats";
 
 /** Add months to an ISO date (UTC), return YYYY-MM-DD. */
 function addMonthsIso(iso: string, months: number): string {
@@ -250,7 +251,7 @@ export function buildClientDateGuideBuffer(): Buffer {
     "Example Welder",
     "1985-04-12",
     "Aadhar",
-    "123456789012",
+    123456789012,
     "W#15.jpg",
     "135",
     "BW",
@@ -276,6 +277,7 @@ export function buildClientDateGuideBuffer(): Buffer {
   }
 
   const importSheet = XLSX.utils.aoa_to_sheet(importAoa);
+  applyImportSheetFormats(importSheet, header, importAoa.length - 1);
   importSheet["!cols"] = header.map((h) => ({
     wch: Math.min(28, Math.max(12, h.length + 2)),
   }));

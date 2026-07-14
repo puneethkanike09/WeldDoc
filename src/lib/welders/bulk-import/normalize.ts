@@ -27,6 +27,7 @@ import {
   WELDING_PROCESSES,
 } from "@/lib/iso9606/constants";
 import { IMPORT_COLUMNS, type ImportColumnKey } from "./columns";
+import { coerceIdNumberString } from "./id-number";
 import type { RawImportRow } from "./types";
 
 function toStr(value: string | number | null | undefined): string {
@@ -308,6 +309,7 @@ export function coerceDateHistory(value: string): string | null {
 
 const COERCERS: Partial<Record<ImportColumnKey, Coercer>> = {
   welder_status: coerceStatus,
+  id_number: (v) => coerceIdNumberString(v),
   process: coerceProcess,
   joint_type: coerceJoint,
   position: coercePosition,

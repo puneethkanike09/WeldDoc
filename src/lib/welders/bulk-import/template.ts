@@ -4,6 +4,7 @@ import {
   TEMPLATE_COLUMNS,
 } from "./columns";
 import { parseImportWorkbook } from "./parse";
+import { applyImportSheetFormats } from "./xlsx-formats";
 
 export const TEMPLATE_EXAMPLE_ROW_COUNT = 4;
 
@@ -15,7 +16,7 @@ const EXAMPLE_ROWS = [
     full_name: "Sanjay Yadav",
     date_of_birth: "1988-05-20",
     id_method: "Aadhar",
-    id_number: "123456789012",
+    id_number: 123456789012,
     photo_filename: "W#02.jpg",
     process: "136",
     joint_type: "BW",
@@ -30,8 +31,8 @@ const EXAMPLE_ROWS = [
     revalidation_method: "9.3b",
   },
   {
-    plant_welder_id: "W#02",
-    full_name: "Sanjay Yadav",
+    plant_welder_id: "",
+    full_name: "",
     process: "135",
     joint_type: "BW",
     position: "PF",
@@ -45,8 +46,8 @@ const EXAMPLE_ROWS = [
     revalidation_method: "9.3b",
   },
   {
-    plant_welder_id: "W#02",
-    full_name: "Sanjay Yadav",
+    plant_welder_id: "",
+    full_name: "",
     process: "121",
     joint_type: "FW",
     position: "PA",
@@ -91,6 +92,7 @@ export function buildImportTemplateBuffer(): Buffer {
   );
 
   const importSheet = XLSX.utils.aoa_to_sheet([header, ...dataRows]);
+  applyImportSheetFormats(importSheet, header, dataRows.length);
   XLSX.utils.book_append_sheet(wb, importSheet, IMPORT_SHEET_NAME);
 
   return Buffer.from(

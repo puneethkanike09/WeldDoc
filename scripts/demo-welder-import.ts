@@ -270,7 +270,7 @@ async function main() {
   for (const p of photoResults) {
     console.log(`  ${p.plantWelderId}: ${p.status}${p.filename ? ` (${p.filename})` : ""}`);
   }
-  // fill-forward can copy photo_filename between rows — only commit photos for W#9901/W#9902
+  // Each welder matches its own photo by plant ID when photo_filename is blank.
   const safeMatches = new Map<string, PhotoFile>();
   if (matches.has("W#9901")) safeMatches.set("W#9901", matches.get("W#9901")!);
   if (matches.has("W#9902")) safeMatches.set("W#9902", matches.get("W#9902")!);

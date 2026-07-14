@@ -13,6 +13,8 @@ import {
   parseDateHistory,
 } from "../src/lib/welders/bulk-import/parse-history";
 import { computeClientDateSchedule } from "../src/lib/welders/bulk-import/client-date-guide";
+import { coerceIdNumberString } from "../src/lib/welders/bulk-import/id-number";
+import { parseImportWorkbook } from "../src/lib/welders/bulk-import/parse";
 
 function test(name: string, fn: () => void) {
   try {
@@ -409,6 +411,185 @@ test("fill-forward copies welder fields on qualification rows", () => {
   assert.equal(r.rows[1].welder.plantWelderId, "W#02");
   assert.equal(r.rows[1].welder.dateOfBirth, "1988-05-20");
   assert.equal(r.rows[1].welder.idMethod, "Aadhar");
+});
+
+test("does not fill-forward photo_filename to the next welder row", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          plant_welder_id: "W#02",
+          full_name: "Sanjay Yadav",
+          photo_filename: "W#02.jpg",
+          process: "135",
+          joint_type: "BW",
+          position: "PF",
+          base_material_group: "1",
+          test_thickness_mm: "12",
+          product: "Plate",
+          date_of_welding: "2025-08-19",
+          revalidation_method: "9.3b",
+        },
+      },
+      {
+        excelRow: 3,
+        raw: {
+          plant_welder_id: "W#03",
+          full_name: "Sanjay Yadav",
+          process: "141",
+          joint_type: "BW",
+          position: "PA",
+          base_material_group: "1",
+          test_thickness_mm: "12",
+          product: "Plate",
+          date_of_welding: "2025-08-19",
+          revalidation_method: "9.3b",
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  assert.equal(r.rows[0].welder.photoFilename, "W#02.jpg");
+  assert.equal(r.rows[0].raw.photo_filename, "W#02.jpg");
+  assert.equal(r.rows[1].welder.photoFilename, null);
+  assert.equal(r.rows[1].raw.photo_filename, "");
+
+  const { matches } = matchPhotosToWelders(r.rows, [
+    { filename: "W#02.jpg", bytes: Buffer.from("a"), mime: "image/jpeg" },
+    { filename: "W#03.jpg", bytes: Buffer.from("b"), mime: "image/jpeg" },
+  ]);
+  assert.equal(matches.get("W#02")?.filename, "W#02.jpg");
+  assert.equal(matches.get("W#03")?.filename, "W#03.jpg");
+});
+
+test("new welder row with W# does not inherit blank fields from row above", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          plant_welder_id: "W#02",
+          full_name: "Sanjay Yadav",
+          date_of_birth: "1988-05-20",
+          id_method: "Aadhar",
+          id_number: "123456789012",
+          photo_filename: "W#02.jpg",
+          process: "135",
+          joint_type: "BW",
+          position: "PF",
+          base_material_group: "1",
+          test_thickness_mm: "12",
+          product: "Plate",
+          date_of_welding: "2025-08-19",
+          revalidation_method: "9.3b",
+        },
+      },
+      {
+        excelRow: 3,
+        raw: {
+          plant_welder_id: "W#03",
+          full_name: "Sanjay Yadav",
+          process: "141",
+          joint_type: "BW",
+          position: "PA",
+          base_material_group: "1",
+          test_thickness_mm: "12",
+          product: "Plate",
+          date_of_welding: "2025-08-19",
+          revalidation_method: "9.3b",
+        },
+      },
+      {
+        excelRow: 4,
+        raw: {
+          plant_welder_id: "W#15",
+          full_name: "Rajesh Kumar",
+          process: "111",
+          joint_type: "BW",
+          position: "PA",
+          base_material_group: "1",
+          test_thickness_mm: "12",
+          product: "Plate",
+          date_of_welding: "2019-06-10",
+          revalidation_method: "9.3a",
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  // W#03 — blanks stay blank, not copied from W#02
+  assert.equal(r.rows[1].welder.dateOfBirth, null);
+  assert.equal(r.rows[1].welder.idMethod, null);
+  assert.equal(r.rows[1].welder.idNumber, null);
+  assert.equal(r.rows[1].raw.date_of_birth, "");
+  assert.equal(r.rows[1].raw.id_method, "");
+  assert.equal(r.rows[1].raw.id_number, "");
+  // W#15 — same
+  assert.equal(r.rows[2].welder.dateOfBirth, null);
+  assert.equal(r.rows[2].raw.photo_filename, "");
+});
+
+test("qualification columns are never fill-forwarded between welders", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          plant_welder_id: "W#02",
+          full_name: "Sanjay",
+          process: "136",
+          joint_type: "BW",
+          position: "PF",
+          base_material_group: "1",
+          test_thickness_mm: "12",
+          product: "Plate",
+          date_of_welding: "2025-08-19",
+          revalidation_method: "9.3b",
+        },
+      },
+      {
+        excelRow: 3,
+        raw: {
+          plant_welder_id: "W#03",
+          full_name: "Rajesh",
+          process: "141",
+          joint_type: "BW",
+          position: "PA",
+          base_material_group: "1",
+          test_thickness_mm: "10",
+          product: "Plate",
+          date_of_welding: "2024-01-10",
+          revalidation_method: "9.3b",
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  assert.equal(r.rows[0].qualification?.process, "136");
+  assert.equal(r.rows[1].qualification?.process, "141");
+  assert.equal(r.rows[1].qualification?.position, "PA");
+  assert.notEqual(r.rows[1].qualification?.process, "136");
+});
+
+test("template id_number parses as full digits from Excel number cell", () => {
+  const buffer = buildImportTemplateBuffer();
+  const arrayBuffer = buffer.buffer.slice(
+    buffer.byteOffset,
+    buffer.byteOffset + buffer.byteLength,
+  ) as ArrayBuffer;
+  const { rows, fileError } = parseImportWorkbook(arrayBuffer);
+  assert.equal(fileError, undefined);
+  assert.equal(rows[0].raw.id_number, "123456789012");
+  const v = validateImportRows(rows, new Set());
+  assert.equal(v.rows[0].welder.idNumber, "123456789012");
+});
+
+test("coerces scientific notation id_number strings", () => {
+  assert.equal(coerceIdNumberString("1.23456789012E+11"), "123456789012");
 });
 
 test("legacy expiry used as-is not recalculated from old test date", () => {

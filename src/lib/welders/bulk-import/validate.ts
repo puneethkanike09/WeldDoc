@@ -10,6 +10,7 @@ import {
   FW_POSITIONS,
 } from "@/lib/iso9606/constants";
 import { computeExpiry } from "@/lib/expiry";
+import { coerceIdNumberString } from "./id-number";
 import { normalizePlantWelderId } from "@/lib/welders/plant-id";
 import { QUAL_REQUIRED_KEYS } from "./columns";
 import { fillForwardWelderFields } from "./fill-forward";
@@ -56,6 +57,8 @@ export type ImportValidationOptions = {
 
 export function normalizeImportIdNumber(raw: string | null | undefined): string | null {
   if (!raw?.trim()) return null;
+  const coerced = coerceIdNumberString(raw.trim());
+  if (coerced && /^\d+$/.test(coerced)) return coerced;
   return raw.trim().toUpperCase();
 }
 
