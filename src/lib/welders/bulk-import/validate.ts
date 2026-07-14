@@ -154,7 +154,6 @@ function parseNdt(
 function welderFingerprint(w: WelderImportFields): string {
   return [
     w.fullName,
-    w.email ?? "",
     w.dateOfBirth ?? "",
     w.placeOfBirth ?? "",
     w.idMethod ?? "",
@@ -182,7 +181,6 @@ export function weldersConflict(
   b: WelderImportFields,
 ): boolean {
   if (a.fullName.trim() !== b.fullName.trim()) return true;
-  if (conflictingOptional(a.email, b.email)) return true;
   if (conflictingOptional(a.dateOfBirth, b.dateOfBirth)) return true;
   if (conflictingOptional(a.placeOfBirth, b.placeOfBirth)) return true;
   if (conflictingOptional(a.idMethod, b.idMethod)) return true;
@@ -199,7 +197,6 @@ function mergeWelderSnapshot(
   return {
     plantWelderId: next.plantWelderId || prior.plantWelderId,
     fullName: next.fullName || prior.fullName,
-    email: next.email ?? prior.email,
     dateOfBirth: next.dateOfBirth ?? prior.dateOfBirth,
     placeOfBirth: next.placeOfBirth ?? prior.placeOfBirth,
     idMethod: next.idMethod ?? prior.idMethod,
