@@ -130,6 +130,7 @@ test("buildDesignation returns two lines for multi-process + supplementary fille
   assert.match(lines[1], /FW/);
   assert.match(lines[1], /t12/);
   assert.match(lines[1], /\bml\b/);
+  assert.doesNotMatch(lines[1], /ssnb|ssmb|ss nb|ss mb/);
 });
 
 test("buildCertRows layer range includes sl & ml when supplementary fillet", () => {
@@ -158,18 +159,23 @@ test("135+136 multi-process BW designation matches client format", () => {
     process2_layer_type: "Single layer (sl)",
     supplementary_fillet: true,
     supplementary_fillet_process: "135",
-    supplementary_fillet_position: "PF",
+    supplementary_fillet_position: "PB",
     supplementary_fillet_thickness_mm: 12,
     supplementary_fillet_2: true,
-    supplementary_fillet_2_position: "PF",
+    supplementary_fillet_2_position: "PD",
     supplementary_fillet_2_thickness_mm: 12,
   });
-  const line = buildDesignation(wpq, range)[0]!;
+  const lines = buildDesignation(wpq, range);
+  assert.equal(lines.length, 2);
   assert.match(
-    line,
+    lines[0]!,
     /ISO 9606-1 135\/136 P BW FM1 S\/P s12\/12 PF & PF ssnb\/ssmb/,
   );
-  assert.doesNotMatch(line, /\bsl\b/);
+  assert.doesNotMatch(lines[0]!, /\bsl\b/);
+  assert.equal(
+    lines[1],
+    "ISO 9606-1 135/136 P FW FM1 S/P t12 PB/PD sl",
+  );
 });
 
 test("buildCertRows shows per-process deposited thickness", () => {
@@ -234,33 +240,36 @@ test("designation uses test position code, not expanded range positions", () => 
   assert.doesNotMatch(line, /PA&PC&PE&PF/);
 });
 
-test("FW multi-process emits one designation line per process", () => {
+test("FW multi-process combines into one designation line without weld details", () => {
   const wpq = baseWpq({
     joint_type: "FW",
     process: "135",
     process_2: "136",
     position: "PF",
     position_2: "PB",
+    product: "Plate",
     test_thickness_mm: 8,
     deposited_thickness_mm: null,
     process2_deposited_thickness_mm: 6,
+    filler_type: "Solid wire/rod (S)",
+    process2_filler_type: "Flux-cored (P)",
+    layer_type: "Single layer (sl)",
+    process2_layer_type: "Single layer (sl)",
     supplementary_fillet: false,
   });
   const lines = buildDesignation(wpq, range);
-  assert.equal(lines.length, 2);
-  assert.match(lines[0], /ISO 9606-1 135/);
-  assert.match(lines[0], /FW/);
-  assert.match(lines[0], /t8/);
-  assert.match(lines[0], / PF /);
-  assert.match(lines[1], /ISO 9606-1 136/);
-  assert.match(lines[1], /t6/);
-  assert.match(lines[1], / PB /);
+  assert.equal(lines.length, 1);
+  assert.equal(lines[0], "ISO 9606-1 135/136 P FW FM1 S/P t8/6 PF/PB sl");
+  assert.doesNotMatch(lines[0]!, /ssnb|ssmb/);
 });
 
 test("supplementary fillet 2 without process_2 still appears on certificate", () => {
   const wpq = baseWpq({
     process: "135",
     process_2: null,
+    product: "Plate",
+    filler_type: "Solid wire/rod (S)",
+    layer_type: "Single layer (sl)",
     supplementary_fillet: true,
     supplementary_fillet_process: "135",
     supplementary_fillet_position: "PF",
@@ -270,8 +279,11 @@ test("supplementary fillet 2 without process_2 still appears on certificate", ()
     supplementary_fillet_2_thickness_mm: 8,
   });
   const lines = buildDesignation(wpq, range);
-  assert.equal(lines.length, 3);
-  assert.ok(lines.some((line) => line.includes("t8") && line.includes("FW")));
+  assert.equal(lines.length, 2);
+  assert.match(lines[1]!, /135\/135 P FW/);
+  assert.match(lines[1]!, /t10\/8/);
+  assert.match(lines[1]!, /PF\/PB/);
+  assert.doesNotMatch(lines[1]!, /ssnb|ssmb/);
 });
 
 console.log("\nAll multi-process tests passed.\n");
