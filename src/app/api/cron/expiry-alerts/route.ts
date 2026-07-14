@@ -7,7 +7,7 @@ import {
 } from "@/lib/email";
 import { continuityDue } from "@/lib/expiry";
 import { operatorContinuityDue } from "@/lib/iso14732/expiry";
-import { processLabel as welderProcessLabel } from "@/lib/iso9606/constants";
+import { qualificationProcessLabel } from "@/lib/iso9606/constants";
 import { processLabel as operatorProcessLabel } from "@/lib/iso14732/constants";
 import {
   bucketFor,
@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
     const { data: wpqs } = await supabase
       .from("qualification_records")
       .select(
-        "id, process, expiry_date, continuity_last_verified, wpq_status, welder_id, revalidation_method",
+        "id, process, process_2, expiry_date, continuity_last_verified, wpq_status, welder_id, revalidation_method",
       )
       .eq("org_id", org.id)
       .eq("wpq_status", "Approved")
@@ -185,7 +185,7 @@ export async function GET(request: NextRequest) {
             welderAlerts.push({
               welderName: welder.full_name,
               plantWelderId: welder.welder_id ?? "—",
-              process: welderProcessLabel(w.process),
+              process: qualificationProcessLabel(w.process, w.process_2),
               validityCode: w.revalidation_method ?? "9.3b",
               expiryDate: w.expiry_date,
               daysLeft: dleft,
@@ -208,7 +208,7 @@ export async function GET(request: NextRequest) {
             welderAlerts.push({
               welderName: welder.full_name,
               plantWelderId: welder.welder_id ?? "—",
-              process: welderProcessLabel(w.process),
+              process: qualificationProcessLabel(w.process, w.process_2),
               validityCode: w.revalidation_method ?? "9.3b",
               expiryDate: due,
               daysLeft: dleft,

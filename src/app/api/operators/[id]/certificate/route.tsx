@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 
 import { resolveUrl } from "@/lib/storage";
 
+import { resolvePdfImageUrl } from "@/lib/pdf/image-url";
+
 import { OperatorCertificateDocument } from "@/lib/pdf/operator-certificate";
 
 import type {
@@ -118,39 +120,55 @@ export async function GET(
 
   const op = operator as Operator;
 
-  const photoUrl = await resolveUrl("welder-photos", op.photo_path);
+  const photoUrl = await resolvePdfImageUrl(
+    await resolveUrl("welder-photos", op.photo_path),
+  );
 
-  const logoUrl = await resolveUrl("org-assets", (org as Organization).logo_path);
+  const logoUrl = await resolvePdfImageUrl(
+    await resolveUrl("org-assets", (org as Organization).logo_path),
+  );
 
   const certNo = `OQ-${(oq as OperatorQualification).id.slice(0, 8).toUpperCase()}`;
 
 
 
-  const buffer = await renderToBuffer(
+  let buffer: Buffer;
 
-    <OperatorCertificateDocument
+  try {
 
-      data={{
+    buffer = await renderToBuffer(
 
-        org: org as Organization,
+      <OperatorCertificateDocument
 
-        operator: op,
+        data={{
 
-        oq: oq as OperatorQualification,
+          org: org as Organization,
 
-        range: (range as OperatorRange | null) ?? null,
+          operator: op,
 
-        certNo,
+          oq: oq as OperatorQualification,
 
-        photoUrl,
+          range: (range as OperatorRange | null) ?? null,
 
-        logoUrl,
+          certNo,
 
-      }}
+          photoUrl,
 
-    />,
+          logoUrl,
 
-  );
+        }}
+
+      />,
+
+    );
+
+  } catch (err) {
+
+    console.error("Operator certificate PDF render failed:", err);
+
+    return new Response("Failed to generate certificate PDF", { status: 500 });
+
+  }
 
 
 

@@ -58,6 +58,10 @@ function fmt(d: string | null): string {
 }
 
 const HAIR = 0.75;
+/** Keep annex prolongation rows compact so the full certificate fits one A4 page. */
+const ANNEX_ROW_MIN_HEIGHT = 10;
+const TABLE_CELL_PAD_V = 1.75;
+const TABLE_CELL_PAD_H = 2.5;
 
 function TripleRow({ row }: { row: CertRow }) {
   return (
@@ -71,27 +75,27 @@ function TripleRow({ row }: { row: CertRow }) {
       <View
         style={{
           flex: 1.55,
-          paddingVertical: 2.5,
-          paddingHorizontal: 3,
+          paddingVertical: TABLE_CELL_PAD_V,
+          paddingHorizontal: TABLE_CELL_PAD_H,
           borderRightWidth: HAIR,
           borderColor: COLORS.charcoal,
         }}
       >
-        <Text style={{ fontSize: 7.5, color: COLORS.charcoal }}>{row.label}</Text>
+        <Text style={{ fontSize: 7.25, color: COLORS.charcoal }}>{row.label}</Text>
       </View>
       <View
         style={{
           flex: 1,
-          paddingVertical: 2.5,
-          paddingHorizontal: 3,
+          paddingVertical: TABLE_CELL_PAD_V,
+          paddingHorizontal: TABLE_CELL_PAD_H,
           borderRightWidth: HAIR,
           borderColor: COLORS.charcoal,
         }}
       >
-        <Text style={{ fontSize: 7.5, color: COLORS.onyx }}>{row.test}</Text>
+        <Text style={{ fontSize: 7.25, color: COLORS.onyx }}>{row.test}</Text>
       </View>
-      <View style={{ flex: 1.55, paddingVertical: 2.5, paddingHorizontal: 3 }}>
-        <Text style={{ fontSize: 7.5, color: COLORS.onyx }}>{row.range}</Text>
+      <View style={{ flex: 1.55, paddingVertical: TABLE_CELL_PAD_V, paddingHorizontal: TABLE_CELL_PAD_H }}>
+        <Text style={{ fontSize: 7.25, color: COLORS.onyx }}>{row.range}</Text>
       </View>
     </View>
   );
@@ -112,13 +116,13 @@ function AnnexTable({
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1 }} wrap={false}>
       <Text
         style={{
-          fontSize: 6.5,
+          fontSize: 6.25,
           color: COLORS.charcoal,
-          marginBottom: 2,
-          lineHeight: 1.25,
+          marginBottom: 1,
+          lineHeight: 1.15,
         }}
       >
         {title}
@@ -130,12 +134,13 @@ function AnnexTable({
               key={h}
               style={{
                 flex: i === 2 ? 1.35 : 1,
-                padding: 2,
+                paddingVertical: 1.5,
+                paddingHorizontal: 2,
                 borderRightWidth: i < 2 ? HAIR : 0,
                 borderColor: COLORS.charcoal,
               }}
             >
-              <Text style={{ fontSize: 6.5, fontFamily: "Helvetica-Bold" }}>
+              <Text style={{ fontSize: 6.25, fontFamily: "Helvetica-Bold" }}>
                 {h}
               </Text>
             </View>
@@ -144,35 +149,38 @@ function AnnexTable({
         {padded.map((r, i) => (
           <View
             key={i}
+            wrap={false}
             style={{
               flexDirection: "row",
               borderTopWidth: HAIR,
               borderColor: COLORS.charcoal,
-              minHeight: 13,
+              minHeight: ANNEX_ROW_MIN_HEIGHT,
             }}
           >
             <View
               style={{
                 flex: 1,
-                padding: 2,
+                paddingVertical: 1.5,
+                paddingHorizontal: 2,
                 borderRightWidth: HAIR,
                 borderColor: COLORS.charcoal,
               }}
             >
-              <Text style={{ fontSize: 6.8 }}>{r.date}</Text>
+              <Text style={{ fontSize: 6.5 }}>{r.date}</Text>
             </View>
             <View
               style={{
                 flex: 1,
-                padding: 2,
+                paddingVertical: 1.5,
+                paddingHorizontal: 2,
                 borderRightWidth: HAIR,
                 borderColor: COLORS.charcoal,
               }}
             >
-              <Text style={{ fontSize: 6.8 }}>{r.signature}</Text>
+              <Text style={{ fontSize: 6.5 }}>{r.signature}</Text>
             </View>
-            <View style={{ flex: 1.35, padding: 2 }}>
-              <Text style={{ fontSize: 6.8 }}>{r.position}</Text>
+            <View style={{ flex: 1.35, paddingVertical: 1.5, paddingHorizontal: 2 }}>
+              <Text style={{ fontSize: 6.5 }}>{r.position}</Text>
             </View>
           </View>
         ))}
@@ -208,7 +216,9 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
       <Page
         size="A4"
         style={{
-          padding: 14,
+          paddingTop: 11,
+          paddingBottom: 10,
+          paddingHorizontal: 11,
           fontSize: 8,
           fontFamily: "Helvetica",
           color: COLORS.charcoal,
@@ -221,7 +231,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
             logoUrl={logoUrl}
           />
 
-          <View style={{ alignItems: "center", marginBottom: 5 }}>
+          <View style={{ alignItems: "center", marginBottom: 4 }}>
             <Text
               style={{
                 fontFamily: "Helvetica-Bold",
@@ -245,7 +255,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
             Certificate No.: {certNo}
           </Text>
 
-          <View style={{ flexDirection: "row", marginBottom: 4 }}>
+          <View style={{ flexDirection: "row", marginBottom: 3 }}>
             <View style={{ flex: 1 }}>
               <View
                 style={{
@@ -272,7 +282,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
                         fontFamily: "Helvetica-Bold",
                         fontSize: 9.5,
                         color: COLORS.onyx,
-                        marginBottom: i < designations.length - 1 ? 2 : 0,
+                        marginBottom: i < designations.length - 1 ? 1 : 0,
                       }}
                     >
                       {line}
@@ -346,7 +356,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
             </View>
           </View>
 
-          <View style={{ flexDirection: "row", marginTop: 4, marginBottom: 3 }}>
+          <View style={{ flexDirection: "row", marginTop: 3, marginBottom: 2 }}>
             <Text style={{ fontSize: 7.5 }}>Job Knowledge: </Text>
             {jobOk ? (
               <Text
@@ -377,8 +387,8 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
               <View
                 style={{
                   flex: 1.55,
-                  paddingVertical: 2.5,
-                  paddingHorizontal: 3,
+                  paddingVertical: TABLE_CELL_PAD_V,
+                  paddingHorizontal: TABLE_CELL_PAD_H,
                   borderRightWidth: HAIR,
                   borderColor: COLORS.charcoal,
                 }}
@@ -386,8 +396,8 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
               <View
                 style={{
                   flex: 1,
-                  paddingVertical: 2.5,
-                  paddingHorizontal: 3,
+                  paddingVertical: TABLE_CELL_PAD_V,
+                  paddingHorizontal: TABLE_CELL_PAD_H,
                   borderRightWidth: HAIR,
                   borderColor: COLORS.charcoal,
                 }}
@@ -395,18 +405,18 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
                 <Text
                   style={{
                     fontFamily: "Helvetica-Bold",
-                    fontSize: 8,
+                    fontSize: 7.5,
                     textAlign: "center",
                   }}
                 >
                   Test piece
                 </Text>
               </View>
-              <View style={{ flex: 1.55, paddingVertical: 2.5, paddingHorizontal: 3 }}>
+              <View style={{ flex: 1.55, paddingVertical: TABLE_CELL_PAD_V, paddingHorizontal: TABLE_CELL_PAD_H }}>
                 <Text
                   style={{
                     fontFamily: "Helvetica-Bold",
-                    fontSize: 8,
+                    fontSize: 7.5,
                     textAlign: "center",
                   }}
                 >
@@ -419,7 +429,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
             ))}
           </View>
 
-          <View style={{ flexDirection: "row", marginTop: 3, marginBottom: 3 }}>
+          <View style={{ flexDirection: "row", marginTop: 2, marginBottom: 2 }}>
             <Text style={{ fontSize: 7 }}>
               Supplementary fillet weld test (completed in conjunction with a
               butt weld qualification):{" "}
@@ -458,29 +468,31 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
                 <View
                   style={{
                     flex: 1.45,
-                    padding: 2.5,
+                    paddingVertical: 2,
+                    paddingHorizontal: 2,
                     borderRightWidth: HAIR,
                     borderColor: COLORS.charcoal,
                   }}
                 >
-                  <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 6.8 }}>
+                  <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 6.5 }}>
                     Type of test
                   </Text>
                 </View>
                 <View
                   style={{
                     flex: 1.15,
-                    padding: 2.5,
+                    paddingVertical: 2,
+                    paddingHorizontal: 2,
                     borderRightWidth: HAIR,
                     borderColor: COLORS.charcoal,
                   }}
                 >
-                  <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 6.8 }}>
+                  <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 6.5 }}>
                     Performed and accepted
                   </Text>
                 </View>
-                <View style={{ flex: 0.65, padding: 2.5 }}>
-                  <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 6.8 }}>
+                <View style={{ flex: 0.65, paddingVertical: 2, paddingHorizontal: 2 }}>
+                  <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 6.5 }}>
                     Not tested
                   </Text>
                 </View>
@@ -499,34 +511,36 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
                     <View
                       style={{
                         flex: 1.45,
-                        padding: 2.5,
+                        paddingVertical: 2,
+                        paddingHorizontal: 2,
                         borderRightWidth: HAIR,
                         borderColor: COLORS.charcoal,
                       }}
                     >
-                      <Text style={{ fontSize: 6.8 }}>{tt.label}</Text>
+                      <Text style={{ fontSize: 6.5 }}>{tt.label}</Text>
                     </View>
                     <View
                       style={{
                         flex: 1.15,
-                        padding: 2.5,
+                        paddingVertical: 2,
+                        paddingHorizontal: 2,
                         borderRightWidth: HAIR,
                         borderColor: COLORS.charcoal,
                       }}
                     >
                       <Text
                         style={{
-                          fontSize: 6.8,
+                          fontSize: 6.5,
                           color: res.notTested ? COLORS.steel : COLORS.active,
                         }}
                       >
                         {res.performed}
                       </Text>
                     </View>
-                    <View style={{ flex: 0.65, padding: 2.5 }}>
+                    <View style={{ flex: 0.65, paddingVertical: 2, paddingHorizontal: 2 }}>
                       <Text
                         style={{
-                          fontSize: 6.8,
+                          fontSize: 6.5,
                           color: COLORS.steel,
                           textDecoration: res.notTested ? "none" : "line-through",
                         }}
@@ -551,7 +565,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
               </Text>
               <View
                 style={{
-                  minHeight: 34,
+                  minHeight: 24,
                   justifyContent: "flex-end",
                 }}
               >
@@ -560,7 +574,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
                 </Text>
                 <View
                   style={{
-                    marginTop: 14,
+                    marginTop: 10,
                     borderTopWidth: HAIR,
                     borderColor: COLORS.charcoal,
                     paddingTop: 2,
@@ -599,7 +613,7 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
             </View>
           </View>
 
-          <View style={{ flexDirection: "row", gap: 6, marginTop: 5 }}>
+          <View style={{ flexDirection: "row", gap: 5, marginTop: 3 }} wrap={false}>
             {/* Examiner revalidation box is only required for 9.3b — for 9.3a
                 and 9.3c revalidation is via the 6-month coordinator prolongation. */}
             {wpq.revalidation_method === "9.3b" ? (
@@ -620,9 +634,9 @@ export function CertificateDocument({ data }: { data: CertificateData }) {
         <Text
           style={{
             position: "absolute",
-            bottom: 8,
-            left: 14,
-            right: 14,
+            bottom: 6,
+            left: 11,
+            right: 11,
             fontSize: 6,
             color: COLORS.steel,
             textAlign: "center",

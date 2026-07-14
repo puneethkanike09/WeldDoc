@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { VISUAL_TEST_METHOD } from "@/lib/iso9606/constants";
 import { resolveJointStorage } from "@/lib/iso9606/product-dimensions";
 import { recomputeWpqRange } from "@/lib/iso9606/recompute-wpq-range";
-import { uploadFile } from "@/lib/storage";
+import { uploadFile, removeObjects } from "@/lib/storage";
 import {
   assertPlantWelderIdAvailable,
   isUniqueViolation,
@@ -67,7 +67,7 @@ export async function commitValidatedImport(
       await supabase.from("welders").delete().eq("id", welderId);
     }
     if (uploadedPhotoPaths.length) {
-      await supabase.storage.from("welder-photos").remove(uploadedPhotoPaths);
+      await removeObjects("welder-photos", uploadedPhotoPaths);
     }
   }
 

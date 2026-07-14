@@ -15,6 +15,7 @@ import {
   registryListRange,
 } from "@/lib/registry/list-pagination";
 import { WeldersTable, type WelderRow } from "./welders-table";
+import { resolveUrl } from "@/lib/storage";
 import type { QualificationRecord, Welder } from "@/types/db";
 
 export const metadata: Metadata = { title: "Welders" };
@@ -53,15 +54,12 @@ export default async function WeldersPage({
     wpqByWelder.set(w.welder_id, arr);
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const allRows: WelderRow[] = ((welders ?? []) as Welder[]).map((w) => ({
     id: w.id,
     welder_id:
       normalizePlantWelderId(w.welder_id) ?? w.welder_id?.trim() ?? "—",
     full_name: w.full_name,
-    photoUrl: w.photo_path
-      ? `${supabaseUrl}/storage/v1/object/public/welder-photos/${w.photo_path}`
-      : null,
+    photoUrl: null,
     summary: summarizeWelder(w, wpqByWelder.get(w.id) ?? []),
   }));
 
@@ -74,7 +72,17 @@ export default async function WeldersPage({
     requestedPage,
     filtered.length,
   );
-  const pageRows = filtered.slice(from, to);
+  const pageSlice = filtered.slice(from, to);
+  const welderById = new Map(((welders ?? []) as Welder[]).map((w) => [w.id, w]));
+  const pageRows: WelderRow[] = await Promise.all(
+    pageSlice.map(async (row) => ({
+      ...row,
+      photoUrl: await resolveUrl(
+        "welder-photos",
+        welderById.get(row.id)?.photo_path ?? null,
+      ),
+    })),
+  );
 
   const qrEntries = ((welders ?? []) as Welder[]).map((w) => ({
     qrToken: w.qr_token,

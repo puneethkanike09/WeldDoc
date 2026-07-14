@@ -22,7 +22,11 @@ import {
   isMultiProcessQualification,
   jointTypeRangeText,
   layerCode,
-  layerRangeText,
+  layerRangeTextWithSupplementary,
+  combinedDesignationFillerTypes,
+  combinedDesignationWeldDetails,
+  compactWeldDetailsCode,
+  designationPositionText,
   materialGroupRangeText,
   positionsRangeText,
   processDisplayText,
@@ -31,6 +35,7 @@ import {
   shieldingGasDisplay,
   transferModeRangeText,
   weldDetailsRangeText,
+  type ProcessSlice,
 } from "@/lib/iso9606/certificate-ranges";
 import { resolveJointTypes } from "@/lib/iso9606/joint-coverage";
 import { listSupplementaryFilletEntries } from "@/lib/iso9606/supplementary-fillet";
@@ -69,6 +74,14 @@ function weldTypeCode(jointTypes: string[]): string {
   return hasBW ? "BW" : "FW";
 }
 
+function filletTestThicknessMm(
+  wpq: QualificationRecord,
+  process: string,
+): number | null {
+  if (process === wpq.process) return wpq.test_thickness_mm;
+  return wpq.process2_deposited_thickness_mm ?? wpq.test_thickness_mm;
+}
+
 function designationLine(
   wpq: QualificationRecord,
   _range: RangeOfApproval | null,
@@ -82,23 +95,105 @@ function designationLine(
     layer: string | null;
     /** Test positions for designation (e.g. PA/PC for multi-process). */
     positions?: string | null;
+    /** Pre-combined filler code for multi-process (e.g. S/P). */
+    fillerTypeLabel?: string;
+    /** Pre-combined weld details for multi-process (e.g. ssnb/ssmb). */
+    weldDetailsLabel?: string;
+    /** BW + supplementary fillet: layer belongs on the FW line only. */
+    omitLayer?: boolean;
+    /** Fillet weld designations omit weld-detail / backing tokens (ssnb, ssmb). */
+    omitWeldDetails?: boolean;
   },
 ): string {
   // Designation uses the test position code (e.g. H-L045), not the expanded
   // range of approved positions (e.g. PA/PC/PE/PF) — those belong in Annex A.
   const positions = opts.positions ?? wpq.position ?? "";
+  const fillerToken =
+    opts.fillerTypeLabel ?? fillerTypeCode(opts.fillerType);
+  const weldToken = opts.omitWeldDetails
+    ? null
+    : (opts.weldDetailsLabel ??
+      (opts.weldDetails ? compactWeldDetailsCode(opts.weldDetails) : "ssnb"));
 
-  return [
+  const parts = [
     "ISO 9606-1",
     opts.process,
     productCode(wpq.product),
     weldTypeCode(opts.jointTypes),
     opts.fillerGroup ?? "FM1",
-    fillerTypeCode(opts.fillerType),
+    fillerToken,
     opts.dimension,
-    positions.replace(/\//g, "&"),
-    opts.weldDetails ?? "ss nb",
-    layerCode(opts.layer),
+    designationPositionText(positions),
+    weldToken,
+  ];
+
+  if (!opts.omitLayer) {
+    parts.push(layerCode(opts.layer));
+  }
+
+  return parts.filter(Boolean).join(" ");
+}
+
+/**
+ * Combined FW designation — one line for multi-process fillet / supplementary fillet.
+ * Example: ISO 9606-1 135/136 P FW FM1 S/P t12 PB/PD sl
+ * Weld details (ssnb/ssmb) are omitted on fillet lines per ISO 9606-1 practice.
+ */
+function buildCombinedFilletDesignation(
+  wpq: QualificationRecord,
+  slices: ProcessSlice[],
+  entries: Array<{
+    process: string;
+    position: string;
+    thickness_mm: number | null;
+  }>,
+): string {
+  const processPart = entries.map((e) => e.process).join("/");
+  const thicknesses = entries.map((e) => e.thickness_mm);
+  const allSameT =
+    thicknesses.every((t) => t != null) &&
+    thicknesses.every((t) => t === thicknesses[0]);
+  const dimension =
+    thicknesses.every((t) => t == null)
+      ? ""
+      : allSameT
+        ? `t${thicknesses[0]}`
+        : `t${thicknesses.map((t) => (t != null ? String(t) : "—")).join("/")}`;
+
+  const positions = entries.map((e) => e.position).join("/");
+  const fillerGroups = entries.map(
+    (e) =>
+      slices.find((s) => s.process === e.process)?.filler_group ??
+      wpq.filler_group,
+  );
+  const fillerGroup =
+    fillerGroups.find(Boolean) ?? wpq.filler_group ?? "FM1";
+
+  const fillerTypeLabel = entries
+    .map((e) => {
+      const slice = slices.find((s) => s.process === e.process);
+      return fillerTypeCode(slice?.filler_type ?? wpq.filler_type);
+    })
+    .filter(Boolean)
+    .join("/");
+
+  const layers = entries.map((e) => {
+    const slice = slices.find((s) => s.process === e.process);
+    return layerCode(slice?.layer_type ?? wpq.layer_type);
+  });
+  const layerPart =
+    layers.every((l) => l === layers[0]) ? layers[0]! : layers.join("/");
+
+  return [
+    "ISO 9606-1",
+    processPart,
+    productCode(wpq.product),
+    "FW",
+    fillerGroup,
+    fillerTypeLabel,
+    dimension,
+    positions,
+    layerPart,
   ]
     .filter(Boolean)
     .join(" ");
@@ -106,8 +201,7 @@ function designationLine(
 
 /**
  * ISO 9606-1 designation line(s). Multi-process butt tests use one line with
- * p1/p2 and s1/s2; supplementary fillet adds a second FW line for the fillet
- * process.
+ * p1/p2 and s1/s2; supplementary fillet adds a combined FW line (no weld details).
  */
 export function buildDesignation(
   wpq: QualificationRecord,
@@ -130,16 +224,30 @@ export function buildDesignation(
         fillerGroup: wpq.filler_group,
         fillerType: wpq.filler_type,
         dimension,
-        weldDetails: wpq.weld_details,
+        weldDetails: null,
         layer: wpq.layer_type,
+        omitWeldDetails: true,
       }),
     );
+    return lines;
+  }
+
+  if (isFillet && multi) {
+    const slices = getProcessSlices(wpq);
+    const entries = slices.map((s) => ({
+      process: s.process,
+      position: s.position ?? wpq.position ?? "PA",
+      thickness_mm: filletTestThicknessMm(wpq, s.process),
+    }));
+    lines.push(buildCombinedFilletDesignation(wpq, slices, entries));
     return lines;
   }
 
   const processPart = multi
     ? `${wpq.process}/${wpq.process_2}`
     : wpq.process;
+
+  const slices = multi ? getProcessSlices(wpq) : [];
 
   let dimension = "";
   if (multi) {
@@ -163,33 +271,35 @@ export function buildDesignation(
       layer: wpq.layer_type,
       positions:
         multi && wpq.position_2 && wpq.position
-          ? `${wpq.position}/${wpq.position_2}`
+          ? `${wpq.position} & ${wpq.position_2}`
           : null,
+      fillerTypeLabel: multi ? combinedDesignationFillerTypes(slices) : undefined,
+      weldDetailsLabel: multi ? combinedDesignationWeldDetails(slices) : undefined,
+      omitLayer: hasSuppFillet,
     }),
   );
 
   if (hasSuppFillet) {
-    const slices = getProcessSlices(wpq);
-    for (const entry of suppEntries) {
-      const filletSlice = slices.find((s) => s.process === entry.process);
-      const filletPos = entry.position.replace(/\//g, "&");
-      const t = entry.thickness_mm;
-
+    const processSlices = getProcessSlices(wpq);
+    if (suppEntries.length === 1) {
+      const entry = suppEntries[0]!;
+      const filletSlice = processSlices.find((s) => s.process === entry.process);
       lines.push(
-        [
-          "ISO 9606-1",
-          entry.process,
-          productCode(wpq.product),
-          "FW",
-          (filletSlice?.filler_group ?? wpq.filler_group) ?? "FM1",
-          fillerTypeCode(filletSlice?.filler_type ?? wpq.filler_type),
-          t != null ? `t${t}` : "",
-          filletPos,
-          filletSlice?.weld_details ?? wpq.weld_details ?? "ss nb",
-          layerCode(filletSlice?.layer_type ?? wpq.layer_type),
-        ]
-          .filter(Boolean)
-          .join(" "),
+        designationLine(wpq, range, {
+          process: entry.process,
+          jointTypes: ["FW"],
+          fillerGroup: filletSlice?.filler_group ?? wpq.filler_group,
+          fillerType: filletSlice?.filler_type ?? wpq.filler_type,
+          dimension: entry.thickness_mm != null ? `t${entry.thickness_mm}` : "",
+          weldDetails: null,
+          layer: filletSlice?.layer_type ?? wpq.layer_type,
+          positions: entry.position,
+          omitWeldDetails: true,
+        }),
+      );
+    } else {
+      lines.push(
+        buildCombinedFilletDesignation(wpq, processSlices, suppEntries),
       );
     }
   }
@@ -249,6 +359,11 @@ export function buildCertRows(
           }),
         )
         .join(" & ")
+    : isFillet && multi
+      ? formatPerProcessTestValues(slices, (s) => {
+          const t = filletTestThicknessMm(wpq, s.process);
+          return t != null ? formatMaterialThicknessTest(t) : "—";
+        })
     : isFillet && wpq.test_thickness_mm != null
       ? formatMaterialThicknessTest(wpq.test_thickness_mm)
       : "—";
@@ -265,6 +380,8 @@ export function buildCertRows(
     ? `BW: ${multi ? formatPerProcessTestValues(slices, (s) => s.position ?? "—") : (wpq.position ?? "—")} & ${suppEntries
         .map((e) => `FW (${e.process}): ${e.position}`)
         .join(" & ")}`
+    : isFillet && multi
+      ? formatPerProcessTestValues(slices, (s) => s.position ?? "—")
     : multi
       ? formatPerProcessTestValues(slices, (s) => s.position ?? "—")
       : (wpq.position ?? "—");
@@ -273,6 +390,10 @@ export function buildCertRows(
     ? `BW: ${positionsRangeText(positions)} & ${suppEntries
         .map((e) => `FW (${e.process}): ${fwPositionRange(e.position)}`)
         .join(" & ")}`
+    : isFillet && multi
+      ? formatPerProcessPrefixed(slices, (s) =>
+          fwPositionRange(s.position ?? ""),
+        )
     : multi
       ? formatPerProcessPrefixed(slices, (s) =>
           positionsRangeText(
@@ -433,9 +554,15 @@ export function buildCertRows(
         : layerCode(wpq.layer_type),
       range: multi
         ? formatPerProcessPrefixed(slices, (s) =>
-            layerRangeText(s.layer_type),
+            layerRangeTextWithSupplementary(
+              s.layer_type,
+              hasSuppFillet,
+            ),
           )
-        : layerRangeText(wpq.layer_type),
+        : layerRangeTextWithSupplementary(
+            wpq.layer_type,
+            hasSuppFillet,
+          ),
     },
   ];
 }

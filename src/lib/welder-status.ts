@@ -66,6 +66,14 @@ const STATE_PRIORITY: Record<QualState, number> = {
   expired: 1,
 };
 
+const EMPTY_QUAL_BREAKDOWN: Pick<
+  WelderSummary,
+  "qualCounts" | "processStatuses"
+> = {
+  qualCounts: { current: 0, expiring: 0, expired: 0 },
+  processStatuses: [],
+};
+
 function processLabelsForFilter(
   w: Pick<QualificationRecord, "process" | "process_2">,
 ): string[] {
@@ -117,9 +125,9 @@ export function summarizeWelder(
       overall: welder.status,
       nearestExpiry: null,
       daysToExpiry: null,
-      processes,
+      processes: [],
       approvedCount: 0,
-      ...breakdown,
+      ...EMPTY_QUAL_BREAKDOWN,
     };
   }
 

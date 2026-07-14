@@ -1,10 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildIdCardPayload } from "@/lib/iso9606/id-card-model";
+import { effectiveRangeForWpq } from "@/lib/iso9606/effective-range";
 import { buildOperatorIdCardRows } from "@/lib/iso14732/id-card-model";
 import { summarizeWelder } from "@/lib/welder-status";
 import { summarizeOperator } from "@/lib/operator-status";
 import { normalizePlantOperatorId } from "@/lib/operators/plant-id";
 import { idCardRegistryNotice } from "@/lib/registry-status";
+import { resolveUrl } from "@/lib/storage";
 import { formatDate } from "@/lib/utils";
 import type {
   Operator,
@@ -20,13 +22,6 @@ export type OperatorIdCardViewProps = Extract<
   WelderIdCardViewProps,
   { tableVariant: "operator" }
 >;
-
-function publicStorageUrl(bucket: string, path: string | null): string | null {
-  if (!path) return null;
-  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!base) return null;
-  return `${base}/storage/v1/object/public/${bucket}/${path}`;
-}
 
 export async function loadWelderIdCardView(
   supabase: SupabaseClient,
@@ -49,21 +44,31 @@ export async function loadWelderIdCardView(
       "wpq_id",
       wpqIds.length ? wpqIds : ["00000000-0000-0000-0000-000000000000"],
     );
-  const ranges = new Map(
+  const storedByWpq = new Map(
     ((rangeRows ?? []) as RangeOfApproval[]).map((r) => [r.wpq_id, r]),
+  );
+  const ranges = new Map(
+    wpqs.map((q) => [
+      q.id,
+      effectiveRangeForWpq(q, storedByWpq.get(q.id) ?? null),
+    ]),
   );
 
   const card = buildIdCardPayload(welder, wpqs, ranges);
   const summary = summarizeWelder(welder, wpqs);
   const orgRow = org as Organization | null;
   const statusNotice = idCardRegistryNotice(welder.status, "welder");
+  const [photoUrl, logoUrl] = await Promise.all([
+    resolveUrl("welder-photos", welder.photo_path),
+    resolveUrl("org-assets", orgRow?.logo_path ?? null),
+  ]);
 
   return {
     orgName: orgRow?.name ?? "Organisation",
     welderName: card.welderName,
     welderNo: card.welderNo,
-    photoUrl: publicStorageUrl("welder-photos", welder.photo_path),
-    logoUrl: publicStorageUrl("org-assets", orgRow?.logo_path ?? null),
+    photoUrl,
+    logoUrl,
     rows: statusNotice ? [] : card.rows,
     status: summary.overall,
     statusNotice,
@@ -100,13 +105,17 @@ export async function loadOperatorIdCardView(
     normalizePlantOperatorId(operator.operator_id) ??
     operator.operator_id?.trim() ??
     "—";
+  const [photoUrl, logoUrl] = await Promise.all([
+    resolveUrl("welder-photos", operator.photo_path),
+    resolveUrl("org-assets", orgRow?.logo_path ?? null),
+  ]);
 
   return {
     orgName: orgRow?.name ?? "Organisation",
     welderName: operator.full_name,
     welderNo: plantId,
-    photoUrl: publicStorageUrl("welder-photos", operator.photo_path),
-    logoUrl: publicStorageUrl("org-assets", orgRow?.logo_path ?? null),
+    photoUrl,
+    logoUrl,
     rows: statusNotice ? [] : buildOperatorIdCardRows(oqs),
     tableVariant: "operator" as const,
     status: summary.overall,

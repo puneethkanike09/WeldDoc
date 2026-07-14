@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createClient } from "@/lib/supabase/server";
-import { resolveUrl } from "@/lib/storage";
+import { resolveUrl, uploadBytes } from "@/lib/storage";
+import { resolvePdfImageUrl } from "@/lib/pdf/image-url";
 import {
   CertificateDocument,
   type CertificateData,
@@ -71,8 +72,12 @@ export async function GET(
   ]);
 
   const w = welder as Welder;
-  const photoUrl = await resolveUrl("welder-photos", w.photo_path);
-  const logoUrl = await resolveUrl("org-assets", (org as Organization).logo_path);
+  const photoUrl = await resolvePdfImageUrl(
+    await resolveUrl("welder-photos", w.photo_path),
+  );
+  const logoUrl = await resolvePdfImageUrl(
+    await resolveUrl("org-assets", (org as Organization).logo_path),
+  );
 
   const q = wpq as QualificationRecord;
   const effectiveRange = effectiveRangeForWpq(
@@ -92,18 +97,29 @@ export async function GET(
     certNo: buildCertNo(org as Organization, w, wpq as QualificationRecord),
   };
 
-  const buffer = await renderToBuffer(<CertificateDocument data={data} />);
+  let buffer: Buffer;
+  try {
+    buffer = await renderToBuffer(<CertificateDocument data={data} />);
+  } catch (err) {
+    console.error("Certificate PDF render failed:", err);
+    return new Response("Failed to generate certificate PDF", { status: 500 });
+  }
   const download = request.nextUrl.searchParams.get("download") === "1";
 
   // Persist a copy to storage (best-effort).
   const path = `${profile.org_id}/${id}/certificate-${wpqId}.pdf`;
-  await supabase.storage
-    .from("generated-pdfs")
-    .upload(path, buffer, { contentType: "application/pdf", upsert: true });
-  await supabase
-    .from("qualification_records")
-    .update({ certificate_pdf_path: path })
-    .eq("id", wpqId);
+  try {
+    await uploadBytes("generated-pdfs", path, buffer, "application/pdf");
+    const { error: updateError } = await supabase
+      .from("qualification_records")
+      .update({ certificate_pdf_path: path })
+      .eq("id", wpqId);
+    if (updateError) {
+      console.error("Certificate path update failed:", updateError.message);
+    }
+  } catch (err) {
+    console.error("Certificate PDF upload failed:", err);
+  }
 
   return new Response(new Uint8Array(buffer), {
     headers: {

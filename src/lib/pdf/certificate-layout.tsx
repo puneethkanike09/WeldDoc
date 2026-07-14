@@ -16,7 +16,7 @@ export function CompoundCertificateFrame({
         flex: 1,
         borderWidth: 2.5,
         borderColor: CERT_BORDER,
-        padding: 4,
+        padding: 3,
       }}
     >
       <View
@@ -24,7 +24,7 @@ export function CompoundCertificateFrame({
           flex: 1,
           borderWidth: 1,
           borderColor: CERT_BORDER,
-          padding: 10,
+          padding: 7,
         }}
       >
         {children}
@@ -49,7 +49,7 @@ export function CertificateHeaderFieldRow({
     <View
       style={{
         flexDirection: "row",
-        paddingVertical: 2,
+        paddingVertical: 1.5,
         paddingHorizontal: 2,
       }}
     >

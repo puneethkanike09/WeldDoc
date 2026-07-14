@@ -57,7 +57,7 @@ test("Table 6: process 311, deposited 5 mm → 3–7.5 mm", () => {
   assert.equal(r.thicknessMax, 7.5);
 });
 
-test("Table 6: s ≥ 12 mm without multi-layer → 3–24 mm (not unlimited)", () => {
+test("Table 6: deposited 12 mm → ≥ 3 mm unlimited (any layer)", () => {
   const r = computeRange({
     jointType: "BW",
     product: "Plate",
@@ -65,11 +65,11 @@ test("Table 6: s ≥ 12 mm without multi-layer → 3–24 mm (not unlimited)", (
     layer: "Single layer (sl)",
   });
   assert.equal(r.thicknessMin, 3);
-  assert.equal(r.thicknessMax, 24);
-  assert.equal(r.thicknessUnlimited, false);
+  assert.equal(r.thicknessMax, null);
+  assert.equal(r.thicknessUnlimited, true);
 });
 
-test("Table 6: deposited 12 mm → ≥ 3 mm unlimited", () => {
+test("Table 6: deposited 12 mm multi-layer → ≥ 3 mm unlimited", () => {
   const r = computeRange({
     jointType: "BW",
     product: "Plate",
