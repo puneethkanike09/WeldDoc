@@ -8,8 +8,8 @@ import { applyImportSheetFormats } from "./xlsx-formats";
 
 export const TEMPLATE_EXAMPLE_ROW_COUNT = 4;
 
-// One welder (W#02) with three qualifications — welder details repeat on row 1
-// only; rows 2–3 leave personal columns blank (copied forward at validation).
+// Every row is independent — blank cells stay blank (no fill-forward).
+// Repeat W# and name on each certificate row for the same welder.
 const EXAMPLE_ROWS = [
   {
     plant_welder_id: "W#02",
@@ -31,8 +31,8 @@ const EXAMPLE_ROWS = [
     revalidation_method: "9.3b",
   },
   {
-    plant_welder_id: "",
-    full_name: "",
+    plant_welder_id: "W#02",
+    full_name: "Sanjay Yadav",
     process: "135",
     joint_type: "BW",
     position: "PF",
@@ -42,12 +42,11 @@ const EXAMPLE_ROWS = [
     product: "Plate",
     date_of_welding: "2025-08-19",
     expiry_date: "2027-08-19",
-    continuity_last_verified: "2026-01-15",
     revalidation_method: "9.3b",
   },
   {
-    plant_welder_id: "",
-    full_name: "",
+    plant_welder_id: "W#02",
+    full_name: "Sanjay Yadav",
     process: "121",
     joint_type: "FW",
     position: "PA",
@@ -57,7 +56,6 @@ const EXAMPLE_ROWS = [
     product: "Plate",
     date_of_welding: "2026-02-25",
     expiry_date: "2028-02-25",
-    continuity_last_verified: "2026-01-15",
     revalidation_method: "9.3b",
   },
   {

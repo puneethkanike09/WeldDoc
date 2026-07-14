@@ -284,10 +284,10 @@ export function BulkImportPanel({
               Import welders
             </h3>
             <p className="mt-1 text-sm text-graphite">
-              Fill the blank spreadsheet (one row per certificate). Then upload
-              it here. Photos are optional — name them like the welder number
-              (W#02.jpg). For existing certificates, use the date guide to map
-              your plant validation dates into WeldDoc.
+              Fill the blank spreadsheet (one row per certificate). Repeat the
+              welder name and W# on every row for that person — blank cells stay
+              blank and are not copied from the row above. Photos are optional
+              (e.g. W#02.jpg). For existing certificates, use the date guide.
             </p>
           </div>
 

@@ -368,7 +368,7 @@ test("preserves raw values for invalid cells (data does not disappear)", () => {
   assert.equal(r.rows[0].raw.date_of_welding, "2025-01-15");
 });
 
-test("fill-forward copies welder fields on qualification rows", () => {
+test("blank cells never inherit from the previous row (including continuity)", () => {
   const r = validateImportRows(
     [
       {
@@ -378,6 +378,61 @@ test("fill-forward copies welder fields on qualification rows", () => {
           full_name: "Sanjay",
           date_of_birth: "1988-05-20",
           id_method: "Aadhar",
+          id_number: "123456789012",
+          photo_filename: "W#02.jpg",
+          process: "135",
+          joint_type: "BW",
+          position: "PF",
+          base_material_group: "1",
+          test_thickness_mm: "12",
+          product: "Plate",
+          date_of_welding: "2025-08-19",
+          expiry_date: "2027-08-19",
+          continuity_last_verified: "2026-01-15",
+          continuity_history: "2025-01-15;2026-01-15",
+          revalidation_method: "9.3b",
+        },
+      },
+      {
+        excelRow: 3,
+        raw: {
+          plant_welder_id: "W#02",
+          full_name: "Sanjay",
+          process: "141",
+          joint_type: "BW",
+          position: "PA",
+          base_material_group: "1",
+          test_thickness_mm: "12",
+          product: "Plate",
+          date_of_welding: "2025-08-19",
+          revalidation_method: "9.3b",
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  // Row 3 blanks stay blank — no copy from row 2
+  assert.equal(r.rows[1].welder.dateOfBirth, null);
+  assert.equal(r.rows[1].welder.idMethod, null);
+  assert.equal(r.rows[1].welder.idNumber, null);
+  assert.equal(r.rows[1].welder.photoFilename, null);
+  assert.equal(r.rows[1].qualification?.continuityLastVerified, null);
+  assert.deepEqual(r.rows[1].qualification?.continuityHistory, []);
+  assert.equal(r.rows[1].raw.continuity_last_verified, "");
+  assert.equal(r.rows[1].raw.continuity_history, "");
+  assert.equal(r.rows[1].raw.date_of_birth, "");
+  assert.equal(r.rows[1].raw.id_number, "");
+});
+
+test("blank full_name on a row fails — name is not taken from the row above", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          plant_welder_id: "W#02",
+          full_name: "Sanjay",
           process: "135",
           joint_type: "BW",
           position: "PF",
@@ -406,11 +461,8 @@ test("fill-forward copies welder fields on qualification rows", () => {
     ],
     new Set(),
   );
-  assert.equal(r.ok, true, JSON.stringify(r.errors));
-  assert.equal(r.rows[1].welder.fullName, "Sanjay");
-  assert.equal(r.rows[1].welder.plantWelderId, "W#02");
-  assert.equal(r.rows[1].welder.dateOfBirth, "1988-05-20");
-  assert.equal(r.rows[1].welder.idMethod, "Aadhar");
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.excelRow === 3 && e.column === "full_name"));
 });
 
 test("does not fill-forward photo_filename to the next welder row", () => {
@@ -708,10 +760,28 @@ test("parses comma-separated history dates", () => {
     "2020-01-15",
     "2020-07-15",
   ]);
-  assert.equal(
-    r.rows[0].qualification?.continuityLastVerified,
-    "2020-07-15",
+  // Blank continuity_last_verified stays null (not invented from history)
+  assert.equal(r.rows[0].qualification?.continuityLastVerified, null);
+});
+
+test("blank continuity_last_verified is not invented from continuity_history", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          ...baseWelderRaw(),
+          ...qualRaw({
+            continuity_history: "2020-01-15;2021-01-15;2025-12-01",
+          }),
+        },
+      },
+    ],
+    new Set(),
   );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  assert.equal(r.rows[0].qualification?.continuityLastVerified, null);
+  assert.equal(r.rows[0].qualification?.continuityHistory.length, 3);
 });
 
 test("rejects invalid date in continuity_history", () => {

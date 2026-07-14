@@ -178,11 +178,11 @@ export function buildClientDateGuideBuffer(): Buffer {
     ],
     [
       "2",
-      "Open the Import sheet. Fill one row per certificate (qualification).",
+      "Open the Import sheet. Fill one row per certificate. Repeat welder name and W# on every row for the same person — blank cells stay blank and are never copied from the row above.",
     ],
     [
       "3",
-      "Enter welder name and W# No (or leave W# blank to auto-assign). Add process, position, thickness, etc.",
+      "Enter welder name and W# No (or leave W# blank to auto-assign). Add process, position, thickness, etc. Only fill fields you have — leave unknown cells empty.",
     ],
     [
       "4",

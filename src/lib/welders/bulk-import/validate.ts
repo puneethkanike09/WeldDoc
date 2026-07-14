@@ -154,12 +154,59 @@ function parseNdt(
 function welderFingerprint(w: WelderImportFields): string {
   return [
     w.fullName,
-    w.dateOfBirth,
-    w.placeOfBirth,
-    w.idMethod,
-    w.idNumber,
+    w.email ?? "",
+    w.dateOfBirth ?? "",
+    w.placeOfBirth ?? "",
+    w.idMethod ?? "",
+    w.idNumber ?? "",
     w.welderStatus,
   ].join("|");
+}
+
+/** True when both rows have a value for the field and those values differ. */
+function conflictingOptional(
+  a: string | null | undefined,
+  b: string | null | undefined,
+): boolean {
+  if (!a?.trim() || !b?.trim()) return false;
+  return a.trim() !== b.trim();
+}
+
+/**
+ * Same W# may appear on multiple certificate rows. Blank cells on later rows
+ * must not conflict with values on earlier rows — only quarrel when both
+ * sides entered different non-empty values.
+ */
+export function weldersConflict(
+  a: WelderImportFields,
+  b: WelderImportFields,
+): boolean {
+  if (a.fullName.trim() !== b.fullName.trim()) return true;
+  if (conflictingOptional(a.email, b.email)) return true;
+  if (conflictingOptional(a.dateOfBirth, b.dateOfBirth)) return true;
+  if (conflictingOptional(a.placeOfBirth, b.placeOfBirth)) return true;
+  if (conflictingOptional(a.idMethod, b.idMethod)) return true;
+  if (conflictingOptional(a.idNumber, b.idNumber)) return true;
+  if (a.welderStatus !== b.welderStatus) return true;
+  return false;
+}
+
+/** Prefer filled fields when merging snapshot for later conflict checks. */
+function mergeWelderSnapshot(
+  prior: WelderImportFields,
+  next: WelderImportFields,
+): WelderImportFields {
+  return {
+    plantWelderId: next.plantWelderId || prior.plantWelderId,
+    fullName: next.fullName || prior.fullName,
+    email: next.email ?? prior.email,
+    dateOfBirth: next.dateOfBirth ?? prior.dateOfBirth,
+    placeOfBirth: next.placeOfBirth ?? prior.placeOfBirth,
+    idMethod: next.idMethod ?? prior.idMethod,
+    idNumber: next.idNumber ?? prior.idNumber,
+    photoFilename: next.photoFilename ?? prior.photoFilename,
+    welderStatus: next.welderStatus || prior.welderStatus,
+  };
 }
 
 function welderGroupKey(w: WelderImportFields): string {
@@ -396,11 +443,8 @@ function parseQualification(
 
   const method = revalidationMethod as RevalidationMethod;
   const expiryDate = expiryOverride ?? computeExpiry(method, dateOfWelding);
-  let continuityLastVerified = continuityOverride ?? null;
-
-  if (!continuityLastVerified && continuityHistory.length > 0) {
-    continuityLastVerified = continuityHistory[continuityHistory.length - 1];
-  }
+  // Blank stays blank — never invent continuity_last_verified from history.
+  const continuityLastVerified = continuityOverride ?? null;
 
   if (
     continuityOverride &&
@@ -459,8 +503,7 @@ export function validateImportRows(
   const warnings: ImportWarning[] = [];
   const rows: ValidatedImportRow[] = [];
 
-  const seenGroups = new Map<string, number>();
-  const fingerprintByGroup = new Map<string, string>();
+  const welderByGroup = new Map<string, WelderImportFields>();
 
   const filled = fillForwardWelderFields(parsed);
 
@@ -483,21 +526,20 @@ export function validateImportRows(
 
     // A welder already in the org is fine — the qualification(s) on this row
     // will be attached to that welder at commit time. Only flag rows in this
-    // same file that reuse a plant ID with conflicting welder details.
-    const prevRow = seenGroups.get(groupKey);
-    if (prevRow != null) {
-      const fp = welderFingerprint(welder);
-      const priorFp = fingerprintByGroup.get(groupKey);
-      if (priorFp && priorFp !== fp) {
+    // same file that reuse a plant ID with conflicting non-blank welder details.
+    const prior = welderByGroup.get(groupKey);
+    if (prior) {
+      if (weldersConflict(prior, welder)) {
         errors.push({
           excelRow,
           column: "plant_welder_id",
           message: `Welder details conflict with another row for the same plant ID.`,
         });
+      } else {
+        welderByGroup.set(groupKey, mergeWelderSnapshot(prior, welder));
       }
     } else {
-      seenGroups.set(groupKey, excelRow);
-      fingerprintByGroup.set(groupKey, welderFingerprint(welder));
+      welderByGroup.set(groupKey, welder);
     }
 
     const qualification = parseQualification(raw, excelRow, errors, warnings);
