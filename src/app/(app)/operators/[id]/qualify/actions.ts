@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
-import { uploadFile } from "@/lib/storage";
+import { uploadFile, removeObjects } from "@/lib/storage";
 import {
   computeOperatorExpiry,
   computeOperatorRevalidationExpiry,
@@ -318,9 +318,7 @@ export async function uploadSignedOperatorCertificate(formData: FormData) {
   if (!path) throw new Error("Upload failed.");
 
   if (oq.signed_certificate_pdf_path) {
-    await supabase.storage
-      .from("generated-pdfs")
-      .remove([oq.signed_certificate_pdf_path]);
+    await removeObjects("generated-pdfs", [oq.signed_certificate_pdf_path]);
   }
 
   const { error } = await supabase
@@ -377,7 +375,7 @@ export async function discardOq(operatorId: string, oqId: string) {
   }
 
   for (const { bucket, path } of toRemove) {
-    await supabase.storage.from(bucket).remove([path]);
+    await removeObjects(bucket, [path]);
   }
 
   const { error } = await supabase
@@ -431,7 +429,7 @@ export async function deleteOq(operatorId: string, oqId: string) {
     addFile("ndt-reports", row.supporting_doc_path);
 
   for (const [bucket, paths] of Object.entries(byBucket)) {
-    if (paths.length) await supabase.storage.from(bucket).remove(paths);
+    if (paths.length) await removeObjects(bucket, paths);
   }
 
   const { error } = await supabase
@@ -466,9 +464,7 @@ export async function deleteOperatorValidation(
   if (!rec) throw new Error("Log entry not found.");
 
   if (rec.supporting_doc_path) {
-    await supabase.storage
-      .from("ndt-reports")
-      .remove([rec.supporting_doc_path]);
+    await removeObjects("ndt-reports", [rec.supporting_doc_path]);
   }
 
   const { error } = await supabase

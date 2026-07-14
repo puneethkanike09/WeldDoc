@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { downloadObject } from "@/lib/storage";
 import type { QualificationRecord } from "@/types/db";
 
 export const runtime = "nodejs";
@@ -45,18 +46,23 @@ export async function GET(
     return new Response("Signed certificate not found", { status: 404 });
   }
 
-  const { data: file, error } = await supabase.storage
-    .from("generated-pdfs")
-    .download(q.signed_certificate_pdf_path);
-
-  if (error || !file) {
+  let body: Buffer;
+  let contentType: string | null;
+  try {
+    const downloaded = await downloadObject(
+      "generated-pdfs",
+      q.signed_certificate_pdf_path,
+    );
+    body = downloaded.body;
+    contentType = downloaded.contentType;
+  } catch {
     return new Response("File not found", { status: 404 });
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
   const ext = q.signed_certificate_pdf_path.split(".").pop()?.toLowerCase();
-  const contentType =
-    ext === "pdf"
+  const resolvedType =
+    contentType ||
+    (ext === "pdf"
       ? "application/pdf"
       : ext === "png"
         ? "image/png"
@@ -64,13 +70,13 @@ export async function GET(
           ? "image/jpeg"
           : ext === "webp"
             ? "image/webp"
-            : "application/octet-stream";
+            : "application/octet-stream");
 
   const download = request.nextUrl.searchParams.get("download") === "1";
 
-  return new Response(buffer, {
+  return new Response(new Uint8Array(body), {
     headers: {
-      "Content-Type": contentType,
+      "Content-Type": resolvedType,
       "Content-Disposition": `${
         download ? "attachment" : "inline"
       }; filename="signed-certificate-${wpqId}.${ext ?? "pdf"}"`,

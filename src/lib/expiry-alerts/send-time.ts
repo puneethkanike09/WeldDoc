@@ -1,10 +1,11 @@
 /**
- * Vercel Hobby allows one cron invocation per day. Set to false and use a
- * sub-daily vercel.json schedule (e.g. every 15 min) on Pro/Enterprise.
+ * When true, Vercel Hobby once-daily cron is enough (ignores per-org send clock).
+ * When false, a sub-daily caller (GitHub Actions every 15 min) is required so
+ * each org's alert_email_time + timezone window can be respected.
  */
-export const ALERT_CRON_IS_DAILY = true;
+export const ALERT_CRON_IS_DAILY = false;
 
-/** Window when ALERT_CRON_IS_DAILY is false — must match vercel.json cadence. */
+/** Send window half-open [configured time, configured time + window). Match cron cadence. */
 export const ALERT_CRON_WINDOW_MINUTES = 15;
 
 export const ALERT_TIMEZONE_OPTIONS: { value: string; label: string }[] = [

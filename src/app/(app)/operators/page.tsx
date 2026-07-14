@@ -15,6 +15,7 @@ import {
   registryListRange,
 } from "@/lib/registry/list-pagination";
 import { OperatorsTable, type OperatorRow } from "./operators-table";
+import { resolveUrl } from "@/lib/storage";
 import type { Operator, OperatorQualification } from "@/types/db";
 
 export const metadata: Metadata = { title: "Operators" };
@@ -53,15 +54,12 @@ export default async function OperatorsPage({
     oqByOperator.set(o.operator_id, arr);
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const allRows: OperatorRow[] = ((operators ?? []) as Operator[]).map((o) => ({
     id: o.id,
     operator_id:
       normalizePlantOperatorId(o.operator_id) ?? o.operator_id?.trim() ?? "—",
     full_name: o.full_name,
-    photoUrl: o.photo_path
-      ? `${supabaseUrl}/storage/v1/object/public/welder-photos/${o.photo_path}`
-      : null,
+    photoUrl: null,
     summary: summarizeOperator(o, oqByOperator.get(o.id) ?? []),
   }));
 
@@ -74,7 +72,19 @@ export default async function OperatorsPage({
     requestedPage,
     filtered.length,
   );
-  const pageRows = filtered.slice(from, to);
+  const pageSlice = filtered.slice(from, to);
+  const operatorById = new Map(
+    ((operators ?? []) as Operator[]).map((o) => [o.id, o]),
+  );
+  const pageRows: OperatorRow[] = await Promise.all(
+    pageSlice.map(async (row) => ({
+      ...row,
+      photoUrl: await resolveUrl(
+        "welder-photos",
+        operatorById.get(row.id)?.photo_path ?? null,
+      ),
+    })),
+  );
 
   const qrEntries = ((operators ?? []) as Operator[]).map((o) => ({
     qrToken: o.qr_token,

@@ -1,15 +1,20 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { canDiscardOq } from "@/lib/operator-status";
 import { canDiscardWpq } from "@/lib/welder-status";
+import { removeObjects } from "@/lib/storage";
 import { loadSession, sessionHasApprovedMember } from "./index";
 import type { QualificationSessionMember, WeldingStandard } from "@/types/db";
 
-async function removeStoragePaths(
-  supabase: SupabaseClient,
-  paths: { bucket: string; path: string }[],
-) {
+async function removeStoragePaths(paths: { bucket: string; path: string }[]) {
+  const byBucket = new Map<string, string[]>();
   for (const { bucket, path } of paths) {
-    if (path) await supabase.storage.from(bucket).remove([path]);
+    if (!path) continue;
+    const list = byBucket.get(bucket) ?? [];
+    list.push(path);
+    byBucket.set(bucket, list);
+  }
+  for (const [bucket, list] of byBucket) {
+    await removeObjects(bucket, list);
   }
 }
 
@@ -65,7 +70,7 @@ async function deleteDiscardableWelderQualification(
     }
   }
 
-  await removeStoragePaths(supabase, toRemove);
+  await removeStoragePaths(toRemove);
 
   const { error } = await supabase
     .from("qualification_records")
@@ -122,7 +127,7 @@ async function deleteDiscardableOperatorQualification(
     }
   }
 
-  await removeStoragePaths(supabase, toRemove);
+  await removeStoragePaths(toRemove);
 
   const { error } = await supabase
     .from("operator_qualifications")

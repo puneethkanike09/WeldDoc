@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
-import { uploadFile } from "@/lib/storage";
+import { uploadFile, removeObjects } from "@/lib/storage";
 import { computeExpiry, computeRevalidationExpiry } from "@/lib/expiry";
 import { recomputeWpqRange } from "@/lib/iso9606/recompute-wpq-range";
 import { VISUAL_TEST_METHOD } from "@/lib/iso9606/constants";
@@ -431,7 +431,7 @@ export async function discardWpq(welderId: string, wpqId: string) {
   }
 
   for (const { bucket, path } of toRemove) {
-    await supabase.storage.from(bucket).remove([path]);
+    await removeObjects(bucket, [path]);
   }
 
   const { error } = await supabase
@@ -493,7 +493,7 @@ export async function deleteWpq(welderId: string, wpqId: string) {
     addFile("ndt-reports", row.supporting_doc_path);
 
   for (const [bucket, paths] of Object.entries(byBucket)) {
-    if (paths.length) await supabase.storage.from(bucket).remove(paths);
+    if (paths.length) await removeObjects(bucket, paths);
   }
 
   const { error } = await supabase
@@ -530,7 +530,7 @@ export async function deleteValidation(
   const r = rec as { id: string; supporting_doc_path: string | null };
 
   if (r.supporting_doc_path) {
-    await supabase.storage.from("ndt-reports").remove([r.supporting_doc_path]);
+    await removeObjects("ndt-reports", [r.supporting_doc_path]);
   }
 
   const { error } = await supabase
@@ -656,9 +656,7 @@ export async function uploadSignedCertificate(
   if (!path) throw new Error("Upload failed.");
 
   if (wpq.signed_certificate_pdf_path) {
-    await supabase.storage
-      .from("generated-pdfs")
-      .remove([wpq.signed_certificate_pdf_path]);
+    await removeObjects("generated-pdfs", [wpq.signed_certificate_pdf_path]);
   }
 
   const { error } = await supabase

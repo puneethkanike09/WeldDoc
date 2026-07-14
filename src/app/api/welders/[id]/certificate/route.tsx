@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createClient } from "@/lib/supabase/server";
-import { resolveUrl } from "@/lib/storage";
+import { resolveUrl, uploadBytes } from "@/lib/storage";
 import { resolvePdfImageUrl } from "@/lib/pdf/image-url";
 import {
   CertificateDocument,
@@ -108,12 +108,8 @@ export async function GET(
 
   // Persist a copy to storage (best-effort).
   const path = `${profile.org_id}/${id}/certificate-${wpqId}.pdf`;
-  const { error: uploadError } = await supabase.storage
-    .from("generated-pdfs")
-    .upload(path, buffer, { contentType: "application/pdf", upsert: true });
-  if (uploadError) {
-    console.error("Certificate PDF upload failed:", uploadError.message);
-  } else {
+  try {
+    await uploadBytes("generated-pdfs", path, buffer, "application/pdf");
     const { error: updateError } = await supabase
       .from("qualification_records")
       .update({ certificate_pdf_path: path })
@@ -121,6 +117,8 @@ export async function GET(
     if (updateError) {
       console.error("Certificate path update failed:", updateError.message);
     }
+  } catch (err) {
+    console.error("Certificate PDF upload failed:", err);
   }
 
   return new Response(new Uint8Array(buffer), {
