@@ -5,6 +5,8 @@ import { dirname } from "path";
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
+  // Minimal production bundle for Docker (copies only traced deps into .next/standalone).
+  output: "standalone",
   turbopack: {
     root: projectRoot,
   },
