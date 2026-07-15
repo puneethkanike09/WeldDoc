@@ -99,7 +99,7 @@ function designationLine(
     fillerTypeLabel?: string;
     /** Pre-combined weld details for multi-process (e.g. ssnb/ssmb). */
     weldDetailsLabel?: string;
-    /** BW + supplementary fillet: layer belongs on the FW line only. */
+    /** BW designations omit sl/ml; layer suffix belongs on FW lines only. */
     omitLayer?: boolean;
     /** Fillet weld designations omit weld-detail / backing tokens (ssnb, ssmb). */
     omitWeldDetails?: boolean;
@@ -275,7 +275,7 @@ export function buildDesignation(
           : null,
       fillerTypeLabel: multi ? combinedDesignationFillerTypes(slices) : undefined,
       weldDetailsLabel: multi ? combinedDesignationWeldDetails(slices) : undefined,
-      omitLayer: hasSuppFillet,
+      omitLayer: true,
     }),
   );
 

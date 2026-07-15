@@ -222,6 +222,34 @@ test("single-process designation stays one line", () => {
   assert.match(lines[0], /^ISO 9606-1 111/);
 });
 
+test("BW multi-process without supplementary fillet omits sl/ml on designation", () => {
+  const wpq = baseWpq({
+    process: "141",
+    process_2: "111",
+    position: "H-L045",
+    position_2: "H-L045",
+    product: "Pipe",
+    deposited_thickness_mm: 4,
+    process2_deposited_thickness_mm: 12,
+    filler_type: "Solid wire/rod (S)",
+    process2_filler_type: "Basic coated (B)",
+    weld_details: "ss nb",
+    process2_weld_details: "ss nb",
+    layer_type: "Multi-layer (ml)",
+    process2_layer_type: "Multi-layer (ml)",
+    supplementary_fillet: false,
+    supplementary_fillet_process: null,
+  });
+  const bwOnlyRange: RangeOfApproval = {
+    ...range,
+    approved_joint_types: ["BW"],
+  };
+  const line = buildDesignation(wpq, bwOnlyRange)[0]!;
+  assert.match(line, /ISO 9606-1 141\/111 T BW FM1 S\/B s4\/12 H-L045 & H-L045 ssnb\/ssnb/);
+  assert.doesNotMatch(line, /\bml\b/);
+  assert.doesNotMatch(line, /\bsl\b/);
+});
+
 test("designation uses test position code, not expanded range positions", () => {
   const wpq = baseWpq({
     process: "141",
