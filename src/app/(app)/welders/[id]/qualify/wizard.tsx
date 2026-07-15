@@ -488,6 +488,7 @@ function ProcessDetailFields({
   showTestThickness,
   showDepositedThickness,
   depositedLabel,
+  isSupplementaryFilletLayer = false,
 }: {
   processCode: string;
   prefix: "" | "process2_";
@@ -508,6 +509,7 @@ function ProcessDetailFields({
   showTestThickness: boolean;
   showDepositedThickness: boolean;
   depositedLabel: string;
+  isSupplementaryFilletLayer?: boolean;
 }) {
   const n = (base: string) => `${prefix}${base}`;
   const fillerTypeOptions = fillerTypesForProcess(processCode);
@@ -700,7 +702,11 @@ function ProcessDetailFields({
         </Field>
       ) : null}
       <Field
-        label="Layer"
+        label={
+          isSupplementaryFilletLayer
+            ? "Supplementary fillet test layer"
+            : "Layer"
+        }
         required
         error={fieldErrors[n("layer_type")]}
         labelAccessory={<Iso9606TablePdfGlobe table="layerTechnique" />}
@@ -821,6 +827,7 @@ export function TestStep({
                       showTestThickness={showTestThickness}
                       showDepositedThickness={showDepositedThickness}
                       depositedLabel={depositedLabel}
+                      isSupplementaryFilletLayer={wpq.supplementary_fillet}
                     />
                   </div>
                 </div>
@@ -850,6 +857,7 @@ export function TestStep({
                       showTestThickness={false}
                       showDepositedThickness={showDepositedThickness}
                       depositedLabel={depositedLabel}
+                      isSupplementaryFilletLayer={wpq.supplementary_fillet_2}
                     />
                   </div>
                 </div>
@@ -872,6 +880,7 @@ export function TestStep({
                   showTestThickness={showTestThickness}
                   showDepositedThickness={showDepositedThickness}
                   depositedLabel={depositedLabel}
+                  isSupplementaryFilletLayer={wpq.supplementary_fillet}
                 />
               </div>
             )}
