@@ -1,6 +1,6 @@
 /**
- * When true, Vercel Hobby once-daily cron is enough (ignores per-org send clock).
- * When false, a sub-daily caller (GitHub Actions every 10 min) is required so
+ * When true, a once-daily cron is enough (ignores per-org send clock).
+ * When false, a sub-daily caller (AWS EventBridge every ~10 min) is required so
  * each org's alert_email_time + timezone window can be respected.
  */
 export const ALERT_CRON_IS_DAILY = false;
@@ -103,7 +103,7 @@ export function weeksSinceEpochMondayForTz(d: Date, timeZone: string): number {
 
 /**
  * True when the current moment falls in [configured time, configured time + window).
- * Used when ALERT_CRON_IS_DAILY is false (Pro+ sub-daily cron).
+ * Used when ALERT_CRON_IS_DAILY is false (sub-daily AWS / EventBridge cron).
  */
 export function isWithinSendWindow(
   now: Date,
