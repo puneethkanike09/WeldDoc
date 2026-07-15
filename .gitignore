@@ -25,6 +25,11 @@ yarn-error.log*
 .env*.local
 .env.e2e.local
 
+# SSL / Certbot (generated on the server)
+/certbot/conf/
+/certbot/www/
+/cloudflare-certs/*.pem
+
 # playwright
 /e2e/.auth/
 /playwright-report/
