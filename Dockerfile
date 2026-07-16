@@ -12,7 +12,22 @@ RUN npm ci
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# NEXT_PUBLIC_* are inlined into the browser bundle at build time.
+# Runtime env_file alone is not enough for login / Supabase client.
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ARG NEXT_PUBLIC_SITE_URL
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN test -n "$NEXT_PUBLIC_SUPABASE_URL" \
+  && test -n "$NEXT_PUBLIC_SUPABASE_ANON_KEY" \
+  && test -n "$NEXT_PUBLIC_SITE_URL" \
+  || (echo "ERROR: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, and NEXT_PUBLIC_SITE_URL must be set as build args" && exit 1)
+
 RUN npm run build
 
 # Final image: Alpine + standalone server only (no full node_modules).
