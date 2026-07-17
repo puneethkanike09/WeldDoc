@@ -11,7 +11,7 @@ export default async function WelderImportPage() {
     <>
       <PageHeader
         title="Import welders"
-        description="Upload a spreadsheet to add welders and certificates. Only your organisation can see this data."
+        description="Upload one ZIP package to add welders, photos, and certificates. Only your organisation can see this data."
       />
       <div className="page-content">
         <BulkImportPanel commitAction={commitWelderImport} />

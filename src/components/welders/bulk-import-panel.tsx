@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useTransition, type ReactNode } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -8,7 +8,6 @@ import {
   FileSpreadsheet,
   Loader2,
   Upload,
-  UploadCloud,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,8 +30,6 @@ import type {
 } from "@/lib/welders/bulk-import/match-import-photos";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-type UploadMode = "excel_photos" | "zip";
 
 type PreviewState = {
   rows: ValidatedImportRow[];
@@ -79,15 +76,12 @@ const CERT_STATUS: Record<
   too_large: { label: "Certificate PDF too large", tone: "expired" },
 };
 
-const IMAGE_ACCEPT =
-  ".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp";
-
 function buildSummarySentence(preview: PreviewState): string {
   const { summary, ok } = preview;
   if (!ok && summary.errorCount > 0) {
     return summary.errorCount === 1
-      ? "1 problem to fix in the spreadsheet."
-      : `${summary.errorCount} problems to fix in the spreadsheet.`;
+      ? "1 problem to fix in the spreadsheet inside your ZIP."
+      : `${summary.errorCount} problems to fix in the spreadsheet inside your ZIP.`;
   }
 
   const parts: string[] = [];
@@ -153,69 +147,29 @@ export function BulkImportPanel({
   commitAction: (formData: FormData) => Promise<CommitWelderImportResult>;
 }) {
   const router = useRouter();
-  const [uploadMode, setUploadMode] = useState<UploadMode>("excel_photos");
-  const [excelFile, setExcelFile] = useState<File | null>(null);
-  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [zipFile, setZipFile] = useState<File | null>(null);
-  const [photosOpen, setPhotosOpen] = useState(false);
-  const [photoDragOver, setPhotoDragOver] = useState(false);
   const [preview, setPreview] = useState<PreviewState | null>(null);
   const [notesOpen, setNotesOpen] = useState(false);
   const [photoDetailsOpen, setPhotoDetailsOpen] = useState(false);
   const [dataOpen, setDataOpen] = useState(false);
   const [isValidating, startValidate] = useTransition();
   const [isCommitting, startCommit] = useTransition();
-
-  const addPhotoFiles = useCallback((incoming: File[]) => {
-    const images = incoming.filter((f) =>
-      /\.(jpe?g|png|webp)$/i.test(f.name),
-    );
-    if (images.length === 0 && incoming.length > 0) {
-      toast.error("Only JPG, PNG, and WebP images are accepted.");
-      return;
-    }
-    setPhotoFiles((prev) => {
-      const seen = new Set(prev.map((f) => `${f.name}:${f.size}`));
-      const next = [...prev];
-      for (const file of images) {
-        const key = `${file.name}:${file.size}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          next.push(file);
-        }
-      }
-      return next;
-    });
-  }, []);
-
-  function buildValidateFormData(): FormData | null {
-    const fd = new FormData();
-
-    if (uploadMode === "zip") {
-      if (!zipFile) {
-        toast.error("Choose a ZIP file first.");
-        return null;
-      }
-      fd.append("zip", zipFile);
-      return fd;
-    }
-
-    if (!excelFile) {
-      toast.error("Choose a spreadsheet first.");
-      return null;
-    }
-
-    fd.append("excel", excelFile);
-    for (const photo of photoFiles) {
-      fd.append("photos", photo);
-    }
-    return fd;
-  }
+  const [jobStatus, setJobStatus] = useState<{
+    id: string;
+    status: string;
+    progress: number;
+    error?: string | null;
+  } | null>(null);
 
   function handleValidate(e: React.FormEvent) {
     e.preventDefault();
-    const fd = buildValidateFormData();
-    if (!fd) return;
+    if (!zipFile) {
+      toast.error("Choose your ZIP file first.");
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append("zip", zipFile);
 
     startValidate(async () => {
       try {
@@ -227,7 +181,7 @@ export function BulkImportPanel({
           const err = await res.json().catch(() => null);
           throw new Error(
             (err as { error?: string } | null)?.error ??
-              `Could not check the spreadsheet (${res.status}).`,
+              `Could not check the ZIP (${res.status}).`,
           );
         }
         const result = (await res.json()) as ValidateResult;
@@ -258,34 +212,20 @@ export function BulkImportPanel({
         }
       } catch (err) {
         toast.error(
-          err instanceof Error ? err.message : "Could not check the spreadsheet.",
+          err instanceof Error ? err.message : "Could not check the ZIP.",
         );
       }
     });
   }
 
-  const [jobStatus, setJobStatus] = useState<{
-    id: string;
-    status: string;
-    progress: number;
-    error?: string | null;
-  } | null>(null);
-
   function handleCommit() {
-    if (!preview?.ok || !preview.rows.length) return;
+    if (!preview?.ok || !preview.rows.length || !zipFile) return;
 
     startCommit(async () => {
       try {
         const fd = new FormData();
         fd.append("rows", JSON.stringify(preview.rows));
-
-        if (uploadMode === "zip" && zipFile) {
-          fd.append("zip", zipFile);
-        } else {
-          for (const photo of photoFiles) {
-            fd.append("photos", photo);
-          }
-        }
+        fd.append("zip", zipFile);
 
         const result = await commitAction(fd);
 
@@ -353,24 +293,8 @@ export function BulkImportPanel({
 
   function resetPreview() {
     setPreview(null);
+    setJobStatus(null);
   }
-
-  function switchToZip() {
-    setUploadMode("zip");
-    setExcelFile(null);
-    setPhotoFiles([]);
-    setPhotosOpen(false);
-    resetPreview();
-  }
-
-  function switchToExcel() {
-    setUploadMode("excel_photos");
-    setZipFile(null);
-    resetPreview();
-  }
-
-  const photosWereProvided =
-    uploadMode === "zip" || photoFiles.length > 0;
 
   return (
     <div className="space-y-6">
@@ -381,12 +305,63 @@ export function BulkImportPanel({
               Import welders
             </h3>
             <p className="mt-1 text-sm text-graphite">
-              Fill the blank spreadsheet (one row per certificate). Repeat the
-              welder name and W# on every row for that person — blank cells stay
-              blank. Photos and existing PDFs are optional. For certificates and
-              continuity files, use a ZIP package (structure below).
+              Add many welders at once by uploading one ZIP file. Follow the
+              steps below — photos and PDFs are optional.
             </p>
           </div>
+
+          <ol className="list-decimal space-y-3 pl-5 text-sm text-graphite">
+            <li>
+              <span className="font-medium text-charcoal">
+                Download the blank spreadsheet
+              </span>{" "}
+              and fill one row per certificate. Repeat the welder name and W#
+              on every row for that person.
+            </li>
+            <li>
+              <span className="font-medium text-charcoal">
+                Make a folder on your computer
+              </span>{" "}
+              and put the filled spreadsheet inside it as{" "}
+              <span className="font-mono text-xs text-charcoal">Import.xlsx</span>
+              .
+            </li>
+            <li>
+              <span className="font-medium text-charcoal">
+                Add optional folders
+              </span>{" "}
+              next to the spreadsheet (you can skip any of these):
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-graphite">
+                <li>
+                  <span className="font-mono text-xs text-charcoal">photos/</span>{" "}
+                  — e.g. <span className="font-mono text-xs">W#14.jpg</span>
+                </li>
+                <li>
+                  <span className="font-mono text-xs text-charcoal">
+                    certificates/
+                  </span>{" "}
+                  — e.g. <span className="font-mono text-xs">W#14.pdf</span>
+                </li>
+                <li>
+                  <span className="font-mono text-xs text-charcoal">
+                    continuity/
+                  </span>{" "}
+                  — e.g.{" "}
+                  <span className="font-mono text-xs">W#14_2025-08-02.pdf</span>{" "}
+                  or{" "}
+                  <span className="font-mono text-xs">W#14_cont_1.pdf</span>{" "}
+                  (max 10 per W#)
+                </li>
+              </ul>
+            </li>
+            <li>
+              <span className="font-medium text-charcoal">
+                Zip that folder
+              </span>{" "}
+              (right‑click → Compress / Send to compressed folder), then choose
+              the ZIP below.
+            </li>
+          </ol>
 
           <div className="flex flex-wrap gap-2">
             <a
@@ -407,192 +382,59 @@ export function BulkImportPanel({
             </a>
           </div>
 
-          <form onSubmit={handleValidate} className="space-y-4">
-            {uploadMode === "excel_photos" ? (
-              <>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-charcoal">
-                    Spreadsheet
-                  </label>
-                  <input
-                    type="file"
-                    accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    className="block w-full text-sm text-graphite file:mr-4 file:rounded-[10px] file:border file:border-silver file:bg-panel file:px-4 file:py-2 file:text-sm file:font-medium file:text-onyx hover:file:bg-frost"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0] ?? null;
-                      setExcelFile(file);
-                      resetPreview();
-                    }}
-                  />
-                  {excelFile && (
-                    <p className="mt-1.5 text-xs text-charcoal">
-                      Selected: {excelFile.name}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-charcoal hover:text-onyx"
-                    onClick={() => setPhotosOpen((o) => !o)}
-                    aria-expanded={photosOpen}
-                  >
-                    <ChevronDown
-                      className={cn(
-                        "h-4 w-4 transition-transform",
-                        photosOpen && "rotate-180",
-                      )}
-                    />
-                    Add welder photos (optional)
-                    {photoFiles.length > 0 && (
-                      <span className="font-normal text-steel">
-                        — {photoFiles.length} selected
-                      </span>
-                    )}
-                  </button>
-
-                  {photosOpen && (
-                    <div className="mt-2 space-y-2">
-                      <div
-                        className={cn(
-                          "flex cursor-pointer flex-col items-center gap-2 rounded-[10px] border border-dashed bg-frost px-4 py-5 text-sm transition-colors",
-                          photoDragOver
-                            ? "border-ember bg-ember/5"
-                            : "border-silver hover:border-onyx/40",
-                        )}
-                        onDragEnter={(e) => {
-                          e.preventDefault();
-                          setPhotoDragOver(true);
-                        }}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          setPhotoDragOver(true);
-                        }}
-                        onDragLeave={(e) => {
-                          if (
-                            !e.currentTarget.contains(e.relatedTarget as Node)
-                          ) {
-                            setPhotoDragOver(false);
-                          }
-                        }}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          setPhotoDragOver(false);
-                          addPhotoFiles(Array.from(e.dataTransfer.files));
-                          resetPreview();
-                        }}
-                        onClick={() =>
-                          document.getElementById("import-photo-input")?.click()
-                        }
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            document
-                              .getElementById("import-photo-input")
-                              ?.click();
-                          }
-                        }}
-                        role="button"
-                        tabIndex={0}
-                      >
-                        <UploadCloud className="h-7 w-7 text-steel" />
-                        <p className="font-medium text-charcoal">
-                          Drop photos here or click to browse
-                        </p>
-                        <p className="text-xs text-steel">
-                          JPG, PNG, or WebP — e.g. W#02.jpg
-                        </p>
-                        <input
-                          id="import-photo-input"
-                          type="file"
-                          accept={IMAGE_ACCEPT}
-                          multiple
-                          className="hidden"
-                          onChange={(e) => {
-                            addPhotoFiles(Array.from(e.target.files ?? []));
-                            e.target.value = "";
-                            resetPreview();
-                          }}
-                        />
-                      </div>
-                      {photoFiles.length > 0 && (
-                        <button
-                          type="button"
-                          className="text-xs text-ember hover:underline"
-                          onClick={() => {
-                            setPhotoFiles([]);
-                            resetPreview();
-                          }}
-                        >
-                          Clear photos
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <p className="text-sm text-steel">
-                  <button
-                    type="button"
-                    className="text-ember hover:underline"
-                    onClick={switchToZip}
-                  >
-                    Have photos or PDFs? Upload a ZIP package instead
-                  </button>
-                </p>
-              </>
-            ) : (
-              <div className="space-y-3">
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-charcoal">
-                    ZIP package
-                  </label>
-                  <p className="mb-2 text-xs text-steel">
-                    Put these inside the ZIP (folders may be empty):
-                  </p>
-                  <pre className="mb-2 overflow-x-auto rounded-[10px] border border-silver bg-frost px-3 py-2 font-mono text-[11px] leading-relaxed text-charcoal">
+          <div className="rounded-[10px] border border-silver bg-frost px-3 py-2.5">
+            <p className="mb-1.5 text-xs font-medium text-charcoal">
+              Your ZIP should look like this
+            </p>
+            <pre className="overflow-x-auto font-mono text-[11px] leading-relaxed text-charcoal">
 {`Import.xlsx
 photos/          W#14.jpg
 certificates/    W#14.pdf
 continuity/      W#14_2025-08-02.pdf
                  W#14_cont_1.pdf  (max 10 per W#)`}
-                  </pre>
-                  <input
-                    type="file"
-                    accept=".zip,application/zip,application/x-zip-compressed"
-                    className="block w-full text-sm text-graphite file:mr-4 file:rounded-[10px] file:border file:border-silver file:bg-panel file:px-4 file:py-2 file:text-sm file:font-medium file:text-onyx hover:file:bg-frost"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0] ?? null;
-                      setZipFile(file);
-                      resetPreview();
-                    }}
-                  />
-                  {zipFile && (
-                    <p className="mt-1.5 text-xs text-charcoal">
-                      Selected: {zipFile.name}
-                    </p>
-                  )}
-                </div>
-                <p className="text-sm text-steel">
-                  <button
-                    type="button"
-                    className="text-ember hover:underline"
-                    onClick={switchToExcel}
-                  >
-                    Back to spreadsheet upload
-                  </button>
-                </p>
-              </div>
-            )}
+            </pre>
+            <p className="mt-2 text-xs text-steel">
+              Folders may be empty or missing. Only the spreadsheet is required.
+            </p>
+          </div>
 
-            <Button type="submit" size="md" disabled={isValidating}>
+          <form onSubmit={handleValidate} className="space-y-4">
+            <div>
+              <label
+                htmlFor="import-zip-input"
+                className="mb-1.5 block text-sm font-medium text-charcoal"
+              >
+                ZIP package
+              </label>
+              <input
+                id="import-zip-input"
+                type="file"
+                accept=".zip,application/zip,application/x-zip-compressed"
+                className="block w-full text-sm text-graphite file:mr-4 file:rounded-[10px] file:border file:border-silver file:bg-panel file:px-4 file:py-2 file:text-sm file:font-medium file:text-onyx hover:file:bg-frost"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  setZipFile(file);
+                  resetPreview();
+                }}
+              />
+              {zipFile && (
+                <p className="mt-1.5 text-xs text-charcoal">
+                  Selected: {zipFile.name}
+                </p>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              size="md"
+              disabled={isValidating || !zipFile}
+            >
               {isValidating ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Upload className="h-4 w-4" />
               )}
-              Check my spreadsheet
+              Check my ZIP
             </Button>
           </form>
         </CardBody>
@@ -637,7 +479,8 @@ continuity/      W#14_2025-08-02.pdf
                     </ul>
                     {!preview.ok && (
                       <p className="text-sm text-graphite">
-                        Fix these in your spreadsheet, then upload it again.
+                        Fix these in Import.xlsx, zip the folder again, then
+                        upload the new ZIP.
                       </p>
                     )}
                   </div>
@@ -667,7 +510,7 @@ continuity/      W#14_2025-08-02.pdf
                   </Disclosure>
                 )}
 
-                {photosWereProvided && preview.photoResults.length > 0 && (
+                {preview.photoResults.length > 0 && (
                   <div className="space-y-2">
                     <Disclosure
                       open={photoDetailsOpen}
@@ -697,39 +540,38 @@ continuity/      W#14_2025-08-02.pdf
                   </div>
                 )}
 
-                {uploadMode === "zip" &&
-                  preview.certificateResults.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-charcoal">
-                        {certSummaryLine(preview.certificateResults)}
+                {preview.certificateResults.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-charcoal">
+                      {certSummaryLine(preview.certificateResults)}
+                    </p>
+                    <ul className="sleek-scroll max-h-40 space-y-2 overflow-y-auto rounded-[10px] border border-silver px-3 py-2 text-sm">
+                      {preview.certificateResults.map((row) => {
+                        const meta = CERT_STATUS[row.status];
+                        return (
+                          <li
+                            key={`cert-${row.plantWelderId}`}
+                            className="flex flex-wrap items-center gap-2"
+                          >
+                            <span className="font-mono text-xs text-charcoal">
+                              {row.plantWelderId}
+                            </span>
+                            <span className="text-xs text-graphite">
+                              {row.filename ?? "—"}
+                            </span>
+                            <Badge tone={meta.tone}>{meta.label}</Badge>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    {preview.continuityWarnings.length > 0 && (
+                      <p className="text-xs text-steel">
+                        Continuity notes: {preview.continuityWarnings.length}{" "}
+                        (see Notes above if listed)
                       </p>
-                      <ul className="sleek-scroll max-h-40 space-y-2 overflow-y-auto rounded-[10px] border border-silver px-3 py-2 text-sm">
-                        {preview.certificateResults.map((row) => {
-                          const meta = CERT_STATUS[row.status];
-                          return (
-                            <li
-                              key={`cert-${row.plantWelderId}`}
-                              className="flex flex-wrap items-center gap-2"
-                            >
-                              <span className="font-mono text-xs text-charcoal">
-                                {row.plantWelderId}
-                              </span>
-                              <span className="text-xs text-graphite">
-                                {row.filename ?? "—"}
-                              </span>
-                              <Badge tone={meta.tone}>{meta.label}</Badge>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                      {preview.continuityWarnings.length > 0 && (
-                        <p className="text-xs text-steel">
-                          Continuity notes: {preview.continuityWarnings.length}{" "}
-                          (see Notes above if listed)
-                        </p>
-                      )}
-                    </div>
-                  )}
+                    )}
+                  </div>
+                )}
 
                 {preview.rows.length > 0 && (
                   <Disclosure
@@ -759,7 +601,10 @@ continuity/      W#14_2025-08-02.pdf
                       type="button"
                       size="md"
                       onClick={handleCommit}
-                      disabled={isCommitting || Boolean(jobStatus && jobStatus.status !== "failed")}
+                      disabled={
+                        isCommitting ||
+                        Boolean(jobStatus && jobStatus.status !== "failed")
+                      }
                     >
                       {isCommitting ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
