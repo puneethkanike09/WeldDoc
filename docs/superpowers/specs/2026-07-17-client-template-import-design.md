@@ -6,7 +6,7 @@
 
 ## Goal
 
-Accept the **exact client Import sheet** (18 columns) for legacy welder bulk import, store dual-process / BW+FW rows the **same way the qualify wizard already does**, and meet the client’s stated inputs/outputs — without inventing blank cell values.
+Accept the **exact client Import sheet** (18 columns) for legacy welder bulk import, store dual-process / BW+FW rows the **same way the qualify wizard already does**, run **commit in the background** (Redis queue) so large imports are reliable, and meet the client’s stated inputs/outputs — without inventing blank cell values.
 
 ## Decision locked
 
@@ -17,6 +17,81 @@ Accept the **exact client Import sheet** (18 columns) for legacy welder bulk imp
 - Single-process FW-only (e.g. Rajesh `141` + `FW`): normal single-process row, `process_2` null, no supplementary fillet required
 
 This matches existing schema (`0021_multi_process`, supplementary fillet columns), qualify UI, master list, certificates, and `scripts/verify-multi-process.ts`.
+
+**Background processing — Redis + BullMQ + worker**
+
+Legacy import is critical and can be large (Excel + photos + later docs). Commit must **not** run inside a single Next.js HTTP request.
+
+| Piece | Choice | Why |
+|-------|--------|-----|
+| Broker | **Redis** | Fits existing Docker; simple, proven |
+| Queue lib | **BullMQ** | Standard Node/TS jobs, retries, progress |
+| Runner | **`worker` container** (same image, different command) | Import survives if web request times out; can scale separately |
+| Validate | **Synchronous** in API | User still sees errors before anything is written |
+| Commit | **Async job** | Writes welders / WPQs / photos / validations in background |
+
+### Job flow (Phase 1)
+
+```
+Upload Excel (+ optional photos)
+        │
+        ▼
+  Validate (sync) ──errors──► Show problems (nothing queued)
+        │
+        ok
+        ▼
+  Store payload (validated rows + photo refs) + create import_jobs row
+        │
+        ▼
+  Enqueue BullMQ job ──► Redis
+        │
+        ▼
+  Worker: commitValidatedImport (Option A mapping)
+        │
+        ▼
+  Update import_jobs: queued → running → succeeded | failed
+        │
+        ▼
+  UI polls job status → “Import complete” / error detail
+```
+
+### Docker (`docker-compose.yml` additions)
+
+Current compose has `app` + `nginx` only. Add:
+
+```yaml
+redis:
+  image: redis:7-alpine
+  restart: unless-stopped
+  # internal only; app + worker connect via redis://redis:6379
+
+worker:
+  build: same as app
+  command: # npm run worker:import (BullMQ consumer)
+  env_file: .env.production
+  depends_on: [redis]
+  restart: unless-stopped
+```
+
+`app` also gets `REDIS_URL=redis://redis:6379` to enqueue jobs.
+
+### Persistence
+
+Table **`import_jobs`** (org-scoped):
+
+- `id`, `org_id`, `created_by`, `status` (`queued` \| `running` \| `succeeded` \| `failed`)
+- `summary` (counts), `error_message`, `progress` (optional 0–100)
+- `payload_path` or storage keys for validated rows / photos
+- timestamps
+
+Worker updates this table; UI reads it via status API (poll). Prefer **one active heavy import per org** (queue others).
+
+### Reliability
+
+- Job **retries** limited (e.g. 2) with backoff; failed jobs keep error text  
+- Commit stays careful / rollback-friendly as today where possible  
+- Max rows still **1000** per file  
+- Photos uploaded to storage **before** enqueue so the worker does not need the browser session  
 
 ## Client template (exact headers)
 
@@ -41,9 +116,7 @@ This matches existing schema (`0021_multi_process`, supplementary fillet columns
 | 17 | `Validation expiry_date` | `expiry_date` (store as-is) |
 | 18 | `continuity_last_verified` | May contain **multiple** dates (`;` or `,`) → parse to history + latest for snapshot |
 
-**Removed from downloadable client-facing template** (vs old WeldDoc template): separate `continuity_history` / `revalidation_history` columns, `plant_welder_id` rename, single `position` / `test_thickness_mm`, required `base_material_group` / `product` as Excel columns.
-
-**DB defaults when Excel omits fields the DB still needs** (not shown to client): e.g. material group / product / testing standard — use safe defaults documented in implementation (same as sensible qualify defaults), never copy from previous Excel row.
+**DB defaults when Excel omits fields the DB still needs** (not shown to client): e.g. material group / product / testing standard — use safe defaults; never copy from previous Excel row.
 
 ## Mapping rules (Option A)
 
@@ -57,72 +130,49 @@ This matches existing schema (`0021_multi_process`, supplementary fillet columns
 |-------|---------|
 | `BW` only | `joint_type=BW`; BW position → `position` (+ `position_2` if dual process); BW thickness → deposited / thickness fields |
 | `FW` only | `joint_type=FW`; FW position → `position`; FW thickness → `test_thickness_mm` |
-| `BW/FW` | `joint_type=BW` + supplementary fillet true; BW cols → BW fields; FW cols → `supplementary_fillet_*` (and `_2` when `process_2` set, using same FW position/thickness for both processes unless Excel later adds per-process FW cols) |
+| `BW/FW` | `joint_type=BW` + supplementary fillet true; BW cols → BW fields; FW cols → `supplementary_fillet_*` (and `_2` when `process_2` set) |
 | `NA` | Treat as empty for that side |
 
 ### Continuity
 - Split `continuity_last_verified` cell on `;` / `,`
-- All valid dates → `validation_records` (`kind=continuity`) + internal history list
-- Snapshot `continuity_last_verified` on WPQ = **latest** parsed date (client put all dates in that one column)
+- All valid dates → `validation_records` (`kind=continuity`)
+- Snapshot on WPQ = **latest** parsed date
 - Blank cell → null / no records (no invent)
 
-### Dates
-- Accept Excel dates and `DD-MMM-YY` style
-- Expiry stored exactly; no recalc when provided
-- Blank stays blank (except expiry estimate warning only if expiry missing and we must compute for status — prefer requiring client expiry for legacy)
-
-### Blank cells
-- **No fill-forward from previous rows**
-- Repeat `welder_id` + `full_name` on every row for multi-certificate welders
-
-### Photos
-- Unchanged: filename column or `W#xx.jpg` matching; optional; missing OK
+### Dates / blanks / photos
+- Expiry as-is; no fill-forward; repeat W# + name every row; photos optional by filename / W#.jpg
 
 ## Client requirements (from Excel notes)
 
-### Input
-1. Excel in this template shape  
-2. **Later / Phase 2:** 1 already-qualified certificate PDF + up to 10 continuity supporting docs per import unit  
+**Input:** Excel template; later Phase 2 docs (1 cert PDF + ≤10 continuity files).  
 
-### Output (must use existing product behaviour)
-- Welder registry  
-- QR & ID generation  
-- Master list (sequence + ranges)  
-- Expiry alerts  
-- Dashboards  
+**Output:** Registry, QR/ID, master list ranges, expiry alerts, dashboards.  
 
-### Explicitly not required
-- **Do not generate** WPQ certificate PDF for these legacy imports (`is_legacy=true`; skip certificate generation pipeline)
+**Not required:** Generate WPQ certificate PDF for legacy import.
 
 ## Phased delivery
 
-### Phase 1 — Excel import (this approval)
-- Replace public template download with client 18-column sheet + 1–2 example rows (Sanjay dual, Rajesh FW)
-- Parse / validate / commit mapping Option A including `process_2` + supplementary fillet
-- Continuity multi-date column
-- Keep simplified import UI; header aliases for exact client names
-- Unit tests from sample rows + multi-process verify alignment
-- No certificate PDF generation on commit
+### Phase 1 — Excel import + background commit
+- Redis + BullMQ + `worker` in Docker Compose  
+- `import_jobs` + status poll on import UI  
+- Client 18-column template + Option A mapping  
+- Sync validate → enqueue commit  
+- Unit tests + worker smoke path  
 
-### Phase 2 — Document upload (separate approval)
-- Certificate PDF + max 10 continuity docs  
-- Storage paths + UI after Excel check  
+### Phase 2 — Document upload
+- Certificate PDF + max 10 continuity docs (same worker queue)  
 
-### Phase 3 — Acceptance check
-- Spot-check registry, ID/QR, master list ranges, alerts, dashboard for imported sample
+### Phase 3 — Acceptance
+- End-to-end sample + large-file job status check  
 
 ## Out of scope (Phase 1)
-- Changing qualify wizard UX  
-- Operator import  
-- Inventing revalidation history from the continuity column (continuity dates only, unless client later adds a revalidation column)
+- Qualify wizard changes, operator import, full admin job console  
 
 ## Success criteria
-- Client can fill **only** their template and import without our old column names  
-- Sanjay-style row creates **one** WPQ with dual process + BW/FW display like qualify  
-- Rajesh-style row creates one FW WPQ  
-- Blank cells never inherit previous row  
-- No certificate PDF generated for import  
-- Existing alerts / master list / dashboards pick up imported rows  
+- Client template only; Option A storage; blank stays blank  
+- Commit in **background worker**; UI shows queued → running → done/fail  
+- Redis + worker via Docker Compose  
+- No cert PDF on import; existing product surfaces pick up data  
 
-## Open items deferred to Phase 2
-- Exact UX for attaching 1 PDF + ≤10 docs (per welder vs per qualification)
+## Open items (Phase 2)
+- Exact UX for 1 PDF + ≤10 docs (per welder vs per qualification)
