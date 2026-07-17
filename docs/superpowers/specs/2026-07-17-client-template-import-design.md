@@ -1,7 +1,7 @@
 # Client Excel Template Import (Option A)
 
 **Date:** 2026-07-17  
-**Status:** Draft — awaiting user approval before implementation  
+**Status:** Implemented (Phase 1 + Phase 2 ZIP docs)  
 **Source file:** `welddoc-welder-import-template_2.xlsx` (client-provided)
 
 ## Goal
@@ -159,8 +159,20 @@ Worker updates this table; UI reads it via status API (poll). Prefer **one activ
 - Sync validate → enqueue commit  
 - Unit tests + worker smoke path  
 
-### Phase 2 — Document upload
-- Certificate PDF + max 10 continuity docs (same worker queue)  
+### Phase 2 — Document upload (ZIP-only)
+
+```
+olddata.zip
+├── Import.xlsx
+├── photos/          # W#14.jpg (optional)
+├── certificates/    # W#14.pdf → signed_certificate_pdf_path
+└── continuity/      # W#14_2025-08-02.pdf → validation supporting_doc
+                     # W#14_cont_N.pdf → legacy_document_paths (max 10/W#)
+```
+
+- Missing docs = warn only; do **not** generate cert PDFs for legacy  
+- Dated continuity unmatched to a validation row → falls back to `legacy_document_paths`  
+- Excel-only / Excel+photos still works without ZIP docs  
 
 ### Phase 3 — Acceptance
 - End-to-end sample + large-file job status check  
@@ -172,7 +184,7 @@ Worker updates this table; UI reads it via status API (poll). Prefer **one activ
 - Client template only; Option A storage; blank stays blank  
 - Commit in **background worker**; UI shows queued → running → done/fail  
 - Redis + worker via Docker Compose  
-- No cert PDF on import; existing product surfaces pick up data  
+- ZIP cert/continuity attach when provided; no auto-generated cert PDF on import  
 
-## Open items (Phase 2)
-- Exact UX for 1 PDF + ≤10 docs (per welder vs per qualification)
+## Open items
+- Phase 3 E2E acceptance on production-like data volume

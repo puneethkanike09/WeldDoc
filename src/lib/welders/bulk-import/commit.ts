@@ -8,8 +8,10 @@ import {
   isUniqueViolation,
   normalizePlantWelderId,
 } from "@/lib/welders/plant-id";
+import type { ImportDocPaths } from "./match-import-docs";
 import type { PhotoFile } from "./match-import-photos";
 import { collectValidationRecordsForImport } from "./parse-history";
+import { resolveDocAttachmentForPlant } from "./resolve-doc-attachments";
 import type { ValidatedImportRow, WelderImportFields } from "./types";
 
 export interface CommitImportContext {
@@ -52,6 +54,10 @@ export async function commitValidatedImport(
   ctx: CommitImportContext,
   rows: ValidatedImportRow[],
   photoMatches?: Map<string, PhotoFile>,
+  /** Pre-uploaded photo paths by plant W# (for background worker). */
+  photoPaths?: Record<string, string>,
+  /** Pre-uploaded certificate / continuity paths (ZIP Phase 2). */
+  docPaths?: ImportDocPaths,
 ): Promise<CommitImportResult> {
   const welderIdByGroup = new Map<string, string>();
   const welderHasQual = new Map<string, boolean>();
@@ -86,8 +92,6 @@ export async function commitValidatedImport(
       }
     }
 
-    // Map existing welders in this org by their (normalized) plant/welder ID so
-    // imported qualifications attach to the right person instead of failing.
     const { data: existingWelders, error: existingErr } = await supabase
       .from("welders")
       .select("id, welder_id")
@@ -107,7 +111,6 @@ export async function commitValidatedImport(
       const plantWelderId =
         normalizePlantWelderId(welder.plantWelderId) ?? welder.plantWelderId;
 
-      // Attach to an existing welder with this plant ID.
       const existingId = existingIdByPlant.get(plantWelderId);
       if (existingId) {
         welderIdByGroup.set(groupKey, existingId);
@@ -117,14 +120,19 @@ export async function commitValidatedImport(
       await assertPlantWelderIdAvailable(supabase, ctx.orgId, plantWelderId);
 
       let photoPath: string | null = null;
-      const matchedPhoto = photoMatches?.get(plantWelderId);
-      if (matchedPhoto) {
-        photoPath = await uploadFile(
-          "welder-photos",
-          photoFileAsUpload(matchedPhoto),
-          ctx.orgId,
-        );
-        if (photoPath) uploadedPhotoPaths.push(photoPath);
+      const preUploaded = photoPaths?.[plantWelderId];
+      if (preUploaded) {
+        photoPath = preUploaded;
+      } else {
+        const matchedPhoto = photoMatches?.get(plantWelderId);
+        if (matchedPhoto) {
+          photoPath = await uploadFile(
+            "welder-photos",
+            photoFileAsUpload(matchedPhoto),
+            ctx.orgId,
+          );
+          if (photoPath) uploadedPhotoPaths.push(photoPath);
+        }
       }
 
       const { data: created, error } = await supabase
@@ -177,6 +185,18 @@ export async function commitValidatedImport(
         );
       }
 
+      const plantWelderId =
+        normalizePlantWelderId(row.welder.plantWelderId) ??
+        row.welder.plantWelderId;
+
+      const validationRecords = collectValidationRecordsForImport(qual);
+      const validationDates = validationRecords.map((r) => r.validatedOn);
+      const docs = resolveDocAttachmentForPlant(
+        plantWelderId,
+        docPaths,
+        validationDates,
+      );
+
       const legacyJoint = resolveJointStorage(qual.jointType);
 
       const { data: wpq, error: wpqErr } = await supabase
@@ -187,14 +207,17 @@ export async function commitValidatedImport(
           standard: "ISO_9606_1",
           testing_standard: qual.testingStandard,
           process: qual.process,
+          process_2: qual.process2,
           joint_type: legacyJoint.joint_type,
           joint_type_extended: legacyJoint.joint_type_extended,
           product: qual.product,
           position: qual.position,
+          position_2: qual.position2,
           base_material_group: qual.baseMaterialGroup,
           filler_group: qual.fillerGroup,
           test_thickness_mm: qual.testThicknessMm,
           deposited_thickness_mm: qual.depositedThicknessMm,
+          process2_deposited_thickness_mm: qual.process2DepositedThicknessMm,
           pipe_od_mm: qual.pipeOdMm,
           date_of_welding: qual.dateOfWelding,
           revalidation_method: qual.revalidationMethod,
@@ -203,8 +226,15 @@ export async function commitValidatedImport(
           certificate_issued_date: qual.dateOfWelding,
           continuity_last_verified: qual.continuityLastVerified,
           expiry_date: qual.expiryDate,
-          legacy_document_paths: [],
+          signed_certificate_pdf_path: docs.signedCertificatePath,
+          legacy_document_paths: docs.legacyDocumentPaths,
           job_knowledge: "Not tested",
+          supplementary_fillet: qual.supplementaryFillet,
+          supplementary_fillet_position: qual.supplementaryFilletPosition,
+          supplementary_fillet_thickness_mm: qual.supplementaryFilletThicknessMm,
+          supplementary_fillet_2: qual.supplementaryFillet2,
+          supplementary_fillet_2_position: qual.supplementaryFillet2Position,
+          supplementary_fillet_2_thickness_mm: qual.supplementaryFillet2ThicknessMm,
         })
         .select("id")
         .single();
@@ -218,7 +248,6 @@ export async function commitValidatedImport(
       createdWpqIds.push(wpq.id);
       await recomputeWpqRange(wpq.id, supabase);
 
-      const validationRecords = collectValidationRecordsForImport(qual);
       if (validationRecords.length > 0) {
         const { error: valErr } = await supabase.from("validation_records").insert(
           validationRecords.map((record) => ({
@@ -227,6 +256,8 @@ export async function commitValidatedImport(
             validated_on: record.validatedOn,
             kind: record.kind,
             note: "Imported from legacy registry",
+            supporting_doc_path:
+              docs.supportingByDate[record.validatedOn] ?? null,
           })),
         );
         if (valErr) {

@@ -22,6 +22,10 @@ import type {
   ValidatedImportRow,
 } from "@/lib/welders/bulk-import/types";
 import type {
+  CertificateMatchResult,
+  CertificateMatchStatus,
+} from "@/lib/welders/bulk-import/match-import-docs";
+import type {
   PhotoMatchResult,
   PhotoMatchStatus,
 } from "@/lib/welders/bulk-import/match-import-photos";
@@ -36,6 +40,8 @@ type PreviewState = {
   warnings: ImportWarning[];
   summary: ImportValidationSummary;
   photoResults: PhotoMatchResult[];
+  certificateResults: CertificateMatchResult[];
+  continuityWarnings: string[];
   fileError: string | null;
   ok: boolean;
 };
@@ -48,6 +54,8 @@ type ValidateResult = {
   warnings: ImportWarning[];
   summary: ImportValidationSummary;
   photoResults: PhotoMatchResult[];
+  certificateResults?: CertificateMatchResult[];
+  continuityWarnings?: string[];
 };
 
 const PHOTO_STATUS: Record<
@@ -58,6 +66,17 @@ const PHOTO_STATUS: Record<
   missing: { label: "No photo (OK — you can add later)", tone: "expiring" },
   duplicate: { label: "More than one photo matched", tone: "ember" },
   invalid_type: { label: "File type not supported", tone: "expired" },
+};
+
+const CERT_STATUS: Record<
+  CertificateMatchStatus,
+  { label: string; tone: "active" | "expiring" | "expired" | "ember" }
+> = {
+  ready: { label: "Certificate PDF found", tone: "active" },
+  missing: { label: "No certificate PDF (OK)", tone: "expiring" },
+  duplicate: { label: "More than one certificate PDF", tone: "ember" },
+  invalid_type: { label: "Certificate file type not supported", tone: "expired" },
+  too_large: { label: "Certificate PDF too large", tone: "expired" },
 };
 
 const IMAGE_ACCEPT =
@@ -109,6 +128,23 @@ function photoSummaryLine(results: PhotoMatchResult[]): string {
     bits.push(`${other} need attention`);
   }
   return bits.join(" · ") || "No photos matched";
+}
+
+function certSummaryLine(results: CertificateMatchResult[]): string {
+  const ready = results.filter((r) => r.status === "ready").length;
+  const missing = results.filter((r) => r.status === "missing").length;
+  const other = results.length - ready - missing;
+  const bits: string[] = [];
+  if (ready > 0) {
+    bits.push(`${ready} certificate PDF${ready === 1 ? "" : "s"} found`);
+  }
+  if (missing > 0) {
+    bits.push(`${missing} without certificate PDF`);
+  }
+  if (other > 0) {
+    bits.push(`${other} need attention`);
+  }
+  return bits.join(" · ") || "No certificate PDFs matched";
 }
 
 export function BulkImportPanel({
@@ -201,6 +237,8 @@ export function BulkImportPanel({
           warnings: result.warnings ?? [],
           summary: result.summary,
           photoResults: result.photoResults ?? [],
+          certificateResults: result.certificateResults ?? [],
+          continuityWarnings: result.continuityWarnings ?? [],
           fileError: result.fileError,
           ok: result.ok && !result.fileError,
         });
@@ -226,6 +264,13 @@ export function BulkImportPanel({
     });
   }
 
+  const [jobStatus, setJobStatus] = useState<{
+    id: string;
+    status: string;
+    progress: number;
+    error?: string | null;
+  } | null>(null);
+
   function handleCommit() {
     if (!preview?.ok || !preview.rows.length) return;
 
@@ -243,6 +288,18 @@ export function BulkImportPanel({
         }
 
         const result = await commitAction(fd);
+
+        if (result.queued && result.importJobId) {
+          toast.success("Import started in the background.");
+          setJobStatus({
+            id: result.importJobId,
+            status: "queued",
+            progress: 0,
+          });
+          void pollImportJob(result.importJobId);
+          return;
+        }
+
         toast.success(
           `Imported ${result.weldersCreated} welder(s) and ${result.qualificationsCreated} certificate(s).`,
         );
@@ -252,6 +309,46 @@ export function BulkImportPanel({
         toast.error(err instanceof Error ? err.message : "Import failed.");
       }
     });
+  }
+
+  async function pollImportJob(jobId: string) {
+    for (let i = 0; i < 120; i++) {
+      await new Promise((r) => setTimeout(r, 2000));
+      try {
+        const res = await fetch(`/api/welders/bulk-import/jobs/${jobId}`);
+        if (!res.ok) continue;
+        const data = (await res.json()) as {
+          status: string;
+          progress: number;
+          error_message?: string | null;
+          summary?: {
+            weldersCreated?: number;
+            qualificationsCreated?: number;
+          };
+        };
+        setJobStatus({
+          id: jobId,
+          status: data.status,
+          progress: data.progress ?? 0,
+          error: data.error_message,
+        });
+        if (data.status === "succeeded") {
+          toast.success(
+            `Imported ${data.summary?.weldersCreated ?? 0} welder(s) and ${data.summary?.qualificationsCreated ?? 0} certificate(s).`,
+          );
+          router.push("/welders");
+          router.refresh();
+          return;
+        }
+        if (data.status === "failed") {
+          toast.error(data.error_message ?? "Import failed in the background.");
+          return;
+        }
+      } catch {
+        // keep polling
+      }
+    }
+    toast.error("Import is still running — refresh welders later to check.");
   }
 
   function resetPreview() {
@@ -286,8 +383,8 @@ export function BulkImportPanel({
             <p className="mt-1 text-sm text-graphite">
               Fill the blank spreadsheet (one row per certificate). Repeat the
               welder name and W# on every row for that person — blank cells stay
-              blank and are not copied from the row above. Photos are optional
-              (e.g. W#02.jpg). For existing certificates, use the date guide.
+              blank. Photos and existing PDFs are optional. For certificates and
+              continuity files, use a ZIP package (structure below).
             </p>
           </div>
 
@@ -441,7 +538,7 @@ export function BulkImportPanel({
                     className="text-ember hover:underline"
                     onClick={switchToZip}
                   >
-                    Have photos in a ZIP folder?
+                    Have photos or PDFs? Upload a ZIP package instead
                   </button>
                 </p>
               </>
@@ -449,11 +546,18 @@ export function BulkImportPanel({
               <div className="space-y-3">
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-charcoal">
-                    ZIP file
+                    ZIP package
                   </label>
                   <p className="mb-2 text-xs text-steel">
-                    One spreadsheet plus a photos folder inside the ZIP.
+                    Put these inside the ZIP (folders may be empty):
                   </p>
+                  <pre className="mb-2 overflow-x-auto rounded-[10px] border border-silver bg-frost px-3 py-2 font-mono text-[11px] leading-relaxed text-charcoal">
+{`Import.xlsx
+photos/          W#14.jpg
+certificates/    W#14.pdf
+continuity/      W#14_2025-08-02.pdf
+                 W#14_cont_1.pdf  (max 10 per W#)`}
+                  </pre>
                   <input
                     type="file"
                     accept=".zip,application/zip,application/x-zip-compressed"
@@ -593,6 +697,40 @@ export function BulkImportPanel({
                   </div>
                 )}
 
+                {uploadMode === "zip" &&
+                  preview.certificateResults.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-charcoal">
+                        {certSummaryLine(preview.certificateResults)}
+                      </p>
+                      <ul className="sleek-scroll max-h-40 space-y-2 overflow-y-auto rounded-[10px] border border-silver px-3 py-2 text-sm">
+                        {preview.certificateResults.map((row) => {
+                          const meta = CERT_STATUS[row.status];
+                          return (
+                            <li
+                              key={`cert-${row.plantWelderId}`}
+                              className="flex flex-wrap items-center gap-2"
+                            >
+                              <span className="font-mono text-xs text-charcoal">
+                                {row.plantWelderId}
+                              </span>
+                              <span className="text-xs text-graphite">
+                                {row.filename ?? "—"}
+                              </span>
+                              <Badge tone={meta.tone}>{meta.label}</Badge>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                      {preview.continuityWarnings.length > 0 && (
+                        <p className="text-xs text-steel">
+                          Continuity notes: {preview.continuityWarnings.length}{" "}
+                          (see Notes above if listed)
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                 {preview.rows.length > 0 && (
                   <Disclosure
                     open={dataOpen}
@@ -621,7 +759,7 @@ export function BulkImportPanel({
                       type="button"
                       size="md"
                       onClick={handleCommit}
-                      disabled={isCommitting}
+                      disabled={isCommitting || Boolean(jobStatus && jobStatus.status !== "failed")}
                     >
                       {isCommitting ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -629,6 +767,20 @@ export function BulkImportPanel({
                       Import these welders
                     </Button>
                   </div>
+                )}
+
+                {jobStatus && (
+                  <p className="text-sm text-graphite">
+                    {jobStatus.status === "queued" && "Import queued…"}
+                    {jobStatus.status === "running" &&
+                      `Import running… ${jobStatus.progress}%`}
+                    {jobStatus.status === "failed" && (
+                      <span className="text-expired-ink">
+                        Import failed: {jobStatus.error ?? "Unknown error"}
+                      </span>
+                    )}
+                    {jobStatus.status === "succeeded" && "Import complete."}
+                  </p>
                 )}
               </>
             )}

@@ -21,12 +21,18 @@ export interface WelderImportFields {
 
 export interface QualificationImportFields {
   process: string;
-  jointType: string;
+  process2: string | null;
+  /** Primary DB joint: BW or FW */
+  jointType: "BW" | "FW";
+  /** Client joint mode including BW/FW */
+  jointMode: "BW" | "FW" | "BW_FW";
   position: string;
+  position2: string | null;
   baseMaterialGroup: string;
   fillerGroup: string | null;
   testThicknessMm: number;
   depositedThicknessMm: number | null;
+  process2DepositedThicknessMm: number | null;
   pipeOdMm: number | null;
   product: ProductType;
   testingStandard: string;
@@ -36,6 +42,12 @@ export interface QualificationImportFields {
   continuityLastVerified: string | null;
   continuityHistory: string[];
   revalidationHistory: string[];
+  supplementaryFillet: boolean;
+  supplementaryFilletPosition: string | null;
+  supplementaryFilletThicknessMm: number | null;
+  supplementaryFillet2: boolean;
+  supplementaryFillet2Position: string | null;
+  supplementaryFillet2ThicknessMm: number | null;
   resultVt: TestResult;
   resultRtUt: TestResult;
   resultFracture: TestResult;
@@ -46,11 +58,6 @@ export interface ValidatedImportRow {
   excelRow: number;
   welder: WelderImportFields;
   qualification: QualificationImportFields | null;
-  /**
-   * Normalized copy of the original Excel cells for this row. The preview grid
-   * renders from this so the user's data never disappears when a single field
-   * fails validation.
-   */
   raw: Record<string, string>;
 }
 
@@ -69,9 +76,7 @@ export interface ImportWarning {
 export interface ImportValidationSummary {
   totalRows: number;
   welderCount: number;
-  /** Welders that already exist in the org (qualifications will be attached). */
   existingWelderCount: number;
-  /** Welders that will be newly created. */
   newWelderCount: number;
   qualificationCount: number;
   errorCount: number;

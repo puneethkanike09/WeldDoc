@@ -49,3 +49,15 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 USER nextjs
 EXPOSE 3000
 CMD ["node", "server.js"]
+
+# Background job worker (BullMQ) — full deps + source for tsx.
+FROM base AS worker
+WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json package-lock.json ./
+COPY src ./src
+COPY scripts ./scripts
+COPY tsconfig.json ./
+CMD ["npx", "tsx", "scripts/worker-welder-import.ts"]

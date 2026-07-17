@@ -1,19 +1,21 @@
 import {
-  FILLER_GROUPS,
-  JOINT_TYPES,
-  MATERIAL_GROUPS,
-  PRODUCT_TYPES,
-  REVALIDATION_METHODS,
-  TESTING_STANDARDS,
-  WELDING_PROCESSES,
   BW_POSITIONS,
+  FILLER_GROUPS,
   FW_POSITIONS,
+  REVALIDATION_METHODS,
+  WELDING_PROCESSES,
 } from "@/lib/iso9606/constants";
 import { computeExpiry } from "@/lib/expiry";
 import { coerceIdNumberString } from "./id-number";
 import { normalizePlantWelderId } from "@/lib/welders/plant-id";
-import { QUAL_REQUIRED_KEYS } from "./columns";
+import { QUAL_REQUIRED_KEYS, type ImportColumnKey } from "./columns";
 import { fillForwardWelderFields } from "./fill-forward";
+import {
+  clientCellOrNull,
+  parseClientJointMode,
+  parseClientProcesses,
+  parseClientThickness,
+} from "./map-client-row";
 import { normalizeRawRow } from "./normalize";
 import { parseDateHistory } from "./parse-history";
 import type {
@@ -25,30 +27,15 @@ import type {
   ValidatedImportRow,
   WelderImportFields,
 } from "./types";
-import type {
-  ProductType,
-  RevalidationMethod,
-  TestResult,
-  WelderStatus,
-  WpqStatus,
-} from "@/types/db";
+import type { RevalidationMethod } from "@/types/db";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 const PROCESS_CODES = new Set<string>(WELDING_PROCESSES.map((p) => p.code));
-const JOINT_CODES = new Set<string>(JOINT_TYPES.map((j) => j.code));
-const POSITION_CODES = new Set<string>([...BW_POSITIONS, ...FW_POSITIONS]);
-const MATERIAL_CODES = new Set<string>(MATERIAL_GROUPS.map((m) => m.code));
+const BW_POSITION_SET = new Set<string>(BW_POSITIONS);
+const FW_POSITION_SET = new Set<string>(FW_POSITIONS);
 const FILLER_CODES = new Set<string>(FILLER_GROUPS.map((f) => f.code));
-const PRODUCT_SET = new Set<string>(PRODUCT_TYPES);
 const REVAL_CODES = new Set(REVALIDATION_METHODS.map((m) => m.code));
-const TESTING_CODES = new Set<string>(TESTING_STANDARDS.map((s) => s.code));
-const WELDER_STATUS_SET = new Set<WelderStatus>([
-  "Active",
-  "Inactive",
-  "Suspended",
-]);
-const NDT_RESULTS = new Set<TestResult>(["Pass", "Fail", "NA"]);
 
 export type ImportValidationOptions = {
   existingIdNumbers?: Iterable<string>;
@@ -70,8 +57,8 @@ function str(raw: RawImportRow, key: string): string | null {
 
 function hasAnyQualField(raw: RawImportRow): boolean {
   // Only the core qualification fields trigger the qualification block. A stray
-  // value in an optional column (e.g. "NA" in result_vt, a leftover filler
-  // group) should not force the user to fill in a whole qualification.
+  // value in an optional column (e.g. "NA" in a thickness cell) should not
+  // force the user to fill in a whole qualification.
   return QUAL_REQUIRED_KEYS.some((k) => str(raw, k) != null);
 }
 
@@ -105,50 +92,25 @@ function parseDate(
   return value;
 }
 
-function parseNumber(
+/** Number cell that treats NA / blank as "unused" rather than an error. */
+function parseClientNumberField(
   raw: RawImportRow,
-  key: string,
+  key: ImportColumnKey,
   excelRow: number,
   errors: ImportValidationError[],
-  required = false,
 ): number | null {
-  const value = str(raw, key);
-  if (!value) {
-    if (required) {
-      errors.push({ excelRow, column: key, message: `${key} is required.` });
-    }
-    return null;
-  }
-  const n = Number(value);
-  if (!Number.isFinite(n)) {
+  const cell = clientCellOrNull(str(raw, key));
+  if (cell == null) return null;
+  const n = parseClientThickness(cell);
+  if (n == null) {
     errors.push({
       excelRow,
       column: key,
-      message: `${key} must be a number.`,
+      message: `${key} must be a number (or NA).`,
     });
     return null;
   }
   return n;
-}
-
-function parseNdt(
-  raw: RawImportRow,
-  key: string,
-  excelRow: number,
-  errors: ImportValidationError[],
-  defaultValue: TestResult,
-): TestResult {
-  const value = str(raw, key);
-  if (!value) return defaultValue;
-  if (!NDT_RESULTS.has(value as TestResult)) {
-    errors.push({
-      excelRow,
-      column: key,
-      message: `${key} must be Pass, Fail, or NA.`,
-    });
-    return defaultValue;
-  }
-  return value as TestResult;
 }
 
 function welderFingerprint(w: WelderImportFields): string {
@@ -210,19 +172,10 @@ function welderGroupKey(w: WelderImportFields): string {
   return w.plantWelderId || `__auto:${welderFingerprint(w)}`;
 }
 
-function wpqStatusFromNdt(
-  vt: TestResult,
-  rtUt: TestResult,
-  fracture: TestResult,
-): WpqStatus {
-  if (vt === "Fail" || rtUt === "Fail" || fracture === "Fail") return "Failed";
-  return "Approved";
-}
-
 function resolveWpqStatus(
-  ndtStatus: WpqStatus,
+  ndtStatus: "Approved" | "Failed",
   expiryDate: string,
-): WpqStatus {
+): QualificationImportFields["wpqStatus"] {
   if (ndtStatus === "Failed") return "Failed";
   const today = new Date().toISOString().slice(0, 10);
   if (expiryDate < today) return "Expired";
@@ -234,16 +187,16 @@ function parseWelder(
   excelRow: number,
   errors: ImportValidationError[],
 ): WelderImportFields | null {
-  // Blank plant_welder_id is allowed — preview assigns the next free W# before commit.
-  const plantRaw = str(raw, "plant_welder_id");
+  // Blank welder_id is allowed — preview assigns the next free W# before commit.
+  const idRaw = str(raw, "welder_id");
   let plantWelderId = "";
-  if (plantRaw) {
-    plantWelderId = normalizePlantWelderId(plantRaw) ?? "";
+  if (idRaw) {
+    plantWelderId = normalizePlantWelderId(idRaw) ?? "";
     if (!plantWelderId) {
       errors.push({
         excelRow,
-        column: "plant_welder_id",
-        message: "plant_welder_id is invalid. Use W#01 / W#1 / 1 format.",
+        column: "welder_id",
+        message: "welder_id is invalid. Use W#01 / W#1 / 1 format.",
       });
       return null;
     }
@@ -257,30 +210,19 @@ function parseWelder(
 
   // Personal details are optional (legacy sheets rarely include them).
   const dateOfBirth = parseDate(raw, "date_of_birth", excelRow, errors);
-  const placeOfBirth = str(raw, "place_of_birth");
   const idMethod = str(raw, "id_method");
   const idNumber = str(raw, "id_number");
   const photoFilename = str(raw, "photo_filename");
-
-  const statusRaw = str(raw, "welder_status") ?? "Active";
-  if (!WELDER_STATUS_SET.has(statusRaw as WelderStatus)) {
-    errors.push({
-      excelRow,
-      column: "welder_status",
-      message: "welder_status must be Active, Inactive, or Suspended.",
-    });
-    return null;
-  }
 
   return {
     plantWelderId,
     fullName,
     dateOfBirth,
-    placeOfBirth,
+    placeOfBirth: null,
     idMethod,
     idNumber,
     photoFilename,
-    welderStatus: statusRaw as WelderStatus,
+    welderStatus: "Active",
   };
 }
 
@@ -302,68 +244,70 @@ function parseQualification(
     }
   }
 
-  const process = str(raw, "process");
-  if (process && !PROCESS_CODES.has(process)) {
+  const processCell = str(raw, "process");
+  const processes = processCell ? parseClientProcesses(processCell) : null;
+  if (processCell && !processes) {
     errors.push({
       excelRow,
       column: "process",
-      message: `Invalid process code.`,
+      message: "process must be a single code or two codes joined by + (e.g. 136+135).",
+    });
+  }
+  if (processes && !PROCESS_CODES.has(processes.process)) {
+    errors.push({
+      excelRow,
+      column: "process",
+      message: `Invalid process code: ${processes.process}.`,
+    });
+  }
+  if (processes?.process2 && !PROCESS_CODES.has(processes.process2)) {
+    errors.push({
+      excelRow,
+      column: "process",
+      message: `Invalid process code: ${processes.process2}.`,
     });
   }
 
-  const jointType = str(raw, "joint_type");
-  if (jointType && !JOINT_CODES.has(jointType)) {
+  const jointCell = str(raw, "joint_type");
+  const jointMode = jointCell ? parseClientJointMode(jointCell) : null;
+  if (jointCell && !jointMode) {
     errors.push({
       excelRow,
       column: "joint_type",
-      message: "joint_type must be BW or FW.",
+      message: "joint_type must be BW, FW, or BW/FW.",
     });
   }
 
-  const position = str(raw, "position");
-  if (position && !POSITION_CODES.has(position)) {
+  const bwPosition = clientCellOrNull(str(raw, "bw_position"));
+  if (bwPosition && !BW_POSITION_SET.has(bwPosition)) {
     errors.push({
       excelRow,
-      column: "position",
-      message: "Invalid position code.",
+      column: "bw_position",
+      message: "Invalid BW position code.",
     });
   }
-
-  const baseMaterialGroup = str(raw, "base_material_group");
-  if (baseMaterialGroup && !MATERIAL_CODES.has(baseMaterialGroup)) {
+  const fwPosition = clientCellOrNull(str(raw, "fw_position"));
+  if (fwPosition && !FW_POSITION_SET.has(fwPosition)) {
     errors.push({
       excelRow,
-      column: "base_material_group",
-      message: "Invalid material group code (1–11).",
+      column: "fw_position",
+      message: "Invalid FW position code.",
     });
   }
 
-  const fillerGroup = str(raw, "filler_group");
-  if (fillerGroup && !FILLER_CODES.has(fillerGroup)) {
+  const bwThickness = parseClientNumberField(raw, "bw_test_thickness_mm", excelRow, errors);
+  const fwThickness = parseClientNumberField(raw, "fw_test_thickness_mm", excelRow, errors);
+  const pipeOdMm = parseClientNumberField(raw, "pipe_od_mm", excelRow, errors);
+
+  const fillerGroupRaw = clientCellOrNull(str(raw, "filler_group"));
+  if (fillerGroupRaw && !FILLER_CODES.has(fillerGroupRaw)) {
     errors.push({
       excelRow,
       column: "filler_group",
       message: "Invalid filler group (FM1–FM6).",
     });
   }
-
-  const product = str(raw, "product");
-  if (product && !PRODUCT_SET.has(product)) {
-    errors.push({
-      excelRow,
-      column: "product",
-      message: "product must be Plate, Pipe, Branch, or Other.",
-    });
-  }
-
-  const testingStandard = str(raw, "testing_standard") ?? "EN ISO 9606-1:2017";
-  if (!TESTING_CODES.has(testingStandard)) {
-    errors.push({
-      excelRow,
-      column: "testing_standard",
-      message: `testing_standard must be one of: ${[...TESTING_CODES].join(", ")}.`,
-    });
-  }
+  const fillerGroup = fillerGroupRaw ?? "FM1";
 
   const revalidationMethod = str(raw, "revalidation_method");
   if (
@@ -377,61 +321,158 @@ function parseQualification(
     });
   }
 
-  const testThicknessMm = parseNumber(
+  const dateOfWelding = parseDate(
     raw,
-    "test_thickness_mm",
+    "weld_test_revalidation_date",
     excelRow,
     errors,
     true,
   );
-  const depositedThicknessMm = parseNumber(
-    raw,
-    "deposited_thickness_mm",
-    excelRow,
-    errors,
-  );
-  const pipeOdMm = parseNumber(raw, "pipe_od_mm", excelRow, errors);
+  const expiryOverride = parseDate(raw, "validation_expiry_date", excelRow, errors);
 
-  const dateOfWelding = parseDate(raw, "date_of_welding", excelRow, errors, true);
-  const expiryOverride = parseDate(raw, "expiry_date", excelRow, errors);
-  const continuityOverride = parseDate(
-    raw,
+  const continuityHistory = parseDateHistory(
+    str(raw, "continuity_last_verified"),
     "continuity_last_verified",
     excelRow,
     errors,
   );
-  const continuityHistory = parseDateHistory(
-    str(raw, "continuity_history"),
-    "continuity_history",
-    excelRow,
-    errors,
-  );
-  const revalidationHistory = parseDateHistory(
-    str(raw, "revalidation_history"),
-    "revalidation_history",
-    excelRow,
-    errors,
-  );
+  const continuityLastVerified =
+    continuityHistory.length > 0
+      ? continuityHistory[continuityHistory.length - 1]
+      : null;
+  const revalidationHistory: string[] = [];
 
   if (dateOfWelding && expiryOverride && expiryOverride < dateOfWelding) {
     errors.push({
       excelRow,
-      column: "expiry_date",
-      message: "expiry_date cannot be before date_of_welding.",
+      column: "validation_expiry_date",
+      message: "validation_expiry_date cannot be before weld_test_revalidation_date.",
     });
   }
 
-  const resultVt = parseNdt(raw, "result_vt", excelRow, errors, "Pass");
-  const resultRtUt = parseNdt(raw, "result_rt_ut", excelRow, errors, "NA");
-  const resultFracture = parseNdt(raw, "result_fracture", excelRow, errors, "NA");
+  // NDT is not captured on the client template — legacy import assumes a
+  // visual pass and leaves the destructive tests not-applicable.
+  const resultVt: QualificationImportFields["resultVt"] = "Pass";
+  const resultRtUt: QualificationImportFields["resultRtUt"] = "NA";
+  const resultFracture: QualificationImportFields["resultFracture"] = "NA";
+
+  // --- Option A joint / position / thickness mapping ---------------------
+  let jointType: "BW" | "FW" = "BW";
+  let position: string | null = null;
+  let position2: string | null = null;
+  let testThicknessMm: number | null = null;
+  let depositedThicknessMm: number | null = null;
+  let process2DepositedThicknessMm: number | null = null;
+  let supplementaryFillet = false;
+  let supplementaryFilletPosition: string | null = null;
+  let supplementaryFilletThicknessMm: number | null = null;
+  let supplementaryFillet2 = false;
+  let supplementaryFillet2Position: string | null = null;
+  let supplementaryFillet2ThicknessMm: number | null = null;
+
+  if (jointMode === "FW") {
+    jointType = "FW";
+    if (!fwPosition) {
+      errors.push({
+        excelRow,
+        column: "fw_position",
+        message: "fw_position is required when joint_type is FW.",
+      });
+    }
+    if (fwThickness == null) {
+      errors.push({
+        excelRow,
+        column: "fw_test_thickness_mm",
+        message: "fw_test_thickness_mm is required when joint_type is FW.",
+      });
+    }
+    position = fwPosition;
+    testThicknessMm = fwThickness;
+    if (processes?.process2) {
+      position2 = fwPosition;
+    }
+  } else if (jointMode === "BW") {
+    jointType = "BW";
+    if (!bwPosition) {
+      errors.push({
+        excelRow,
+        column: "bw_position",
+        message: "bw_position is required when joint_type is BW.",
+      });
+    }
+    if (bwThickness == null) {
+      errors.push({
+        excelRow,
+        column: "bw_test_thickness_mm",
+        message: "bw_test_thickness_mm is required when joint_type is BW.",
+      });
+    }
+    position = bwPosition;
+    testThicknessMm = bwThickness;
+    depositedThicknessMm = bwThickness;
+    if (processes?.process2) {
+      position2 = bwPosition;
+      process2DepositedThicknessMm = bwThickness;
+    }
+  } else if (jointMode === "BW_FW") {
+    jointType = "BW";
+    if (!bwPosition) {
+      errors.push({
+        excelRow,
+        column: "bw_position",
+        message: "bw_position is required when joint_type is BW/FW.",
+      });
+    }
+    if (bwThickness == null) {
+      errors.push({
+        excelRow,
+        column: "bw_test_thickness_mm",
+        message: "bw_test_thickness_mm is required when joint_type is BW/FW.",
+      });
+    }
+    if (!fwPosition) {
+      errors.push({
+        excelRow,
+        column: "fw_position",
+        message: "fw_position is required when joint_type is BW/FW.",
+      });
+    }
+    if (fwThickness == null) {
+      errors.push({
+        excelRow,
+        column: "fw_test_thickness_mm",
+        message: "fw_test_thickness_mm is required when joint_type is BW/FW.",
+      });
+    }
+    position = bwPosition;
+    testThicknessMm = bwThickness;
+    depositedThicknessMm = bwThickness;
+    supplementaryFillet = true;
+    supplementaryFilletPosition = fwPosition;
+    supplementaryFilletThicknessMm = fwThickness;
+    if (processes?.process2) {
+      position2 = bwPosition;
+      process2DepositedThicknessMm = bwThickness;
+      supplementaryFillet2 = true;
+      supplementaryFillet2Position = fwPosition;
+      supplementaryFillet2ThicknessMm = fwThickness;
+    }
+  }
+
+  if (!expiryOverride && dateOfWelding) {
+    warnings.push({
+      excelRow,
+      column: "validation_expiry_date",
+      message:
+        "Expiry estimated from test date and revalidation method — add validation_expiry_date from the certificate if you have it.",
+    });
+  }
 
   if (
-    !process ||
-    !jointType ||
+    !processes ||
+    !jointMode ||
     !position ||
-    !baseMaterialGroup ||
     testThicknessMm == null ||
-    !product ||
     !dateOfWelding ||
     !revalidationMethod
   ) {
@@ -440,54 +481,38 @@ function parseQualification(
 
   const method = revalidationMethod as RevalidationMethod;
   const expiryDate = expiryOverride ?? computeExpiry(method, dateOfWelding);
-  // Blank stays blank — never invent continuity_last_verified from history.
-  const continuityLastVerified = continuityOverride ?? null;
-
-  if (
-    continuityOverride &&
-    continuityHistory.length > 0 &&
-    continuityOverride !== continuityHistory[continuityHistory.length - 1]
-  ) {
-    warnings.push({
-      excelRow,
-      column: "continuity_last_verified",
-      message:
-        "continuity_last_verified differs from the latest date in continuity_history — both will be imported; snapshot uses continuity_last_verified.",
-    });
-  }
-
-  if (!expiryOverride && dateOfWelding) {
-    warnings.push({
-      excelRow,
-      column: "expiry_date",
-      message:
-        "Expiry estimated from test date and revalidation method — add expiry_date from the certificate if you have it.",
-    });
-  }
-
-  const ndtStatus = wpqStatusFromNdt(resultVt, resultRtUt, resultFracture);
 
   return {
-    process,
+    process: processes.process,
+    process2: processes.process2,
     jointType,
+    jointMode,
     position,
-    baseMaterialGroup,
-    fillerGroup: fillerGroup ?? "FM1",
+    position2,
+    baseMaterialGroup: "1",
+    fillerGroup,
     testThicknessMm,
     depositedThicknessMm,
+    process2DepositedThicknessMm,
     pipeOdMm,
-    product: product as ProductType,
-    testingStandard,
+    product: "Plate",
+    testingStandard: "EN ISO 9606-1:2017",
     dateOfWelding,
     expiryDate,
     revalidationMethod: method,
     continuityLastVerified,
     continuityHistory,
     revalidationHistory,
+    supplementaryFillet,
+    supplementaryFilletPosition,
+    supplementaryFilletThicknessMm,
+    supplementaryFillet2,
+    supplementaryFillet2Position,
+    supplementaryFillet2ThicknessMm,
     resultVt,
     resultRtUt,
     resultFracture,
-    wpqStatus: resolveWpqStatus(ndtStatus, expiryDate),
+    wpqStatus: resolveWpqStatus("Approved", expiryDate),
   };
 }
 
@@ -516,7 +541,7 @@ export function validateImportRows(
 
     // Reflect the canonical plant ID back into the display cells.
     if (welder.plantWelderId) {
-      normalized.plant_welder_id = welder.plantWelderId;
+      normalized.welder_id = welder.plantWelderId;
     }
 
     const groupKey = welderGroupKey(welder);
@@ -529,7 +554,7 @@ export function validateImportRows(
       if (weldersConflict(prior, welder)) {
         errors.push({
           excelRow,
-          column: "plant_welder_id",
+          column: "welder_id",
           message: `Welder details conflict with another row for the same plant ID.`,
         });
       } else {

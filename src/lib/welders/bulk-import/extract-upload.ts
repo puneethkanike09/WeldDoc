@@ -1,4 +1,5 @@
 import JSZip from "jszip";
+import type { DocFile } from "./match-import-docs";
 import type { PhotoFile } from "./match-import-photos";
 
 const MAX_ZIP_BYTES = 50 * 1024 * 1024;
@@ -7,6 +8,8 @@ const IMAGE_EXT = [".jpg", ".jpeg", ".png", ".webp"];
 export type ExtractedImportUpload = {
   excel: File | null;
   photos: PhotoFile[];
+  certificates: DocFile[];
+  continuity: DocFile[];
   fileError?: string;
 };
 
@@ -14,6 +17,7 @@ function mimeFromFilename(filename: string): string {
   const lower = filename.toLowerCase();
   if (lower.endsWith(".png")) return "image/png";
   if (lower.endsWith(".webp")) return "image/webp";
+  if (lower.endsWith(".pdf")) return "application/pdf";
   return "image/jpeg";
 }
 
@@ -36,9 +40,18 @@ function isImageFilename(name: string): boolean {
   return IMAGE_EXT.some((ext) => lower.endsWith(ext));
 }
 
-function isUnderPhotosFolder(path: string): boolean {
-  const normalized = path.replace(/\\/g, "/").toLowerCase();
-  return normalized.includes("/photos/") || normalized.startsWith("photos/");
+function isPdfFilename(name: string): boolean {
+  return name.toLowerCase().endsWith(".pdf");
+}
+
+function normalizedZipPath(path: string): string {
+  return path.replace(/\\/g, "/");
+}
+
+function isUnderFolder(path: string, folder: string): boolean {
+  const normalized = normalizedZipPath(path).toLowerCase();
+  const f = folder.toLowerCase();
+  return normalized.includes(`/${f}/`) || normalized.startsWith(`${f}/`);
 }
 
 async function fileToPhotoFile(file: File): Promise<PhotoFile> {
@@ -55,6 +68,8 @@ async function extractFromZip(zipFile: File): Promise<ExtractedImportUpload> {
     return {
       excel: null,
       photos: [],
+      certificates: [],
+      continuity: [],
       fileError: "ZIP file is too large (max 50 MB).",
     };
   }
@@ -66,12 +81,17 @@ async function extractFromZip(zipFile: File): Promise<ExtractedImportUpload> {
     return {
       excel: null,
       photos: [],
+      certificates: [],
+      continuity: [],
       fileError: "Could not read ZIP file.",
     };
   }
 
   let excelEntry: JSZip.JSZipObject | null = null;
   const photoEntries: Array<{ path: string; entry: JSZip.JSZipObject }> = [];
+  const certEntries: Array<{ path: string; entry: JSZip.JSZipObject }> = [];
+  const continuityEntries: Array<{ path: string; entry: JSZip.JSZipObject }> =
+    [];
 
   for (const [path, entry] of Object.entries(zip.files)) {
     if (entry.dir) continue;
@@ -83,8 +103,18 @@ async function extractFromZip(zipFile: File): Promise<ExtractedImportUpload> {
       continue;
     }
 
-    if (isImageFilename(name) && isUnderPhotosFolder(path)) {
+    if (isImageFilename(name) && isUnderFolder(path, "photos")) {
       photoEntries.push({ path, entry });
+      continue;
+    }
+
+    if (isPdfFilename(name) && isUnderFolder(path, "certificates")) {
+      certEntries.push({ path, entry });
+      continue;
+    }
+
+    if (isPdfFilename(name) && isUnderFolder(path, "continuity")) {
+      continuityEntries.push({ path, entry });
     }
   }
 
@@ -92,6 +122,8 @@ async function extractFromZip(zipFile: File): Promise<ExtractedImportUpload> {
     return {
       excel: null,
       photos: [],
+      certificates: [],
+      continuity: [],
       fileError: "ZIP must contain an Excel (.xlsx) file.",
     };
   }
@@ -112,7 +144,29 @@ async function extractFromZip(zipFile: File): Promise<ExtractedImportUpload> {
     });
   }
 
-  return { excel, photos };
+  const certificates: DocFile[] = [];
+  for (const { path, entry } of certEntries) {
+    const bytes = Buffer.from(await entry.async("arraybuffer"));
+    certificates.push({
+      filename: basename(path),
+      bytes,
+      mime: "application/pdf",
+      zipPath: normalizedZipPath(path),
+    });
+  }
+
+  const continuity: DocFile[] = [];
+  for (const { path, entry } of continuityEntries) {
+    const bytes = Buffer.from(await entry.async("arraybuffer"));
+    continuity.push({
+      filename: basename(path),
+      bytes,
+      mime: "application/pdf",
+      zipPath: normalizedZipPath(path),
+    });
+  }
+
+  return { excel, photos, certificates, continuity };
 }
 
 export async function extractImportUpload(
@@ -133,6 +187,8 @@ export async function extractImportUpload(
     return {
       excel: null,
       photos: [],
+      certificates: [],
+      continuity: [],
       fileError: "Select an Excel file to upload.",
     };
   }
@@ -144,24 +200,26 @@ export async function extractImportUpload(
     }
   }
 
-  return { excel: excelField, photos };
+  // Excel-only / Excel+photos path: no certificate or continuity files.
+  return { excel: excelField, photos, certificates: [], continuity: [] };
 }
 
 /** Photos (or ZIP photos/) for commit — rows travel separately as JSON. */
 export async function extractPhotosFromFormData(
   formData: FormData,
 ): Promise<PhotoFile[]> {
-  const zipField = formData.get("zip");
-  if (zipField instanceof File && zipField.size > 0) {
-    const { photos } = await extractFromZip(zipField);
-    return photos;
-  }
+  const extracted = await extractImportUpload(formData);
+  return extracted.photos;
+}
 
-  const photos: PhotoFile[] = [];
-  for (const entry of formData.getAll("photos")) {
-    if (entry instanceof File && entry.size > 0) {
-      photos.push(await fileToPhotoFile(entry));
-    }
-  }
-  return photos;
+/** Full ZIP/excel extraction for commit (photos + docs). */
+export async function extractImportAssetsFromFormData(
+  formData: FormData,
+): Promise<Pick<ExtractedImportUpload, "photos" | "certificates" | "continuity">> {
+  const extracted = await extractImportUpload(formData);
+  return {
+    photos: extracted.photos,
+    certificates: extracted.certificates,
+    continuity: extracted.continuity,
+  };
 }

@@ -4,13 +4,12 @@
  * Legacy spreadsheets rarely use the exact canonical codes the validator
  * expects. Rather than flag every reasonable variant as an error, we coerce
  * common representations to the canonical value the app stores:
- *   - process:  "MAG (135)", "135 — MAG / GMAW", "SMAW", "135"      -> "135"
- *   - joint:    "Butt", "Butt weld (BW)", "bw"                       -> "BW"
- *   - position: "pa", "PA — flat", "h-l045"                          -> "PA" / "H-L045"
- *   - status:   "active"                                             -> "Active"
- *   - reval:    "9.3B", "6.3b", "3b", "b"                            -> "9.3b"
- *   - dates:    "15/06/2024", "15.06.2024", "10 May 2023", 45292      -> "2024-06-15"
- *   - numbers:  "12 mm", "12mm"                                       -> "12"
+ *   - process:  "MAG (135)", "135 — MAG / GMAW", "SMAW", "135", "136+135"  -> "135" / "136+135"
+ *   - joint:    "bw", "BW/FW", "bw+fw"                                    -> "BW" / "FW" / "BW/FW"
+ *   - position: "pa", "PA — flat", "h-l045"                               -> "PA" / "H-L045"
+ *   - reval:    "9.3B", "6.3b", "3b", "b"                                -> "9.3b"
+ *   - dates:    "15/06/2024", "15.06.2024", "10 May 2023", 45292          -> "2024-06-15"
+ *   - numbers:  "12 mm", "12mm"                                           -> "12"
  *
  * When a value cannot be confidently mapped we return the trimmed original so
  * the validator still flags it (and the user sees exactly what they typed).
@@ -28,6 +27,7 @@ import {
 } from "@/lib/iso9606/constants";
 import { IMPORT_COLUMNS, type ImportColumnKey } from "./columns";
 import { coerceIdNumberString } from "./id-number";
+import { parseClientJointMode, parseClientProcesses } from "./map-client-row";
 import type { RawImportRow } from "./types";
 
 function toStr(value: string | number | null | undefined): string {
@@ -85,6 +85,16 @@ export function coerceProcess(value: string): string | null {
   return null;
 }
 
+/** Coerce the client "process" cell: single code or `code+code` combo. */
+export function coerceClientProcess(value: string): string | null {
+  const parsed = parseClientProcesses(value);
+  if (!parsed) return null;
+  const p1 = coerceProcess(parsed.process) ?? parsed.process;
+  if (!parsed.process2) return p1;
+  const p2 = coerceProcess(parsed.process2) ?? parsed.process2;
+  return `${p1}+${p2}`;
+}
+
 const JOINT_CODES = new Set<string>(JOINT_TYPES.map((j) => j.code));
 
 export function coerceJoint(value: string): string | null {
@@ -94,6 +104,15 @@ export function coerceJoint(value: string): string | null {
   const lower = t.toLowerCase();
   if (/\bbw\b/.test(lower) || lower.includes("butt")) return "BW";
   if (/\bfw\b/.test(lower) || lower.includes("fillet")) return "FW";
+  return null;
+}
+
+/** Coerce the client "joint_type" cell: BW, FW, or BW/FW. */
+export function coerceClientJointType(value: string): string | null {
+  const mode = parseClientJointMode(value);
+  if (mode === "BW") return "BW";
+  if (mode === "FW") return "FW";
+  if (mode === "BW_FW") return "BW/FW";
   return null;
 }
 
@@ -308,28 +327,20 @@ export function coerceDateHistory(value: string): string | null {
 }
 
 const COERCERS: Partial<Record<ImportColumnKey, Coercer>> = {
-  welder_status: coerceStatus,
   id_number: (v) => coerceIdNumberString(v),
-  process: coerceProcess,
-  joint_type: coerceJoint,
-  position: coercePosition,
-  base_material_group: coerceMaterialGroup,
+  process: coerceClientProcess,
+  joint_type: coerceClientJointType,
+  bw_position: coercePosition,
+  fw_position: coercePosition,
   filler_group: coerceFiller,
-  product: coerceProduct,
-  testing_standard: coerceTestingStandard,
-  revalidation_method: (v) => coerceRevalidation(v, "9.3"),
-  test_thickness_mm: coerceNumber,
-  deposited_thickness_mm: coerceNumber,
+  bw_test_thickness_mm: coerceNumber,
+  fw_test_thickness_mm: coerceNumber,
   pipe_od_mm: coerceNumber,
+  revalidation_method: (v) => coerceRevalidation(v, "9.3"),
   date_of_birth: coerceDate,
-  date_of_welding: coerceDate,
-  expiry_date: coerceDate,
-  continuity_last_verified: coerceDate,
-  continuity_history: coerceDateHistory,
-  revalidation_history: coerceDateHistory,
-  result_vt: coerceNdt,
-  result_rt_ut: coerceNdt,
-  result_fracture: coerceNdt,
+  weld_test_revalidation_date: coerceDate,
+  validation_expiry_date: coerceDate,
+  continuity_last_verified: coerceDateHistory,
 };
 
 /** Normalize a single cell; falls back to the trimmed original when unmapped. */

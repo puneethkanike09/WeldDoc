@@ -7,6 +7,8 @@ import {
   verifyBuiltImportTemplate,
 } from "../src/lib/welders/bulk-import/template";
 import { matchPhotosToWelders } from "../src/lib/welders/bulk-import/match-import-photos";
+import { planImportDocuments } from "../src/lib/welders/bulk-import/match-import-docs";
+import { resolveDocAttachmentForPlant } from "../src/lib/welders/bulk-import/resolve-doc-attachments";
 import { validateImportRows } from "../src/lib/welders/bulk-import/validate";
 import {
   collectValidationRecordsForImport,
@@ -28,32 +30,27 @@ function test(name: string, fn: () => void) {
 
 function baseWelderRaw(overrides: Record<string, string> = {}) {
   return {
-    plant_welder_id: "W#9001",
+    welder_id: "W#9001",
     full_name: "Test Welder",
     ...overrides,
   };
 }
 
-function qualRaw(overrides: Record<string, string> = {}) {
+/** A minimal BW qualification row (client template columns). */
+function bwQualRaw(overrides: Record<string, string> = {}) {
   return {
     process: "135",
     joint_type: "BW",
-    position: "PF",
-    base_material_group: "1",
+    bw_position: "PF",
     filler_group: "FM1",
-    test_thickness_mm: "12",
-    product: "Plate",
-    testing_standard: "EN ISO 9606-1:2017",
-    date_of_welding: "2025-01-15",
+    bw_test_thickness_mm: "12",
     revalidation_method: "9.3b",
-    result_vt: "Pass",
-    result_rt_ut: "NA",
-    result_fracture: "NA",
+    weld_test_revalidation_date: "2025-01-15",
     ...overrides,
   };
 }
 
-console.log("Bulk welder import validation\n");
+console.log("Bulk welder import validation (client Option A template)\n");
 
 test("built template parses with all example rows", () => {
   const r = verifyBuiltImportTemplate();
@@ -67,16 +64,20 @@ test("template has only Import sheet", () => {
   assert.deepEqual(wb.SheetNames, [IMPORT_SHEET_NAME]);
 });
 
-test("template includes expiry_date, continuity_last_verified, photo_filename in header", () => {
+test("template header uses exact client labels", () => {
   const buffer = buildImportTemplateBuffer();
   const wb = XLSX.read(buffer, { type: "buffer" });
   const sheet = wb.Sheets[IMPORT_SHEET_NAME];
   const rows = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1 });
   const header = rows[0] as string[];
-  assert.ok(header.includes("expiry_date"));
+  assert.ok(header.includes("welder_id"));
+  assert.ok(header.includes("BW position"));
+  assert.ok(header.includes("FW position"));
+  assert.ok(header.includes("BW test_thickness_mm"));
+  assert.ok(header.includes("FW test_thickness_mm"));
+  assert.ok(header.includes("Weld Test/ Re validation Date"));
+  assert.ok(header.includes("Validation expiry_date"));
   assert.ok(header.includes("continuity_last_verified"));
-  assert.ok(header.includes("continuity_history"));
-  assert.ok(header.includes("revalidation_history"));
   assert.ok(header.includes("photo_filename"));
 });
 
@@ -92,9 +93,9 @@ test("welder-only row validates (name + W# only)", () => {
   assert.equal(r.rows[0].qualification, null);
 });
 
-test("allows blank plant_welder_id (auto-assign in preview)", () => {
+test("allows blank welder_id (auto-assign in preview)", () => {
   const r = validateImportRows(
-    [{ excelRow: 2, raw: baseWelderRaw({ plant_welder_id: "" }) }],
+    [{ excelRow: 2, raw: baseWelderRaw({ welder_id: "" }) }],
     new Set(),
   );
   assert.equal(r.ok, true, JSON.stringify(r.errors));
@@ -110,20 +111,23 @@ test("requires full_name", () => {
   assert.ok(r.errors.some((e) => e.column === "full_name"));
 });
 
-test("welder + qualification validates and computes expiry", () => {
+test("welder + BW qualification validates and computes expiry", () => {
   const r = validateImportRows(
-    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...qualRaw() } }],
+    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...bwQualRaw() } }],
     new Set(),
   );
-  assert.equal(r.ok, true);
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
   assert.equal(r.summary.qualificationCount, 1);
+  assert.equal(r.rows[0].qualification?.jointType, "BW");
+  assert.equal(r.rows[0].qualification?.position, "PF");
+  assert.equal(r.rows[0].qualification?.depositedThicknessMm, 12);
   assert.equal(r.rows[0].qualification?.expiryDate, "2027-01-14");
   assert.equal(r.rows[0].qualification?.wpqStatus, "Approved");
 });
 
 test("attaches to existing plant ID in org (no error)", () => {
   const r = validateImportRows(
-    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...qualRaw() } }],
+    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...bwQualRaw() } }],
     new Set(["W#9001"]),
   );
   assert.equal(r.ok, true, JSON.stringify(r.errors));
@@ -133,7 +137,7 @@ test("attaches to existing plant ID in org (no error)", () => {
 
 test("matches existing plant ID regardless of format (9001 == W#9001)", () => {
   const r = validateImportRows(
-    [{ excelRow: 2, raw: baseWelderRaw({ plant_welder_id: "9001" }) }],
+    [{ excelRow: 2, raw: baseWelderRaw({ welder_id: "9001" }) }],
     new Set(["W#9001"]),
   );
   assert.equal(r.ok, true, JSON.stringify(r.errors));
@@ -143,12 +147,12 @@ test("matches existing plant ID regardless of format (9001 == W#9001)", () => {
 test("multiple qualification rows for the same W# = one welder", () => {
   const r = validateImportRows(
     [
-      { excelRow: 2, raw: { ...baseWelderRaw({ plant_welder_id: "W#50" }), ...qualRaw() } },
+      { excelRow: 2, raw: { ...baseWelderRaw({ welder_id: "W#50" }), ...bwQualRaw() } },
       {
         excelRow: 3,
         raw: {
-          ...baseWelderRaw({ plant_welder_id: "W#50" }),
-          ...qualRaw({ process: "141", position: "PA" }),
+          ...baseWelderRaw({ welder_id: "W#50" }),
+          ...bwQualRaw({ process: "141", bw_position: "PA" }),
         },
       },
     ],
@@ -162,12 +166,12 @@ test("multiple qualification rows for the same W# = one welder", () => {
 test("rejects conflicting welder details for same plant ID", () => {
   const r = validateImportRows(
     [
-      { excelRow: 2, raw: { ...baseWelderRaw(), ...qualRaw() } },
+      { excelRow: 2, raw: { ...baseWelderRaw(), ...bwQualRaw() } },
       {
         excelRow: 3,
         raw: {
           ...baseWelderRaw({ full_name: "Different Name" }),
-          ...qualRaw({ process: "141" }),
+          ...bwQualRaw({ process: "141" }),
         },
       },
     ],
@@ -175,25 +179,6 @@ test("rejects conflicting welder details for same plant ID", () => {
   );
   assert.equal(r.ok, false);
   assert.ok(r.errors.some((e) => e.message.includes("conflict")));
-});
-
-test("allows multiple qualifications for same welder", () => {
-  const r = validateImportRows(
-    [
-      { excelRow: 2, raw: { ...baseWelderRaw(), ...qualRaw() } },
-      {
-        excelRow: 3,
-        raw: {
-          ...baseWelderRaw(),
-          ...qualRaw({ process: "141", position: "PA" }),
-        },
-      },
-    ],
-    new Set(),
-  );
-  assert.equal(r.ok, true);
-  assert.equal(r.summary.welderCount, 1);
-  assert.equal(r.summary.qualificationCount, 2);
 });
 
 test("rejects partial qualification columns", () => {
@@ -217,7 +202,7 @@ test("invalid process code fails", () => {
     [
       {
         excelRow: 2,
-        raw: { ...baseWelderRaw(), ...qualRaw({ process: "999" }) },
+        raw: { ...baseWelderRaw(), ...bwQualRaw({ process: "999" }) },
       },
     ],
     new Set(),
@@ -225,33 +210,16 @@ test("invalid process code fails", () => {
   assert.equal(r.ok, false);
 });
 
-test("NDT fail sets wpq status Failed", () => {
+test("expiry before test date fails", () => {
   const r = validateImportRows(
     [
       {
         excelRow: 2,
         raw: {
           ...baseWelderRaw(),
-          ...qualRaw({ result_vt: "Fail" }),
-        },
-      },
-    ],
-    new Set(),
-  );
-  assert.equal(r.ok, true);
-  assert.equal(r.rows[0].qualification?.wpqStatus, "Failed");
-});
-
-test("expiry before qual date fails", () => {
-  const r = validateImportRows(
-    [
-      {
-        excelRow: 2,
-        raw: {
-          ...baseWelderRaw(),
-          ...qualRaw({
-            date_of_welding: "2024-06-01",
-            expiry_date: "2020-01-01",
+          ...bwQualRaw({
+            weld_test_revalidation_date: "2024-06-01",
+            validation_expiry_date: "2020-01-01",
           }),
         },
       },
@@ -263,7 +231,7 @@ test("expiry before qual date fails", () => {
 
 test("accepts process label with embedded code (MAG (135))", () => {
   const r = validateImportRows(
-    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...qualRaw({ process: "MAG (135)" }) } }],
+    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...bwQualRaw({ process: "MAG (135)" }) } }],
     new Set(),
   );
   assert.equal(r.ok, true, JSON.stringify(r.errors));
@@ -273,45 +241,26 @@ test("accepts process label with embedded code (MAG (135))", () => {
 
 test("accepts AWS abbreviation for process (SMAW -> 111)", () => {
   const r = validateImportRows(
-    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...qualRaw({ process: "SMAW" }) } }],
+    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...bwQualRaw({ process: "SMAW" }) } }],
     new Set(),
   );
   assert.equal(r.ok, true, JSON.stringify(r.errors));
   assert.equal(r.rows[0].qualification?.process, "111");
 });
 
-test("accepts joint synonyms and lowercase (Butt -> BW)", () => {
+test("accepts lowercase joint_type (bw -> BW)", () => {
   const r = validateImportRows(
-    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...qualRaw({ joint_type: "Butt", position: "pf" }) } }],
+    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...bwQualRaw({ joint_type: "bw" }) } }],
     new Set(),
   );
   assert.equal(r.ok, true, JSON.stringify(r.errors));
   assert.equal(r.rows[0].qualification?.jointType, "BW");
-  assert.equal(r.rows[0].qualification?.position, "PF");
-});
-
-test("accepts material group label (Group 1 — ...)", () => {
-  const r = validateImportRows(
-    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...qualRaw({ base_material_group: "Group 1 — unalloyed" }) } }],
-    new Set(),
-  );
-  assert.equal(r.ok, true, JSON.stringify(r.errors));
-  assert.equal(r.rows[0].qualification?.baseMaterialGroup, "1");
-});
-
-test("accepts lowercase welder_status (active -> Active)", () => {
-  const r = validateImportRows(
-    [{ excelRow: 2, raw: baseWelderRaw({ welder_status: "active" }) }],
-    new Set(),
-  );
-  assert.equal(r.ok, true, JSON.stringify(r.errors));
-  assert.equal(r.rows[0].welder.welderStatus, "Active");
 });
 
 test("normalizes revalidation method (6.3b/9.3B/b -> 9.3b)", () => {
   for (const input of ["6.3b", "9.3B", "b", "3B"]) {
     const r = validateImportRows(
-      [{ excelRow: 2, raw: { ...baseWelderRaw(), ...qualRaw({ revalidation_method: input }) } }],
+      [{ excelRow: 2, raw: { ...baseWelderRaw(), ...bwQualRaw({ revalidation_method: input }) } }],
       new Set(),
     );
     assert.equal(r.ok, true, `${input}: ${JSON.stringify(r.errors)}`);
@@ -329,7 +278,7 @@ test("accepts common date formats (15/06/2024 -> 2024-06-15)", () => {
   ];
   for (const [input, expected] of cases) {
     const r = validateImportRows(
-      [{ excelRow: 2, raw: { ...baseWelderRaw(), ...qualRaw({ date_of_welding: input }) } }],
+      [{ excelRow: 2, raw: { ...baseWelderRaw(), ...bwQualRaw({ weld_test_revalidation_date: input }) } }],
       new Set(),
     );
     assert.equal(r.ok, true, `${input}: ${JSON.stringify(r.errors)}`);
@@ -339,33 +288,39 @@ test("accepts common date formats (15/06/2024 -> 2024-06-15)", () => {
 
 test("strips units from numeric cells (12 mm -> 12)", () => {
   const r = validateImportRows(
-    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...qualRaw({ test_thickness_mm: "12 mm" }) } }],
+    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...bwQualRaw({ bw_test_thickness_mm: "12 mm" }) } }],
     new Set(),
   );
   assert.equal(r.ok, true, JSON.stringify(r.errors));
-  assert.equal(r.rows[0].qualification?.testThicknessMm, 12);
+  assert.equal(r.rows[0].qualification?.depositedThicknessMm, 12);
 });
 
-test("stray NA in optional column does not force a qualification", () => {
+test("NA in fw_position/fw_test_thickness_mm is treated as unused on a BW-only row", () => {
   const r = validateImportRows(
-    [{ excelRow: 2, raw: baseWelderRaw({ result_vt: "NA" }) }],
+    [
+      {
+        excelRow: 2,
+        raw: {
+          ...baseWelderRaw(),
+          ...bwQualRaw({ fw_position: "NA", fw_test_thickness_mm: "NA" }),
+        },
+      },
+    ],
     new Set(),
   );
   assert.equal(r.ok, true, JSON.stringify(r.errors));
-  assert.equal(r.rows[0].qualification, null);
+  assert.equal(r.rows[0].qualification?.supplementaryFillet, false);
 });
 
 test("preserves raw values for invalid cells (data does not disappear)", () => {
   const r = validateImportRows(
-    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...qualRaw({ position: "ZZ" }) } }],
+    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...bwQualRaw({ bw_position: "ZZ" }) } }],
     new Set(),
   );
   assert.equal(r.ok, false);
-  // Even though the row has an invalid position, the other qual values remain
-  // visible in the preview grid via row.raw.
   assert.equal(r.rows[0].raw.process, "135");
-  assert.equal(r.rows[0].raw.position, "ZZ");
-  assert.equal(r.rows[0].raw.date_of_welding, "2025-01-15");
+  assert.equal(r.rows[0].raw.bw_position, "ZZ");
+  assert.equal(r.rows[0].raw.weld_test_revalidation_date, "2025-01-15");
 });
 
 test("blank cells never inherit from the previous row (including continuity)", () => {
@@ -374,7 +329,7 @@ test("blank cells never inherit from the previous row (including continuity)", (
       {
         excelRow: 2,
         raw: {
-          plant_welder_id: "W#02",
+          welder_id: "W#02",
           full_name: "Sanjay",
           date_of_birth: "1988-05-20",
           id_method: "Aadhar",
@@ -382,29 +337,25 @@ test("blank cells never inherit from the previous row (including continuity)", (
           photo_filename: "W#02.jpg",
           process: "135",
           joint_type: "BW",
-          position: "PF",
-          base_material_group: "1",
-          test_thickness_mm: "12",
-          product: "Plate",
-          date_of_welding: "2025-08-19",
-          expiry_date: "2027-08-19",
+          bw_position: "PF",
+          filler_group: "FM1",
+          bw_test_thickness_mm: "12",
+          weld_test_revalidation_date: "2025-08-19",
+          validation_expiry_date: "2027-08-19",
           continuity_last_verified: "2026-01-15",
-          continuity_history: "2025-01-15;2026-01-15",
           revalidation_method: "9.3b",
         },
       },
       {
         excelRow: 3,
         raw: {
-          plant_welder_id: "W#02",
+          welder_id: "W#02",
           full_name: "Sanjay",
           process: "141",
           joint_type: "BW",
-          position: "PA",
-          base_material_group: "1",
-          test_thickness_mm: "12",
-          product: "Plate",
-          date_of_welding: "2025-08-19",
+          bw_position: "PA",
+          bw_test_thickness_mm: "12",
+          weld_test_revalidation_date: "2025-08-19",
           revalidation_method: "9.3b",
         },
       },
@@ -420,7 +371,6 @@ test("blank cells never inherit from the previous row (including continuity)", (
   assert.equal(r.rows[1].qualification?.continuityLastVerified, null);
   assert.deepEqual(r.rows[1].qualification?.continuityHistory, []);
   assert.equal(r.rows[1].raw.continuity_last_verified, "");
-  assert.equal(r.rows[1].raw.continuity_history, "");
   assert.equal(r.rows[1].raw.date_of_birth, "");
   assert.equal(r.rows[1].raw.id_number, "");
 });
@@ -431,30 +381,26 @@ test("blank full_name on a row fails — name is not taken from the row above", 
       {
         excelRow: 2,
         raw: {
-          plant_welder_id: "W#02",
+          welder_id: "W#02",
           full_name: "Sanjay",
           process: "135",
           joint_type: "BW",
-          position: "PF",
-          base_material_group: "1",
-          test_thickness_mm: "12",
-          product: "Plate",
-          date_of_welding: "2025-08-19",
+          bw_position: "PF",
+          bw_test_thickness_mm: "12",
+          weld_test_revalidation_date: "2025-08-19",
           revalidation_method: "9.3b",
         },
       },
       {
         excelRow: 3,
         raw: {
-          plant_welder_id: "",
+          welder_id: "",
           full_name: "",
           process: "141",
           joint_type: "BW",
-          position: "PA",
-          base_material_group: "1",
-          test_thickness_mm: "12",
-          product: "Plate",
-          date_of_welding: "2025-08-19",
+          bw_position: "PA",
+          bw_test_thickness_mm: "12",
+          weld_test_revalidation_date: "2025-08-19",
           revalidation_method: "9.3b",
         },
       },
@@ -471,31 +417,27 @@ test("does not fill-forward photo_filename to the next welder row", () => {
       {
         excelRow: 2,
         raw: {
-          plant_welder_id: "W#02",
+          welder_id: "W#02",
           full_name: "Sanjay Yadav",
           photo_filename: "W#02.jpg",
           process: "135",
           joint_type: "BW",
-          position: "PF",
-          base_material_group: "1",
-          test_thickness_mm: "12",
-          product: "Plate",
-          date_of_welding: "2025-08-19",
+          bw_position: "PF",
+          bw_test_thickness_mm: "12",
+          weld_test_revalidation_date: "2025-08-19",
           revalidation_method: "9.3b",
         },
       },
       {
         excelRow: 3,
         raw: {
-          plant_welder_id: "W#03",
+          welder_id: "W#03",
           full_name: "Sanjay Yadav",
           process: "141",
           joint_type: "BW",
-          position: "PA",
-          base_material_group: "1",
-          test_thickness_mm: "12",
-          product: "Plate",
-          date_of_welding: "2025-08-19",
+          bw_position: "PA",
+          bw_test_thickness_mm: "12",
+          weld_test_revalidation_date: "2025-08-19",
           revalidation_method: "9.3b",
         },
       },
@@ -516,104 +458,32 @@ test("does not fill-forward photo_filename to the next welder row", () => {
   assert.equal(matches.get("W#03")?.filename, "W#03.jpg");
 });
 
-test("new welder row with W# does not inherit blank fields from row above", () => {
-  const r = validateImportRows(
-    [
-      {
-        excelRow: 2,
-        raw: {
-          plant_welder_id: "W#02",
-          full_name: "Sanjay Yadav",
-          date_of_birth: "1988-05-20",
-          id_method: "Aadhar",
-          id_number: "123456789012",
-          photo_filename: "W#02.jpg",
-          process: "135",
-          joint_type: "BW",
-          position: "PF",
-          base_material_group: "1",
-          test_thickness_mm: "12",
-          product: "Plate",
-          date_of_welding: "2025-08-19",
-          revalidation_method: "9.3b",
-        },
-      },
-      {
-        excelRow: 3,
-        raw: {
-          plant_welder_id: "W#03",
-          full_name: "Sanjay Yadav",
-          process: "141",
-          joint_type: "BW",
-          position: "PA",
-          base_material_group: "1",
-          test_thickness_mm: "12",
-          product: "Plate",
-          date_of_welding: "2025-08-19",
-          revalidation_method: "9.3b",
-        },
-      },
-      {
-        excelRow: 4,
-        raw: {
-          plant_welder_id: "W#15",
-          full_name: "Rajesh Kumar",
-          process: "111",
-          joint_type: "BW",
-          position: "PA",
-          base_material_group: "1",
-          test_thickness_mm: "12",
-          product: "Plate",
-          date_of_welding: "2019-06-10",
-          revalidation_method: "9.3a",
-        },
-      },
-    ],
-    new Set(),
-  );
-  assert.equal(r.ok, true, JSON.stringify(r.errors));
-  // W#03 — blanks stay blank, not copied from W#02
-  assert.equal(r.rows[1].welder.dateOfBirth, null);
-  assert.equal(r.rows[1].welder.idMethod, null);
-  assert.equal(r.rows[1].welder.idNumber, null);
-  assert.equal(r.rows[1].raw.date_of_birth, "");
-  assert.equal(r.rows[1].raw.id_method, "");
-  assert.equal(r.rows[1].raw.id_number, "");
-  // W#15 — same
-  assert.equal(r.rows[2].welder.dateOfBirth, null);
-  assert.equal(r.rows[2].raw.photo_filename, "");
-});
-
 test("qualification columns are never fill-forwarded between welders", () => {
   const r = validateImportRows(
     [
       {
         excelRow: 2,
         raw: {
-          plant_welder_id: "W#02",
+          welder_id: "W#02",
           full_name: "Sanjay",
           process: "136",
           joint_type: "BW",
-          position: "PF",
-          base_material_group: "1",
-          test_thickness_mm: "12",
-          product: "Plate",
-          date_of_welding: "2025-08-19",
+          bw_position: "PF",
+          bw_test_thickness_mm: "12",
+          weld_test_revalidation_date: "2025-08-19",
           revalidation_method: "9.3b",
         },
       },
       {
         excelRow: 3,
         raw: {
-          plant_welder_id: "W#03",
+          welder_id: "W#03",
           full_name: "Rajesh",
           process: "141",
-          joint_type: "BW",
-          position: "PA",
-          base_material_group: "1",
-          test_thickness_mm: "10",
-          product: "Plate",
-          date_of_welding: "2024-01-10",
+          joint_type: "FW",
+          fw_position: "PA",
+          fw_test_thickness_mm: "10",
+          weld_test_revalidation_date: "2024-01-10",
           revalidation_method: "9.3b",
         },
       },
@@ -650,16 +520,14 @@ test("legacy expiry used as-is not recalculated from old test date", () => {
       {
         excelRow: 2,
         raw: {
-          plant_welder_id: "W#15",
+          welder_id: "W#15",
           full_name: "Rajesh",
           process: "135",
           joint_type: "BW",
-          position: "PF",
-          base_material_group: "1",
-          test_thickness_mm: "12",
-          product: "Plate",
-          date_of_welding: "2019-06-10",
-          expiry_date: "2026-03-01",
+          bw_position: "PF",
+          bw_test_thickness_mm: "12",
+          weld_test_revalidation_date: "2019-06-10",
+          validation_expiry_date: "2026-03-01",
           continuity_last_verified: "2025-12-01",
           revalidation_method: "9.3a",
         },
@@ -680,16 +548,14 @@ test("expired legacy cert gets Expired status", () => {
       {
         excelRow: 2,
         raw: {
-          plant_welder_id: "W#99",
+          welder_id: "W#99",
           full_name: "Old Cert",
           process: "135",
           joint_type: "BW",
-          position: "PF",
-          base_material_group: "1",
-          test_thickness_mm: "12",
-          product: "Plate",
-          date_of_welding: "2019-01-01",
-          expiry_date: "2020-01-01",
+          bw_position: "PF",
+          bw_test_thickness_mm: "12",
+          weld_test_revalidation_date: "2019-01-01",
+          validation_expiry_date: "2020-01-01",
           revalidation_method: "9.3b",
         },
       },
@@ -700,31 +566,239 @@ test("expired legacy cert gets Expired status", () => {
   assert.equal(r.rows[0].qualification?.wpqStatus, "Expired");
 });
 
-test("missing expiry_date emits estimate warning", () => {
+test("missing validation_expiry_date emits estimate warning", () => {
   const r = validateImportRows(
-    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...qualRaw() } }],
+    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...bwQualRaw() } }],
     new Set(),
   );
   assert.equal(r.ok, true, JSON.stringify(r.errors));
   assert.equal(r.rows[0].qualification?.continuityLastVerified, null);
   assert.equal(r.warnings.length, 1);
-  assert.equal(r.warnings[0].column, "expiry_date");
+  assert.equal(r.warnings[0].column, "validation_expiry_date");
   assert.ok(r.warnings[0].message.includes("Expiry estimated"));
 });
 
-console.log("\nValidation history\n");
+console.log("\nOption A joint mapping (BW / FW / BW+FW, dual process)\n");
 
-test("parses continuity_history semicolon-separated dates", () => {
+test("FW-only single process (Rajesh: 141, FW) — no supplementary fillet required", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          welder_id: "W#15",
+          full_name: "Rajesh Kumar",
+          process: "141",
+          joint_type: "FW",
+          fw_position: "PA",
+          fw_test_thickness_mm: "12",
+          weld_test_revalidation_date: "2019-06-10",
+          validation_expiry_date: "2026-03-01",
+          revalidation_method: "9.3a",
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  const q = r.rows[0].qualification!;
+  assert.equal(q.jointType, "FW");
+  assert.equal(q.jointMode, "FW");
+  assert.equal(q.process, "141");
+  assert.equal(q.process2, null);
+  assert.equal(q.position, "PA");
+  assert.equal(q.testThicknessMm, 12);
+  assert.equal(q.depositedThicknessMm, null);
+  assert.equal(q.supplementaryFillet, false);
+});
+
+test("BW-only single process — deposited thickness set, position from bw_position", () => {
+  const r = validateImportRows(
+    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...bwQualRaw() } }],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  const q = r.rows[0].qualification!;
+  assert.equal(q.jointType, "BW");
+  assert.equal(q.jointMode, "BW");
+  assert.equal(q.position, "PF");
+  assert.equal(q.depositedThicknessMm, 12);
+  assert.equal(q.supplementaryFillet, false);
+  assert.equal(q.process2, null);
+  assert.equal(q.position2, null);
+});
+
+test("BW-only dual process — position_2 and process2 deposited thickness mirror BW columns", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: { ...baseWelderRaw(), ...bwQualRaw({ process: "136+111" }) },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  const q = r.rows[0].qualification!;
+  assert.equal(q.process, "136");
+  assert.equal(q.process2, "111");
+  assert.equal(q.position, "PF");
+  assert.equal(q.position2, "PF");
+  assert.equal(q.depositedThicknessMm, 12);
+  assert.equal(q.process2DepositedThicknessMm, 12);
+});
+
+test("Sanjay sample — 136+135 dual process, BW/FW joint (client template)", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          welder_id: "W#14",
+          full_name: "Sanjay Yadav",
+          date_of_birth: "1988-05-20",
+          id_method: "Aadhar",
+          id_number: "123456789012",
+          photo_filename: "W#14.jpg",
+          process: "136+135",
+          joint_type: "BW/FW",
+          bw_position: "PF",
+          fw_position: "PB",
+          filler_group: "FM1",
+          bw_test_thickness_mm: "12",
+          fw_test_thickness_mm: "8",
+          revalidation_method: "9.3b",
+          weld_test_revalidation_date: "2025-08-19",
+          validation_expiry_date: "2027-08-19",
+          continuity_last_verified: "2026-01-15",
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  const q = r.rows[0].qualification!;
+  assert.equal(r.rows[0].welder.plantWelderId, "W#14");
+  assert.equal(q.process, "136");
+  assert.equal(q.process2, "135");
+  // Never stored as "BW/FW" — always BW with supplementary fillet coverage.
+  assert.equal(q.jointType, "BW");
+  assert.equal(q.jointMode, "BW_FW");
+  assert.equal(q.position, "PF");
+  assert.equal(q.position2, "PF");
+  assert.equal(q.depositedThicknessMm, 12);
+  assert.equal(q.process2DepositedThicknessMm, 12);
+  assert.equal(q.supplementaryFillet, true);
+  assert.equal(q.supplementaryFilletPosition, "PB");
+  assert.equal(q.supplementaryFilletThicknessMm, 8);
+  assert.equal(q.supplementaryFillet2, true);
+  assert.equal(q.supplementaryFillet2Position, "PB");
+  assert.equal(q.supplementaryFillet2ThicknessMm, 8);
+  assert.equal(q.expiryDate, "2027-08-19");
+  assert.equal(q.continuityLastVerified, "2026-01-15");
+});
+
+test("Rajesh sample — 141 single process, FW only, multi-date continuity in one cell", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          welder_id: "W#15",
+          full_name: "Rajesh Kumar",
+          process: "141",
+          joint_type: "FW",
+          bw_position: "NA",
+          fw_position: "PA",
+          filler_group: "FM1",
+          bw_test_thickness_mm: "NA",
+          fw_test_thickness_mm: "12",
+          revalidation_method: "9.3a",
+          weld_test_revalidation_date: "2019-06-10",
+          validation_expiry_date: "2026-03-01",
+          continuity_last_verified:
+            "2019-12-01;2020-06-01;2021-06-01;2023-06-01;2025-12-01",
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  const q = r.rows[0].qualification!;
+  assert.equal(q.process, "141");
+  assert.equal(q.process2, null);
+  assert.equal(q.jointType, "FW");
+  assert.equal(q.jointMode, "FW");
+  assert.equal(q.position, "PA");
+  assert.equal(q.testThicknessMm, 12);
+  assert.equal(q.supplementaryFillet, false);
+  assert.deepEqual(q.continuityHistory, [
+    "2019-12-01",
+    "2020-06-01",
+    "2021-06-01",
+    "2023-06-01",
+    "2025-12-01",
+  ]);
+  assert.equal(q.continuityLastVerified, "2025-12-01");
+  const records = collectValidationRecordsForImport(q);
+  assert.equal(records.filter((rec) => rec.kind === "continuity").length, 5);
+});
+
+test("missing bw_position on BW joint fails with a specific error", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: { ...baseWelderRaw(), ...bwQualRaw({ bw_position: "" }) },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.column === "bw_position"));
+});
+
+test("missing fw_position/fw_test_thickness_mm on BW/FW joint fails", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: { ...baseWelderRaw(), ...bwQualRaw({ joint_type: "BW/FW" }) },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.column === "fw_position"));
+  assert.ok(r.errors.some((e) => e.column === "fw_test_thickness_mm"));
+});
+
+test("rejects unknown process combo code", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: { ...baseWelderRaw(), ...bwQualRaw({ process: "136+999" }) },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, false);
+  assert.ok(r.errors.some((e) => e.column === "process"));
+});
+
+console.log("\nValidation history (continuity_last_verified)\n");
+
+test("parses continuity_last_verified semicolon-separated dates", () => {
   const r = validateImportRows(
     [
       {
         excelRow: 2,
         raw: {
           ...baseWelderRaw(),
-          ...qualRaw({
-            continuity_history:
+          ...bwQualRaw({
+            continuity_last_verified:
               "2020-01-15;2020-07-15;2021-01-15;2025-12-01",
-            continuity_last_verified: "2025-12-01",
           }),
         },
       },
@@ -738,6 +812,7 @@ test("parses continuity_history semicolon-separated dates", () => {
     "2021-01-15",
     "2025-12-01",
   ]);
+  assert.equal(r.rows[0].qualification?.continuityLastVerified, "2025-12-01");
 });
 
 test("parses comma-separated history dates", () => {
@@ -747,8 +822,8 @@ test("parses comma-separated history dates", () => {
         excelRow: 2,
         raw: {
           ...baseWelderRaw(),
-          ...qualRaw({
-            continuity_history: "2020-01-15, 2020-07-15",
+          ...bwQualRaw({
+            continuity_last_verified: "2020-01-15, 2020-07-15",
           }),
         },
       },
@@ -760,38 +835,27 @@ test("parses comma-separated history dates", () => {
     "2020-01-15",
     "2020-07-15",
   ]);
-  // Blank continuity_last_verified stays null (not invented from history)
-  assert.equal(r.rows[0].qualification?.continuityLastVerified, null);
+  assert.equal(r.rows[0].qualification?.continuityLastVerified, "2020-07-15");
 });
 
-test("blank continuity_last_verified is not invented from continuity_history", () => {
+test("blank continuity_last_verified stays blank (no history invented)", () => {
   const r = validateImportRows(
-    [
-      {
-        excelRow: 2,
-        raw: {
-          ...baseWelderRaw(),
-          ...qualRaw({
-            continuity_history: "2020-01-15;2021-01-15;2025-12-01",
-          }),
-        },
-      },
-    ],
+    [{ excelRow: 2, raw: { ...baseWelderRaw(), ...bwQualRaw() } }],
     new Set(),
   );
   assert.equal(r.ok, true, JSON.stringify(r.errors));
   assert.equal(r.rows[0].qualification?.continuityLastVerified, null);
-  assert.equal(r.rows[0].qualification?.continuityHistory.length, 3);
+  assert.deepEqual(r.rows[0].qualification?.continuityHistory, []);
 });
 
-test("rejects invalid date in continuity_history", () => {
+test("rejects invalid date in continuity_last_verified", () => {
   const r = validateImportRows(
     [
       {
         excelRow: 2,
         raw: {
           ...baseWelderRaw(),
-          ...qualRaw({ continuity_history: "2020-01-15;not-a-date" }),
+          ...bwQualRaw({ continuity_last_verified: "2020-01-15;not-a-date" }),
         },
       },
     ],
@@ -799,19 +863,19 @@ test("rejects invalid date in continuity_history", () => {
   );
   assert.equal(r.ok, false);
   assert.ok(
-    r.errors.some((e) => e.column === "continuity_history"),
+    r.errors.some((e) => e.column === "continuity_last_verified"),
   );
 });
 
-test("dedupes continuity_history dates", () => {
+test("dedupes continuity_last_verified dates", () => {
   const r = validateImportRows(
     [
       {
         excelRow: 2,
         raw: {
           ...baseWelderRaw(),
-          ...qualRaw({
-            continuity_history: "2020-01-15;2020-01-15;2021-01-15",
+          ...bwQualRaw({
+            continuity_last_verified: "2020-01-15;2020-01-15;2021-01-15",
           }),
         },
       },
@@ -825,79 +889,10 @@ test("dedupes continuity_history dates", () => {
   ]);
 });
 
-test("warns when continuity_last_verified mismatches latest history date", () => {
-  const r = validateImportRows(
-    [
-      {
-        excelRow: 2,
-        raw: {
-          ...baseWelderRaw(),
-          ...qualRaw({
-            continuity_history: "2020-01-15;2021-01-15",
-            continuity_last_verified: "2025-12-01",
-          }),
-        },
-      },
-    ],
-    new Set(),
-  );
-  assert.equal(r.ok, true, JSON.stringify(r.errors));
-  assert.ok(
-    r.warnings.some(
-      (w) =>
-        w.column === "continuity_last_verified" &&
-        w.message.includes("differs from the latest date"),
-    ),
-  );
-});
-
-test("parses revalidation_history dates", () => {
-  const r = validateImportRows(
-    [
-      {
-        excelRow: 2,
-        raw: {
-          ...baseWelderRaw(),
-          ...qualRaw({
-            revalidation_history: "2021-06-10;2023-06-10",
-          }),
-        },
-      },
-    ],
-    new Set(),
-  );
-  assert.equal(r.ok, true, JSON.stringify(r.errors));
-  assert.deepEqual(r.rows[0].qualification?.revalidationHistory, [
-    "2021-06-10",
-    "2023-06-10",
-  ]);
-});
-
-test("collectValidationRecordsForImport merges continuity snapshot and history", () => {
+test("collectValidationRecordsForImport uses only last verified when no extra history", () => {
   const records = collectValidationRecordsForImport({
     continuityLastVerified: "2025-12-01",
-    continuityHistory: ["2020-01-15", "2021-01-15", "2025-12-01"],
-    revalidationHistory: ["2021-06-10", "2023-06-10"],
-  });
-  assert.equal(
-    records.filter((r) => r.kind === "continuity").length,
-    3,
-  );
-  assert.equal(
-    records.filter((r) => r.kind === "revalidation").length,
-    2,
-  );
-  assert.ok(
-    records.some(
-      (r) => r.kind === "continuity" && r.validatedOn === "2025-12-01",
-    ),
-  );
-});
-
-test("collectValidationRecordsForImport uses only last verified when no history", () => {
-  const records = collectValidationRecordsForImport({
-    continuityLastVerified: "2025-12-01",
-    continuityHistory: [],
+    continuityHistory: ["2025-12-01"],
     revalidationHistory: [],
   });
   assert.deepEqual(records, [
@@ -910,45 +905,12 @@ test("parseDateHistory sorts dates chronologically", () => {
     [];
   const dates = parseDateHistory(
     "2021-01-15;2020-01-15",
-    "continuity_history",
+    "continuity_last_verified",
     2,
     errors,
   );
   assert.equal(errors.length, 0);
   assert.deepEqual(dates, ["2020-01-15", "2021-01-15"]);
-});
-
-test("legacy Rajesh example imports full validation history fields", () => {
-  const r = validateImportRows(
-    [
-      {
-        excelRow: 2,
-        raw: {
-          plant_welder_id: "W#15",
-          full_name: "Rajesh",
-          process: "135",
-          joint_type: "BW",
-          position: "PF",
-          base_material_group: "1",
-          test_thickness_mm: "12",
-          product: "Plate",
-          date_of_welding: "2019-06-10",
-          expiry_date: "2026-03-01",
-          continuity_last_verified: "2025-12-01",
-          continuity_history:
-            "2019-12-01;2020-06-01;2021-06-01;2023-06-01;2025-12-01",
-          revalidation_history: "2021-06-10;2023-06-10",
-          revalidation_method: "9.3a",
-        },
-      },
-    ],
-    new Set(),
-  );
-  assert.equal(r.ok, true, JSON.stringify(r.errors));
-  assert.equal(r.rows[0].qualification?.continuityHistory.length, 5);
-  assert.equal(r.rows[0].qualification?.revalidationHistory.length, 2);
-  const records = collectValidationRecordsForImport(r.rows[0].qualification!);
-  assert.equal(records.length, 7);
 });
 
 console.log("\nClient date guide (plant Excel rules)\n");
@@ -976,7 +938,7 @@ test("photo match by photo_filename column", () => {
   assert.equal(results[0].status, "ready");
 });
 
-test("photo match by plant_welder_id fallback W#02.png", () => {
+test("photo match by welder_id fallback W#02.png", () => {
   const { matches } = matchPhotosToWelders(
     [{ welder: { plantWelderId: "W#02", photoFilename: null } }],
     [{ filename: "W#02.png", bytes: Buffer.from("x"), mime: "image/png" }],
@@ -993,6 +955,65 @@ test("duplicate photos for same welder flagged", () => {
     ],
   );
   assert.equal(results[0].status, "duplicate");
+});
+
+console.log("\nZIP document matching (Phase 2)\n");
+
+test("planImportDocuments matches cert + dated + numbered continuity", () => {
+  const plan = planImportDocuments(
+    ["W#14", "W#14"],
+    [
+      {
+        filename: "W#14.pdf",
+        bytes: Buffer.from("%PDF"),
+        mime: "application/pdf",
+      },
+    ],
+    [
+      {
+        filename: "W#14_2025-08-02.pdf",
+        bytes: Buffer.from("%PDF"),
+        mime: "application/pdf",
+      },
+      {
+        filename: "W#14_cont_1.pdf",
+        bytes: Buffer.from("%PDF"),
+        mime: "application/pdf",
+      },
+    ],
+  );
+  assert.equal(plan.certificateByPlant.has("W#14"), true);
+  assert.equal(plan.continuityByDate.has("W#14|2025-08-02"), true);
+  assert.equal(plan.legacyByPlant.get("W#14")?.length, 1);
+});
+
+test("resolveDocAttachment date-match and orphan → legacy", () => {
+  const att = resolveDocAttachmentForPlant(
+    "W#14",
+    {
+      certificates: { "W#14": "c/cert.pdf" },
+      continuityByDate: {
+        "W#14|2025-08-02": "c/dated.pdf",
+        "W#14|2020-01-01": "c/orphan.pdf",
+      },
+      legacyByPlant: { "W#14": ["c/leg.pdf"] },
+    },
+    ["2025-08-02"],
+  );
+  assert.equal(att.signedCertificatePath, "c/cert.pdf");
+  assert.equal(att.supportingByDate["2025-08-02"], "c/dated.pdf");
+  assert.deepEqual(att.legacyDocumentPaths, ["c/leg.pdf", "c/orphan.pdf"]);
+});
+
+test("continuity cap at 10 with warnings", () => {
+  const files = Array.from({ length: 12 }, (_, i) => ({
+    filename: `W#02_cont_${i + 1}.pdf`,
+    bytes: Buffer.from("%PDF"),
+    mime: "application/pdf",
+  }));
+  const plan = planImportDocuments(["W#02"], [], files);
+  assert.equal(plan.legacyByPlant.get("W#02")?.length, 10);
+  assert.ok(plan.continuityWarnings.some((w) => w.includes("capped")));
 });
 
 console.log("\nAll bulk import validation tests passed.");

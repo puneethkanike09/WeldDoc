@@ -40,6 +40,8 @@ export async function POST(request: Request) {
     profile.org_id,
     supabase,
     extracted.photos,
+    extracted.certificates,
+    extracted.continuity,
   );
 
   return Response.json(result);

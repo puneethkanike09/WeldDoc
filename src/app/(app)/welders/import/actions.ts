@@ -5,16 +5,29 @@ import { createClient } from "@/lib/supabase/server";
 import { requireSession } from "@/lib/auth";
 import { commitValidatedImport } from "@/lib/welders/bulk-import/commit";
 import { rowsToRawImport } from "@/lib/welders/bulk-import/display";
-import { extractPhotosFromFormData } from "@/lib/welders/bulk-import/extract-upload";
-import { matchPhotosToWelders } from "@/lib/welders/bulk-import/match-import-photos";
+import { extractImportAssetsFromFormData } from "@/lib/welders/bulk-import/extract-upload";
+import {
+  planImportDocuments,
+} from "@/lib/welders/bulk-import/match-import-docs";
+import {
+  matchPhotosToWelders,
+  type PhotoFile,
+} from "@/lib/welders/bulk-import/match-import-photos";
 import type { ValidatedImportRow } from "@/lib/welders/bulk-import/types";
 import { validateWelderImportUpload } from "@/lib/welders/bulk-import/validate-upload";
 import { validateParsedImport } from "@/lib/welders/bulk-import/validate";
+import { uploadImportDocPlan } from "@/lib/welders/bulk-import/upload-import-docs";
 import { normalizePlantWelderId } from "@/lib/welders/plant-id";
+import { uploadFile } from "@/lib/storage";
+import { redisConfigured } from "@/lib/queue/redis";
+import { enqueueWelderImport } from "@/lib/queue/welder-import-queue";
 
 export type CommitWelderImportResult = {
   weldersCreated: number;
   qualificationsCreated: number;
+  /** Present when commit was queued for background processing. */
+  importJobId?: string;
+  queued?: boolean;
 };
 
 export async function validateWelderImport(formData: FormData) {
@@ -26,6 +39,12 @@ export async function validateWelderImport(formData: FormData) {
     org.id,
     supabase,
   );
+}
+
+function photoFileAsUpload(photo: PhotoFile): File {
+  return new File([Uint8Array.from(photo.bytes)], photo.filename, {
+    type: photo.mime,
+  });
 }
 
 export async function commitWelderImport(
@@ -77,11 +96,70 @@ export async function commitWelderImport(
     );
   }
 
-  const photos = await extractPhotosFromFormData(formData);
+  const assets = await extractImportAssetsFromFormData(formData);
   const { matches: photoMatches } = matchPhotosToWelders(
     revalidation.rows,
-    photos,
+    assets.photos,
   );
+
+  const plantIds = revalidation.rows
+    .map((r) => r.welder.plantWelderId)
+    .filter(Boolean);
+  const docPlan = planImportDocuments(
+    plantIds,
+    assets.certificates,
+    assets.continuity,
+  );
+  const { paths: uploadedDocs } = await uploadImportDocPlan(org.id, docPlan);
+
+  // Prefer background commit when Redis is configured.
+  if (redisConfigured()) {
+    const photoPaths: Record<string, string> = {};
+    for (const [plantId, photo] of photoMatches) {
+      const path = await uploadFile(
+        "welder-photos",
+        photoFileAsUpload(photo),
+        org.id,
+      );
+      if (path) photoPaths[plantId] = path;
+    }
+
+    const { data: job, error: jobErr } = await supabase
+      .from("import_jobs")
+      .insert({
+        org_id: org.id,
+        created_by: userId,
+        status: "queued",
+        progress: 0,
+        payload: {
+          rows: revalidation.rows,
+          photoPaths,
+          docPaths: uploadedDocs,
+        },
+      })
+      .select("id")
+      .single();
+
+    if (jobErr || !job) {
+      throw new Error(jobErr?.message ?? "Could not create import job.");
+    }
+
+    await enqueueWelderImport({
+      importJobId: job.id,
+      orgId: org.id,
+      userId,
+      orgName: org.name,
+      orgLocation: org.location_code,
+      welderSeq: org.welder_seq,
+    });
+
+    return {
+      weldersCreated: 0,
+      qualificationsCreated: 0,
+      importJobId: job.id,
+      queued: true,
+    };
+  }
 
   const result = await commitValidatedImport(
     supabase,
@@ -94,6 +172,8 @@ export async function commitWelderImport(
     },
     revalidation.rows,
     photoMatches,
+    undefined,
+    uploadedDocs,
   );
 
   revalidatePath("/welders");

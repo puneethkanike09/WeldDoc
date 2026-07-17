@@ -1,8 +1,10 @@
 import * as XLSX from "xlsx";
 import {
+  HEADER_ALIASES,
   IMPORT_COLUMNS,
   IMPORT_SHEET_NAME,
   MAX_IMPORT_ROWS,
+  type ImportColumnKey,
 } from "./columns";
 import { idNumberFromWorksheetCell } from "./id-number";
 import type { RawImportRow } from "./types";
@@ -21,6 +23,24 @@ function cellToString(value: unknown): string | null {
 
 function isRowEmpty(row: RawImportRow): boolean {
   return Object.values(row).every((v) => v == null || v === "");
+}
+
+/** Normalize Excel header to snake_case for matching. */
+export function canonicalizeHeader(h: string): string {
+  return h
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "")
+    .replace(/_+/g, "_");
+}
+
+function resolveHeaderKey(rawHeader: string): ImportColumnKey | null {
+  const c = canonicalizeHeader(rawHeader);
+  if ((IMPORT_COLUMNS as readonly string[]).includes(c)) {
+    return c as ImportColumnKey;
+  }
+  return HEADER_ALIASES[c] ?? null;
 }
 
 export function parseImportWorkbook(buffer: ArrayBuffer): {
@@ -52,31 +72,13 @@ export function parseImportWorkbook(buffer: ArrayBuffer): {
   }
 
   const headerRow = matrix[0] ?? [];
-  const headerMap = new Map<number, string>();
+  const recognizedHeaders = new Map<number, ImportColumnKey>();
   for (let i = 0; i < headerRow.length; i++) {
     const key = cellToString(headerRow[i]);
-    if (key) headerMap.set(i, key);
+    if (!key) continue;
+    const canonical = resolveHeaderKey(key);
+    if (canonical) recognizedHeaders.set(i, canonical);
   }
-
-  // Match headers leniently: case-insensitive, spaces/hyphens normalized to
-  // underscores. Unknown columns are ignored (not rejected) and missing
-  // optional columns simply produce empty cells — legacy files rarely match
-  // our exact header set.
-  const canonicalize = (h: string) =>
-    h.trim().toLowerCase().replace(/[\s-]+/g, "_").replace(/_+/g, "_");
-  const columnByCanonical = new Map<string, string>(
-    IMPORT_COLUMNS.map((c) => [c, c]),
-  );
-
-  const recognizedHeaders = new Map<number, string>();
-  for (const [index, key] of headerMap) {
-    const canonical = columnByCanonical.get(canonicalize(key));
-    if (canonical) recognizedHeaders.set(index, canonical);
-  }
-
-  const idNumberColIndex = [...recognizedHeaders.entries()].find(
-    ([, key]) => key === "id_number",
-  )?.[0];
 
   if (!recognizedHeaders.size) {
     return {
@@ -103,7 +105,7 @@ export function parseImportWorkbook(buffer: ArrayBuffer): {
 
     for (const [colIndex, key] of recognizedHeaders) {
       let val: string | null;
-      if (key === "id_number" && idNumberColIndex != null) {
+      if (key === "id_number") {
         const addr = XLSX.utils.encode_cell({ r, c: colIndex });
         val = idNumberFromWorksheetCell(sheet[addr]);
       } else {
@@ -114,6 +116,10 @@ export function parseImportWorkbook(buffer: ArrayBuffer): {
     }
 
     if (!hasValue || isRowEmpty(raw)) continue;
+
+    // Skip instruction / notes rows from the client template.
+    const name = cellToString(raw.full_name);
+    if (!name) continue;
 
     parsed.push({ excelRow: r + 1, raw });
     if (parsed.length > MAX_IMPORT_ROWS) {
