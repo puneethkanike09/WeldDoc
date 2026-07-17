@@ -30,7 +30,19 @@ RUN test -n "$NEXT_PUBLIC_SUPABASE_URL" \
 
 RUN npm run build
 
-# Final image: Alpine + standalone server only (no full node_modules).
+# Background job worker (BullMQ) — full deps + source for tsx.
+FROM base AS worker
+WORKDIR /app
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json package-lock.json ./
+COPY src ./src
+COPY scripts ./scripts
+COPY tsconfig.json ./
+CMD ["npx", "tsx", "scripts/worker-welder-import.ts"]
+
+# Default / final image: Alpine + standalone Next.js server.
 FROM node:22-alpine AS runner
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
@@ -49,15 +61,3 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 USER nextjs
 EXPOSE 3000
 CMD ["node", "server.js"]
-
-# Background job worker (BullMQ) — full deps + source for tsx.
-FROM base AS worker
-WORKDIR /app
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-COPY --from=deps /app/node_modules ./node_modules
-COPY package.json package-lock.json ./
-COPY src ./src
-COPY scripts ./scripts
-COPY tsconfig.json ./
-CMD ["npx", "tsx", "scripts/worker-welder-import.ts"]
