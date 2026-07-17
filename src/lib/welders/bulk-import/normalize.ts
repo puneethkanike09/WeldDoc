@@ -234,6 +234,12 @@ function iso(y: number, m: number, d: number): string | null {
   return `${String(y).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
+/** Expand 2-digit years: 00–69 → 2000–2069, 70–99 → 1970–1999. */
+function expandTwoDigitYear(y: number): number {
+  if (y >= 100) return y;
+  return y >= 70 ? 1900 + y : 2000 + y;
+}
+
 /** Coerce a wide range of date encodings to `YYYY-MM-DD`, else null. */
 export function coerceDate(value: string): string | null {
   const t = value.trim();
@@ -280,17 +286,53 @@ export function coerceDate(value: string): string | null {
     return iso(c, month, day);
   }
 
-  // Textual month: "10 May 2023", "May 10, 2023", "10-May-2023".
+  // Textual month: "10 May 2023", "May 10, 2023", "10-May-2023", "02-Aug-25".
   const tokens = t.toLowerCase().replace(/,/g, " ").split(/[\s\-/]+/).filter(Boolean);
   if (tokens.length === 3) {
-    const monthTok = tokens.find((tok) => MONTHS[tok.slice(0, 3)]);
-    if (monthTok) {
-      const month = MONTHS[monthTok.slice(0, 3)];
-      const nums = tokens.filter((tok) => /^\d+$/.test(tok)).map(Number);
-      if (nums.length === 2) {
-        const year = nums.find((n) => n > 31);
-        const day = nums.find((n) => n <= 31 && n !== year);
-        if (year && day) return iso(year, month, day);
+    const monthIdx = tokens.findIndex((tok) => MONTHS[tok.slice(0, 3)]);
+    if (monthIdx >= 0) {
+      const month = MONTHS[tokens[monthIdx].slice(0, 3)];
+      const numToks = tokens.filter((_, i) => i !== monthIdx);
+      if (numToks.length === 2 && numToks.every((tok) => /^\d+$/.test(tok))) {
+        const a = Number(numToks[0]);
+        const b = Number(numToks[1]);
+        let day: number;
+        let year: number;
+
+        if (monthIdx === 1) {
+          // DD-Mon-YY / DD-Mon-YYYY (plant continuity style: 02-Aug-25)
+          // or YYYY-Mon-DD when the first number is a 4-digit year.
+          if (numToks[0].length === 4) {
+            year = a;
+            day = b;
+          } else {
+            day = a;
+            year = expandTwoDigitYear(b);
+          }
+        } else if (monthIdx === 0) {
+          // Mon DD YYYY / Mon DD YY
+          if (a > 31) {
+            year = expandTwoDigitYear(a);
+            day = b;
+          } else {
+            day = a;
+            year = expandTwoDigitYear(b);
+          }
+        } else {
+          // DD YYYY Mon — uncommon; treat larger as year when unambiguous.
+          if (a > 31) {
+            year = expandTwoDigitYear(a);
+            day = b;
+          } else if (b > 31) {
+            day = a;
+            year = expandTwoDigitYear(b);
+          } else {
+            day = a;
+            year = expandTwoDigitYear(b);
+          }
+        }
+
+        return iso(year, month, day);
       }
     }
   }

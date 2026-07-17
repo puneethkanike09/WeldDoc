@@ -275,6 +275,9 @@ test("accepts common date formats (15/06/2024 -> 2024-06-15)", () => {
     ["15.06.2024", "2024-06-15"],
     ["10 May 2023", "2023-05-10"],
     ["2024-06-15", "2024-06-15"],
+    ["02-Aug-25", "2025-08-02"],
+    ["02-Aug-2025", "2025-08-02"],
+    ["12-Mar-24", "2024-03-12"],
   ];
   for (const [input, expected] of cases) {
     const r = validateImportRows(
@@ -284,6 +287,53 @@ test("accepts common date formats (15/06/2024 -> 2024-06-15)", () => {
     assert.equal(r.ok, true, `${input}: ${JSON.stringify(r.errors)}`);
     assert.equal(r.rows[0].qualification?.dateOfWelding, expected);
   }
+});
+
+test("accepts DD-Mon-YY on date_of_birth and expiry", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          ...baseWelderRaw({ date_of_birth: "20-May-88" }),
+          ...bwQualRaw({
+            weld_test_revalidation_date: "12-Mar-24",
+            validation_expiry_date: "12-Mar-28",
+          }),
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  assert.equal(r.rows[0].welder.dateOfBirth, "1988-05-20");
+  assert.equal(r.rows[0].qualification?.dateOfWelding, "2024-03-12");
+  assert.equal(r.rows[0].qualification?.expiryDate, "2028-03-12");
+});
+
+test("accepts DD-Mon-YY list in continuity_last_verified", () => {
+  const r = validateImportRows(
+    [
+      {
+        excelRow: 2,
+        raw: {
+          ...baseWelderRaw(),
+          ...bwQualRaw({
+            continuity_last_verified: "02-Aug-25;01-Aug-25;29-Jan-26;20-Jul-26",
+          }),
+        },
+      },
+    ],
+    new Set(),
+  );
+  assert.equal(r.ok, true, JSON.stringify(r.errors));
+  assert.deepEqual(r.rows[0].qualification?.continuityHistory, [
+    "2025-08-01",
+    "2025-08-02",
+    "2026-01-29",
+    "2026-07-20",
+  ]);
+  assert.equal(r.rows[0].qualification?.continuityLastVerified, "2026-07-20");
 });
 
 test("strips units from numeric cells (12 mm -> 12)", () => {
