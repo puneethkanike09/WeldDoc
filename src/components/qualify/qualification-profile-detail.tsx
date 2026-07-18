@@ -131,6 +131,9 @@ export function QualificationProfileDetail({
   const certificateSrc = `${apiBase}/certificate?${qualQuery}`;
   const signedCertificateSrc = `${apiBase}/signed-certificate?${qualQuery}`;
   const showCertificates = selected.isActive && selected.isApproved;
+  const uploadedCertLabel = selected.isLegacy
+    ? "Original certificate"
+    : "Signed certificate";
   const hasDocumentList =
     showCertificates ||
     ndtWithReports.length > 0 ||
@@ -421,11 +424,11 @@ export function QualificationProfileDetail({
                 {selected.isActive && selected.hasSignedCertificate && (
                   <li className="flex items-center justify-between gap-3 rounded-[10px] border border-silver bg-panel px-3 py-2.5 text-[13px]">
                     <span className="font-medium text-onyx">
-                      Signed certificate
+                      {uploadedCertLabel}
                     </span>
                     <DocumentViewButton
                       src={signedCertificateSrc}
-                      title="Signed certificate"
+                      title={uploadedCertLabel}
                     />
                   </li>
                 )}
@@ -438,6 +441,7 @@ export function QualificationProfileDetail({
               >
                 <SignedCertificateForm
                   hasSignedCertificate={selected.hasSignedCertificate}
+                  isLegacy={selected.isLegacy}
                   action={onUploadSignedCert}
                 />
               </div>
