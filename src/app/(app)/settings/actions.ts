@@ -15,6 +15,7 @@ import {
   parseAlertEmailTime,
   parseAlertEmailTimezone,
 } from "@/lib/expiry-alerts/send-time";
+import { calculateNextRunIso } from "@/lib/expiry-alerts/next-run";
 import { parseCertificateBrandingFromForm } from "@/lib/certificate/branding";
 
 function str(v: FormDataEntryValue | null): string | null {
@@ -72,6 +73,15 @@ export async function updateAlertEmailSettings(formData: FormData) {
     str(formData.get("alert_email_timezone")),
   );
 
+  const alert_next_run_at = emails.length
+    ? calculateNextRunIso({
+        frequency,
+        timeHHMM: sendTime,
+        timeZone: timezone,
+        strictlyAfter: false,
+      })
+    : null;
+
   const { error } = await supabase
     .from("organizations")
     .update({
@@ -80,6 +90,7 @@ export async function updateAlertEmailSettings(formData: FormData) {
       alert_email_frequency: frequency,
       alert_email_time: sendTime,
       alert_email_timezone: timezone,
+      alert_next_run_at,
     })
     .eq("id", org.id);
 

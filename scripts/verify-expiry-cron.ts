@@ -23,6 +23,7 @@ import {
   isWithinSendWindow,
   parseAlertEmailTime,
 } from "../src/lib/expiry-alerts/send-time";
+import { calculateNextRun } from "../src/lib/expiry-alerts/next-run";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -107,8 +108,20 @@ function runLogicTests() {
   );
   assert(parseAlertEmailTime("8:05") === "08:05", "parseAlertEmailTime pads hour");
 
+  const nextDaily = calculateNextRun({
+    frequency: "daily",
+    timeHHMM: "08:00",
+    timeZone: "Asia/Kolkata",
+    from: new Date("2026-07-18T02:30:00.000Z"),
+    strictlyAfter: true,
+  });
+  assert(
+    nextDaily.toISOString() === "2026-07-19T02:30:00.000Z",
+    "calculateNextRun daily advances one day",
+  );
+
   console.log(
-    "✓ Logic tests passed (bucketFor, daysUntil, orgDigestKind, frequency)",
+    "✓ Logic tests passed (bucketFor, daysUntil, orgDigestKind, frequency, nextRun)",
   );
 }
 

@@ -125,7 +125,7 @@ export function AlertEmailConfigDialog({
             <div className="grid gap-5 sm:grid-cols-2">
               <Field
                 label="Send time"
-                hint="Emails go out at this local time in the selected timezone. The scheduler must run at least every 10 minutes."
+                hint="Sends at this local time; the app checks every minute on the server."
               >
                 <Input
                   type="time"

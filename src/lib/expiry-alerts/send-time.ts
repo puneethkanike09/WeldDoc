@@ -1,12 +1,11 @@
 /**
- * When true, a once-daily cron is enough (ignores per-org send clock).
- * When false, a sub-daily caller (AWS EventBridge every ~10 min) is required so
- * each org's alert_email_time + timezone window can be respected.
+ * Legacy flag — unused by the primary next_run_at scheduler path.
+ * Kept for diagnose scripts / transitional checks.
  */
 export const ALERT_CRON_IS_DAILY = false;
 
-/** Send window half-open [configured time, configured time + window). Match cron cadence. */
-export const ALERT_CRON_WINDOW_MINUTES = 10;
+/** @deprecated Prefer alert_next_run_at scheduling. */
+export const ALERT_CRON_WINDOW_MINUTES = 1;
 
 export const ALERT_TIMEZONE_OPTIONS: { value: string; label: string }[] = [
   { value: "Asia/Kolkata", label: "India (IST)" },
@@ -103,7 +102,7 @@ export function weeksSinceEpochMondayForTz(d: Date, timeZone: string): number {
 
 /**
  * True when the current moment falls in [configured time, configured time + window).
- * Used when ALERT_CRON_IS_DAILY is false (sub-daily AWS / EventBridge cron).
+ * Legacy helper — primary scheduling uses organizations.alert_next_run_at.
  */
 export function isWithinSendWindow(
   now: Date,

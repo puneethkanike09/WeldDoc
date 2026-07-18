@@ -64,6 +64,7 @@ async function main() {
     repeating,
     sendTime,
     timeZone,
+    alert_next_run_at: org.alert_next_run_at ?? null,
     recipients,
     leadDays,
     withinWindow: isWithinSendWindow(now, sendTime, timeZone),

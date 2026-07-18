@@ -82,6 +82,8 @@ export interface Organization {
   alert_email_frequency: AlertEmailFrequency;
   alert_email_time: string;
   alert_email_timezone: string;
+  /** UTC ISO when this org is next due for a digest; null = due on next tick. */
+  alert_next_run_at: string | null;
   certificate_branding: CertificateBranding;
   dashboard_widgets: DashboardWidgetsConfig | null;
   masterlist_columns: MasterListColumnsConfig | null;
