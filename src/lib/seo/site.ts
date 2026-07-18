@@ -1,26 +1,37 @@
 /** Canonical public marketing site — used for metadata, OG, sitemap, JSON-LD. */
 export const SITE_NAME = "Weld.Doc";
 
-export const SITE_TAGLINE = "Welder Qualification, Done Right";
+export const SITE_TAGLINE =
+  "Welder Qualification Software — ISO today, more standards ahead";
 
 export const DEFAULT_DESCRIPTION =
-  "Weld.Doc is purpose-built welder and operator qualification software — ISO 9606-1 & ISO 14732 certificates, QR verification, expiry alerts, master lists and dashboards for fabrication shops and QC teams.";
+  "Weld.Doc is welder qualification software and welding documentation software for fabrication teams — certificates, WPS/WPQ/WPQR records, welder continuity tracking, QR verification, expiry alerts, and master lists. Available now for ISO 9606-1 and ISO 14732; ASME Section IX and AWS D1.1 on the roadmap.";
 
+/** High-intent B2B keywords (titles/meta/JSON-LD). Visible copy still reads naturally. */
 export const DEFAULT_KEYWORDS = [
   "welder qualification software",
-  "welding qualification management",
-  "ISO 9606-1 certificate software",
-  "ISO 14732 operator qualification",
-  "welder registry",
-  "welder certificate generator",
-  "welder ID card QR",
-  "welding QC software",
-  "welder master list",
-  "continuity revalidation tracking",
-  "fabrication shop qualification",
-  "welder qualification India",
-  "WPS WPQ management",
-  "welder expiry alerts",
+  "welder certification software",
+  "welding qualification software",
+  "welding documentation software",
+  "welding management software",
+  "welding compliance software",
+  "WPS software",
+  "WPQR software",
+  "WPQ software",
+  "welder continuity tracking",
+  "welding record management",
+  "welding certificate generation",
+  "ISO 9606-1 software",
+  "ISO 14732 software",
+  "ASME Section IX welder qualification software",
+  "AWS D1.1 welder qualification software",
+  "welding traceability software",
+  "fabrication quality management software",
+  "software for welder qualification records",
+  "online welder certification management",
+  "digital welding documentation for fabrication teams",
+  "manage welder continuity and expiry dates",
+  "cloud software for welding records and certificates",
 ] as const;
 
 export const SITE_LOCALE = "en_IN";
@@ -39,4 +50,5 @@ export const PUBLIC_ROUTES = [
   { path: "/privacy", changeFrequency: "monthly" as const, priority: 0.4 },
   { path: "/terms", changeFrequency: "monthly" as const, priority: 0.4 },
   { path: "/security", changeFrequency: "monthly" as const, priority: 0.5 },
+  { path: "/llms.txt", changeFrequency: "monthly" as const, priority: 0.3 },
 ] as const;

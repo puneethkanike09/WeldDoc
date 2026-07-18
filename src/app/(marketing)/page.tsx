@@ -4,23 +4,29 @@ import { homePageJsonLd } from "@/lib/seo/json-ld";
 import { createPageMetadata } from "@/lib/seo/metadata";
 
 export const metadata = createPageMetadata({
-  title: "Weld.Doc — Welder & Operator Qualification Software",
+  title:
+    "Welder Qualification Software | ISO 9606-1, ISO 14732 & More — Weld.Doc",
   description:
-    "Purpose-built welder qualification software for ISO 9606-1 and ISO 14732. Generate certificates and ID cards, scan QR codes on site, track continuity and revalidation expiry, and export master lists — built for fabrication shops and welding QC teams in India.",
+    "Welder qualification software for fabricators and QC teams. Manage WPQ/WPQR records, generate welding certificates, track continuity and expiry, and verify with QR. Live for ISO 9606-1 & ISO 14732; ASME IX and AWS D1.1 coming next.",
   path: "/",
   keywords: [
     "welder qualification software",
-    "welding qualification management system",
-    "ISO 9606-1 certificate generator",
-    "ISO 14732 operator qualification software",
-    "welder registry QR code",
-    "welder certificate PDF",
-    "welder ID card software",
-    "welder continuity revalidation alerts",
-    "welder master list Excel",
-    "fabrication QC software India",
-    "WPQ WPS welder tracking",
-    "on-site welder verification QR",
+    "welder certification software",
+    "welding documentation software",
+    "welding compliance software",
+    "WPS software",
+    "WPQR software",
+    "WPQ software",
+    "welder continuity tracking",
+    "welding certificate generation",
+    "ISO 9606-1 software",
+    "ISO 14732 software",
+    "ASME Section IX welder qualification",
+    "AWS D1.1 welder qualification software",
+    "welding traceability software",
+    "welding management software",
+    "online welder certification management",
+    "digital welding documentation for fabrication teams",
   ],
 });
 
