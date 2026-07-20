@@ -6,9 +6,9 @@ import { requireSession } from "@/lib/auth";
 import { commitValidatedImport } from "@/lib/welders/bulk-import/commit";
 import { rowsToRawImport } from "@/lib/welders/bulk-import/display";
 import { extractImportAssetsFromFormData } from "@/lib/welders/bulk-import/extract-upload";
-import {
-  planImportDocuments,
-} from "@/lib/welders/bulk-import/match-import-docs";
+// Phase 2 docs temporarily disabled:
+// import { planImportDocuments } from "@/lib/welders/bulk-import/match-import-docs";
+// import { uploadImportDocPlan } from "@/lib/welders/bulk-import/upload-import-docs";
 import {
   matchPhotosToWelders,
   type PhotoFile,
@@ -16,7 +16,6 @@ import {
 import type { ValidatedImportRow } from "@/lib/welders/bulk-import/types";
 import { validateWelderImportUpload } from "@/lib/welders/bulk-import/validate-upload";
 import { validateParsedImport } from "@/lib/welders/bulk-import/validate";
-import { uploadImportDocPlan } from "@/lib/welders/bulk-import/upload-import-docs";
 import { normalizePlantWelderId } from "@/lib/welders/plant-id";
 import { uploadFile } from "@/lib/storage";
 import { redisConfigured } from "@/lib/queue/redis";
@@ -102,15 +101,10 @@ export async function commitWelderImport(
     assets.photos,
   );
 
-  const plantIds = revalidation.rows
-    .map((r) => r.welder.plantWelderId)
-    .filter(Boolean);
-  const docPlan = planImportDocuments(
-    plantIds,
-    assets.certificates,
-    assets.continuity,
-  );
-  const { paths: uploadedDocs } = await uploadImportDocPlan(org.id, docPlan);
+  // Phase 2 docs temporarily disabled — Excel + photos only.
+  // const plantIds = ...
+  // const docPlan = planImportDocuments(...)
+  // const { paths: uploadedDocs } = await uploadImportDocPlan(org.id, docPlan);
 
   // Prefer background commit when Redis is configured.
   if (redisConfigured()) {
@@ -134,7 +128,7 @@ export async function commitWelderImport(
         payload: {
           rows: revalidation.rows,
           photoPaths,
-          docPaths: uploadedDocs,
+          // docPaths: uploadedDocs,
         },
       })
       .select("id")
@@ -173,7 +167,7 @@ export async function commitWelderImport(
     revalidation.rows,
     photoMatches,
     undefined,
-    uploadedDocs,
+    // uploadedDocs — Phase 2 disabled
   );
 
   revalidatePath("/welders");

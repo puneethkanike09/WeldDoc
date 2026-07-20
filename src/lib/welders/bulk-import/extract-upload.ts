@@ -40,16 +40,13 @@ function isImageFilename(name: string): boolean {
   return IMAGE_EXT.some((ext) => lower.endsWith(ext));
 }
 
-function isPdfFilename(name: string): boolean {
-  return name.toLowerCase().endsWith(".pdf");
-}
-
-function normalizedZipPath(path: string): string {
-  return path.replace(/\\/g, "/");
-}
+// Phase 2 docs temporarily disabled:
+// function isPdfFilename(name: string): boolean {
+//   return name.toLowerCase().endsWith(".pdf");
+// }
 
 function isUnderFolder(path: string, folder: string): boolean {
-  const normalized = normalizedZipPath(path).toLowerCase();
+  const normalized = path.replace(/\\/g, "/").toLowerCase();
   const f = folder.toLowerCase();
   return normalized.includes(`/${f}/`) || normalized.startsWith(`${f}/`);
 }
@@ -89,9 +86,9 @@ async function extractFromZip(zipFile: File): Promise<ExtractedImportUpload> {
 
   let excelEntry: JSZip.JSZipObject | null = null;
   const photoEntries: Array<{ path: string; entry: JSZip.JSZipObject }> = [];
-  const certEntries: Array<{ path: string; entry: JSZip.JSZipObject }> = [];
-  const continuityEntries: Array<{ path: string; entry: JSZip.JSZipObject }> =
-    [];
+  // Phase 2 docs temporarily disabled:
+  // const certEntries: Array<{ path: string; entry: JSZip.JSZipObject }> = [];
+  // const continuityEntries: Array<{ path: string; entry: JSZip.JSZipObject }> = [];
 
   for (const [path, entry] of Object.entries(zip.files)) {
     if (entry.dir) continue;
@@ -108,14 +105,14 @@ async function extractFromZip(zipFile: File): Promise<ExtractedImportUpload> {
       continue;
     }
 
-    if (isPdfFilename(name) && isUnderFolder(path, "certificates")) {
-      certEntries.push({ path, entry });
-      continue;
-    }
-
-    if (isPdfFilename(name) && isUnderFolder(path, "continuity")) {
-      continuityEntries.push({ path, entry });
-    }
+    // Phase 2 docs temporarily disabled — Excel + photos only.
+    // if (isPdfFilename(name) && isUnderFolder(path, "certificates")) {
+    //   certEntries.push({ path, entry });
+    //   continue;
+    // }
+    // if (isPdfFilename(name) && isUnderFolder(path, "continuity")) {
+    //   continuityEntries.push({ path, entry });
+    // }
   }
 
   if (!excelEntry) {
@@ -144,27 +141,11 @@ async function extractFromZip(zipFile: File): Promise<ExtractedImportUpload> {
     });
   }
 
+  // Phase 2 docs temporarily disabled — always empty.
+  // const certificates: DocFile[] = []; ...
+  // const continuity: DocFile[] = []; ...
   const certificates: DocFile[] = [];
-  for (const { path, entry } of certEntries) {
-    const bytes = Buffer.from(await entry.async("arraybuffer"));
-    certificates.push({
-      filename: basename(path),
-      bytes,
-      mime: "application/pdf",
-      zipPath: normalizedZipPath(path),
-    });
-  }
-
   const continuity: DocFile[] = [];
-  for (const { path, entry } of continuityEntries) {
-    const bytes = Buffer.from(await entry.async("arraybuffer"));
-    continuity.push({
-      filename: basename(path),
-      bytes,
-      mime: "application/pdf",
-      zipPath: normalizedZipPath(path),
-    });
-  }
 
   return { excel, photos, certificates, continuity };
 }

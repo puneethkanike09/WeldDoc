@@ -40,8 +40,9 @@ export async function POST(request: Request) {
     profile.org_id,
     supabase,
     extracted.photos,
-    extracted.certificates,
-    extracted.continuity,
+    // Phase 2 docs temporarily disabled:
+    // extracted.certificates,
+    // extracted.continuity,
   );
 
   return Response.json(result);

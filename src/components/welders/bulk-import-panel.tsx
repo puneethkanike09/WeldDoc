@@ -21,13 +21,11 @@ import type {
   ValidatedImportRow,
 } from "@/lib/welders/bulk-import/types";
 import type {
-  CertificateMatchResult,
-  CertificateMatchStatus,
-} from "@/lib/welders/bulk-import/match-import-docs";
-import type {
   PhotoMatchResult,
   PhotoMatchStatus,
 } from "@/lib/welders/bulk-import/match-import-photos";
+// Phase 2 docs UI temporarily disabled:
+// import type { CertificateMatchResult, CertificateMatchStatus } from "...match-import-docs";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -37,7 +35,8 @@ type PreviewState = {
   warnings: ImportWarning[];
   summary: ImportValidationSummary;
   photoResults: PhotoMatchResult[];
-  certificateResults: CertificateMatchResult[];
+  // Phase 2 — kept on API payload but not shown
+  certificateResults: unknown[];
   continuityWarnings: string[];
   fileError: string | null;
   ok: boolean;
@@ -51,7 +50,7 @@ type ValidateResult = {
   warnings: ImportWarning[];
   summary: ImportValidationSummary;
   photoResults: PhotoMatchResult[];
-  certificateResults?: CertificateMatchResult[];
+  certificateResults?: unknown[];
   continuityWarnings?: string[];
 };
 
@@ -65,16 +64,8 @@ const PHOTO_STATUS: Record<
   invalid_type: { label: "File type not supported", tone: "expired" },
 };
 
-const CERT_STATUS: Record<
-  CertificateMatchStatus,
-  { label: string; tone: "active" | "expiring" | "expired" | "ember" }
-> = {
-  ready: { label: "Certificate PDF found", tone: "active" },
-  missing: { label: "No certificate PDF (OK)", tone: "expiring" },
-  duplicate: { label: "More than one certificate PDF", tone: "ember" },
-  invalid_type: { label: "Certificate file type not supported", tone: "expired" },
-  too_large: { label: "Certificate PDF too large", tone: "expired" },
-};
+// Phase 2 docs UI temporarily disabled — Excel + photos only.
+// const CERT_STATUS: Record<CertificateMatchStatus, ...> = { ... };
 
 function buildSummarySentence(preview: PreviewState): string {
   const { summary, ok } = preview;
@@ -124,22 +115,8 @@ function photoSummaryLine(results: PhotoMatchResult[]): string {
   return bits.join(" · ") || "No photos matched";
 }
 
-function certSummaryLine(results: CertificateMatchResult[]): string {
-  const ready = results.filter((r) => r.status === "ready").length;
-  const missing = results.filter((r) => r.status === "missing").length;
-  const other = results.length - ready - missing;
-  const bits: string[] = [];
-  if (ready > 0) {
-    bits.push(`${ready} certificate PDF${ready === 1 ? "" : "s"} found`);
-  }
-  if (missing > 0) {
-    bits.push(`${missing} without certificate PDF`);
-  }
-  if (other > 0) {
-    bits.push(`${other} need attention`);
-  }
-  return bits.join(" · ") || "No certificate PDFs matched";
-}
+// Phase 2 — certSummaryLine temporarily unused
+// function certSummaryLine(...) { ... }
 
 export function BulkImportPanel({
   commitAction,
@@ -306,7 +283,7 @@ export function BulkImportPanel({
             </h3>
             <p className="mt-1 text-sm text-graphite">
               Add many welders at once by uploading one ZIP file. Follow the
-              steps below — photos and PDFs are optional.
+              steps below — photos are optional.
             </p>
           </div>
 
@@ -328,31 +305,13 @@ export function BulkImportPanel({
             </li>
             <li>
               <span className="font-medium text-charcoal">
-                Add optional folders
+                Add photos (optional)
               </span>{" "}
-              next to the spreadsheet (you can skip any of these):
-              <ul className="mt-2 list-disc space-y-1 pl-5 text-graphite">
-                <li>
-                  <span className="font-mono text-xs text-charcoal">photos/</span>{" "}
-                  — e.g. <span className="font-mono text-xs">W#14.jpg</span>
-                </li>
-                <li>
-                  <span className="font-mono text-xs text-charcoal">
-                    certificates/
-                  </span>{" "}
-                  — e.g. <span className="font-mono text-xs">W#14.pdf</span>
-                </li>
-                <li>
-                  <span className="font-mono text-xs text-charcoal">
-                    continuity/
-                  </span>{" "}
-                  — e.g.{" "}
-                  <span className="font-mono text-xs">W#14_2025-08-02.pdf</span>{" "}
-                  or{" "}
-                  <span className="font-mono text-xs">W#14_cont_1.pdf</span>{" "}
-                  (max 10 per W#)
-                </li>
-              </ul>
+              in a{" "}
+              <span className="font-mono text-xs text-charcoal">photos/</span>{" "}
+              folder — name each file like{" "}
+              <span className="font-mono text-xs">W#14.jpg</span>.
+              {/* Phase 2 docs (certificates/ continuity/) temporarily disabled */}
             </li>
             <li>
               <span className="font-medium text-charcoal">
@@ -388,13 +347,16 @@ export function BulkImportPanel({
             </p>
             <pre className="overflow-x-auto font-mono text-[11px] leading-relaxed text-charcoal">
 {`Import.xlsx
-photos/          W#14.jpg
+photos/          W#14.jpg`}
+            </pre>
+            {/* Phase 2 — certificates/ + continuity/ temporarily disabled
 certificates/    W#14.pdf
 continuity/      W#14_2025-08-02.pdf
-                 W#14_cont_1.pdf  (max 10 per W#)`}
-            </pre>
+                 W#14_cont_1.pdf  (max 10 per W#)
+            */}
             <p className="mt-2 text-xs text-steel">
-              Folders may be empty or missing. Only the spreadsheet is required.
+              The photos folder may be empty or missing. Only the spreadsheet is
+              required.
             </p>
           </div>
 
@@ -540,38 +502,9 @@ continuity/      W#14_2025-08-02.pdf
                   </div>
                 )}
 
-                {preview.certificateResults.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-charcoal">
-                      {certSummaryLine(preview.certificateResults)}
-                    </p>
-                    <ul className="sleek-scroll max-h-40 space-y-2 overflow-y-auto rounded-[10px] border border-silver px-3 py-2 text-sm">
-                      {preview.certificateResults.map((row) => {
-                        const meta = CERT_STATUS[row.status];
-                        return (
-                          <li
-                            key={`cert-${row.plantWelderId}`}
-                            className="flex flex-wrap items-center gap-2"
-                          >
-                            <span className="font-mono text-xs text-charcoal">
-                              {row.plantWelderId}
-                            </span>
-                            <span className="text-xs text-graphite">
-                              {row.filename ?? "—"}
-                            </span>
-                            <Badge tone={meta.tone}>{meta.label}</Badge>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                    {preview.continuityWarnings.length > 0 && (
-                      <p className="text-xs text-steel">
-                        Continuity notes: {preview.continuityWarnings.length}{" "}
-                        (see Notes above if listed)
-                      </p>
-                    )}
-                  </div>
-                )}
+                {/* Phase 2 docs preview temporarily disabled
+                {preview.certificateResults.length > 0 && ( ... )}
+                */}
 
                 {preview.rows.length > 0 && (
                   <Disclosure
