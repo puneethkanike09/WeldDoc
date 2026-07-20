@@ -3,9 +3,10 @@
 import { useCallback, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Check, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Card, CardBody } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { billingWhatsAppUrl } from "@/lib/brochure/regions";
 import { PLANS, UNLIMITED } from "@/lib/billing/plans";
 import type { PlanTier, SubscriptionStatus } from "@/types/db";
 import {
@@ -218,7 +219,8 @@ export function BillingPanel(props: BillingPanelProps) {
           )}
           {!props.paymentsConfigured && (
             <p className="text-sm text-graphite">
-              Online payments are not configured in this environment.
+              Online payments are coming soon. Contact us on WhatsApp to
+              subscribe in the meantime.
             </p>
           )}
         </CardBody>
@@ -263,13 +265,32 @@ export function BillingPanel(props: BillingPanelProps) {
                   <Button variant="ghost" size="sm" disabled>
                     {isCurrent ? "Current plan" : "Free trial"}
                   </Button>
+                ) : !props.paymentsConfigured ? (
+                  isCurrent && props.status === "active" ? (
+                    <Button variant="ghost" size="sm" disabled>
+                      Current plan
+                    </Button>
+                  ) : props.billingExempt ? (
+                    <Button variant="primary" size="sm" disabled>
+                      Contact us
+                    </Button>
+                  ) : (
+                    <ButtonLink
+                      href={billingWhatsAppUrl(plan.name)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      variant="primary"
+                      size="sm"
+                    >
+                      Contact us
+                    </ButtonLink>
+                  )
                 ) : (
                   <Button
                     variant={isCurrent ? "ghost" : "primary"}
                     size="sm"
                     disabled={
                       loading ||
-                      !props.paymentsConfigured ||
                       props.billingExempt ||
                       (isCurrent && props.status === "active")
                     }

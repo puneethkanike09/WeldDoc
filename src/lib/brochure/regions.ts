@@ -133,3 +133,8 @@ export function brochureWhatsAppUrl(
 ): string {
   return `https://wa.me/${whatsapp.phone}?text=${encodeURIComponent(whatsapp.message)}`;
 }
+
+export function billingWhatsAppUrl(planName: string): string {
+  const message = `Hi, I'd like to subscribe to the ${planName} plan on Weld.Doc`;
+  return `https://wa.me/${sharedWhatsapp.phone}?text=${encodeURIComponent(message)}`;
+}
