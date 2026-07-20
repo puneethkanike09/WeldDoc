@@ -82,7 +82,7 @@ export function rootMetadata(): Metadata {
     metadataBase: new URL(siteUrl),
     applicationName: SITE_NAME,
     title: {
-      default: `${SITE_NAME} — Welder & Operator Qualification Software`,
+      default: `${SITE_NAME} — Welder Qualification Software`,
       template: `%s · ${SITE_NAME}`,
     },
     description: DEFAULT_DESCRIPTION,
@@ -105,14 +105,14 @@ export function rootMetadata(): Metadata {
       locale: SITE_LOCALE,
       url: siteUrl,
       siteName: SITE_NAME,
-      title: `${SITE_NAME} — Welder & Operator Qualification Software`,
+      title: `${SITE_NAME} — Welder Qualification Software`,
       description: DEFAULT_DESCRIPTION,
       images: [
         {
           url: "/opengraph-image",
           width: 1200,
           height: 630,
-          alt: `${SITE_NAME} — ISO 9606-1 & ISO 14732 qualification platform`,
+          alt: `${SITE_NAME} — welder qualification and welding documentation software`,
         },
       ],
     },

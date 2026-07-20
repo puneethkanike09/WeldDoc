@@ -10,12 +10,14 @@ import {
   ScanLine,
   ShieldCheck,
   X,
+  ChevronDown,
 } from "lucide-react";
 import { DsButtonLink } from "@/components/marketing/ds-button";
 import { QrGlyph } from "@/components/brand/qr-glyph";
 import { NumberTicker } from "@/components/marketing/number-ticker";
 import SoftAurora from "@/components/marketing/soft-aurora";
 import { TrustMarquee } from "@/components/marketing/trust-marquee";
+import { GEO_DEFINITION, GEO_FAQS } from "@/lib/seo/geo-content";
 
 const products = [
   {
@@ -29,11 +31,11 @@ const products = [
   },
   {
     icon: FileCheck2,
-    title: "Certificate generation",
+    title: "Welding certificate generation",
     points: [
       "Auto range of approval",
-      "ISO-compliant PDF layout",
-      "Upload hand-signed copy",
+      "ISO-compliant certificate PDFs",
+      "Upload original or signed copy",
     ],
   },
   {
@@ -43,17 +45,17 @@ const products = [
   },
   {
     icon: BellRing,
-    title: "Expiry alerts",
+    title: "Welder continuity tracking",
     points: [
-      "Continuity & revalidation tracking",
+      "Continuity & revalidation alerts",
       "Configurable lead windows",
       "Email digests",
     ],
   },
   {
     icon: Table2,
-    title: "Master list",
-    points: ["Filterable register", "PDF export", "CSV export"],
+    title: "Welding record management",
+    points: ["Filterable master list", "PDF export", "CSV export"],
   },
   {
     icon: PieChart,
@@ -90,8 +92,8 @@ const workflow = [
 ];
 
 const comparison = [
-  { label: "Purpose-built, done simply", others: "Buried in multi-standard ERPs" },
-  { label: "ISO 9606-1 + ISO 14732 in one platform", others: "Partial" },
+  { label: "Purpose-built for welding qualifications", others: "Buried in multi-standard ERPs" },
+  { label: "Standards-based range of approval", others: "Partial" },
   { label: "Auto range-of-approval engine", others: true },
   { label: "Instant QR on-site verification", others: "Partial" },
   { label: "Group qualification sessions", others: false },
@@ -126,12 +128,12 @@ export function Landing() {
         <div className="relative mx-auto max-w-[1280px] px-6">
           <div className="mx-auto max-w-[800px] text-center">
             <h1 className="text-hero-cohere text-balance">
-              Welder qualification, finally under control.
+              Welder qualification software — finally under control.
             </h1>
             <p className="text-body-large mx-auto mt-8 max-w-[560px] text-ink">
-              Register welders and operators, auto-calculate the range of
-              approval, generate compliant certificates, and share live
-              qualification status with a single QR scan.
+              Welding documentation software for fabricators and QC teams —
+              manage WPQ and WPQR records, generate certificates, track welder
+              continuity and expiry, and verify qualifications with a QR scan.
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-6">
               <DsButtonLink href="/login">Get started</DsButtonLink>
@@ -146,23 +148,31 @@ export function Landing() {
             <div className="relative aspect-16/10 overflow-hidden rounded-lg border border-hairline bg-white shadow-(--shadow-lift) xl:aspect-auto xl:min-h-[420px]">
               <Image
                 src="/images/landing-dashboard-desktop.png"
-                alt="Weld.Doc dashboard on desktop — welder registry, KPIs and charts in dark mode"
+                alt="Weld.Doc welder qualification software dashboard — registry, KPIs and charts"
                 fill
                 priority
                 sizes="(max-width: 1280px) 100vw, 720px"
-                className="object-cover object-top-left"
+                className="origin-top-right scale-[1.1] object-cover object-top-center"
               />
             </div>
             <div className="relative hidden aspect-3/4 overflow-hidden rounded-lg border border-hairline bg-white shadow-(--shadow-lift) xl:block xl:aspect-auto xl:min-h-[420px]">
               <Image
                 src="/images/landing-masterlist-mobile.png"
-                alt="Weld.Doc master list on mobile — filterable register with CSV export"
+                alt="Weld.Doc welding documentation master list on mobile — filterable register with CSV export"
                 fill
                 sizes="360px"
                 className="object-cover object-top"
               />
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* GEO — answer-first definition for AI / answer engines */}
+      <section id="geo-definition" className="border-y border-hairline bg-soft-stone py-14">
+        <div className="mx-auto max-w-[800px] px-6 text-center">
+          <p className="text-mono-label text-slate">What is Weld.Doc?</p>
+          <p className="text-body-large mt-4 text-ink">{GEO_DEFINITION}</p>
         </div>
       </section>
 
@@ -180,11 +190,11 @@ export function Landing() {
       <section id="features" className="section-y bg-canvas">
         <div className="mx-auto max-w-[1280px] px-6">
           <h2 className="text-section-heading max-w-[640px]">
-            Six tools for ISO 9606-1 & ISO 14732
+            Everything you need to run qualifications
           </h2>
           <p className="text-body-large mt-5 max-w-[520px] text-slate">
-            A focused toolkit — not a sprawling ERP — from registration and
-            group qualify through certificates to on-site verification.
+            From registration and WPS/WPQ workflows through certificate
+            generation to on-site QR verification — without a sprawling ERP.
           </p>
           <div className="mt-16 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:auto-rows-[minmax(186px,auto)]">
             {products.map((p, i) => {
@@ -365,9 +375,9 @@ export function Landing() {
             <p className="text-mono-label text-brand-red">Why Weld.Doc</p>
             <h2 className="text-section-heading mt-4">Focused beats bloated</h2>
             <p className="text-body-large mt-5 text-slate">
-              WeldEye, WeldTrace and WeldNote are broad enterprise platforms.
-              For a shop on ISO 9606-1 or ISO 14732, Weld.Doc is faster and
-              easier to adopt.
+              Broad enterprise welding platforms try to do everything. Weld.Doc
+              stays focused on qualifications — faster to adopt for fabrication
+              and QC teams.
             </p>
           </div>
 
@@ -427,6 +437,43 @@ export function Landing() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ — accordion UI; answers remain in DOM for SEO/GEO + FAQPage JSON-LD */}
+      <section id="faq" className="section-y bg-canvas">
+        <div className="mx-auto max-w-[800px] px-6">
+          <p className="text-mono-label text-slate">FAQ</p>
+          <h2 className="text-section-heading mt-4">
+            Common questions
+          </h2>
+          <p className="text-body-large mt-5 text-slate">
+            Straight answers for welding coordinators, QA/QC, and compliance
+            teams evaluating Weld.Doc.
+          </p>
+          <div className="mt-12 divide-y divide-hairline border-y border-hairline">
+            {GEO_FAQS.map((item, i) => (
+              <details
+                key={item.question}
+                className="group py-1"
+                open={i === 0}
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 text-left marker:content-none [&::-webkit-details-marker]:hidden">
+                  <span className="text-feature-heading text-ink">
+                    {item.question}
+                  </span>
+                  <ChevronDown
+                    className="h-5 w-5 shrink-0 text-slate transition-transform duration-200 group-open:rotate-180"
+                    strokeWidth={1.75}
+                    aria-hidden
+                  />
+                </summary>
+                <p className="text-body max-w-[640px] pb-6 text-slate">
+                  {item.answer}
+                </p>
+              </details>
+            ))}
           </div>
         </div>
       </section>

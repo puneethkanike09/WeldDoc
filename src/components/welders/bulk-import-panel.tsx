@@ -158,7 +158,7 @@ export function BulkImportPanel({
           const err = await res.json().catch(() => null);
           throw new Error(
             (err as { error?: string } | null)?.error ??
-              `Could not check the ZIP (${res.status}).`,
+            `Could not check the ZIP (${res.status}).`,
           );
         }
         const result = (await res.json()) as ValidateResult;
@@ -331,6 +331,7 @@ export function BulkImportPanel({
               <FileSpreadsheet className="h-4 w-4" />
               Download blank spreadsheet
             </a>
+            {/* Hidden for now — date guide for existing/legacy spreadsheet layouts
             <a
               href="/api/welders/bulk-import/client-guide"
               download="welddoc-client-import-date-guide.xlsx"
@@ -339,6 +340,7 @@ export function BulkImportPanel({
               <FileSpreadsheet className="h-4 w-4" />
               Download date guide (for existing data)
             </a>
+            */}
           </div>
 
           <div className="rounded-[10px] border border-silver bg-frost px-3 py-2.5">
