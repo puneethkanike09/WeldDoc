@@ -13,6 +13,7 @@ import { parseImportWorkbook } from "./parse";
 import type {
   ImportValidationError,
   ImportValidationSummary,
+  ImportWarning,
   ValidatedImportRow,
 } from "./types";
 import { validateParsedImport } from "./validate";
