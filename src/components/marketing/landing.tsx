@@ -488,8 +488,8 @@ export function Landing() {
               Simple plans that scale with your shop
             </h2>
             <p className="text-body-large mt-5 text-slate">
-              Start free for a month — no card required. Upgrade when you need
-              more welders and operators.
+              Start free for a month — no card required. Paid plans are coming
+              soon; sign up now to try the full product on Starter.
             </p>
           </div>
 
@@ -563,14 +563,24 @@ export function Landing() {
                     ))}
                   </ul>
                   <div className="mt-8">
-                    <DsButtonLink
-                      href="/login"
-                      variant={featured ? "primary-on-dark" : "primary"}
-                    >
-                      {plan.tier === "starter"
-                        ? "Start free trial"
-                        : `Choose ${plan.name}`}
-                    </DsButtonLink>
+                    {plan.tier === "starter" ? (
+                      <DsButtonLink
+                        href="/login"
+                        variant={featured ? "primary-on-dark" : "primary"}
+                      >
+                        Start free trial
+                      </DsButtonLink>
+                    ) : (
+                      <span
+                        className={`inline-flex min-h-[44px] cursor-not-allowed items-center justify-center rounded-pill px-6 py-3 text-button opacity-60 ${
+                          featured
+                            ? "bg-canvas/80 text-ink"
+                            : "bg-onyx/10 text-ink"
+                        }`}
+                      >
+                        Coming soon
+                      </span>
+                    )}
                   </div>
                 </div>
               );

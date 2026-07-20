@@ -19,7 +19,7 @@ const landingLinks = [
 
 export const NAV_SCROLL_SENTINEL_ID = "nav-scroll-sentinel";
 
-export function SiteNav() {
+export function SiteNav({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
   const pathname = usePathname();
   const isLegal = isLegalPath(pathname);
   const [scrolled, setScrolled] = useState(isLegal);
@@ -86,15 +86,23 @@ export function SiteNav() {
           </nav>
 
           <div className="col-start-3 flex items-center justify-self-end gap-5">
-            <Link
-              href="/login"
-              className="hidden text-body text-ink sm:inline-flex"
-            >
-              Sign in
-            </Link>
-            <DsButtonLink href="/login" className="hidden md:inline-flex">
-              Get started
-            </DsButtonLink>
+            {isLoggedIn ? (
+              <DsButtonLink href="/dashboard" className="inline-flex">
+                Dashboard
+              </DsButtonLink>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="hidden text-body text-ink sm:inline-flex"
+                >
+                  Sign in
+                </Link>
+                <DsButtonLink href="/login" className="hidden md:inline-flex">
+                  Get started
+                </DsButtonLink>
+              </>
+            )}
           </div>
         </div>
       </div>
