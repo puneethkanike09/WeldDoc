@@ -176,6 +176,7 @@ html[data-app-theme="dark"] .step-done {
   --radius-pill: 32px;
 
   --font-ds-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-ds-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
   /* Brand aliases (token names kept for existing class usage) */
   --color-brand-red: #e59527;
@@ -426,7 +427,7 @@ html[data-app-theme="dark"] .welddoc-datepicker select {
   }
 
   .font-ds-body {
-    font-family: var(--font-ds-display);
+    font-family: var(--font-ds-body);
   }
 
   .text-hero-cohere {
@@ -469,14 +470,12 @@ html[data-app-theme="dark"] .welddoc-datepicker select {
   }
 
   .text-body-large {
-    font-family: var(--font-ds-display);
     font-size: 18px;
     font-weight: 400;
     line-height: 1.4;
   }
 
   .text-body {
-    font-family: var(--font-ds-display);
     font-size: 16px;
     font-weight: 400;
     line-height: 1.5;
@@ -490,14 +489,12 @@ html[data-app-theme="dark"] .welddoc-datepicker select {
   }
 
   .text-caption {
-    font-family: var(--font-ds-display);
     font-size: 14px;
     font-weight: 400;
     line-height: 1.4;
   }
 
   .text-micro {
-    font-family: var(--font-ds-display);
     font-size: 12px;
     font-weight: 400;
     line-height: 1.4;
@@ -576,4 +573,13 @@ html[data-app-theme="dark"] .welddoc-datepicker select {
   .app-shell aside nav:hover::-webkit-scrollbar-thumb {
     background-color: var(--theme-scrollbar-hover);
   }
+}
+
+/* Marketing — body copy in Inter; headings keep Space Grotesk via .text-*-heading */
+[data-marketing-site] .text-body,
+[data-marketing-site] .text-body-large,
+[data-marketing-site] .text-caption,
+[data-marketing-site] .text-micro,
+[data-marketing-site] .font-ds-body {
+  font-family: var(--font-sans);
 }

@@ -104,7 +104,7 @@ const comparison = [
 
 export function Landing() {
   return (
-    <main className="font-ds-display text-ink">
+    <main className="text-ink">
       {/* Hero — pt clears fixed nav (64px) + breathing room */}
       <section className="relative isolate overflow-hidden pb-[clamp(64px,10vw,120px)] pt-28 md:pt-32">
         <div
