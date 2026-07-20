@@ -15,7 +15,7 @@ const BRAND = {
 function BrandWordmark({ onDark }: { onDark: boolean }) {
   const wordColor = onDark ? "text-white" : "text-midnight";
   return (
-    <span className="font-display text-[20px] font-bold tracking-tight">
+    <span className="font-sans text-[20px] font-bold tracking-tight">
       <span className={wordColor}>Weld</span>
       <span className="text-ember">.</span>
       <span className={wordColor}>Doc</span>

@@ -14,7 +14,8 @@ import { cn } from "@/lib/utils";
 const landingLinks = [
   { href: "/#features", label: "Features" },
   { href: "/#workflow", label: "How it works" },
-  { href: "/#compare", label: "Compare" },
+  { href: "/#pricing", label: "Pricing" },
+  { href: "/#faq", label: "FAQ" },
 ];
 
 export const NAV_SCROLL_SENTINEL_ID = "nav-scroll-sentinel";

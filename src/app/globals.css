@@ -518,7 +518,8 @@ html[data-app-theme="dark"] .welddoc-datepicker select {
   #features,
   #workflow,
   #compare,
-  #pricing {
+  #pricing,
+  #faq {
     scroll-margin-top: 4.5rem;
   }
 

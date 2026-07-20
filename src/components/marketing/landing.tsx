@@ -10,9 +10,9 @@ import {
   ScanLine,
   ShieldCheck,
   X,
-  ChevronDown,
 } from "lucide-react";
 import { DsButtonLink } from "@/components/marketing/ds-button";
+import { FaqAccordion } from "@/components/marketing/faq-accordion";
 import { QrGlyph } from "@/components/brand/qr-glyph";
 import { NumberTicker } from "@/components/marketing/number-ticker";
 import SoftAurora from "@/components/marketing/soft-aurora";
@@ -139,7 +139,7 @@ export function Landing() {
             <div className="mt-10 flex flex-wrap items-center justify-center gap-6">
               <DsButtonLink href="/login">Get started</DsButtonLink>
               <DsButtonLink href="#features" variant="secondary">
-                Explore products
+                See features
               </DsButtonLink>
             </div>
           </div>
@@ -169,15 +169,7 @@ export function Landing() {
         </div>
       </section>
 
-      {/* GEO — answer-first definition for AI / answer engines */}
-      <section id="geo-definition" className="border-y border-hairline bg-soft-stone py-14">
-        <div className="mx-auto max-w-[800px] px-6 text-center">
-          <p className="text-mono-label text-slate">What is Weld.Doc?</p>
-          <p className="text-body-large mt-4 text-ink">{GEO_DEFINITION}</p>
-        </div>
-      </section>
-
-      {/* Trust strip — scroll-velocity marquee on light canvas */}
+      {/* Trust strip — social proof early */}
       <section className="py-8">
         <div className="mx-auto max-w-[1280px] px-6">
           <p className="text-caption text-center text-muted-slate">
@@ -185,6 +177,14 @@ export function Landing() {
           </p>
         </div>
         <TrustMarquee />
+      </section>
+
+      {/* GEO — answer-first definition for AI / answer engines */}
+      <section id="geo-definition" className="border-y border-hairline bg-soft-stone py-14">
+        <div className="mx-auto max-w-[800px] px-6 text-center">
+          <p className="text-mono-label text-slate">What is Weld.Doc?</p>
+          <p className="text-body-large mt-4 text-ink">{GEO_DEFINITION}</p>
+        </div>
       </section>
 
       {/* Product cards — bento grid on canvas */}
@@ -297,8 +297,8 @@ export function Landing() {
         </div>
       </section>
 
-      {/* Capability + structural verification mock — white canvas */}
-      <section className="section-y bg-canvas">
+      {/* QR verification spotlight */}
+      <section id="verification" className="section-y bg-canvas">
         <div className="mx-auto grid max-w-[1280px] items-center gap-12 px-6 lg:grid-cols-2 lg:gap-20">
           <div>
             <p className="text-mono-label text-slate">On-site verification</p>
@@ -442,45 +442,8 @@ export function Landing() {
         </div>
       </section>
 
-      {/* FAQ — accordion UI; answers remain in DOM for SEO/GEO + FAQPage JSON-LD */}
-      <section id="faq" className="section-y bg-canvas">
-        <div className="mx-auto max-w-[800px] px-6">
-          <p className="text-mono-label text-slate">FAQ</p>
-          <h2 className="text-section-heading mt-4">
-            Common questions
-          </h2>
-          <p className="text-body-large mt-5 text-slate">
-            Straight answers for welding coordinators, QA/QC, and compliance
-            teams evaluating Weld.Doc.
-          </p>
-          <div className="mt-12 divide-y divide-hairline border-y border-hairline">
-            {GEO_FAQS.map((item, i) => (
-              <details
-                key={item.question}
-                className="group py-1"
-                open={i === 0}
-              >
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 text-left marker:content-none [&::-webkit-details-marker]:hidden">
-                  <span className="text-feature-heading text-ink">
-                    {item.question}
-                  </span>
-                  <ChevronDown
-                    className="h-5 w-5 shrink-0 text-slate transition-transform duration-200 group-open:rotate-180"
-                    strokeWidth={1.75}
-                    aria-hidden
-                  />
-                </summary>
-                <p className="text-body max-w-[640px] pb-6 text-slate">
-                  {item.answer}
-                </p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA — contained dark card */}
-      <section id="pricing" className="section-y bg-canvas pb-32">
+      {/* Pricing */}
+      <section id="pricing" className="section-y bg-canvas">
         <div className="mx-auto max-w-[1280px] px-6">
           <div className="max-w-[640px]">
             <p className="text-mono-label text-brand-red">Pricing</p>
@@ -586,25 +549,22 @@ export function Landing() {
               );
             })}
           </div>
+        </div>
+      </section>
 
-          <div className="mt-16 rounded-lg bg-dark-navy p-8 sm:p-12 lg:p-16">
-            <div className="max-w-[520px]">
-              <h2 className="text-section-heading text-white">
-                Ready to run qualifications properly?
-              </h2>
-              <p className="text-body-large mt-5 text-white/70">
-                Set up your plant, register welders and operators, and issue a
-                compliant certificate today.
-              </p>
-              <div className="mt-8 flex flex-wrap items-center gap-6">
-                <DsButtonLink href="/login" variant="primary-on-dark">
-                  Get started
-                </DsButtonLink>
-                <DsButtonLink href="#features" variant="secondary-on-dark">
-                  Explore features
-                </DsButtonLink>
-              </div>
-            </div>
+      {/* FAQ — after pricing; answers remain in DOM for SEO/GEO + FAQPage JSON-LD */}
+      <section id="faq" className="section-y bg-soft-stone pb-32">
+        <div className="mx-auto max-w-[800px] px-6">
+          <p className="text-mono-label text-slate">FAQ</p>
+          <h2 className="text-section-heading mt-4">
+            Common questions
+          </h2>
+          <p className="text-body-large mt-5 text-slate">
+            Straight answers for welding coordinators, QA/QC, and compliance
+            teams evaluating Weld.Doc.
+          </p>
+          <div className="mt-12">
+            <FaqAccordion items={GEO_FAQS} />
           </div>
         </div>
       </section>
