@@ -35,8 +35,19 @@ export function SiteFooter() {
 
         <div className="relative z-10 mt-8 flex flex-col gap-6 md:mt-10 md:flex-row md:items-center md:justify-between">
           <p className="text-micro text-muted-slate">
-            © {new Date().getFullYear()} Weld.Doc. Welder qualification
-            software for welding engineers, QC teams, and fabrication shops.
+            © {new Date().getFullYear()} Weld.Doc (Welddoc). Welder qualification
+            software for welding engineers, QC teams, and fabrication shops.{" "}
+            <a href="/welddoc" className="underline hover:text-white">
+              Welddoc
+            </a>
+            {" · "}
+            <a href="/welder-qualification-software" className="underline hover:text-white">
+              Welder qualification software
+            </a>
+            {" · "}
+            <a href="/iso-9606-1-software" className="underline hover:text-white">
+              ISO 9606-1 software
+            </a>
           </p>
           <LegalNavLinks variant="on-dark" />
         </div>

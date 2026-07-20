@@ -5,11 +5,19 @@ import { createPageMetadata } from "@/lib/seo/metadata";
 
 export const metadata = createPageMetadata({
   title:
-    "Welder Qualification Software | ISO 9606-1, ISO 14732 & More — Weld.Doc",
+    "Welddoc (Weld.Doc) | Welder Qualification Software — ISO 9606-1, ISO 14732",
   description:
-    "Welder qualification software for fabricators and QC teams. Manage WPQ/WPQR records, generate welding certificates, track continuity and expiry, and verify with QR. Live for ISO 9606-1 & ISO 14732; ASME IX and AWS D1.1 coming next.",
+    "Welddoc (Weld.Doc) — official welder qualification software at welddoc.in. Also searched as Weldoc or weld doc. WPQ/WPQR records, welding certificates, continuity tracking, QR verification. ISO 9606-1 & 14732 live.",
   path: "/",
   keywords: [
+    "welddoc",
+    "Welddoc",
+    "weldoc",
+    "Weldoc",
+    "WeldDoc",
+    "weld doc",
+    "welddoc.in",
+    "Weld.Doc",
     "welder qualification software",
     "welder certification software",
     "welding documentation software",

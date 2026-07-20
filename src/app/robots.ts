@@ -13,7 +13,17 @@ const AI_USER_AGENTS = [
   "Bytespider",
 ] as const;
 
-const PUBLIC_ALLOW = ["/", "/privacy", "/terms", "/security", "/llms.txt"];
+const PUBLIC_ALLOW = [
+  "/",
+  "/welddoc",
+  "/welder-qualification-software",
+  "/iso-9606-1-software",
+  "/pricing",
+  "/privacy",
+  "/terms",
+  "/security",
+  "/llms.txt",
+];
 
 const APP_DISALLOW = [
   "/dashboard",

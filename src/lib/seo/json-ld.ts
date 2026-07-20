@@ -1,4 +1,11 @@
-import { CONTACT_EMAIL, getSiteUrl, SITE_NAME } from "@/lib/seo/site";
+import {
+  BRAND_ALTERNATE_NAMES,
+  CONTACT_EMAIL,
+  getSiteUrl,
+  SITE_DOMAIN,
+  SITE_NAME,
+  TWITTER_URL,
+} from "@/lib/seo/site";
 import {
   GEO_DEFINITION,
   GEO_DEFINITION_WITH_STANDARDS,
@@ -12,12 +19,12 @@ export function organizationJsonLd() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: SITE_NAME,
-    alternateName: ["WeldDoc", "Weld Doc"],
+    alternateName: [...BRAND_ALTERNATE_NAMES],
     url,
     logo: `${url}/brand/logo-stacked-light.png`,
     email: CONTACT_EMAIL,
     description: GEO_ONE_LINER,
-    sameAs: [] as string[],
+    sameAs: [url, TWITTER_URL, `https://${SITE_DOMAIN}`],
     contactPoint: {
       "@type": "ContactPoint",
       email: CONTACT_EMAIL,
@@ -33,6 +40,7 @@ export function webSiteJsonLd() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: SITE_NAME,
+    alternateName: [...BRAND_ALTERNATE_NAMES],
     url,
     description: GEO_ONE_LINER,
     publisher: { "@type": "Organization", name: SITE_NAME, url },
@@ -46,6 +54,7 @@ export function softwareApplicationJsonLd() {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     name: SITE_NAME,
+    alternateName: [...BRAND_ALTERNATE_NAMES],
     applicationCategory: "BusinessApplication",
     applicationSubCategory: "Welder qualification software",
     operatingSystem: "Web",
@@ -98,18 +107,19 @@ export function homeWebPageJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: `${SITE_NAME} — Welder Qualification Software`,
+    name: `${SITE_NAME} — Welder Qualification Software (Welddoc)`,
     url,
     description: GEO_ONE_LINER,
     isPartOf: { "@type": "WebSite", name: SITE_NAME, url },
     about: {
       "@type": "SoftwareApplication",
       name: SITE_NAME,
+      alternateName: [...BRAND_ALTERNATE_NAMES],
       description: GEO_DEFINITION_WITH_STANDARDS,
     },
     speakable: {
       "@type": "SpeakableSpecification",
-      cssSelector: ["#geo-definition", "#faq"],
+      cssSelector: ["#geo-definition", "#faq", "#brand-aliases"],
     },
     inLanguage: "en-IN",
   };
@@ -123,4 +133,46 @@ export function homePageJsonLd() {
     homeWebPageJsonLd(),
     faqPageJsonLd(),
   ];
+}
+
+export function webPageJsonLd({
+  path,
+  name,
+  description,
+}: {
+  path: string;
+  name: string;
+  description: string;
+}) {
+  const url = `${getSiteUrl()}${path}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name,
+    url,
+    description,
+    isPartOf: { "@type": "WebSite", name: SITE_NAME, url: getSiteUrl() },
+    about: {
+      "@type": "SoftwareApplication",
+      name: SITE_NAME,
+      alternateName: [...BRAND_ALTERNATE_NAMES],
+    },
+    inLanguage: "en-IN",
+  };
+}
+
+export function breadcrumbJsonLd(
+  items: { name: string; path: string }[],
+) {
+  const siteUrl = getSiteUrl();
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.path === "/" ? siteUrl : `${siteUrl}${item.path}`,
+    })),
+  };
 }

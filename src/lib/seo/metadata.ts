@@ -82,7 +82,7 @@ export function rootMetadata(): Metadata {
     metadataBase: new URL(siteUrl),
     applicationName: SITE_NAME,
     title: {
-      default: `${SITE_NAME} — Welder Qualification Software`,
+      default: `Welddoc (Weld.Doc) — Welder Qualification Software`,
       template: `%s · ${SITE_NAME}`,
     },
     description: DEFAULT_DESCRIPTION,
@@ -105,7 +105,7 @@ export function rootMetadata(): Metadata {
       locale: SITE_LOCALE,
       url: siteUrl,
       siteName: SITE_NAME,
-      title: `${SITE_NAME} — Welder Qualification Software`,
+      title: `Welddoc (Weld.Doc) — Welder Qualification Software`,
       description: DEFAULT_DESCRIPTION,
       images: [
         {
@@ -120,7 +120,7 @@ export function rootMetadata(): Metadata {
       card: "summary_large_image",
       site: TWITTER_HANDLE,
       creator: TWITTER_HANDLE,
-      title: `${SITE_NAME} — Welder Qualification Software`,
+      title: `Welddoc (Weld.Doc) — Welder Qualification Software`,
       description: DEFAULT_DESCRIPTION,
       images: ["/twitter-image"],
     },

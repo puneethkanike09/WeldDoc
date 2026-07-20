@@ -1,14 +1,41 @@
 /** Canonical public marketing site — used for metadata, OG, sitemap, JSON-LD. */
 export const SITE_NAME = "Weld.Doc";
 
+/** How people search — brand + domain variants (metadata, JSON-LD, GEO). */
+export const BRAND_ALTERNATE_NAMES = [
+  "Welddoc",
+  "WeldDoc",
+  "Weldoc",
+  "Weld Doc",
+  "weld doc",
+] as const;
+
+export const SITE_DOMAIN = "welddoc.in";
+
+export const BRAND_KEYWORDS = [
+  "welddoc",
+  "Welddoc",
+  "weldoc",
+  "Weldoc",
+  "WeldDoc",
+  "weld doc",
+  "weld.doc",
+  "Weld.Doc",
+  "welddoc.in",
+  "welddoc software",
+  "weldoc software",
+  "official welddoc",
+] as const;
+
 export const SITE_TAGLINE =
   "Welder Qualification Software — ISO today, more standards ahead";
 
 export const DEFAULT_DESCRIPTION =
-  "Weld.Doc is welder qualification software and welding documentation software for fabrication teams — certificates, WPS/WPQ/WPQR records, welder continuity tracking, QR verification, expiry alerts, and master lists. Available now for ISO 9606-1 and ISO 14732; ASME Section IX and AWS D1.1 on the roadmap.";
+  "Welddoc (Weld.Doc) is welder qualification software and welding documentation software for fabrication teams — certificates, WPS/WPQ/WPQR records, welder continuity tracking, QR verification, and expiry alerts. Official site at welddoc.in. Live for ISO 9606-1 and ISO 14732; ASME Section IX and AWS D1.1 on the roadmap.";
 
 /** High-intent B2B keywords (titles/meta/JSON-LD). Visible copy still reads naturally. */
 export const DEFAULT_KEYWORDS = [
+  ...BRAND_KEYWORDS,
   "welder qualification software",
   "welder certification software",
   "welding qualification software",
@@ -38,6 +65,8 @@ export const SITE_LOCALE = "en_IN";
 
 export const TWITTER_HANDLE = "@welddoc";
 
+export const TWITTER_URL = "https://x.com/welddoc";
+
 export const CONTACT_EMAIL = "hello@welddoc.in";
 
 export function getSiteUrl(): string {
@@ -47,6 +76,18 @@ export function getSiteUrl(): string {
 
 export const PUBLIC_ROUTES = [
   { path: "/", changeFrequency: "weekly" as const, priority: 1 },
+  { path: "/welddoc", changeFrequency: "weekly" as const, priority: 0.95 },
+  {
+    path: "/welder-qualification-software",
+    changeFrequency: "weekly" as const,
+    priority: 0.95,
+  },
+  {
+    path: "/iso-9606-1-software",
+    changeFrequency: "weekly" as const,
+    priority: 0.9,
+  },
+  { path: "/pricing", changeFrequency: "weekly" as const, priority: 0.85 },
   { path: "/privacy", changeFrequency: "monthly" as const, priority: 0.4 },
   { path: "/terms", changeFrequency: "monthly" as const, priority: 0.4 },
   { path: "/security", changeFrequency: "monthly" as const, priority: 0.5 },
