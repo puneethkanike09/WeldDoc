@@ -7,6 +7,9 @@ import {
   normalizePlantOperatorId,
   nextAvailablePlantOperatorId,
 } from "@/lib/operators/plant-id";
+import { countOrgOperators } from "@/lib/billing/counts";
+import { checkOperatorLimit, operatorLimitMessage } from "@/lib/billing/limits";
+import { BillingError } from "@/lib/billing/errors";
 import type { Organization } from "@/types/db";
 
 function str(v: FormDataEntryValue | null): string | null {
@@ -20,7 +23,16 @@ function syncRegistrationFields(formData: FormData) {
 }
 
 export interface CreateOperatorRecordContext {
-  org: Pick<Organization, "id" | "name" | "location_code" | "operator_seq">;
+  org: Pick<
+    Organization,
+    | "id"
+    | "name"
+    | "location_code"
+    | "operator_seq"
+    | "plan_tier"
+    | "razorpay_plan_id"
+    | "billing_exempt"
+  >;
   userId: string | null;
 }
 
@@ -32,6 +44,13 @@ export async function createOperatorRecord(
 ): Promise<string> {
   syncRegistrationFields(formData);
   validateWelderRegistration(formData, "create");
+
+  // Plan limit: operators are capped separately from welders.
+  const currentOperators = await countOrgOperators(supabase, ctx.org.id);
+  const limit = checkOperatorLimit(ctx.org, currentOperators);
+  if (!limit.allowed) {
+    throw new BillingError("operator_limit", operatorLimitMessage(limit));
+  }
 
   const fullName = str(formData.get("full_name"));
   if (!fullName) throw new Error("Operator name is required.");

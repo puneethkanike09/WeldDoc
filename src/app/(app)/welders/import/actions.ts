@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { requireSession } from "@/lib/auth";
+import { requireSession, requireWritableSession } from "@/lib/auth";
+import { checkWelderLimit } from "@/lib/billing/limits";
+import { BillingError } from "@/lib/billing/errors";
 import { commitValidatedImport } from "@/lib/welders/bulk-import/commit";
 import { rowsToRawImport } from "@/lib/welders/bulk-import/display";
 import { extractImportAssetsFromFormData } from "@/lib/welders/bulk-import/extract-upload";
@@ -65,7 +67,7 @@ export async function commitWelderImport(
     throw new Error("Nothing to import.");
   }
 
-  const { org, userId } = await requireSession();
+  const { org, userId } = await requireWritableSession();
   const supabase = await createClient();
 
   const { data: existing } = await supabase
@@ -92,6 +94,16 @@ export async function commitWelderImport(
     throw new Error(
       revalidation.errors[0]?.message ??
         "Import data failed validation. Re-upload the file.",
+    );
+  }
+
+  // Plan limit: block imports that would push the org past its welder cap.
+  const newWelders = revalidation.summary.newWelderCount;
+  const limit = checkWelderLimit(org, existing?.length ?? 0, newWelders);
+  if (!limit.allowed) {
+    throw new BillingError(
+      "welder_limit",
+      `Importing ${newWelders} new welder(s) would exceed your plan limit (${limit.current}/${limit.limit}). Upgrade your plan to import more.`,
     );
   }
 

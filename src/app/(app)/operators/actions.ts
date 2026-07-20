@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { requireSession } from "@/lib/auth";
+import { requireWritableSession } from "@/lib/auth";
 import { uploadFile } from "@/lib/storage";
 import type { WelderStatus } from "@/types/db";
 import { validateWelderRegistration } from "@/lib/iso9606/qualification-fields";
@@ -30,7 +30,7 @@ function syncRegistrationFields(formData: FormData) {
 
 export async function createOperator(formData: FormData) {
   syncRegistrationFields(formData);
-  const { org, userId } = await requireSession();
+  const { org, userId } = await requireWritableSession();
   const supabase = await createClient();
   const ctx: CreateOperatorRecordContext = { org, userId };
 
@@ -43,7 +43,7 @@ export async function createOperator(formData: FormData) {
 export async function updateOperator(operatorId: string, formData: FormData) {
   syncRegistrationFields(formData);
   validateWelderRegistration(formData, "edit");
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const plantOperatorId = normalizePlantOperatorId(str(formData.get("operator_id")));
@@ -103,7 +103,7 @@ export async function setOperatorStatus(
   operatorId: string,
   status: WelderStatus,
 ) {
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
   const { error } = await supabase
     .from("operators")

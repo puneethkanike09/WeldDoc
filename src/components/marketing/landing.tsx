@@ -18,6 +18,7 @@ import { NumberTicker } from "@/components/marketing/number-ticker";
 import SoftAurora from "@/components/marketing/soft-aurora";
 import { TrustMarquee } from "@/components/marketing/trust-marquee";
 import { GEO_DEFINITION, GEO_FAQS } from "@/lib/seo/geo-content";
+import { PLANS, UNLIMITED } from "@/lib/billing/plans";
 
 const products = [
   {
@@ -481,7 +482,102 @@ export function Landing() {
       {/* CTA — contained dark card */}
       <section id="pricing" className="section-y bg-canvas pb-32">
         <div className="mx-auto max-w-[1280px] px-6">
-          <div className="rounded-lg bg-dark-navy p-8 sm:p-12 lg:p-16">
+          <div className="max-w-[640px]">
+            <p className="text-mono-label text-brand-red">Pricing</p>
+            <h2 className="text-section-heading mt-4">
+              Simple plans that scale with your shop
+            </h2>
+            <p className="text-body-large mt-5 text-slate">
+              Start free for a month — no card required. Upgrade when you need
+              more welders and operators.
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            {PLANS.map((plan) => {
+              const featured = plan.tier === "growth";
+              return (
+                <div
+                  key={plan.tier}
+                  className={`flex flex-col rounded-2xl p-8 ${
+                    featured
+                      ? "bg-dark-navy text-white shadow-(--shadow-lift)"
+                      : "border border-hairline bg-canvas"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <h3
+                      className={`font-ds-display text-[22px] font-semibold ${
+                        featured ? "text-white" : "text-ink"
+                      }`}
+                    >
+                      {plan.name}
+                    </h3>
+                    {featured && (
+                      <span className="rounded-full bg-brand-red px-2.5 py-0.5 text-micro font-semibold uppercase tracking-wide text-white">
+                        Most popular
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-4">
+                    <span
+                      className={`font-ds-display text-[34px] font-semibold ${
+                        featured ? "text-white" : "text-ink"
+                      }`}
+                    >
+                      {plan.priceLabel}
+                    </span>{" "}
+                    <span
+                      className={
+                        featured ? "text-white/60" : "text-muted-slate"
+                      }
+                    >
+                      {plan.cadenceLabel}
+                    </span>
+                  </p>
+                  <p
+                    className={`mt-2 text-body font-medium ${
+                      featured ? "text-white/90" : "text-ink"
+                    }`}
+                  >
+                    {plan.welderLimit === UNLIMITED
+                      ? "Unlimited welders / operators"
+                      : `Up to ${plan.welderLimit} welders / operators`}
+                  </p>
+                  <ul className="mt-6 flex-1 space-y-3">
+                    {plan.highlights.map((h) => (
+                      <li
+                        key={h}
+                        className={`flex items-start gap-2.5 text-body ${
+                          featured ? "text-white/80" : "text-slate"
+                        }`}
+                      >
+                        <Check
+                          className={`mt-0.5 h-4 w-4 shrink-0 ${
+                            featured ? "text-brand-red" : "text-brand-red"
+                          }`}
+                          strokeWidth={2.5}
+                        />
+                        {h}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-8">
+                    <DsButtonLink
+                      href="/login"
+                      variant={featured ? "primary-on-dark" : "primary"}
+                    >
+                      {plan.tier === "starter"
+                        ? "Start free trial"
+                        : `Choose ${plan.name}`}
+                    </DsButtonLink>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-16 rounded-lg bg-dark-navy p-8 sm:p-12 lg:p-16">
             <div className="max-w-[520px]">
               <h2 className="text-section-heading text-white">
                 Ready to run qualifications properly?

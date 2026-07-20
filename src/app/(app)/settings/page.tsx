@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/app/page-header";
 import { Card, CardBody, CardTitle } from "@/components/ui/card";
 import { requireSession } from "@/lib/auth";
+import { getOrgAccess } from "@/lib/billing/access";
+import { razorpayConfigured } from "@/lib/billing/razorpay";
+import { BillingPanel } from "@/components/billing/billing-panel";
 import { updateOrgSettings } from "./actions";
 import { OrgSettingsForm } from "./settings-forms";
 import { SettingsAppearance } from "./settings-appearance";
@@ -19,6 +22,7 @@ export default async function SettingsPage({
 }) {
   const { org } = await requireSession();
   const { tab } = await searchParams;
+  const access = getOrgAccess(org);
 
   return (
     <>
@@ -71,6 +75,19 @@ export default async function SettingsPage({
                 </CardBody>
               </Card>
             </div>
+          }
+          billing={
+            <BillingPanel
+              currentTier={access.tier}
+              status={access.status}
+              canWrite={access.canWrite}
+              trialDaysLeft={access.trialDaysLeft}
+              cancelAtPeriodEnd={org.subscription_cancel_at_period_end}
+              currentPeriodEnd={org.current_period_end}
+              billingExempt={access.billingExempt}
+              paymentsConfigured={razorpayConfigured()}
+              hasSubscription={Boolean(org.razorpay_subscription_id)}
+            />
           }
           appearance={
             <Card className="h-fit max-w-3xl">

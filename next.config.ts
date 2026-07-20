@@ -31,7 +31,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  serverExternalPackages: ["@react-pdf/renderer", "node-cron"],
+  serverExternalPackages: ["@react-pdf/renderer", "node-cron", "razorpay"],
 };
 
 export default nextConfig;

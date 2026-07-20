@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { requireSession } from "@/lib/auth";
+import { requireWritableSession } from "@/lib/auth";
 import { uploadFile, removeObjects } from "@/lib/storage";
 import { computeExpiry, computeRevalidationExpiry } from "@/lib/expiry";
 import { recomputeWpqRange } from "@/lib/iso9606/recompute-wpq-range";
@@ -50,7 +50,7 @@ export async function savePlan(
   formData: FormData,
 ) {
   validateQualificationPlan(formData);
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const rawJoint = str(formData.get("joint_type")) ?? "BW";
@@ -149,7 +149,7 @@ export async function saveTest(
   wpqId: string,
   formData: FormData,
 ) {
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const { data: existing } = await supabase
@@ -243,7 +243,7 @@ export async function saveNdt(
 ) {
   const ndtJoint = ndtJointCategory(jointType);
   validateNdtResults(formData, ndtJoint);
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const methods = formData.getAll("selected_method").map(String).filter(Boolean);
@@ -328,7 +328,7 @@ export async function issueCertificate(
   formData: FormData,
 ) {
   validateCertificateIssue(formData);
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const { data: wpq } = await supabase
@@ -376,7 +376,7 @@ export async function issueCertificate(
 }
 
 export async function discardWpq(welderId: string, wpqId: string) {
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const { data: wpq } = await supabase
@@ -455,7 +455,7 @@ export async function discardWpq(welderId: string, wpqId: string) {
  * Child rows (ranges, NDT, validation logs) are removed via DB cascade.
  */
 export async function deleteWpq(welderId: string, wpqId: string) {
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const { data: wpq } = await supabase
@@ -516,7 +516,7 @@ export async function deleteValidation(
   welderId: string,
   validationId: string,
 ) {
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const { data: rec } = await supabase
@@ -549,7 +549,7 @@ export async function saveValidation(
   wpqId: string,
   formData: FormData,
 ) {
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const { data: wpq } = await supabase
@@ -625,7 +625,7 @@ export async function uploadSignedCertificate(
   wpqId: string,
   formData: FormData,
 ) {
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const { data: wpq } = await supabase
@@ -674,7 +674,7 @@ export async function setWelderQualificationActive(
   wpqId: string,
   isActive: boolean,
 ) {
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const { error } = await supabase

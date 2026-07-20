@@ -7,6 +7,9 @@ import {
   normalizePlantWelderId,
   nextAvailablePlantWelderId,
 } from "@/lib/welders/plant-id";
+import { countOrgWelders } from "@/lib/billing/counts";
+import { checkWelderLimit, welderLimitMessage } from "@/lib/billing/limits";
+import { BillingError } from "@/lib/billing/errors";
 import type { Organization } from "@/types/db";
 
 function str(v: FormDataEntryValue | null): string | null {
@@ -15,7 +18,16 @@ function str(v: FormDataEntryValue | null): string | null {
 }
 
 export interface CreateWelderRecordContext {
-  org: Pick<Organization, "id" | "name" | "location_code" | "welder_seq">;
+  org: Pick<
+    Organization,
+    | "id"
+    | "name"
+    | "location_code"
+    | "welder_seq"
+    | "plan_tier"
+    | "razorpay_plan_id"
+    | "billing_exempt"
+  >;
   userId: string | null;
 }
 
@@ -26,6 +38,14 @@ export async function createWelderRecord(
   formData: FormData,
 ): Promise<string> {
   validateWelderRegistration(formData, "create");
+
+  // Plan limit: welders are capped separately from operators. Counting on each
+  // create also naturally enforces the cap across a group-session loop.
+  const currentWelders = await countOrgWelders(supabase, ctx.org.id);
+  const limit = checkWelderLimit(ctx.org, currentWelders);
+  if (!limit.allowed) {
+    throw new BillingError("welder_limit", welderLimitMessage(limit));
+  }
 
   const fullName = str(formData.get("full_name"));
   if (!fullName) throw new Error("Welder name is required.");

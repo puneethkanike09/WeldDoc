@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { createClient } from "@/lib/supabase/server";
-import { requireSession } from "@/lib/auth";
+import { requireWritableSession } from "@/lib/auth";
 import { uploadFile } from "@/lib/storage";
 import { computeExpiry } from "@/lib/expiry";
 import { VISUAL_TEST_METHOD } from "@/lib/iso9606/constants";
@@ -60,7 +60,7 @@ function parseIds(formData: FormData, key: string): string[] {
 
 async function getWelderSessionOrThrow(sessionId: string) {
   await requireWelderWorkspace();
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
   const loaded = await loadSession(supabase, org.id, sessionId, "ISO_9606_1");
   if (!loaded) throw new Error("Session not found.");
@@ -69,7 +69,7 @@ async function getWelderSessionOrThrow(sessionId: string) {
 
 export async function createWelderGroupSession(formData: FormData) {
   await requireWelderWorkspace();
-  const { org, userId } = await requireSession();
+  const { org, userId } = await requireWritableSession();
   const supabase = await createClient();
 
   const existingIds = parseIds(formData, "existing_ids");
@@ -469,7 +469,7 @@ export async function issueWelderGroupMemberCertificate(
 
 export async function deleteWelderGroupSession(sessionId: string) {
   await requireWelderWorkspace();
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const loaded = await loadSession(supabase, org.id, sessionId, "ISO_9606_1");

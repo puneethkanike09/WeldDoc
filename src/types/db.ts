@@ -68,6 +68,18 @@ export type AlertEmailFrequency =
   | "twice_weekly"
   | "every_3_weeks";
 
+/** Billing tier. Drives welder/operator limits. */
+export type PlanTier = "starter" | "growth" | "enterprise";
+
+/** Subscription lifecycle state (mirrors Razorpay subscription states). */
+export type SubscriptionStatus =
+  | "trialing"
+  | "active"
+  | "past_due"
+  | "halted"
+  | "cancelled"
+  | "expired";
+
 export interface Organization {
   id: string;
   name: string;
@@ -87,6 +99,29 @@ export interface Organization {
   certificate_branding: CertificateBranding;
   dashboard_widgets: DashboardWidgetsConfig | null;
   masterlist_columns: MasterListColumnsConfig | null;
+  // Billing / subscription (migrations 0032).
+  plan_tier: PlanTier;
+  subscription_status: SubscriptionStatus;
+  /** UTC ISO instant the free trial ends; null = no trial window. */
+  trial_ends_at: string | null;
+  /** UTC ISO instant the paid billing period ends. */
+  current_period_end: string | null;
+  razorpay_customer_id: string | null;
+  razorpay_subscription_id: string | null;
+  razorpay_plan_id: string | null;
+  subscription_cancel_at_period_end: boolean;
+  /** Superadmin flag: skip all billing gates (test/internal orgs). */
+  billing_exempt: boolean;
+  created_at: string;
+}
+
+export interface BillingEvent {
+  id: string;
+  razorpay_event_id: string;
+  org_id: string | null;
+  event_type: string;
+  razorpay_subscription_id: string | null;
+  payload: Record<string, unknown>;
   created_at: string;
 }
 

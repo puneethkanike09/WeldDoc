@@ -54,6 +54,7 @@
     "node-cron": "^4.6.0",
     "ogl": "^1.0.11",
     "qrcode": "^1.5.4",
+    "razorpay": "^2.9.8",
     "react": "19.2.0",
     "react-datepicker": "^9.1.0",
     "react-dom": "19.2.0",

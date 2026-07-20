@@ -22,6 +22,7 @@ import {
   parseAlertEmailTimezone,
 } from "@/lib/expiry-alerts/send-time";
 import { calculateNextRunIso } from "@/lib/expiry-alerts/next-run";
+import { getOrgAccess } from "@/lib/billing/access";
 import type { Organization } from "@/types/db";
 
 type BuiltAlert = ExpiryAlert & {
@@ -371,6 +372,8 @@ export async function runExpiryAlertsJob(
   const due = (orgs ?? []).filter((raw) => {
     const org = raw as Organization;
     if (!org.alert_emails?.length) return false;
+    // Lapsed trials / cancelled subscriptions get no alert emails (read-only).
+    if (!getOrgAccess(org).canWrite) return false;
     if (org.alert_next_run_at == null) return true;
     return new Date(org.alert_next_run_at).getTime() <= now.getTime();
   });

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { requireSession } from "@/lib/auth";
+import { requireWritableSession } from "@/lib/auth";
 import { uploadFile, removeObjects } from "@/lib/storage";
 import {
   computeOperatorExpiry,
@@ -49,7 +49,7 @@ function qualifyIds(formData: FormData) {
 export async function saveOperatorPlan(formData: FormData) {
   const { operatorId, oqId } = qualifyIds(formData);
   validateOperatorPlan(formData);
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const payload = {
@@ -102,7 +102,7 @@ export async function saveOperatorPlan(formData: FormData) {
 export async function saveOperatorTestPiece(formData: FormData) {
   const { operatorId, oqId } = qualifyIds(formData);
   if (!oqId) throw new Error("Qualification not found.");
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const { data: existing } = await supabase
@@ -145,7 +145,7 @@ export async function saveOperatorTestPiece(formData: FormData) {
 export async function saveOperatorNdt(formData: FormData) {
   const { operatorId, oqId } = qualifyIds(formData);
   if (!oqId) throw new Error("Qualification not found.");
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const { data: oqRow } = await supabase
@@ -236,7 +236,7 @@ export async function saveOperatorNdt(formData: FormData) {
 export async function issueOperatorCertificate(formData: FormData) {
   const { operatorId, oqId } = qualifyIds(formData);
   if (!oqId) throw new Error("Qualification not found.");
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const { data: oqRow } = await supabase
@@ -287,7 +287,7 @@ export async function issueOperatorCertificate(formData: FormData) {
 export async function uploadSignedOperatorCertificate(formData: FormData) {
   const { operatorId, oqId } = qualifyIds(formData);
   if (!oqId) throw new Error("Qualification not found.");
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const { data: oq } = await supabase
@@ -332,7 +332,7 @@ export async function uploadSignedOperatorCertificate(formData: FormData) {
 }
 
 export async function discardOq(operatorId: string, oqId: string) {
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const { data: oq } = await supabase
@@ -394,7 +394,7 @@ export async function discardOq(operatorId: string, oqId: string) {
 }
 
 export async function deleteOq(operatorId: string, oqId: string) {
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const { data: oq } = await supabase
@@ -451,7 +451,7 @@ export async function deleteOperatorValidation(
   operatorId: string,
   validationId: string,
 ) {
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const { data: rec } = await supabase
@@ -483,7 +483,7 @@ export async function saveOperatorValidation(
   oqId: string,
   formData: FormData,
 ) {
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const { data: oqRow } = await supabase
@@ -559,7 +559,7 @@ export async function setOperatorQualificationActive(
   oqId: string,
   isActive: boolean,
 ) {
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const { error } = await supabase

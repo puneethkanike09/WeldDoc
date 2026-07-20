@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Building2, Palette } from "lucide-react";
+import { Building2, CreditCard, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   isSettingsTab,
@@ -14,15 +14,18 @@ const TAB_META: {
   icon: typeof Building2;
 }[] = [
   { id: "organisation", label: "Organisation", icon: Building2 },
+  { id: "billing", label: "Billing", icon: CreditCard },
   { id: "appearance", label: "Appearance", icon: Palette },
 ];
 
 export function SettingsTabs({
   organisation,
+  billing,
   appearance,
   initialTab = "organisation",
 }: {
   organisation: React.ReactNode;
+  billing: React.ReactNode;
   appearance: React.ReactNode;
   initialTab?: SettingsTab;
 }) {
@@ -43,6 +46,7 @@ export function SettingsTabs({
 
   const panels: Record<SettingsTab, React.ReactNode> = {
     organisation,
+    billing,
     appearance,
   };
 

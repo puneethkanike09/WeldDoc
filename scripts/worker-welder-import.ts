@@ -4,6 +4,7 @@
  */
 import { Worker } from "bullmq";
 import { createAdminClient } from "../src/lib/supabase/admin";
+import { getOrgAccess } from "../src/lib/billing/access";
 import { commitValidatedImport } from "../src/lib/welders/bulk-import/commit";
 import type { ImportDocPaths } from "../src/lib/welders/bulk-import/match-import-docs";
 import type { ValidatedImportRow } from "../src/lib/welders/bulk-import/types";
@@ -43,6 +44,19 @@ async function processJob(data: WelderImportJobData) {
   const rows = payload.rows ?? [];
   if (!rows.length) {
     throw new Error("Import job has no rows.");
+  }
+
+  // Defense-in-depth: the enqueue path already enforced read-only + welder
+  // limit, but re-check here since the worker bypasses RLS via the admin client.
+  const { data: org } = await supabase
+    .from("organizations")
+    .select(
+      "subscription_status, trial_ends_at, current_period_end, plan_tier, billing_exempt",
+    )
+    .eq("id", data.orgId)
+    .single();
+  if (org && !getOrgAccess(org).canWrite) {
+    throw new Error("Organization is read-only; import blocked.");
   }
 
   await supabase

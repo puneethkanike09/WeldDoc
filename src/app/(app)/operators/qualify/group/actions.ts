@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { createClient } from "@/lib/supabase/server";
-import { requireSession } from "@/lib/auth";
+import { requireWritableSession } from "@/lib/auth";
 import { uploadFile } from "@/lib/storage";
 import { computeOperatorExpiry } from "@/lib/iso14732/expiry";
 import { recomputeOperatorRange } from "@/lib/iso14732/recompute-operator-range";
@@ -55,7 +55,7 @@ function parseIds(formData: FormData, key: string): string[] {
 
 async function getOperatorSessionOrThrow(sessionId: string) {
   await requireOperatorWorkspace();
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
   const loaded = await loadSession(supabase, org.id, sessionId, "ISO_14732");
   if (!loaded) throw new Error("Session not found.");
@@ -64,7 +64,7 @@ async function getOperatorSessionOrThrow(sessionId: string) {
 
 export async function createOperatorGroupSession(formData: FormData) {
   await requireOperatorWorkspace();
-  const { org, userId } = await requireSession();
+  const { org, userId } = await requireWritableSession();
   const supabase = await createClient();
 
   const existingIds = parseIds(formData, "existing_ids");
@@ -467,7 +467,7 @@ export async function issueOperatorGroupMemberCertificate(
 
 export async function deleteOperatorGroupSession(sessionId: string) {
   await requireOperatorWorkspace();
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const loaded = await loadSession(supabase, org.id, sessionId, "ISO_14732");

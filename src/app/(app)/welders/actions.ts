@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { requireSession } from "@/lib/auth";
+import { requireWritableSession } from "@/lib/auth";
 import { uploadFile } from "@/lib/storage";
 import type { WelderStatus } from "@/types/db";
 import { validateWelderRegistration } from "@/lib/iso9606/qualification-fields";
@@ -23,7 +23,7 @@ function str(v: FormDataEntryValue | null): string | null {
 }
 
 export async function createWelder(formData: FormData) {
-  const { org, userId } = await requireSession();
+  const { org, userId } = await requireWritableSession();
   const supabase = await createClient();
   const ctx: CreateWelderRecordContext = { org, userId };
 
@@ -35,7 +35,7 @@ export async function createWelder(formData: FormData) {
 
 export async function updateWelder(welderId: string, formData: FormData) {
   validateWelderRegistration(formData, "edit");
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
 
   const plantWelderId = normalizePlantWelderId(str(formData.get("welder_id")));
@@ -87,7 +87,7 @@ export async function updateWelder(welderId: string, formData: FormData) {
 }
 
 export async function setWelderStatus(welderId: string, status: WelderStatus) {
-  const { org } = await requireSession();
+  const { org } = await requireWritableSession();
   const supabase = await createClient();
   const { error } = await supabase
     .from("welders")
