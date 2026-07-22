@@ -1,0 +1,107 @@
+/* Hero product demo — scoped dark app theme, isolated from marketing site */
+[data-hero-demo] {
+  --theme-canvas: #0e1720;
+  --theme-panel: #16222e;
+  --theme-muted: #132537;
+  --theme-border: #2e4a63;
+  --theme-text: #eef1f4;
+  --theme-text-strong: #f7f9fb;
+  --theme-text-secondary: #aab8c6;
+  --theme-text-muted: #7d8896;
+  --theme-inverse-bg: #f5f0e8;
+  --theme-inverse-fg: #132537;
+  --color-parchment: #0e1720;
+  --color-panel: #16222e;
+  --color-frost: #132537;
+  --color-onyx: #eef1f4;
+  --color-charcoal: #f7f9fb;
+  --color-graphite: #aab8c6;
+  --color-steel: #7d8896;
+  --color-silver: #2e4a63;
+  --color-inverse-bg: #f5f0e8;
+  --color-inverse-fg: #132537;
+  --color-brand-red: #e59527;
+  --color-active: #2dc47a;
+  --color-active-ink: #6ee7a8;
+  --color-expiring: #f0b820;
+  --color-expiring-ink: #f7cf6b;
+  --color-expired: #e85a30;
+  --color-expired-ink: #f6b39b;
+  --color-ember: #e59527;
+  --color-warning-ink: #132537;
+  --color-sapphire: #2e4a63;
+  --demo-chrome-bg: #132537;
+  --demo-chrome-dot-red: #ff5f57;
+  --demo-chrome-dot-yellow: #febc2e;
+  --demo-chrome-dot-green: #28c840;
+  --demo-status-green: #6ee7a8;
+  --radius-card: 16px;
+  --radius-tag: 9999px;
+  --shadow-lift: 0 18px 50px rgb(0 0 0 / 0.35);
+  background: var(--theme-canvas);
+  color: var(--theme-text);
+  color-scheme: dark;
+}
+
+[data-hero-demo] .page-content {
+  min-width: 0;
+  max-width: 100%;
+  padding-inline: clamp(0.75rem, 2vw, 1.25rem);
+  padding-block: clamp(0.75rem, 2vw, 1rem);
+}
+
+[data-hero-demo] .demo-chrome {
+  background: var(--demo-chrome-bg);
+}
+
+/* Light surfaces (QR scan, ID card, email body) — real app/document colors */
+[data-hero-demo] .demo-light-surface {
+  --color-parchment: #f5f0e8;
+  --color-panel: #ffffff;
+  --color-frost: #efe8dc;
+  --color-onyx: #132537;
+  --color-charcoal: #0f1c2a;
+  --color-graphite: #3c4a57;
+  --color-steel: #7d8896;
+  --color-silver: #e0d8ca;
+  --color-inverse-bg: #132537;
+  --color-inverse-fg: #f5f0e8;
+  --color-active-ink: #177245;
+  --color-expiring-ink: #8a6400;
+  --color-expired-ink: #b23a15;
+  --color-ember: #e59527;
+  color-scheme: light;
+}
+
+[data-hero-demo] .demo-verify-status {
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-fg);
+}
+
+[data-hero-demo] .demo-verify-qualified {
+  color: var(--demo-status-green);
+}
+
+[data-hero-demo] .demo-email-canvas {
+  background: #f5f0e8;
+}
+
+[data-hero-demo] .demo-id-card-scale {
+  transform: scale(0.72);
+  transform-origin: top center;
+}
+
+[data-hero-demo] .demo-id-card-scale-side {
+  transform: scale(0.76);
+  transform-origin: center center;
+}
+
+@media (min-width: 900px) {
+  [data-hero-demo] .demo-id-card-scale {
+    transform: scale(0.82);
+  }
+
+  [data-hero-demo] .demo-id-card-scale-side {
+    transform: scale(0.82);
+  }
+}

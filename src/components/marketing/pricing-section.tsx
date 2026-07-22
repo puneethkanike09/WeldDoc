@@ -124,7 +124,7 @@ export function PricingSection({
   className = "section-y bg-canvas",
 }: PricingSectionProps) {
   return (
-    <section id={id} className={className}>
+    <section id={id} className={cn("overflow-x-clip", className)}>
       <div className="mx-auto max-w-[1280px] px-6">
         <div className="max-w-[640px]">
           <p className="text-mono-label text-brand-red">Pricing</p>
@@ -137,13 +137,16 @@ export function PricingSection({
           </p>
         </div>
 
-        <div className="mt-12 grid gap-8 overflow-visible md:grid-cols-3 md:gap-6">
+        <div className="mt-12 grid gap-8 md:grid-cols-3 md:gap-6">
           {PLANS.map((plan) => {
             const featured = plan.tier === "growth";
             return (
               <div
                 key={plan.tier}
-                className={cn("h-full", featured && "px-1 py-2 md:px-2")}
+                className={cn(
+                  "h-full overflow-x-clip",
+                  featured && "px-1 py-2 md:px-2",
+                )}
               >
                 <PlanCard plan={plan} featured={featured} />
               </div>

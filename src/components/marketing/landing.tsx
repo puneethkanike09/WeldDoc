@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { HeroProductDemo } from "@/components/marketing/hero-product-demo";
 import {
   Check,
   QrCode,
@@ -144,33 +145,14 @@ export function Landing() {
             </div>
           </div>
 
-          {/* Dashboard preview — desktop only on mobile/tablet; split on xl+ */}
-          <div className="mt-20 grid gap-5 xl:grid-cols-[1.4fr_0.6fr] xl:gap-6">
-            <div className="relative aspect-16/10 overflow-hidden rounded-lg border border-hairline bg-white shadow-(--shadow-lift) xl:aspect-auto xl:min-h-[420px]">
-              <Image
-                src="/images/landing-dashboard-desktop.png"
-                alt="Weld.Doc welder qualification software dashboard — registry, KPIs and charts"
-                fill
-                priority
-                sizes="(max-width: 1280px) 100vw, 720px"
-                className="origin-top-right scale-[1.1] object-cover object-top-center"
-              />
-            </div>
-            <div className="relative hidden aspect-3/4 overflow-hidden rounded-lg border border-hairline bg-white shadow-(--shadow-lift) xl:block xl:aspect-auto xl:min-h-[420px]">
-              <Image
-                src="/images/landing-masterlist-mobile.png"
-                alt="Weld.Doc welding documentation master list on mobile — filterable register with CSV export"
-                fill
-                sizes="360px"
-                className="object-cover object-top"
-              />
-            </div>
+          <div className="hidden md:block">
+            <HeroProductDemo />
           </div>
         </div>
       </section>
 
       {/* Trust strip — social proof early */}
-      <section className="py-8">
+      <section className="overflow-x-clip py-8">
         <div className="mx-auto max-w-[1280px] px-6">
           <p className="text-caption text-center text-muted-slate">
             Trusted across fabrication industries
@@ -373,7 +355,7 @@ export function Landing() {
       </section>
 
       {/* Compare — highlighted Weld.Doc column lifted over pale green */}
-      <section id="compare" className="section-y bg-pale-green">
+      <section id="compare" className="section-y overflow-x-clip bg-pale-green">
         <div className="mx-auto max-w-[940px] px-6">
           <div className="max-w-[640px]">
             <p className="text-mono-label text-brand-red">Why Weld.Doc</p>
@@ -392,38 +374,38 @@ export function Landing() {
               className="pointer-events-none absolute -top-5 bottom-0 right-[100px] w-[100px] rounded-2xl bg-canvas shadow-(--shadow-lift) sm:right-[150px] sm:w-[150px]"
             />
 
-            <div className="relative z-10">
+            <div className="relative z-10 min-w-0">
               {/* Header */}
               <div className="flex items-end">
-                <span className="flex-1 border-b border-deep-green/15 pb-4 text-mono-label text-slate">
+                <span className="min-w-0 flex-1 border-b border-deep-green/15 pb-4 text-mono-label text-slate">
                   Capability
                 </span>
-                <span className="w-[100px] pb-4 text-center font-ds-display text-[15px] font-semibold text-brand-red sm:w-[150px]">
+                <span className="w-[100px] shrink-0 pb-4 text-center font-ds-display text-[15px] font-semibold text-brand-red sm:w-[150px]">
                   Weld.Doc
                 </span>
-                <span className="w-[100px] border-b border-deep-green/15 pb-4 text-center text-caption text-muted-slate sm:w-[150px]">
+                <span className="w-[100px] shrink-0 border-b border-deep-green/15 pb-4 text-center text-caption text-muted-slate sm:w-[150px]">
                   Others
                 </span>
               </div>
 
               {/* Rows */}
               {comparison.map((row, i) => (
-                <div key={row.label} className="flex items-center">
+                <div key={row.label} className="flex min-w-0 items-center">
                   <span
-                    className={`flex-1 py-5 text-body text-ink ${i < comparison.length - 1
+                    className={`min-w-0 flex-1 py-5 text-body text-ink ${i < comparison.length - 1
                       ? "border-b border-deep-green/10"
                       : ""
                       }`}
                   >
                     {row.label}
                   </span>
-                  <span className="flex w-[100px] justify-center py-5 sm:w-[150px]">
+                  <span className="flex w-[100px] shrink-0 justify-center py-5 sm:w-[150px]">
                     <span className="grid h-7 w-7 place-items-center rounded-full bg-brand-red">
                       <Check className="h-4 w-4 text-white" strokeWidth={2.5} />
                     </span>
                   </span>
                   <span
-                    className={`flex w-[100px] items-center justify-center px-2 py-5 text-center sm:w-[150px] ${i < comparison.length - 1
+                    className={`flex w-[100px] shrink-0 items-center justify-center px-2 py-5 text-center sm:w-[150px] ${i < comparison.length - 1
                       ? "border-b border-deep-green/10"
                       : ""
                       }`}

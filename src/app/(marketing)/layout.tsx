@@ -21,7 +21,7 @@ export default async function MarketingLayout({
         data-marketing-site
         className={cn(
           inter.className,
-          "relative min-h-screen bg-canvas font-sans text-ink",
+          "relative min-h-screen overflow-x-clip bg-canvas font-sans text-ink",
         )}
         suppressHydrationWarning
       >
