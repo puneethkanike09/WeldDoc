@@ -57,7 +57,7 @@ export function HeroDemoVerifyView({ revealed }: { revealed: boolean }) {
 
         <div
           data-demo-target="verify-qr"
-          className="relative overflow-hidden rounded-xl border border-[#e0d8ca] bg-white p-3 shadow-[0_8px_28px_rgb(19_37_55_/_0.1)]"
+          className="relative overflow-hidden rounded-md border border-[#e0d8ca] bg-white p-3 shadow-[0_8px_28px_rgb(19_37_55_/_0.1)]"
         >
           <QrGlyph className="h-24 w-24 sm:h-28 sm:w-28" />
           <motion.div

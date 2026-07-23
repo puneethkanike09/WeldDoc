@@ -335,7 +335,7 @@ export function HeroProductDemo() {
       <div
         ref={stageRef}
         data-hero-demo
-        className="relative overflow-hidden rounded-xl border border-silver shadow-(--shadow-lift)"
+        className="relative overflow-hidden rounded-md border border-silver shadow-(--shadow-lift)"
       >
         <div className="demo-chrome flex items-center gap-3 border-b border-silver px-4 py-2">
           <div className="flex gap-1.5" aria-hidden>
