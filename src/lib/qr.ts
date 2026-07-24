@@ -29,12 +29,9 @@ export function qrColorHex(style: QrPrintColor): string {
   return QR_COLORS[style].dark;
 }
 
-export function verifyUrl(token: string, origin?: string): string {
-  const base =
-    origin ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "http://localhost:3000";
-  return `${base.replace(/\/$/, "")}/verify/${token}`;
+/** Public verify links always point at production — never request origin (breaks behind Docker/nginx). */
+export function verifyUrl(token: string): string {
+  return `https://welddoc.in/verify/${token}`;
 }
 
 export async function qrDataUrl(

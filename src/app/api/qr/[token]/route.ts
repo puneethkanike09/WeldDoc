@@ -6,12 +6,11 @@ export async function GET(
   { params }: { params: Promise<{ token: string }> },
 ) {
   const { token } = await params;
-  const origin = request.nextUrl.origin;
   const style = parseQrStyle(
     request.nextUrl.searchParams.get("color") ??
       request.nextUrl.searchParams.get("style"),
   );
-  const png = await qrPngBuffer(verifyUrl(token, origin), style);
+  const png = await qrPngBuffer(verifyUrl(token), style);
 
   return new Response(new Uint8Array(png), {
     headers: {

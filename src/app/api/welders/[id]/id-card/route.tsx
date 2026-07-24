@@ -65,7 +65,7 @@ export async function GET(
   const statusNotice = idCardRegistryNotice(w.status, "welder");
   const photoUrl = await resolveUrl("welder-photos", w.photo_path);
   const logoUrl = await resolveUrl("org-assets", (org as Organization).logo_path);
-  const qr = await qrDataUrl(verifyUrl(w.qr_token, request.nextUrl.origin));
+  const qr = await qrDataUrl(verifyUrl(w.qr_token));
 
   const data: IdCardData = {
     org: org as Organization,

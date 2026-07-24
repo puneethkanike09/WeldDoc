@@ -47,7 +47,7 @@ export async function GET(
   const statusNotice = idCardRegistryNotice(o.status, "operator");
   const photoUrl = await resolveUrl("welder-photos", o.photo_path);
   const logoUrl = await resolveUrl("org-assets", (org as Organization).logo_path);
-  const qr = await qrDataUrl(verifyUrl(o.qr_token, request.nextUrl.origin));
+  const qr = await qrDataUrl(verifyUrl(o.qr_token));
   const plantId = o.operator_id ?? "—";
 
   const data: IdCardData = {
