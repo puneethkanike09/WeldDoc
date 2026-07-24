@@ -12,7 +12,7 @@ type PricingSectionProps = {
 };
 
 const FEATURED_BORDER_RADIUS = 16;
-const FEATURED_GLOW = "#f0b56a";
+const FEATURED_GLOW = "#f5d4a0";
 
 function PlanCard({ plan, featured }: { plan: PlanDefinition; featured: boolean }) {
   const card = (
@@ -20,44 +20,29 @@ function PlanCard({ plan, featured }: { plan: PlanDefinition; featured: boolean 
       className={cn(
         "flex h-full flex-col rounded-2xl p-8",
         featured
-          ? "bg-dark-navy text-white shadow-(--shadow-lift)"
-          : "border border-hairline bg-canvas",
+          ? "bg-brand-red text-ink shadow-(--shadow-lift)"
+          : "border border-brand-red/15 bg-pale-green",
       )}
     >
       <div className="flex items-center gap-3">
-        <h3
-          className={cn(
-            "font-ds-display text-[22px] font-semibold",
-            featured ? "text-white" : "text-ink",
-          )}
-        >
+        <h3 className="font-ds-display text-[22px] font-semibold text-ink">
           {plan.name}
         </h3>
         {featured && (
-          <span className="rounded-full bg-brand-red px-2.5 py-0.5 text-micro font-semibold uppercase tracking-wide text-white">
+          <span className="rounded-full bg-deep-green px-2.5 py-0.5 text-micro font-semibold uppercase tracking-wide text-white">
             Most popular
           </span>
         )}
       </div>
       <p className="mt-4">
-        <span
-          className={cn(
-            "font-ds-display text-[34px] font-semibold",
-            featured ? "text-white" : "text-ink",
-          )}
-        >
+        <span className="font-ds-display text-[34px] font-semibold text-ink">
           {plan.priceLabel}
         </span>{" "}
-        <span className={featured ? "text-white/60" : "text-muted-slate"}>
+        <span className={featured ? "text-ink/65" : "text-muted-slate"}>
           {plan.cadenceLabel}
         </span>
       </p>
-      <p
-        className={cn(
-          "mt-2 text-body font-medium",
-          featured ? "text-white/90" : "text-ink",
-        )}
-      >
+      <p className="mt-2 text-body font-medium text-ink">
         {plan.welderLimit === UNLIMITED
           ? "Unlimited welders / operators"
           : `Up to ${plan.welderLimit} welders / operators`}
@@ -68,11 +53,14 @@ function PlanCard({ plan, featured }: { plan: PlanDefinition; featured: boolean 
             key={h}
             className={cn(
               "flex items-start gap-2.5 text-body",
-              featured ? "text-white/80" : "text-slate",
+              featured ? "text-ink/85" : "text-slate",
             )}
           >
             <Check
-              className="mt-0.5 h-4 w-4 shrink-0 text-brand-red"
+              className={cn(
+                "mt-0.5 h-4 w-4 shrink-0",
+                featured ? "text-deep-green" : "text-brand-red",
+              )}
               strokeWidth={2.5}
             />
             {h}
@@ -81,17 +69,14 @@ function PlanCard({ plan, featured }: { plan: PlanDefinition; featured: boolean 
       </ul>
       <div className="mt-8">
         {plan.tier === "starter" ? (
-          <DsButtonLink
-            href="/login"
-            variant={featured ? "primary-on-dark" : "primary"}
-          >
+          <DsButtonLink href="/login" variant="primary">
             Start free trial
           </DsButtonLink>
         ) : (
           <span
             className={cn(
-              "inline-flex min-h-[44px] cursor-not-allowed items-center justify-center rounded-pill px-6 py-3 text-button opacity-60",
-              featured ? "bg-canvas/80 text-ink" : "bg-onyx/10 text-ink",
+              "inline-flex min-h-[44px] cursor-not-allowed items-center justify-center rounded-pill px-6 py-3 text-button opacity-70",
+              featured ? "bg-deep-green text-white" : "bg-onyx/10 text-ink",
             )}
           >
             Coming soon

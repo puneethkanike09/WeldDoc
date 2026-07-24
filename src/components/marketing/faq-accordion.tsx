@@ -33,7 +33,7 @@ function FaqAccordionItem({
         onClick={() => setOpen((value) => !value)}
         className="flex w-full cursor-pointer items-center justify-between gap-4 py-5 text-left"
       >
-        <span className="text-feature-heading text-ink">{question}</span>
+        <span className="text-body font-medium text-ink">{question}</span>
         <ChevronDown
           className={`h-5 w-5 shrink-0 text-slate transition-transform duration-300 ease-out ${
             open ? "rotate-180" : ""

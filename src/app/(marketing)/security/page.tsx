@@ -100,10 +100,10 @@ export default function SecurityPage() {
         <p>
           If you believe you&apos;ve found a security issue, please email{" "}
           <a
-            href="mailto:security@welddoc.in"
+            href="mailto:hello@welddoc.in"
             className="text-ink underline underline-offset-2 hover:opacity-70"
           >
-            security@welddoc.in
+            hello@welddoc.in
           </a>{" "}
           with steps to reproduce. Please give us a reasonable window to
           investigate and respond before public disclosure.

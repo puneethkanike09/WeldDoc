@@ -10,8 +10,8 @@ import {
   PieChart,
   ScanLine,
   ShieldCheck,
-  X,
 } from "lucide-react";
+import { CompareRadar } from "@/components/marketing/compare-radar";
 import { DsButtonLink } from "@/components/marketing/ds-button";
 import { FaqAccordion } from "@/components/marketing/faq-accordion";
 import { PricingSection } from "@/components/marketing/pricing-section";
@@ -162,11 +162,28 @@ export function Landing() {
       </section>
 
       {/* GEO — answer-first definition for AI / answer engines */}
-      <section id="geo-definition" className="border-y border-hairline bg-soft-stone py-14">
-        <div className="mx-auto max-w-[800px] px-6 text-center">
-          <p className="text-mono-label text-slate">What is Weld.Doc?</p>
-          <p className="text-body-large mt-4 text-ink">{GEO_DEFINITION}</p>
-          <p id="brand-aliases" className="text-body mt-4 text-slate">
+      <section id="geo-definition" className="border-y border-hairline bg-soft-stone py-20">
+        <div className="mx-auto max-w-[720px] px-6">
+          <p className="text-mono-label text-center text-slate">What is Weld.Doc?</p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-2.5 text-center font-ds-display text-[20px] font-normal leading-snug tracking-tight text-ink sm:text-[22px]">
+            <span>Weld.Doc is</span>
+            <span className="rounded-md bg-deep-green px-2.5 py-0.5 text-white">
+              welding qualification software
+            </span>
+            <span>for</span>
+            <span className="rounded-md bg-brand-red/10 px-2.5 py-0.5 text-brand-red">
+              fabricators & QC teams
+            </span>
+            <span>to manage WPQ/WPQR records,</span>
+            <span className="rounded-md bg-onyx px-2.5 py-0.5 text-white">
+              certificates
+            </span>
+            <span>and</span>
+            <span className="rounded-md bg-coral/15 px-2.5 py-0.5 text-coral">
+              QR verification
+            </span>
+          </div>
+          <p id="brand-aliases" className="text-caption mt-8 text-center text-muted-slate">
             {GEO_BRAND_ALIASES}
           </p>
         </div>
@@ -354,78 +371,7 @@ export function Landing() {
         </div>
       </section>
 
-      {/* Compare — highlighted Weld.Doc column lifted over pale green */}
-      <section id="compare" className="section-y overflow-x-clip bg-pale-green">
-        <div className="mx-auto max-w-[940px] px-6">
-          <div className="max-w-[640px]">
-            <p className="text-mono-label text-brand-red">Why Weld.Doc</p>
-            <h2 className="text-section-heading mt-4">Focused beats bloated</h2>
-            <p className="text-body-large mt-5 text-slate">
-              Broad enterprise welding platforms try to do everything. Weld.Doc
-              stays focused on qualifications — faster to adopt for fabrication
-              and QC teams.
-            </p>
-          </div>
-
-          <div className="relative mt-14">
-            {/* Lifted white card behind the Weld.Doc column */}
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -top-5 bottom-0 right-[100px] w-[100px] rounded-2xl bg-canvas shadow-(--shadow-lift) sm:right-[150px] sm:w-[150px]"
-            />
-
-            <div className="relative z-10 min-w-0">
-              {/* Header */}
-              <div className="flex items-end">
-                <span className="min-w-0 flex-1 border-b border-deep-green/15 pb-4 text-mono-label text-slate">
-                  Capability
-                </span>
-                <span className="w-[100px] shrink-0 pb-4 text-center font-ds-display text-[15px] font-semibold text-brand-red sm:w-[150px]">
-                  Weld.Doc
-                </span>
-                <span className="w-[100px] shrink-0 border-b border-deep-green/15 pb-4 text-center text-caption text-muted-slate sm:w-[150px]">
-                  Others
-                </span>
-              </div>
-
-              {/* Rows */}
-              {comparison.map((row, i) => (
-                <div key={row.label} className="flex min-w-0 items-center">
-                  <span
-                    className={`min-w-0 flex-1 py-5 text-body text-ink ${i < comparison.length - 1
-                      ? "border-b border-deep-green/10"
-                      : ""
-                      }`}
-                  >
-                    {row.label}
-                  </span>
-                  <span className="flex w-[100px] shrink-0 justify-center py-5 sm:w-[150px]">
-                    <span className="grid h-7 w-7 place-items-center rounded-full bg-brand-red">
-                      <Check className="h-4 w-4 text-white" strokeWidth={2.5} />
-                    </span>
-                  </span>
-                  <span
-                    className={`flex w-[100px] shrink-0 items-center justify-center px-2 py-5 text-center sm:w-[150px] ${i < comparison.length - 1
-                      ? "border-b border-deep-green/10"
-                      : ""
-                      }`}
-                  >
-                    {row.others === true ? (
-                      <Check className="h-4 w-4 text-muted-slate" strokeWidth={2} />
-                    ) : row.others === false ? (
-                      <X className="h-4 w-4 text-muted-slate/50" strokeWidth={2} />
-                    ) : (
-                      <span className="text-micro leading-snug text-slate">
-                        {row.others}
-                      </span>
-                    )}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      <CompareRadar rows={comparison} />
 
       <PricingSection />
 

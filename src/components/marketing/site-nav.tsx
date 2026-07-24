@@ -55,8 +55,8 @@ export function SiteNav({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
             : "border-transparent bg-transparent backdrop-blur-none",
         )}
       >
-        <div className="mx-auto grid h-16 max-w-[1280px] grid-cols-[1fr_auto_1fr] items-center px-6">
-          <div className="col-start-1 flex items-center gap-4 justify-self-start">
+        <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between gap-6 px-6">
+          <div className="flex min-w-0 shrink-0 items-center gap-4">
             <Link href="/" aria-label="Weld.Doc home">
               <Logo />
             </Link>
@@ -70,7 +70,7 @@ export function SiteNav({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
             ) : null}
           </div>
 
-          <nav className="col-start-2 hidden items-center gap-8 md:flex">
+          <nav className="hidden min-w-0 items-center gap-5 whitespace-nowrap lg:flex xl:gap-8">
             {isLegal ? (
               <LegalNavLinks active={pathname} />
             ) : (
@@ -86,7 +86,7 @@ export function SiteNav({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
             )}
           </nav>
 
-          <div className="col-start-3 flex items-center justify-self-end gap-5">
+          <div className="flex shrink-0 items-center gap-4 sm:gap-5">
             {isLoggedIn ? (
               <DsButtonLink href="/dashboard" className="inline-flex">
                 Dashboard
@@ -95,11 +95,11 @@ export function SiteNav({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
               <>
                 <Link
                   href="/login"
-                  className="hidden text-body text-ink sm:inline-flex"
+                  className="whitespace-nowrap text-body text-ink hover:opacity-70"
                 >
                   Sign in
                 </Link>
-                <DsButtonLink href="/login" className="hidden md:inline-flex">
+                <DsButtonLink href="/login" className="inline-flex">
                   Get started
                 </DsButtonLink>
               </>
